@@ -1,0 +1,10 @@
+__pycache__/
+env/
+.idea/
+
+Instances/
+Solutions/
+Old/
+
+todo.txt
+.DS_Store
