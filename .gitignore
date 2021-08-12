@@ -1,10 +1,16 @@
-__pycache__/
 env/
-.idea/
 
-Instances/
-Solutions/
-Old/
+solutions/
+inputs/
+outputs/
+
+checking/tests.py
+checking/inputs/
+drawing/tests.py
+optimization/tests.py
 
 todo.txt
+
+__pycache__/
+.idea/
 .DS_Store
