@@ -1,35 +1,46 @@
-###########
-# Modules #
-###########
+#! /usr/bin/env python3
+# coding: utf-8
 
 
-# Basic modules
-import sys
-
-# Add directories
-sys.path.append('Checking')
-sys.path.append('Definition')
-sys.path.append('Explanation')
-sys.path.append('Extraction')
-sys.path.append('Optimization')
-sys.path.append('Representation')
-sys.path.append('Tools')
-sys.path.append('Writing')
-
-# Project modules
-import Checking.checking_routine
-import Extraction.extraction_routine
-import Explanation.explanation_routine
-import Optimization.optimization_routine
+# Local libraries
+from checking.routine import apply_checking_routine
+from explanation.routine import apply_explanation_routine
+from optimization.routine import apply_optimization_routine
 
 
+# Global variables
+CHECKING_ROUTINE_KEY = 'checking'
+OPTIMIZING_ROUTINE_KEY = 'optimizing'
+EXPLAINING_ROUTINE_KEY = 'explaining'
 
-########
-# Main #
-########
+# Variables to set
+# - Choose which routine to run
+# ROUTINE_KEY = CHECKING_ROUTINE_KEY
+# ROUTINE_KEY = CHECKING_ROUTINE_KEY
+ROUTINE_KEY = EXPLAINING_ROUTINE_KEY
+# - Toggle model assumptions
+IGNORE_EMPLOYEES_UNAVAILABILITIES = False
+IGNORE_TASKS_UNAVAILABILITIES = True
+IGNORE_LUNCH_BREAKS = True
+# - Toggle behaviours
+SAVING_CHECKING = True
+SAVING_ANALYSIS = True
+SHOWING_FIGURES = False
+SAVING_FIGURES = True
+SOLVING_TIME_LIMIT_IN_SECONDS = 3*60
+
+
+# Main function
+def main():
+    if ROUTINE_KEY == CHECKING_ROUTINE_KEY:
+        apply_checking_routine(SAVING_CHECKING, SAVING_ANALYSIS, SHOWING_FIGURES, SAVING_FIGURES)
+    elif ROUTINE_KEY == OPTIMIZING_ROUTINE_KEY:
+        apply_optimization_routine(SOLVING_TIME_LIMIT_IN_SECONDS)
+    elif ROUTINE_KEY == EXPLAINING_ROUTINE_KEY:
+        apply_explanation_routine(IGNORE_EMPLOYEES_UNAVAILABILITIES, IGNORE_TASKS_UNAVAILABILITIES, IGNORE_LUNCH_BREAKS)
+    else:
+        raise ValueError(f"The routine {ROUTINE_KEY} does not exist")
+
 
 if __name__ == '__main__':
-    Checking.checking_routine.main()
-    Explanation.explanation_routine.main()
-    #Extraction.extraction_routine.main()
-    #Optimization.optimization_routine.main()
+    main()

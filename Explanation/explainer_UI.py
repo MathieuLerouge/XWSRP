@@ -1,53 +1,57 @@
-###########
-# Modules #
-###########
-
-
-# Basic modules
-from PyQt5 import QtCore, QtGui, QtWidgets
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import sys
+# Standard libraries
 import re
+import sys
 import time
+
+# Third-party libraries
+from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import numpy as np
+from PyQt5 import QtWidgets
+
+# Local libraries
+from drawing.constants import *
+from drawing.KPIs import create_KPIs_comparison_figure
+from drawing.figuresmanager import FiguresManager
+from drawing.routes import create_routes_figure
+from drawing.schedules import create_schedules_figure
+from explanation.constants import *
+from explanation.explainer import Explainer
 
 
-# Project modules
-from Drawing.drawer import *
-from Explanation.explainer import *
+# Global variable
+QUESTION_WITH_EMPLOYEE_KEYS = [REALIZING_INSTEAD_OF_KEY, REALIZING_JUST_AFTER_KEY, REALIZING_IN_ADDITION_KEY,
+                               REALIZING_AT_ANOTHER_TIME_KEY, REALIZING_AT_ALL_COSTS_KEY]
+QUESTION_WITHOUT_EMPLOYEE_KEYS = [NOT_REALIZED_KEY]
 
 
-
-############################
-# Class ExplainerUIContent #
-############################
-
-
+# Class ExplainerUIContent
 class ExplainerUIContent(QtWidgets.QMainWindow):
-
-
-    #----------------#
-    # Initialization #
-    #----------------#
-
+    _label_style = "font-weight: bold"
+    _text_style = "background-color: white; padding: 3px; margin: 3px"
+    _title_style = "QGroupBox::title{font-size: 24pt; font-weight: bold}"
+    _ordered_questions_keys = [
+        REALIZING_INSTEAD_OF_KEY, REALIZING_JUST_AFTER_KEY, REALIZING_IN_ADDITION_KEY,
+        REALIZING_AT_ANOTHER_TIME_KEY, NOT_REALIZED_KEY, REALIZING_AT_ALL_COSTS_KEY
+    ]
+    _nb_fields_for_questions = 3
 
     def __init__(self, geometry, explainer: Explainer):
         super(ExplainerUIContent, self).__init__()
 
-        # Set styles
-        self.labelStyle = "font-weight: bold"
-        self.textStyle = "background-color: white; padding: 3px; margin: 3px"
-        self.titleStyle = "QGroupBox::title{font-size: 24pt; font-weight: bold}"
+        # Set the explainer
+        self._explainer = explainer
+        self._questions_keys = [key for key in self._ordered_questions_keys if key in explainer.questions_keys]
+        self._last_explanation_solution = None
 
-        # Store explainer and drawer
-        self.explainer = explainer
-        self.drawer = Drawer(solution = explainer.currentSolution)
-        self.newSolution = None
+        # Set questions templates related variables
+        # self.threeFieldsTemplatesIndices = [0, 1]
+        # self.twoFieldsTemplatesIndices = [2, 3, 4]
 
-        # Store questions templates
-        self.threeFieldsTemplatesIndices = [0, 1]
-        self.twoFieldsTemplatesIndices = [2, 3, 4]
+        # Set the figures manager
+        self._figures_manager = FiguresManager(explainer.current_solution)
+        self._figures = dict()
 
         # Define main window
         self.setGeometry(geometry)
@@ -57,669 +61,692 @@ class ExplainerUIContent(QtWidgets.QMainWindow):
         # self.setMenuBar(self.menuBar)
 
         # Define main layout and main widget
-        self.mainLayout = QtWidgets.QGridLayout()
-        self.mainLayout.setRowStretch(0, 2)
-        self.mainLayout.setRowStretch(1, 1)
-        self.mainLayout.setColumnStretch(0, 7)
-        self.mainLayout.setColumnStretch(1, 2)
+        self._main_layout = QtWidgets.QGridLayout()
+        self._main_layout.setRowStretch(0, 2)
+        self._main_layout.setRowStretch(1, 1)
+        self._main_layout.setColumnStretch(0, 7)
+        self._main_layout.setColumnStretch(1, 2)
         self.mainWidget = QtWidgets.QWidget(self)
-        self.mainWidget.setLayout(self.mainLayout)
+        self.mainWidget.setLayout(self._main_layout)
         self.setCentralWidget(self.mainWidget)
 
         # Setup drawings group
-        self.setupDrawingsGroup()
+        self._figures_canvas = {
+            ROUTES_FIGURE_KEY: QtWidgets.QWidget(),
+            SCHEDULES_FIGURE_KEY: QtWidgets.QWidget(),
+            KPIS_FIGURE_KEY: QtWidgets.QWidget()
+        }
+        self._setup_drawings_group()
 
-        # Setup question-explaination group
-        self.setupQuestionExplanationGroup()
+        # Setup question-explanation group
+        self._setup_question_explanation_group()
 
         # Setup history group
-        self.setupHistoryGroup()
+        self._setup_history_group()
 
+    @property
+    def current_solution(self):
+        return self._explainer.current_solution
 
+    @property
+    def questions_keys(self):
+        return self._questions_keys
 
-    #----------------#
+    @property
+    def _routes_figure(self) -> Figure:
+        return self._figures[ROUTES_FIGURE_KEY]
+
+    @_routes_figure.setter
+    def _routes_figure(self, routes_figure: Figure):
+        self._figures[ROUTES_FIGURE_KEY] = routes_figure
+
+    @property
+    def _schedules_figure(self) -> Figure:
+        return self._figures[SCHEDULES_FIGURE_KEY]
+
+    @_schedules_figure.setter
+    def _schedules_figure(self, schedules_figure: Figure):
+        self._figures[SCHEDULES_FIGURE_KEY] = schedules_figure
+
+    @property
+    def _KPIs_figure(self) -> Figure:
+        return self._figures[KPIS_FIGURE_KEY]
+
+    @_KPIs_figure.setter
+    def _KPIs_figure(self, KPIs_figure: Figure):
+        self._figures[KPIS_FIGURE_KEY] = KPIs_figure
+
+    @property
+    def routes_figure(self) -> Figure:
+        return self._figures[ROUTES_FIGURE_KEY]
+
+    @property
+    def schedules_figure(self) -> Figure:
+        return self._figures[SCHEDULES_FIGURE_KEY]
+
+    @property
+    def KPIs_figure(self) -> Figure:
+        return self._figures[KPIS_FIGURE_KEY]
+
+    @property
+    def _routes_canvas(self) -> QtWidgets.QWidget:
+        return self._figures_canvas[ROUTES_FIGURE_KEY]
+
+    @_routes_canvas.setter
+    def _routes_canvas(self, canvas: FigureCanvas):
+        self._figures_canvas[ROUTES_FIGURE_KEY] = canvas
+
+    @property
+    def _schedules_canvas(self) -> QtWidgets.QWidget:
+        return self._figures_canvas[SCHEDULES_FIGURE_KEY]
+
+    @_schedules_canvas.setter
+    def _schedules_canvas(self, canvas: FigureCanvas):
+        self._figures_canvas[SCHEDULES_FIGURE_KEY] = canvas
+
+    @property
+    def _KPIs_canvas(self) -> QtWidgets.QWidget:
+        return self._figures_canvas[KPIS_FIGURE_KEY]
+
+    @_KPIs_canvas.setter
+    def _KPIs_canvas(self, canvas: FigureCanvas):
+        self._figures_canvas[KPIS_FIGURE_KEY] = canvas
+
+    #############
+    # Questions #
+    #############
+
+    def get_question_by_index(self, index):
+        return self._explainer.get_question(self.questions_keys[index])
+
+    ##################
     # Drawings group #
-    #----------------#
+    ##################
 
-
-    def setupDrawingsGroup(self):
-
-        # Initialize drawings canvas
-        self.routesCanvas = QtWidgets.QWidget()
-        self.schedulesCanvas = QtWidgets.QWidget()
-        self.KPIsCanvas = QtWidgets.QWidget()
+    def _setup_drawings_group(self):
 
         # Setup the drawings layout
-        self.drawingLayout = QtWidgets.QGridLayout()
-        self.drawingLayout.setRowStretch(0, 1)
-        self.drawingLayout.setColumnStretch(0, 2)
-        self.drawingLayout.setColumnStretch(1, 2)
-        self.drawingLayout.setColumnStretch(2, 1)
+        self._drawing_layout = QtWidgets.QGridLayout()
+        self._drawing_layout.setRowStretch(0, 1)
+        self._drawing_layout.setColumnStretch(0, 2)
+        self._drawing_layout.setColumnStretch(1, 2)
+        self._drawing_layout.setColumnStretch(2, 1)
 
         # Create the drawings
-        self.updateDrawingGroup()
+        self.update_drawing_group()
 
         # Create a drawings group and insert it in the main layout
-        drawingsGroup = QtWidgets.QGroupBox(self.mainWidget)
-        drawingsGroup.setTitle("Drawings")
-        drawingsGroup.setStyleSheet(self.titleStyle)
-        drawingsGroup.setLayout(self.drawingLayout)
-        self.mainLayout.addWidget(drawingsGroup, 0, 0, 1, 2)
+        drawings_group = QtWidgets.QGroupBox(self.mainWidget)
+        drawings_group.setTitle("Drawings")
+        drawings_group.setStyleSheet(self._title_style)
+        drawings_group.setLayout(self._drawing_layout)
+        self._main_layout.addWidget(drawings_group, 0, 0, 1, 2)
 
+    def update_drawing_group(self):
+        self._figures = self._figures_manager.get_solution_figures(self.current_solution, True)
+        self._update_drawing_layout()
 
-    def updateDrawingGroup(self):
-        self.routesFigure, self.schedulesFigure, self.KPIsFigure = self.drawer.getFigures(self.explainer.currentSolution, forUI = True)
-        self.updateDrawingLayout()
+    def _update_drawing_layout(self):
+        self._routes_canvas = FigureCanvas(self.routes_figure)
+        self._schedules_canvas = FigureCanvas(self.schedules_figure)
+        self._KPIs_canvas = FigureCanvas(self.KPIs_figure)
+        self._drawing_layout.addWidget(self._routes_canvas, 0, 0)
+        self._drawing_layout.addWidget(self._schedules_canvas, 0, 1)
+        self._drawing_layout.addWidget(self._KPIs_canvas, 0, 2)
 
+    ################################
+    # Question - Explanation group #
+    ################################
 
-    def updateDrawingLayout(self):
-        self.routesCanvas = FigureCanvas(self.routesFigure)
-        self.schedulesCanvas = FigureCanvas(self.schedulesFigure)
-        self.KPIsCanvas = FigureCanvas(self.KPIsFigure)
-        self.drawingLayout.addWidget(self.routesCanvas, 0, 0)
-        self.drawingLayout.addWidget(self.schedulesCanvas, 0, 1)
-        self.drawingLayout.addWidget(self.KPIsCanvas, 0, 2)
-
-
-    #-------------------#
-    # Explanation group #
-    #-------------------#
-
-
-    def setupQuestionExplanationGroup(self):
+    def _setup_question_explanation_group(self):
 
         # Initialize the question-explanation group
-        QXGroup = QtWidgets.QGroupBox(self.mainWidget)
+        QX_group = QtWidgets.QGroupBox(self.mainWidget)
 
         # Create the question drop-down list and its (fixed) label
-        templateLabel = QtWidgets.QLabel(QXGroup)
-        templateLabel.setText("Select template: ")
-        templateLabel.setStyleSheet(self.labelStyle)
-        self.templateDDList = QtWidgets.QComboBox(QXGroup)
-        #self.templateDDList.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        templateQuestionsTexts = [re.sub(r"{\d+}", "_", template) for template in self.explainer.getTemplatesTexts()]
-        self.templateDDList.addItems(templateQuestionsTexts)
-        self.templateDDList.currentIndexChanged.connect(self.templateDDListChanged)
+        template_question_label = QtWidgets.QLabel(QX_group)
+        template_question_label.setText("Select template: ")
+        template_question_label.setStyleSheet(self._label_style)
+        self._question_DD_list = QtWidgets.QComboBox(QX_group)
+        self._question_DD_list.addItems(
+            [re.sub(r"{\d+}", "_", self._explainer.get_question(key).text) for key in self.questions_keys]
+        )
+        self._question_DD_list.currentIndexChanged.connect(self._react_to_question_DD_list_change)
 
         # Initialize fields labels and fields drop-down lists
-        nbFields = 3
-        self.fieldsLabels = [QtWidgets.QLabel() for j in range(nbFields)]
-        self.fieldsDDLists = [QtWidgets.QComboBox(QXGroup) for j in range(nbFields)]
-        for j in range(nbFields):
-            self.fieldsLabels[j].setText("Looooooong pattern")
-            self.fieldsLabels[j].setStyleSheet(self.labelStyle)
-            labelPolicy = self.fieldsDDLists[j].sizePolicy()
-            labelPolicy.setRetainSizeWhenHidden(True);
-            self.fieldsDDLists[j].setSizePolicy(labelPolicy)
-            self.fieldsDDLists[j].currentTextChanged.connect(lambda: self.fieldDDListChanged(j))
-        field2FiltersNames = ["Skill-feasible", "Non-realized", "Employee's", "Non-employee's"]
-        self.field2Filters = dict(zip(field2FiltersNames, [QtWidgets.QCheckBox(name) for name in field2FiltersNames]))
-        # for filterName in field2FiltersNames:
-        #     self.field2Filters[filterName].toggled.connect(lambda: self.filterToggled(filterName))
+        self._fields_labels = [QtWidgets.QLabel() for j in range(self._nb_fields_for_questions)]
+        self._fields_DD_lists = [QtWidgets.QComboBox(QX_group) for j in range(self._nb_fields_for_questions)]
+        for j in range(self._nb_fields_for_questions):
+            self._fields_labels[j].setText("Very very long pattern")
+            self._fields_labels[j].setStyleSheet(self._label_style)
+            label_policy = self._fields_DD_lists[j].sizePolicy()
+            label_policy.setRetainSizeWhenHidden(True)
+            self._fields_DD_lists[j].setSizePolicy(label_policy)
+            self._fields_DD_lists[j].currentTextChanged.connect(lambda: self._react_to_field_DD_list_change(j))
+        fields_filters_names = ["skill-feasible", "non-realized", "employee's", "non-employee's"]
+        self._fields_filters = dict([(name, QtWidgets.QCheckBox(name)) for name in fields_filters_names])
 
         # Initialize question label (completed text) and its (fixed) label
-        questionLabel = QtWidgets.QLabel(QXGroup)
-        questionLabel.setText("Question to explain: ")
-        questionLabel.setStyleSheet(self.labelStyle)
-        self.questionText = QtWidgets.QLabel(QXGroup)
-        self.questionText.setStyleSheet(self.textStyle)
-        self.questionText.setWordWrap(True)
+        filled_question_label = QtWidgets.QLabel(QX_group)
+        filled_question_label.setText("Question to explain: ")
+        filled_question_label.setStyleSheet(self._label_style)
+        self._question_text = QtWidgets.QLabel(QX_group)
+        self._question_text.setStyleSheet(self._text_style)
+        self._question_text.setWordWrap(True)
 
         # Initialize explanation label (text) and its (fixed) label
-        explanationLabel = QtWidgets.QLabel(QXGroup)
-        explanationLabel.setText("Explanation: ")
-        explanationLabel.setStyleSheet(self.labelStyle)
-        self.explanationText = QtWidgets.QLabel(QXGroup)
-        self.explanationText.setStyleSheet(self.textStyle)
-        self.explanationText.setWordWrap(True)
+        explanation_label = QtWidgets.QLabel(QX_group)
+        explanation_label.setText("Explanation: ")
+        explanation_label.setStyleSheet(self._label_style)
+        self._explanation_text = QtWidgets.QLabel(QX_group)
+        self._explanation_text.setStyleSheet(self._text_style)
+        self._explanation_text.setWordWrap(True)
 
         # Create explain button
-        self.explainButton = QtWidgets.QPushButton(QXGroup)
-        self.explainButton.setText("Explain")
-        self.explainButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
-        self.explainButton.clicked.connect(self.explainButtonClicked)
+        self._explain_button = QtWidgets.QPushButton(QX_group)
+        self._explain_button.setText("Explain")
+        self._explain_button.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        self._explain_button.clicked.connect(self._react_to_explain_button_click)
+
+        # Create got-it button
+        self._got_it_button = QtWidgets.QPushButton(QX_group)
+        self._got_it_button.setText("Got it")
+        self._got_it_button.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        self._got_it_button.clicked.connect(self._react_to_got_it_button_click)
+        self._got_it_button.setEnabled(False)
 
         # Create save button
-        self.gotItButton = QtWidgets.QPushButton(QXGroup)
-        self.gotItButton.setText("Got it")
-        self.gotItButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
-        self.gotItButton.clicked.connect(self.gotItButtonClicked)
-        self.gotItButton.setEnabled(False)
+        self._save_button = QtWidgets.QPushButton(QX_group)
+        self._save_button.setText("Save")
+        self._save_button.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        self._save_button.clicked.connect(self._react_to_save_button_click)
+        self._save_button.setEnabled(False)
 
         # Create save button
-        self.saveButton = QtWidgets.QPushButton(QXGroup)
-        self.saveButton.setText("Save")
-        self.saveButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
-        self.saveButton.clicked.connect(self.saveButtonClicked)
-        self.saveButton.setEnabled(False)
-
-        # Create save button
-        self.forgetButton = QtWidgets.QPushButton(QXGroup)
-        self.forgetButton.setText("Forget")
-        self.forgetButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
-        self.forgetButton.clicked.connect(self.forgetButtonClicked)
-        self.forgetButton.setEnabled(False)
+        self._forget_button = QtWidgets.QPushButton(QX_group)
+        self._forget_button.setText("Forget")
+        self._forget_button.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        self._forget_button.clicked.connect(self._react_to_forget_button_click)
+        self._forget_button.setEnabled(False)
 
         # Setup the question layout
         # - First columns
-        QXLayout = QtWidgets.QGridLayout()
+        QX_layout = QtWidgets.QGridLayout()
         for j in range(3):
-            shiftDueToFilters = 0 if j < 2 else 2
-            QXLayout.setColumnStretch(3*j + shiftDueToFilters, 3)
-            QXLayout.setColumnStretch(3*j + 1 + shiftDueToFilters, 2)
+            shift_due_to_filters = 0 if j < 2 else 2
+            QX_layout.setColumnStretch(3 * j + shift_due_to_filters, 3)
+            QX_layout.setColumnStretch(3 * j + 1 + shift_due_to_filters, 2)
         for j in range(2):
-            shiftDueToFilters = 0 if j < 1 else 2
-            QXLayout.setColumnStretch(3*j + 2 + shiftDueToFilters, 2)
-        QXLayout.setColumnStretch(10, 1)
+            shift_due_to_filters = 0 if j < 1 else 2
+            QX_layout.setColumnStretch(3 * j + 2 + shift_due_to_filters, 2)
+        QX_layout.setColumnStretch(10, 1)
         for i in range(3):
-            QXLayout.setRowStretch(4 + i, 1)
-        QXLayout.addWidget(templateLabel, 0, 0)
-        QXLayout.addWidget(self.templateDDList, 0, 1, 1, 9)
+            QX_layout.setRowStretch(4 + i, 1)
+        QX_layout.addWidget(template_question_label, 0, 0)
+        QX_layout.addWidget(self._question_DD_list, 0, 1, 1, 9)
         for j in range(3):
-            shiftDueToFilters = 0 if j < 2 else 2
-            QXLayout.addWidget(self.fieldsLabels[j], 1, 3*j + shiftDueToFilters, 2, 1)
-            QXLayout.addWidget(self.fieldsDDLists[j], 1, 3*j + 1 + shiftDueToFilters, 2, 1)
-        QXLayout.addWidget(self.field2Filters["Skill-feasible"], 1, 5)
-        QXLayout.addWidget(self.field2Filters["Non-realized"], 1, 6)
-        QXLayout.addWidget(self.field2Filters["Employee's"], 2, 5)
-        QXLayout.addWidget(self.field2Filters["Non-employee's"], 2, 6)
-        QXLayout.addWidget(questionLabel, 3, 0)
-        QXLayout.addWidget(self.questionText, 3, 1, 1, 9)
-        QXLayout.addWidget(explanationLabel, 4, 0, 3, 1)
-        QXLayout.addWidget(self.explanationText, 4, 1, 3, 9)
-        # - Last colulmn
-        QXLayout.addWidget(self.explainButton, 0, 10, 4, 1)
-        QXLayout.addWidget(self.gotItButton, 4, 10)
-        QXLayout.addWidget(self.saveButton, 5, 10)
-        QXLayout.addWidget(self.forgetButton, 6, 10)
+            shift_due_to_filters = 0 if j < 2 else 2
+            QX_layout.addWidget(self._fields_labels[j], 1, 3 * j + shift_due_to_filters, 2, 1)
+            QX_layout.addWidget(self._fields_DD_lists[j], 1, 3 * j + 1 + shift_due_to_filters, 2, 1)
+        QX_layout.addWidget(self._fields_filters["skill-feasible"], 1, 5)
+        QX_layout.addWidget(self._fields_filters["non-realized"], 1, 6)
+        QX_layout.addWidget(self._fields_filters["employee's"], 2, 5)
+        QX_layout.addWidget(self._fields_filters["non-employee's"], 2, 6)
+        QX_layout.addWidget(filled_question_label, 3, 0)
+        QX_layout.addWidget(self._question_text, 3, 1, 1, 9)
+        QX_layout.addWidget(explanation_label, 4, 0, 3, 1)
+        QX_layout.addWidget(self._explanation_text, 4, 1, 3, 9)
+        # - Last column
+        QX_layout.addWidget(self._explain_button, 0, 10, 4, 1)
+        QX_layout.addWidget(self._got_it_button, 4, 10)
+        QX_layout.addWidget(self._save_button, 5, 10)
+        QX_layout.addWidget(self._forget_button, 6, 10)
 
         # Insert the question-explanation group in the main layout
-        QXGroup.setTitle("Question - explanation")
-        QXGroup.setStyleSheet(self.titleStyle)
-        QXGroup.setLayout(QXLayout)
-        self.mainLayout.addWidget(QXGroup, 1, 0)
+        QX_group.setTitle("Question - explanation")
+        QX_group.setStyleSheet(self._title_style)
+        QX_group.setLayout(QX_layout)
+        self._main_layout.addWidget(QX_group, 1, 0)
 
         # Create the fields, texts and button
-        self.updateQuestionExplanationGroup()
+        self.update_question_explanation_group()
 
+    def update_question_explanation_group(self):
+        self._react_to_question_DD_list_change()
 
-    def updateQuestionExplanationGroup(self):
-        self.templateDDListChanged()
-
-
-    def templateDDListChanged(self):
+    def _react_to_question_DD_list_change(self):
 
         # Clear explanation text
-        self.explanationText.setText("")
+        self._explanation_text.setText("")
 
         # Setup fields depending on the selected question
-        if self.explainer.templatesKeys[self.templateDDList.currentIndex()] in ["RealizingInsteadOf", "RealizingJustAfter", \
-            "RealizingInAddition", "RealizingAtAnotherTime", "RealizingAtAllCosts", "Realizing"]:
+        question_key = self.get_question_by_index(self._question_DD_list.currentIndex()).key
+        if question_key in QUESTION_WITH_EMPLOYEE_KEYS:
 
             # Get the name of former selected employee
-            employeeName = self.fieldsDDLists[0].currentText()
+            employee_name = self._fields_DD_lists[0].currentText()
 
             # Setup the first field's label and drop-down list for an employee selection
-            self.fieldsLabels[0].setText("Select employee: ")
-            self.fieldsDDLists[0].setVisible(True)
-            self.fieldsDDLists[0].currentTextChanged.disconnect()
-            self.fieldsDDLists[0].clear()
-            self.fieldsDDLists[0].addItems(list(self.explainer.currentSolution.instance.getEmployeesNames()))
-            index = self.fieldsDDLists[0].findText(employeeName)
+            self._fields_labels[0].setText("Select employee: ")
+            self._fields_DD_lists[0].setVisible(True)
+            self._fields_DD_lists[0].currentTextChanged.disconnect()
+            self._fields_DD_lists[0].clear()
+            self._fields_DD_lists[0].addItems(list(self.current_solution.instance.employees_names))
+            index = self._fields_DD_lists[0].findText(employee_name)
             if index >= 0:
-                self.fieldsDDLists[0].setCurrentIndex(index)
-            self.fieldsDDLists[0].currentTextChanged.connect(lambda: self.fieldDDListChanged(0))
+                self._fields_DD_lists[0].setCurrentIndex(index)
+            self._fields_DD_lists[0].currentTextChanged.connect(lambda: self._react_to_field_DD_list_change(0))
 
             # Setup the second field's label for an activity selection
-            self.fieldsLabels[1].setText("Select task: ")
-            self.fieldsDDLists[1].setVisible(True)
+            self._fields_labels[1].setText("Select task: ")
+            self._fields_DD_lists[1].setVisible(True)
 
             # Setup the second field's filters
-            self.setDefaultFilters()
+            self._set_default_filters()
 
-            if self.explainer.templatesKeys[self.templateDDList.currentIndex()] in ["RealizingInsteadOf", "RealizingJustAfter"]:
-
-                # Setup the third's field label for an activity selection
-                self.fieldsLabels[2].setText("Select activity: ")
-                self.fieldsDDLists[2].setVisible(True)
-
-            elif self.explainer.templatesKeys[self.templateDDList.currentIndex()] in ["RealizingInAddition", "RealizingAtAnotherTime", "RealizingAtAllCosts", "Realizing"]:
-
-                # Setup the third's field to be empty
-                self.fieldsLabels[2].setText("")
-                self.fieldsDDLists[2].setVisible(False)
+            # Setup the third's field label for an activity selection or nothing depending on the question
+            if question_key in [REALIZING_INSTEAD_OF_KEY, REALIZING_JUST_AFTER_KEY]:
+                self._fields_labels[2].setText("Select activity: ")
+                self._fields_DD_lists[2].setVisible(True)
+            elif question_key in [REALIZING_IN_ADDITION_KEY, REALIZING_AT_ANOTHER_TIME_KEY, REALIZING_AT_ALL_COSTS_KEY]:
+                self._fields_labels[2].setText("")
+                self._fields_DD_lists[2].setVisible(False)
+            else:
+                raise Exception(f"There is something wrong with the fields of the question with key {question_key}")
 
             # Update the second field drop-down list
-            self.fieldDDListChanged(0)
+            self._react_to_field_DD_list_change(0)
 
-        elif self.explainer.templatesKeys[self.templateDDList.currentIndex()] in ["NotRealized"]:
+        elif question_key in QUESTION_WITHOUT_EMPLOYEE_KEYS:
 
             # Setup the first field's label and drop-down list for an employee selection
-            self.fieldsLabels[0].setText("")
+            self._fields_labels[0].setText("")
             # self.fieldsDDLists[0].currentTextChanged.disconnect()
             # self.fieldsDDLists[0].clear()
             # self.fieldsDDLists[0].currentTextChanged.connect(lambda: self.fieldDDListChanged(0))
-            self.fieldsDDLists[0].setVisible(False)
+            self._fields_DD_lists[0].setVisible(False)
 
             # Setup the second field's label for an activity selection
-            self.fieldsLabels[1].setText("Select task: ")
-            self.fieldsDDLists[1].setVisible(True)
+            self._fields_labels[1].setText("Select task: ")
+            self._fields_DD_lists[1].setVisible(True)
 
             # Setup the second field's filters
-            self.setDefaultFilters()
+            self._set_default_filters()
 
             # Setup the third's field to be empty
-            self.fieldsLabels[2].setText("")
-            self.fieldsDDLists[2].setVisible(False)
+            self._fields_labels[2].setText("")
+            self._fields_DD_lists[2].setVisible(False)
 
-            # Add the names of all the tasks that are not realized by any employee to the second ddlist
-            self.fieldsDDLists[1].currentTextChanged.disconnect()
-            self.fieldsDDLists[1].clear()
-            filteredTasksNames = self.explainer.currentSolution.getFilteredTasksNames(
-                employee = None,
-                excludingTasksWithHigherSkills = None,
-                excludingRealizedTasks = True,
-                excludingNonEmployeesTasks = None,
-                excludingEmployeesTasks = None
+            # Add to the second DD list the names of all the tasks that are not realized by any employee
+            self._fields_DD_lists[1].currentTextChanged.disconnect()
+            self._fields_DD_lists[1].clear()
+            self._fields_DD_lists[1].addItems(
+                self.current_solution.filter_tasks_names(None, False, True, False, False)
             )
-            self.fieldsDDLists[1].addItems(filteredTasksNames)
-            self.fieldsDDLists[1].currentTextChanged.connect(lambda: self.fieldDDListChanged(1))
+            self._fields_DD_lists[1].currentTextChanged.connect(lambda: self._react_to_field_DD_list_change(1))
 
             # Update the second field drop-down list
-            self.fieldDDListChanged(1)
+            self._react_to_field_DD_list_change(1)
 
         else:
 
             # Setup all fields to be empty
             for j in range(3):
-                self.fieldsLabels[j].setText("")
-                self.fieldsDDLists[j].setVisible(False)
-            for filterName in self.field2Filters.keys():
-                self.field2Filters[filterName].setVisible(False)
+                self._fields_labels[j].setText("")
+                self._fields_DD_lists[j].setVisible(False)
+            for filter_name in self._fields_filters.keys():
+                self._fields_filters[filter_name].setVisible(False)
 
             # Update question text
-            self.updateQuestionLabel()
+            self.update_question_label()
 
-
-    def fieldDDListChanged(self, DDListIndex):
+    def _react_to_field_DD_list_change(self, field_index: int):
 
         # If first drop-down list is changed
-        if DDListIndex == 0:
+        if field_index == 0:
 
-            # Get the name of the selected employee
-            employeeName = self.fieldsDDLists[0].currentText()
-            taskName = self.fieldsDDLists[1].currentText()
+            # Get the employee
+            employee = self.current_solution.instance.get_employee_by_name(self._fields_DD_lists[0].currentText())
+            task_name = self._fields_DD_lists[1].currentText()
 
-            # Add the names of all the tasks that are not realized by the employee to the second ddlist
-            self.fieldsDDLists[1].currentTextChanged.disconnect()
-            self.fieldsDDLists[1].clear()
-            filteredTasksNames = self.explainer.currentSolution.getFilteredTasksNames(
-                employee = self.explainer.currentSolution.instance.getEmployee(employeeName),
-                excludingTasksWithHigherSkills = self.field2Filters["Skill-feasible"].isChecked(),
-                excludingRealizedTasks = self.field2Filters["Non-realized"].isChecked(),
-                excludingNonEmployeesTasks = self.field2Filters["Employee's"].isChecked(),
-                excludingEmployeesTasks = self.field2Filters["Non-employee's"].isChecked()
+            # Add to the second DD list the names of all the filtered tasks
+            self._fields_DD_lists[1].currentTextChanged.disconnect()
+            self._fields_DD_lists[1].clear()
+            filtered_tasks_names = self.current_solution.filter_tasks_names(
+                employee,
+                self._fields_filters["skill-feasible"].isChecked(), self._fields_filters["non-realized"].isChecked(),
+                self._fields_filters["employee's"].isChecked(), self._fields_filters["non-employee's"].isChecked()
             )
-            self.fieldsDDLists[1].addItems(filteredTasksNames)
-            index = self.fieldsDDLists[1].findText(taskName)
+            self._fields_DD_lists[1].addItems(filtered_tasks_names)
+            index = self._fields_DD_lists[1].findText(task_name)
             if index >= 0:
-                self.fieldsDDLists[1].setCurrentIndex(index)
-            self.fieldsDDLists[1].currentTextChanged.connect(lambda: self.fieldDDListChanged(1))
+                self._fields_DD_lists[1].setCurrentIndex(index)
+            self._fields_DD_lists[1].currentTextChanged.connect(lambda: self._react_to_field_DD_list_change(1))
 
-            # Add the names of the tasks or activities that are realized by the employee to the third ddlist
-            self.fieldsDDLists[2].currentTextChanged.disconnect()
-            self.fieldsDDLists[2].clear()
-            if self.explainer.templatesKeys[self.templateDDList.currentIndex()] == "RealizingJustAfter":
-                realizedActivitiesNames = self.explainer.currentSolution.getSequence(employeeName).getActivitiesNames(
-                    includingStart = True, includingEnd = False, includingUnavailabilities = True, alphaOrdered = True)
-                self.fieldsDDLists[2].addItems(realizedActivitiesNames)
+            # Add to the third DD list the names of the tasks or activities that are realized by the employee
+            self._fields_DD_lists[2].currentTextChanged.disconnect()
+            self._fields_DD_lists[2].clear()
+            if self.get_question_by_index(self._question_DD_list.currentIndex()).key == REALIZING_JUST_AFTER_KEY:
+                realized_activities_names = [
+                    activity.name
+                    for activity in self.current_solution.get_sequence(employee).get_contained_activities(
+                        True, False, True, True
+                    )
+                ]
+                self._fields_DD_lists[2].addItems(realized_activities_names)
             else:
-                realizedTasksNames = self.explainer.currentSolution.getSequence(employeeName).getTasksNames(alphaOrdered = True)
-                self.fieldsDDLists[2].addItems(realizedTasksNames)
-            self.fieldsDDLists[2].currentTextChanged.connect(lambda: self.fieldDDListChanged(2))
+                realized_tasks_names = [
+                    task.name for task in self.current_solution.get_sequence(employee).get_contained_tasks(True)
+                ]
+                self._fields_DD_lists[2].addItems(realized_tasks_names)
+            self._fields_DD_lists[2].currentTextChanged.connect(lambda: self._react_to_field_DD_list_change(2))
 
             # Update question text
-            self.updateQuestionLabel()
+            self.update_question_label()
 
         # If second drop-down list is changed
-        elif DDListIndex == 1:
+        elif field_index == 1:
 
             # Update question text
-            self.updateQuestionLabel()
+            self.update_question_label()
 
         # If third drop-down list is changed
-        elif DDListIndex == 2:
+        elif field_index == 2:
 
             # Update question text
-            self.updateQuestionLabel()
+            self.update_question_label()
 
+        # If anything else,
         else:
-            print("There is something wrong!")
+            raise Exception("There is something wrong with the reaction to question field change")
 
-
-    def setDefaultFilters(self, forceSkillFeasibleChecked = False, forceNonRealizedCheck = False, forceNonEmployeeCheck = False):
-        if not(self.explainer.templatesKeys[self.templateDDList.currentIndex()] in ["Tightening"]):
-            enabled = dict()
-            checked = dict()
-            if self.explainer.templatesKeys[self.templateDDList.currentIndex()] == "RealizingInsteadOf":
-                enabled = {"Skill-feasible": True, "Non-realized": True, "Employee's": False, "Non-employee's": False}
-                checked = {"Skill-feasible": False, "Non-realized": False, "Employee's": False, "Non-employee's": True}
-            elif self.explainer.templatesKeys[self.templateDDList.currentIndex()] == "RealizingJustAfter":
-                enabled = {"Skill-feasible": True, "Non-realized": True, "Employee's": True, "Non-employee's": True}
-                checked = {"Skill-feasible": False, "Non-realized": False, "Employee's": False, "Non-employee's": False}
-            elif self.explainer.templatesKeys[self.templateDDList.currentIndex()] in ["RealizingInAddition", "RealizingAtAllCosts"]:
-                enabled = {"Skill-feasible": True, "Non-realized": True, "Employee's": False, "Non-employee's": False}
-                checked = {"Skill-feasible": False, "Non-realized": False, "Employee's": False, "Non-employee's": True}
-            elif self.explainer.templatesKeys[self.templateDDList.currentIndex()] in ["RealizingAtAnotherTime", "Realizing"]:
-                enabled = {"Skill-feasible": False, "Non-realized": False, "Employee's": False, "Non-employee's": False}
-                checked = {"Skill-feasible": False, "Non-realized": False, "Employee's": True, "Non-employee's": False}
-            elif self.explainer.templatesKeys[self.templateDDList.currentIndex()] in ["NotRealized"]:
-                enabled = {"Skill-feasible": False, "Non-realized": False, "Employee's": False, "Non-employee's": False}
-                checked = {"Skill-feasible": False, "Non-realized": True, "Employee's": False, "Non-employee's": False}
+    def _set_default_filters(self, force_skill_feasible_checked: bool = False,
+                             force_non_realized_check: bool = False,
+                             force_non_employee_check: bool = False):
+        question_key = self.get_question_by_index(self._question_DD_list.currentIndex()).key
+        if not (question_key in ["Tightening"]):
+            if question_key == REALIZING_INSTEAD_OF_KEY:
+                enabled = {"skill-feasible": True, "non-realized": True, "employee's": False, "non-employee's": False}
+                checked = {"skill-feasible": False, "non-realized": False, "employee's": False, "non-employee's": True}
+            elif question_key == REALIZING_JUST_AFTER_KEY:
+                enabled = {"skill-feasible": True, "non-realized": True, "employee's": True, "non-employee's": True}
+                checked = {"skill-feasible": False, "non-realized": False, "employee's": False, "non-employee's": False}
+            elif question_key in [REALIZING_IN_ADDITION_KEY, REALIZING_AT_ALL_COSTS_KEY]:
+                enabled = {"skill-feasible": True, "non-realized": True, "employee's": False, "non-employee's": False}
+                checked = {"skill-feasible": False, "non-realized": False, "employee's": False, "non-employee's": True}
+            elif question_key in [REALIZING_AT_ANOTHER_TIME_KEY, "Realizing"]:
+                enabled = {"skill-feasible": False, "non-realized": False, "employee's": False, "non-employee's": False}
+                checked = {"skill-feasible": False, "non-realized": False, "employee's": True, "non-employee's": False}
+            elif question_key in [NOT_REALIZED_KEY]:
+                enabled = {"skill-feasible": False, "non-realized": False, "employee's": False, "non-employee's": False}
+                checked = {"skill-feasible": False, "non-realized": True, "employee's": False, "non-employee's": False}
             else:
-                raise Exception(f"{self.explainer.templatesKeys[self.templateDDList.currentIndex()]} question not treated in setDefaultFilters()")
-            checked["Skill-feasible"] = checked["Skill-feasible"] or forceSkillFeasibleChecked
-            checked["Non-realized"] = checked["Non-realized"] or forceNonRealizedCheck
-            if checked["Non-realized"]:
-                enabled["Employee's"] = False
-            checked["Non-employee's"] = checked["Non-employee's"] or forceNonEmployeeCheck
-            if checked["Non-realized"]:
-                enabled["Employee's"] = False
-            for filterName in self.field2Filters.keys():
-                self.field2Filters[filterName].setVisible(True)
-                self.field2Filters[filterName].disconnect()
-                self.field2Filters[filterName].setEnabled(enabled[filterName])
-                self.field2Filters[filterName].setChecked(checked[filterName])
-                #self.field2Filters[filterName].toggled.connect(lambda: self.filterToggled(filterName))
-            self.field2Filters["Skill-feasible"].toggled.connect(lambda: self.filterToggled("Skill-feasible"))
-            self.field2Filters["Non-realized"].toggled.connect(lambda: self.filterToggled("Non-realized"))
-            self.field2Filters["Employee's"].toggled.connect(lambda: self.filterToggled("Employee's"))
-            self.field2Filters["Non-employee's"].toggled.connect(lambda: self.filterToggled("Non-employee's"))
+                raise Exception(f"There is something wrong with default filter and question with {question_key}")
+            checked["skill-feasible"] = checked["skill-feasible"] or force_skill_feasible_checked
+            checked["non-realized"] = checked["non-realized"] or force_non_realized_check
+            if checked["non-realized"]:
+                enabled["employee's"] = False
+            checked["non-employee's"] = checked["non-employee's"] or force_non_employee_check
+            if checked["non-realized"]:
+                enabled["employee's"] = False
+            for filter_name in self._fields_filters.keys():
+                self._fields_filters[filter_name].setVisible(True)
+                self._fields_filters[filter_name].disconnect()
+                self._fields_filters[filter_name].setEnabled(enabled[filter_name])
+                self._fields_filters[filter_name].setChecked(checked[filter_name])
+                # self.field2Filters[filter_name].toggled.connect(lambda: self.filterToggled(filter_name))
+            self._fields_filters["skill-feasible"].toggled.connect(
+                lambda: self._react_to_filter_toggle("skill-feasible")
+            )
+            self._fields_filters["non-realized"].toggled.connect(
+                lambda: self._react_to_filter_toggle("non-realized")
+            )
+            self._fields_filters["employee's"].toggled.connect(
+                lambda: self._react_to_filter_toggle("employee's")
+            )
+            self._fields_filters["non-employee's"].toggled.connect(
+                lambda: self._react_to_filter_toggle("non-employee's")
+            )
 
-
-    def filterToggled(self, filterName):
+    def _react_to_filter_toggle(self, filter_key: str):
 
         # Handle non-realized filter influence over other filters
-        if filterName == "Non-realized":
-            if self.field2Filters["Non-realized"].isChecked():
-                self.field2Filters["Employee's"].disconnect()
-                self.field2Filters["Employee's"].setEnabled(False)
-                self.field2Filters["Employee's"].setChecked(False)
-                self.field2Filters["Employee's"].toggled.connect(lambda: self.filterToggled("Employee's"))
+        if filter_key == "non-realized":
+            if self._fields_filters["non-realized"].isChecked():
+                self._fields_filters["employee's"].disconnect()
+                self._fields_filters["employee's"].setEnabled(False)
+                self._fields_filters["employee's"].setChecked(False)
+                self._fields_filters["employee's"].toggled.connect(lambda: self._react_to_filter_toggle("employee's"))
             else:
-                self.setDefaultFilters(forceSkillFeasibleChecked = self.field2Filters["Skill-feasible"].isChecked(),
-                    forceNonEmployeeCheck = self.field2Filters["Non-employee's"].isChecked())
+                self._set_default_filters(
+                    self._fields_filters["skill-feasible"].isChecked(), False,
+                    self._fields_filters["non-employee's"].isChecked()
+                )
 
         # Handle employee's filter influence over other filters
-        elif filterName == "Employee's":
-            if self.field2Filters["Employee's"].isChecked():
-                enabled = {"Skill-feasible": False, "Non-realized": False, "Non-employee's": False}
-                checked = {"Skill-feasible": True, "Non-realized": False, "Non-employee's": False}
-                for filterName in enabled.keys():
-                    self.field2Filters[filterName].disconnect()
-                    self.field2Filters[filterName].setEnabled(enabled[filterName])
-                    self.field2Filters[filterName].setChecked(checked[filterName])
-                    self.field2Filters[filterName].toggled.connect(lambda: self.filterToggled(filterName))
+        elif filter_key == "employee's":
+            if self._fields_filters["employee's"].isChecked():
+                enabled = {"skill-feasible": False, "non-realized": False, "non-employee's": False}
+                checked = {"skill-feasible": True, "non-realized": False, "non-employee's": False}
+                for filter_key in enabled.keys():
+                    self._fields_filters[filter_key].disconnect()
+                    self._fields_filters[filter_key].setEnabled(enabled[filter_key])
+                    self._fields_filters[filter_key].setChecked(checked[filter_key])
+                    self._fields_filters[filter_key].toggled.connect(lambda: self._react_to_filter_toggle(filter_key))
             else:
-                self.setDefaultFilters()
+                self._set_default_filters()
 
         # Handle employee's filter influence over other filters
-        elif filterName == "Non-employee's":
-            if self.field2Filters["Non-employee's"].isChecked():
-                self.field2Filters["Employee's"].disconnect()
-                self.field2Filters["Employee's"].setEnabled(False)
-                self.field2Filters["Employee's"].setChecked(False)
-                self.field2Filters["Employee's"].toggled.connect(lambda: self.filterToggled("Employee's"))
+        elif filter_key == "non-employee's":
+            if self._fields_filters["non-employee's"].isChecked():
+                self._fields_filters["employee's"].disconnect()
+                self._fields_filters["employee's"].setEnabled(False)
+                self._fields_filters["employee's"].setChecked(False)
+                self._fields_filters["employee's"].toggled.connect(lambda: self._react_to_filter_toggle("employee's"))
             else:
-                self.setDefaultFilters(forceSkillFeasibleChecked = self.field2Filters["Skill-feasible"].isChecked(),
-                    forceNonRealizedCheck = self.field2Filters["Non-realized"].isChecked())
+                self._set_default_filters(
+                    self._fields_filters["skill-feasible"].isChecked(),
+                    self._fields_filters["non-realized"].isChecked(), False
+                )
 
-        # Get the name of the selected employee
-        employeeName = self.fieldsDDLists[0].currentText()
+        # Get the _name of the selected employee
+        employee_name = self._fields_DD_lists[0].currentText()
 
-        # Add the names of all the tasks that are not realized by the employee to the second ddlist
-        self.fieldsDDLists[1].currentTextChanged.disconnect()
-        self.fieldsDDLists[1].clear()
-        filteredTasksNames = self.explainer.currentSolution.getFilteredTasksNames(
-            employee = self.explainer.currentSolution.instance.getEmployee(employeeName),
-            excludingTasksWithHigherSkills = self.field2Filters["Skill-feasible"].isChecked(),
-            excludingRealizedTasks = self.field2Filters["Non-realized"].isChecked(),
-            excludingNonEmployeesTasks = self.field2Filters["Employee's"].isChecked(),
-            excludingEmployeesTasks = self.field2Filters["Non-employee's"].isChecked()
+        # Add to the second DD list the names of all the _tasks that are not realized by the employee
+        self._fields_DD_lists[1].currentTextChanged.disconnect()
+        self._fields_DD_lists[1].clear()
+        filtered_tasks_names = self.current_solution.filter_tasks_names(
+            self.current_solution.instance.get_employee_by_name(employee_name),
+            self._fields_filters["skill-feasible"].isChecked(),
+            self._fields_filters["non-realized"].isChecked(),
+            self._fields_filters["employee's"].isChecked(),
+            self._fields_filters["non-employee's"].isChecked()
         )
-        self.fieldsDDLists[1].addItems(filteredTasksNames)
-        self.fieldsDDLists[1].currentTextChanged.connect(lambda: self.fieldDDListChanged(1))
+        self._fields_DD_lists[1].addItems(filtered_tasks_names)
+        self._fields_DD_lists[1].currentTextChanged.connect(lambda: self._react_to_field_DD_list_change(1))
 
         # Update question text
-        self.updateQuestionLabel()
+        self.update_question_label()
 
-
-    def setExplanationAndHistoryEnabled(self, toggle):
-        self.templateDDList.setEnabled(toggle)
+    def _set_explanation_and_history_enabled(self, toggle: bool):
+        self._question_DD_list.setEnabled(toggle)
         for j in range(3):
-            self.fieldsDDLists[j].setEnabled(toggle)
+            self._fields_DD_lists[j].setEnabled(toggle)
         if toggle:
-            self.setDefaultFilters()
+            self._set_default_filters()
         else:
-            for filterName in self.field2Filters.keys():
-                self.field2Filters[filterName].setEnabled(False)
-        self.explainButton.setEnabled(toggle)
-        self.solutionsHistory.setEnabled(toggle)
+            for filter_name in self._fields_filters.keys():
+                self._fields_filters[filter_name].setEnabled(False)
+        self._explain_button.setEnabled(toggle)
+        self._solutions_history.setEnabled(toggle)
 
+    def update_question_label(self):
+        question_text = self.get_question_by_index(self._question_DD_list.currentIndex()).text
+        question_text = question_text.replace("{0}", self._fields_DD_lists[0].currentText())
+        question_text = question_text.replace("{1}", self._fields_DD_lists[1].currentText())
+        question_text = question_text.replace("{2}", self._fields_DD_lists[2].currentText())
+        self._question_text.setText(question_text)
 
-    def updateQuestionLabel(self):
-        template = self.explainer.getTemplateText(index = self.templateDDList.currentIndex())
-        template = template.replace("{0}", self.fieldsDDLists[0].currentText())
-        template = template.replace("{1}", self.fieldsDDLists[1].currentText())
-        template = template.replace("{2}", self.fieldsDDLists[2].currentText())
-        self.questionText.setText(template)
+    def _react_to_explain_button_click(self):
 
-
-    def explainButtonClicked(self):
-
-        # Disable ddlists and explain button
-        self.setExplanationAndHistoryEnabled(False)
+        # Disable DD lists and explain button
+        self._set_explanation_and_history_enabled(False)
 
         # Compute explanation to template question
-        templateIndex = self.templateDDList.currentIndex()
-        # nbFields = self.explainer.getTemplateNbFields(index = templateIndex)
-        # fieldsValues = [self.fieldsDDLists[j].currentText() for j in range(nbFields)]
-        fieldsValues = [self.fieldsDDLists[j].currentText() for j in range(3)]
-        timeBeforeComputation = time.time()
-        explanation = self.explainer.computeExplanationByIndex(templateIndex, fieldsValues)
-        computationDuration = time.time() - timeBeforeComputation
+        question_key = self.get_question_by_index(self._question_DD_list.currentIndex()).key
+        fields_values = dict(
+            [(j, self._fields_DD_lists[j].currentText()) for j in range(self._nb_fields_for_questions)]
+        )
+        time_before_computation = time.time()
+        explanation = self._explainer.compute_explanation(question_key, fields_values)
+        computation_duration = time.time() - time_before_computation
         print("* Question:")
-        print(self.questionText.text())
+        print(self._question_text.text())
         print("* Explanation:")
         print(explanation.text)
-        print(f"(Explanation computed in {np.round(computationDuration, 3)} seconds)")
+        print(f"(Explanation computed in {np.round(computation_duration, 3)} seconds)")
         print()
 
         # Update explanation text
-        self.explanationText.setText(explanation.text)
+        self._explanation_text.setText(explanation.text)
 
         # If the explanation computation has led to a new solution
-        if explanation.hasANewSolution():
+        if explanation.has_new_solution:
 
             # Show new solution
-            self.newSolution = explanation.newSolution
-            # print(self.explainer.currentSolution.KPIs['totalIdleTime'])
-            # print(self.newSolution.KPIs['totalIdleTime'])
-            self.newSolution.updateKPIs()
-            self.showNewSolution(infeasibility = explanation.infeasibility, criticalBounds = explanation.criticalBounds)
+            self._last_explanation_solution = explanation.solution
+            # self._last_explanation_solution.compute_KPIs()
+            self._show_last_explanation_solution(explanation.infeasibility, explanation.critical_bounds)
 
             # Show save and forget buttons or got-it button if feasible or not
-            if explanation.newSolutionIsFeasible():
-                self.saveButton.setEnabled(True)
-                self.forgetButton.setEnabled(True)
+            if explanation.solution_is_feasible:
+                self._save_button.setEnabled(True)
+                self._forget_button.setEnabled(True)
             else:
-                self.gotItButton.setEnabled(True)
+                self._got_it_button.setEnabled(True)
 
         # If the explanation computation has not led to a new solution
         else:
             # Show got it button
-            self.gotItButton.setEnabled(True)
+            self._got_it_button.setEnabled(True)
 
-
-    def gotItButtonClicked(self):
+    def _react_to_got_it_button_click(self):
 
         # Clear explanation text, new solution, enable and disable buttons
-        self.answerButtonClicked()
+        self._react_to_any_answer_button_click()
 
         # Update drawing group
-        self.KPIsCanvas.setVisible(True)
-        self.schedulesCanvas.setVisible(True)
-        self.updateDrawingGroup()
+        self._KPIs_canvas.setVisible(True)
+        self._schedules_canvas.setVisible(True)
+        self.update_drawing_group()
 
-
-    def saveButtonClicked(self):
+    def _react_to_save_button_click(self):
 
         # Save new solution in history
-        self.explainer.saveNewSolutionInHistory(self.newSolution)
-        self.solutionsHistory.addItem(self.newSolution.name)
+        self._explainer.store_last_explanation_feasible_solution()
+        self._solutions_history.addItem(self._last_explanation_solution.name)
 
         # Clear explanation text, new solution, enable and disable buttons
-        self.answerButtonClicked()
+        self._react_to_any_answer_button_click()
 
         # Set current row to last item and update group
-        self.solutionsHistory.setCurrentRow(self.solutionsHistory.count() - 1)
+        self._solutions_history.setCurrentRow(self._solutions_history.count() - 1)
 
-
-    def forgetButtonClicked(self):
+    def _react_to_forget_button_click(self):
 
         # Clear explanation text, new solution, enable and disable buttons
-        self.answerButtonClicked()
+        self._react_to_any_answer_button_click()
 
         # Update drawing group
-        self.updateDrawingGroup()
+        self.update_drawing_group()
 
-
-    def answerButtonClicked(self):
+    def _react_to_any_answer_button_click(self):
 
         # Clear explanation text
-        self.explanationText.setText("")
+        self._explanation_text.setText("")
 
-        # Clear new solution
-        if self.newSolution != None:
-            self.newSolution = None
-            self.routesFigure.clf()
-            self.schedulesFigure.clf()
-            self.KPIsFigure.clf()
-            plt.close(self.routesFigure)
-            plt.close(self.schedulesFigure)
-            plt.close(self.KPIsFigure)
+        # Clear last explanation solution
+        if self._last_explanation_solution is not None:
+            self._last_explanation_solution = None
+            self._routes_figure.clf()
+            self._schedules_figure.clf()
+            self._KPIs_figure.clf()
+            plt.close(self._routes_figure)
+            plt.close(self._schedules_figure)
+            plt.close(self._KPIs_figure)
 
         # Enable explanation and history back
-        self.setExplanationAndHistoryEnabled(True)
+        self._set_explanation_and_history_enabled(True)
 
         # Disable save and forget buttons
-        self.gotItButton.setEnabled(False)
-        self.saveButton.setEnabled(False)
-        self.forgetButton.setEnabled(False)
+        self._got_it_button.setEnabled(False)
+        self._save_button.setEnabled(False)
+        self._forget_button.setEnabled(False)
 
-
-    def showNewSolution(self, infeasibility = None, criticalBounds = None):
-        if infeasibility == None:
-            self.routesFigure = self.drawer.createFigure(self.newSolution, 'routes', forUI = True)
-            #self.schedulesFigure = self.drawer.createFigure(self.newSolution, 'schedules', forUI = True)
-            self.schedulesFigure = self.drawer.createSchedulesFigure(self.newSolution, criticalBounds = criticalBounds, forUI = True)
-            self.KPIsFigure = self.drawer.createKPIsComparaisonFigure([self.explainer.currentSolution, self.newSolution], forUI = True)
+    def _show_last_explanation_solution(self, infeasibility=None, critical_bounds=None):
+        if infeasibility is None:
+            self._routes_figure = create_routes_figure(
+                self._last_explanation_solution, for_UI=True
+            )
+            self._schedules_figure = create_schedules_figure(
+                self._last_explanation_solution, critical_bounds=critical_bounds, for_UI=True
+            )
+            self._KPIs_figure = create_KPIs_comparison_figure(
+                [self.current_solution, self._last_explanation_solution], for_UI=True
+            )
         else:
-            print(criticalBounds)
-            self.routesFigure = self.drawer.createRoutesFigure(self.newSolution, infeasibility = infeasibility, forUI = True)
-            self.schedulesFigure = self.drawer.createSchedulesFigure(self.newSolution, infeasibility = infeasibility, criticalBounds = criticalBounds, forUI = True)
-            self.KPIsFigure = plt.figure()
-        self.updateDrawingLayout()
+            self._routes_figure = create_routes_figure(
+                self._last_explanation_solution, infeasibility=infeasibility, for_UI=True
+            )
+            self._schedules_figure = create_schedules_figure(
+                self._last_explanation_solution,
+                infeasibility=infeasibility, critical_bounds=critical_bounds, for_UI=True
+            )
+            self._KPIs_figure = plt.figure()
+        self._update_drawing_layout()
 
-
-
-    #---------------#
+    #################
     # History group #
-    #---------------#
+    #################
 
-
-    def setupHistoryGroup(self):
+    def _setup_history_group(self):
 
         # Initialize history group
-        historyGroup = QtWidgets.QGroupBox(self.mainWidget)
+        history_group = QtWidgets.QGroupBox(self.mainWidget)
 
-        # Create a history of solutions
-        historyLabel = QtWidgets.QLabel()
-        historyLabel.setText("Select a solution:")
-        historyLabel.setStyleSheet(self.labelStyle)
-        self.solutionsHistory = QtWidgets.QListWidget(historyGroup)
-        self.solutionsHistory.addItem(self.explainer.currentSolution.name)
-        self.solutionsHistory.setCurrentRow(0)
-        self.solutionsHistory.itemSelectionChanged.connect(self.selectedSolutionChanged)
+        # Create a history of inputs
+        history_label = QtWidgets.QLabel()
+        history_label.setText("Select a solution:")
+        history_label.setStyleSheet(self._label_style)
+        self._solutions_history = QtWidgets.QListWidget(history_group)
+        self._solutions_history.addItem(self.current_solution.name)
+        self._solutions_history.setCurrentRow(0)
+        self._solutions_history.itemSelectionChanged.connect(self._react_to_selected_solution_change)
 
         # Setup the history layout
-        historyLayout = QtWidgets.QVBoxLayout()
-        historyLayout.addWidget(historyLabel)
-        historyLayout.addWidget(self.solutionsHistory)
+        history_layout = QtWidgets.QVBoxLayout()
+        history_layout.addWidget(history_label)
+        history_layout.addWidget(self._solutions_history)
 
         # Set the history layout within the main layout
-        historyGroup.setTitle("Solutions history")
-        historyGroup.setStyleSheet(self.titleStyle)
-        historyGroup.setLayout(historyLayout)
-        self.mainLayout.addWidget(historyGroup, 1, 1)
+        history_group.setTitle("Solutions history")
+        history_group.setStyleSheet(self._title_style)
+        history_group.setLayout(history_layout)
+        self._main_layout.addWidget(history_group, 1, 1)
+
+    def _react_to_selected_solution_change(self):
+        self._explainer.set_current_solution_by_name(self._solutions_history.currentItem().text())
+        self.update_drawing_group()
+        self.update_question_explanation_group()
 
 
-    def selectedSolutionChanged(self):
-        self.explainer.setCurrentSolution(self.solutionsHistory.currentItem().text())
-        self.updateDrawingGroup()
-        self.updateQuestionExplanationGroup()
-
-
-
-#####################
-# Class ExplainerUI #
-#####################
-
-
+# Class ExplainerUI
 class ExplainerUI:
 
     def __init__(self, explainer: Explainer):
-        self.application = QtWidgets.QApplication(sys.argv)
-        geometry = self.application.desktop().availableGeometry()
-        self.content = ExplainerUIContent(geometry, explainer)
+        self._application = QtWidgets.QApplication(sys.argv)
+        self._content = ExplainerUIContent(self._application.desktop().availableGeometry(), explainer)
 
-    def show(self):
-        self.content.show()
-        sys.exit(self.application.exec_())
-
-
-
-
-
-#########
-# Draft #
-#########
-
-
-####################
-# Class MyComboBox #
-####################
-
-
-# class MyComboBox(QtWidgets.QComboBox):
-#
-#     def paintEvent(self, event):
-#
-#         painter = QtWidgets.QStylePainter(self)
-#         painter.setPen(self.palette().color(QtGui.QPalette.Text))
-#
-#         # draw the combobox frame, focusrect and selected etc.
-#         opt = QtWidgets.QStyleOptionComboBox()
-#         self.initStyleOption(opt)
-#         painter.drawComplexControl(QtWidgets.QStyle.CC_ComboBox, opt)
-#
-#         if self.currentIndex() < 0:
-#             opt.palette.setBrush(
-#                 QtGui.QPalette.ButtonText,
-#                 opt.palette.brush(QtGui.QPalette.ButtonText).color().lighter(),
-#             )
-#             if self.placeholderText():
-#                 opt.currentText = self.placeholderText()
-#
-#         # draw the icon and text
-#         painter.drawControl(QtWidgets.QStyle.CE_ComboBoxLabel, opt)
+    def display(self):
+        self._content.show()
+        sys.exit(self._application.exec_())
