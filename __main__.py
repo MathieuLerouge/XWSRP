@@ -3,9 +3,9 @@
 
 
 # Local libraries
-from checking.routine import apply_checking_routine
-from explaining.routine import apply_explanation_routine
-from optimization.routine import apply_optimization_routine
+from src.checking.routine import apply_checking_routine
+from src.explaining.routine import apply_explanation_routine
+from src.optimization.routine import apply_optimization_routine
 
 
 # Global variables
