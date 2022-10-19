@@ -6,7 +6,9 @@ from model.instance import Instance
 from model.solution import Solution
 from model.task import Task
 from model.constants import *
-from optimization.IP.SequenceModel import IPModelForSequence
+from optimization.IP.sequence.insertingmodel import IPModelForSequenceInserting
+from optimization.IP.sequence.prescribingmodel import IPModelForSequencePrescribing
+from optimization.IP.sequence.reorderingmodel import IPModelForSequenceReordering
 from optimization.localsearch.sequence import SequenceLS
 from optimization.solution import SolutionOpti
 
@@ -81,9 +83,9 @@ class SolutionLS(SolutionOpti):
     # Copy #
     ########
 
-    def copy(self, copy_name=False):
-        name = self._name if copy_name else self._name + "_Copy"
-        solution = SolutionLS(self._instance, None, self._copy_sequences(),
+    def copy(self, name: str = None):
+        name = self._name + "_copy" if name is None else name
+        solution = SolutionLS(self._instance, name, self._copy_sequences(),
                               self._copy_tasks_realizations(), self._copy_lunch_breaks_realizations())
         solution.name = name
         solution._KPIs = self._copy_KPIs()
@@ -102,10 +104,12 @@ class SolutionLS(SolutionOpti):
 
     def tighten_times(self, update_KPIs: bool = True):
         for sequence in self._sequences.values():
-            former_sequence_idle_time = sequence.total_idle_time
-            sequence.tighten_times(update_KPIs)
             if update_KPIs:
+                former_sequence_idle_time = sequence.total_idle_time
+                sequence.tighten_times(update_KPIs)
                 self._total_idle_time += sequence.total_idle_time - former_sequence_idle_time
+            else:
+                sequence.tighten_times(update_KPIs)
 
     ###############
     # Time Slacks #
@@ -115,35 +119,196 @@ class SolutionLS(SolutionOpti):
         for sequence in self._sequences.values():
             sequence.update_time_slacks()
 
-    ##############
-    # Looking up #
-    ##############
+    #########################
+    # Examining - Insertion #
+    #########################
 
-    def examine_insertion_at(self, entering_task: Task, employee: Employee, step_index: int):
-        return self.get_sequence(employee).examine_insertion_at(entering_task, step_index)
+    def examine_insertion_at(self, entering_task: Task, employee: Employee, step_index: int,
+                             compute_times_only_if_skill_constraints_satisfied: bool = True):
+        """
+        Examine the feasibility of the insertion of the given entering task at the given step index;
+        provide a dictionary, describing this examination, with keys:
+        'is_feasible', 'is_skill_feasible', 'is_time_feasible', 'is_upstream_feasible', 'is_downstream_feasible',
+        'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and
+        'traveling_duration_detour'.
 
-    def examine_best_insertion_when_alone(self, employee: Employee, task: Task):
-        sequence = self.get_sequence(employee).copy()
-        sequence.remove_all_tasks(False, False)
-        examination = sequence.examine_best_insertion(task)
-        sequence.insert_task_at(
-            task, examination['step_index_for_insertion'], examination['start_time'],
-            examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
-            False, False
+        - If the insertion is feasible, the value associated to the key 'start_time' is the start time (int)
+          that could be applied to the entering task, when following the earliest policy,
+          whereas the values associated to 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are both None;
+        - If the insertion is infeasible, the values associated to the keys 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are the start times that could be applied to the entering task so that
+          the time consistency of respectively the upstream and the downstream portions of the sequence,
+          while the value associated to the keys 'start_time' is an average of these artificial values.
+
+        Assumptions (only checked in debug):
+
+        - 1. the given entering task must not be already in this sequence;
+        - 2. the given step index must be between 1 (included) and the number of steps - 1 (included);
+        - 3. the times of this sequence are consistent.
+
+        :param entering_task: the task (Task) that is figured to be inserted
+        :param employee: the employee (Employee) who would perform the entering task
+        :param step_index: the index of the step (int) where the given task would be inserted
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+          if the skill constraints are not satisfied start times should still be computed
+        :return: the examination dictionary
+        """
+        return self.get_sequence(employee).examine_insertion_at(entering_task, step_index,
+                                                                compute_times_only_if_skill_constraints_satisfied)
+
+    def examine_insertion_after(self, entering_task: Task, employee: Employee, activity: Activity,
+                                compute_times_only_if_skill_constraints_satisfied: bool = True):
+        """
+        Examine the feasibility of the insertion of the given entering task after the given activity
+        in the employee's sequence; provide a dictionary, describing this examination, with keys:
+        'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible',
+        'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and
+        'traveling_duration_detour'.
+
+        - If the insertion is feasible, the value associated to the key 'start_time' is the start time (int)
+          that could be applied to the entering task, when following the earliest policy,
+          whereas the values associated to 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are both None;
+        - If the insertion is infeasible, the values associated to the keys 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are the start times that could be applied to the entering task so that
+          the time consistency of respectively the upstream and the downstream portions of the sequence,
+          while the value associated to the keys 'start_time' is an average of these artificial values.
+
+        Assumptions (only checked in debug):
+
+        - 1. the given entering task must not be already in this sequence;
+        - 2. the given activity must be in the given employee's sequence;
+        - 3. the times of this sequence are consistent.
+
+        :param entering_task: the task (Task) that is figured to be inserted
+        :param employee: the employee (Employee) who would perform the entering task
+        :param activity: the activity (Activity) after which the given task would be inserted
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+          if the skill constraints are not satisfied start times should still be computed
+        :return: the examination dictionary
+        """
+        step_index = self.get_sequence(employee).get_step_index_of(activity) + 1
+        return self.examine_insertion_at(entering_task, employee, step_index,
+                                         compute_times_only_if_skill_constraints_satisfied)
+
+    def examine_best_insertion_between_consecutive_activities(
+            self, task: Task, employee: Employee, compute_times_only_if_skill_constraints_satisfied: bool = True):
+        """
+        Examine the best insertion of the given task between two consecutive activities of the given employee's
+        sequence, that is to say:
+
+        - if there is any feasible insertion,
+          the best insertion is the feasible one that engenders the smallest additional traveling duration;
+        - if there are no feasible insertions,
+          the best insertion is the infeasible one that is the closest to be feasible duration-wise.
+
+        Provide a dictionary describing this examination with keys:
+        'is_feasible', 'is_skill_feasible', 'is_time_feasible', 'is_upstream_feasible', 'step_index_for_insertion',
+        'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream',
+        'traveling_duration_detour' and 'late'.
+
+        Assumptions (only checked in debug):
+        The times of this sequence are consistent.
+
+        :param task: the task (Task) that would be inserted
+        :param employee: the employee (Employee) whose planning would be changed
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+          if the skill constraints are not satisfied start times should still be computed
+        :return: the examination dictionary
+        """
+        return self.get_sequence(employee).examine_best_insertion_between_consecutive_activities(
+            task, compute_times_only_if_skill_constraints_satisfied=compute_times_only_if_skill_constraints_satisfied)
+
+    def examine_best_insertion_between_consecutive_activities_among_sets(
+            self, tasks: list[Task], employees: list[Employee],
+            compute_times_only_if_skill_constraints_satisfied: bool = True):
+        """
+        Among all employees and all tasks of given sets, examine the best insertion of a task in an employee's sequence,
+        that is to say:
+
+        - if there is any feasible insertion,
+          the best insertion is the feasible one that engenders the smallest additional traveling duration;
+        - if there are no feasible insertions,
+          the best insertion is the infeasible one that is the closest to be feasible duration-wise.
+
+        Provide a dictionary describing this examination with keys:
+        'is_feasible', 'is_skill_feasible', 'is_time_feasible', 'is_upstream_feasible', 'step_index_for_insertion',
+        'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream',
+        'traveling_duration_detour', 'late', 'task_name' and 'employee_name'.
+
+        Assumptions (only checked in debug):
+        The times of this sequence are consistent.
+
+        :param tasks: the list of candidate tasks (Task) that may be inserted
+        :param employees:
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+          if the skill constraints are not satisfied start times should still be computed
+        :return: the examination dictionary
+        """
+        best_employee = employees[0]
+        sequence = self.get_sequence(best_employee)
+        best_insertion_examination = sequence.examine_best_insertion_between_consecutive_activities_among_tasks_set(
+            tasks, compute_times_only_if_skill_constraints_satisfied
         )
-        solution = self.copy(True)
-        solution._replace_sequence_by_another(employee, sequence)
-        examination['solution'] = solution
-        return examination
+        for employee in employees[1:]:
+            sequence = self.get_sequence(employee)
+            examination = sequence.examine_best_insertion_between_consecutive_activities_among_tasks_set(
+                tasks, compute_times_only_if_skill_constraints_satisfied
+            )
+            # Case where the current insertion is feasible
+            if examination['is_feasible']:
+                if not best_insertion_examination['is_feasible'] or \
+                        (examination['traveling_duration_detour'] <
+                         best_insertion_examination['traveling_duration_detour']):
+                    best_insertion_examination = examination
+                    best_employee = employee
+            # Case where both the current insertion and the best currently known one are infeasible
+            elif not best_insertion_examination['is_feasible']:
+                # Case where the current insertion is infeasible skill-wise
+                if not examination['is_skill_feasible']:
+                    task = self.instance.get_task_by_name(examination['task_name'])
+                    best_task = self.instance.get_task_by_name(best_insertion_examination['task_name'])
+                    if not best_insertion_examination['is_skill_feasible'] and \
+                            (task.skill_level - employee.skill_level <
+                             best_task.skill_level - best_employee.skill_level):
+                        best_insertion_examination = examination
+                        best_employee = employee
+                # Case where the current insertion is feasible skill-wise
+                else:
+                    if not best_insertion_examination['is_skill_feasible']:
+                        best_insertion_examination = examination
+                        best_employee = employee
+                    # Case where both the current insertion and the best currently known one are feasible skill-wise
+                    else:
+                        # Case where the current insertion is infeasible upstream-wise
+                        if not examination['is_upstream_feasible']:
+                            if not best_insertion_examination['is_upstream_feasible'] and \
+                                    examination['late'] < best_insertion_examination['late']:
+                                best_insertion_examination = examination
+                                best_employee = employee
+                        # Case where the current insertion is feasible upstream-wise
+                        else:
+                            if not best_insertion_examination['is_upstream_feasible']:
+                                best_insertion_examination = examination
+                                best_employee = employee
+                            # Case where both the current insertion and the best currently known one
+                            # are feasible upstream-wise
+                            elif examination['late'] < best_insertion_examination['late']:
+                                best_insertion_examination = examination
+                                best_employee = employee
+        best_insertion_examination['employee_name'] = best_employee.name
+        return best_insertion_examination
 
-    def examine_best_insertion(self, task: Task, employee: Employee = None, tabu_indices: list[int] = None):
+    # TODO deprecated, remove
+    def examine_best_insertion_deprecated(self, task: Task, employee: Employee = None, tabu_indices: list[int] = None):
         if employee is None:
             insertion_is_feasible = False
             insertion_is_upstream_feasible = False
             best_examination = {'employee': None}
             for employee in self._instance.employees:
-                if employee.is_capable_of_realizing(task):
-                    examination = self.get_sequence(employee).examine_best_insertion(task)
+                if employee.is_capable_of_performing(task):
+                    examination = self.get_sequence(employee).examine_best_insertion_between_consecutive_activities(task)
                     if examination['is_feasible']:
                         if not insertion_is_feasible:
                             insertion_is_feasible = True
@@ -159,7 +324,6 @@ class SolutionLS(SolutionOpti):
                                 insertion_is_upstream_feasible = True
                                 best_examination = examination
                                 best_examination['employee'] = employee
-                                print(best_examination)
                             elif examination['late'] < best_examination['late']:
                                 best_examination = examination
                                 best_examination['employee'] = employee
@@ -173,61 +337,78 @@ class SolutionLS(SolutionOpti):
                                 best_examination['employee'] = employee
             return best_examination
         else:
-            return self.get_sequence(employee).examine_best_insertion(task, tabu_indices)
+            return self.get_sequence(employee).examine_best_insertion_between_consecutive_activities(task, tabu_indices)
 
-    def findBestInsertion(self, task: Task):
-        insertionResult = dict()
-        insertionResult['feasible'] = False
-        insertionResult['employee'] = None
-        insertionResult['step_index'] = None
-        insertionResult['start_time'] = None
-        insertionResult['travelingDurationVariation'] = None
-        insertionResult['late'] = None
-        insertionResult['taskSkillLevelTooHigh'] = True
-        insertionResult['taskTooFar'] = True
-        for employee in self._instance.employees:
-            employeeInsertionResult = self.get_sequence(employee).examine_best_insertion(task)
-            if employeeInsertionResult['feasible']:
-                insertionResult['feasible'] = True
-                insertionResult['taskSkillLevelTooHigh'] = False
-                if insertionResult['taskTooFar']:
-                    insertionResult['taskTooFar'] = False
-                    insertionResult['late'] = None
-                if insertionResult['travelingDurationVariation'] == None or \
-                        employeeInsertionResult['travelingDurationVariation'] < insertionResult[
-                    'travelingDurationVariation']:
-                    insertionResult['employee'] = employee
-                    insertionResult['step_index'] = employeeInsertionResult['step_index']
-                    insertionResult['start_time'] = employeeInsertionResult['start_time']
-                    insertionResult['travelingDurationVariation'] = employeeInsertionResult[
-                        'travelingDurationVariation']
-            else:
-                if not (employeeInsertionResult['taskSkillLevelTooHigh']):
-                    insertionResult['taskSkillLevelTooHigh'] = False
-                    if employeeInsertionResult['taskTooFar']:
-                        if insertionResult['taskTooFar']:
-                            if insertionResult['late'] == None or employeeInsertionResult['late'] < insertionResult[
-                                'late']:
-                                insertionResult['employee'] = employee
-                                insertionResult['step_index'] = employeeInsertionResult['step_index']
-                                insertionResult['start_time'] = employeeInsertionResult['start_time']
-                                insertionResult['travelingDurationVariation'] = employeeInsertionResult[
-                                    'travelingDurationVariation']
-                                insertionResult['late'] = employeeInsertionResult['late']
+    ####################
+    # Examining - Swap #
+    ####################
+
+    def examine_swap_with_a_task(self, employee: Employee, entering_task: Task, leaving_task: Task,
+                                 compute_times_only_if_skill_constraints_satisfied: bool = True):
+        return self.get_sequence(employee).examine_swap_with_a_task(entering_task, leaving_task,
+                                                                    compute_times_only_if_skill_constraints_satisfied)
+
+    def examine_swap_with_any_task(self, employee: Employee, task: Task,
+                                   compute_times_only_if_skill_constraints_satisfied: bool = True):
+        return self.get_sequence(employee).examine_swap_with_any_task(task,
+                                                                      compute_times_only_if_skill_constraints_satisfied)
+
+    # TODO could be factorized with insertion among sets
+    def examine_swap_tasks_among_sets(self, employees: list[Employee], tasks: list[Task],
+                                      compute_times_only_if_skill_constraints_satisfied: bool = True):
+        best_employee = employees[0]
+        sequence = self.get_sequence(best_employee)
+        best_swap_examination = sequence.examine_best_swap_tasks_among_tasks_set(
+            tasks, compute_times_only_if_skill_constraints_satisfied
+        )
+        for employee in employees[1:]:
+            sequence = self.get_sequence(employee)
+            examination = sequence.examine_best_swap_tasks_among_tasks_set(
+                tasks, compute_times_only_if_skill_constraints_satisfied
+            )
+            # Case where the current swap is feasible
+            if examination['is_feasible']:
+                if not best_swap_examination['is_feasible'] or \
+                        (examination['traveling_duration_detour'] <
+                         best_swap_examination['traveling_duration_detour']):
+                    best_swap_examination = examination
+                    best_employee = employee
+            # Case where both the current swap and the best currently known one are infeasible
+            elif not best_swap_examination['is_feasible']:
+                # Case where the current swap is infeasible skill-wise
+                if not examination['is_skill_feasible']:
+                    task = self.instance.get_task_by_name(examination['task_name'])
+                    best_task = self.instance.get_task_by_name(best_swap_examination['task_name'])
+                    if not best_swap_examination['is_skill_feasible'] and \
+                            (task.skill_level - employee.skill_level <
+                             best_task.skill_level - best_employee.skill_level):
+                        best_swap_examination = examination
+                        best_employee = employee
+                # Case where the current swap is feasible skill-wise
+                else:
+                    if not best_swap_examination['is_skill_feasible']:
+                        best_swap_examination = examination
+                        best_employee = employee
+                    # Case where both the current swap and the best currently known one are feasible skill-wise
                     else:
-                        if insertionResult['taskTooFar']:
-                            insertionResult['taskTooFar'] = False
-                            insertionResult['late'] = None
-                        if insertionResult['late'] == None or employeeInsertionResult['late'] < insertionResult[
-                            'late']:
-                            insertionResult['employee'] = employee
-                            insertionResult['step_index'] = employeeInsertionResult['step_index']
-                            insertionResult['start_time'] = employeeInsertionResult['start_time']
-                            insertionResult['travelingDurationVariation'] = employeeInsertionResult[
-                                'travelingDurationVariation']
-                            insertionResult['late'] = employeeInsertionResult['late']
-
-        return insertionResult
+                        # Case where the current swap is infeasible upstream-wise
+                        if not examination['is_upstream_feasible']:
+                            if not best_swap_examination['is_upstream_feasible'] and \
+                                    examination['late'] < best_swap_examination['late']:
+                                best_swap_examination = examination
+                                best_employee = employee
+                        # Case where the current swap is feasible upstream-wise
+                        else:
+                            if not best_swap_examination['is_upstream_feasible']:
+                                best_swap_examination = examination
+                                best_employee = employee
+                            # Case where both the current insertion and the best currently known one
+                            # are feasible upstream-wise
+                            elif examination['late'] < best_swap_examination['late']:
+                                best_swap_examination = examination
+                                best_employee = employee
+        best_swap_examination['employee_name'] = best_employee.name
+        return best_swap_examination
 
     ####################################
     # Local change - Private - General #
@@ -324,13 +505,14 @@ class SolutionLS(SolutionOpti):
 
     def insert_task_after_activity(self, task: Task, activity: Activity, start_time: int = None,
                                    start_time_for_backward: int = None, start_time_for_forward: int = None,
-                                   tighten_times: bool = True, update_KPIs: bool = True):
+                                   tighten_times: bool = True, update_KPIs: bool = True,
+                                   ignore_skill_constraint: bool = False):
         """
         Insert the given task after the given activity in the sequence of the employee who realizes the former:
 
         - if the change is known to be feasible, a start time for the task to insert shall be provided;
 
-        - if the change is known to be infeasible, a start time for the task task to insert,
+        - if the change is known to be infeasible, a start time for the task to insert,
           as well as two artificial start times for backward and forward computation, shall be provided;
 
         - if the feasibility of the change is not known, start times inputs shall remain vacant.
@@ -349,21 +531,23 @@ class SolutionLS(SolutionOpti):
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
           who realizes the given task after it has been removed in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
+        :param ignore_skill_constraint:
         :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
         """
 
-        # Check that the given activity is not the employee's comeback
+        # Check that the given activity is not an employee's comeback
         if isinstance(activity, ComeBack):
             raise ValueError(f"The given task {task.name} cannot be inserted "
                              f"after the employee {activity.employee}'s comeback {activity.name}")
 
-        # Check that the given activity is realized by an employee
+        # Check that the given activity is performed by an employee
         if not self.get_activity_realization(activity):
-            raise ValueError(f"The given activity {activity.name} is not realized in this solution")
+            raise ValueError(f"The given activity {activity.name} is not performed in this solution")
 
-        # Check that the employee assigned to the leaving task is capable of realizing the entering task
+        # Check that the employee assigned to the activity is capable of performing the entering task
         employee = self.get_activity_assignee(activity)
-        if not employee.is_capable_of_realizing(task):
+        insertion_is_skill_feasible = employee.is_capable_of_performing(task)
+        if not ignore_skill_constraint and not insertion_is_skill_feasible:
             raise ValueError(f"The employee {employee.name} who realizes the given activity {activity.name} "
                              f"is not capable of realizing the given task to insert {task.name}")
 
@@ -383,6 +567,7 @@ class SolutionLS(SolutionOpti):
                 start_time, start_time_for_backward, start_time_for_forward,
                 tighten_times, update_KPIs
             )
+        is_feasible &= insertion_is_skill_feasible
         self._set_task_realization_to_realized(task, employee, start_time)
         self._update_tasks_realizations_based_on_sequences(
             employee, max(first_step_with_time_change_index, 1),
@@ -399,7 +584,8 @@ class SolutionLS(SolutionOpti):
 
     def replace_task_by_another(self, leaving_task: Task, replacing_task: Task, start_time: int = None,
                                 start_time_for_backward: int = None, start_time_for_forward: int = None,
-                                tighten_times: bool = True, update_KPIs: bool = True):
+                                tighten_times: bool = True, update_KPIs: bool = True,
+                                ignore_skill_constraint: bool = False):
         """
         Change the given leaving task by the replacing task in the sequence of the employee who realizes the former:
 
@@ -423,6 +609,7 @@ class SolutionLS(SolutionOpti):
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
           who realizes the given task after it has been removed in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
+        :param ignore_skill_constraint:
         :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
         """
 
@@ -432,7 +619,7 @@ class SolutionLS(SolutionOpti):
 
         # Check that the employee assigned to the leaving task is capable of realizing the replacing task
         employee = self.get_task_assignee(leaving_task)
-        if not employee.is_capable_of_realizing(replacing_task):
+        if not ignore_skill_constraint and not employee.is_capable_of_performing(replacing_task):
             raise ValueError(f"The employee {employee.name} who realizes the given leaving task {leaving_task.name} "
                              f"is not capable of realizing the given replacing task {replacing_task.name}")
 
@@ -457,6 +644,7 @@ class SolutionLS(SolutionOpti):
                 start_time, start_time_for_backward, start_time_for_forward,
                 tighten_times, update_KPIs
             )
+        self._set_task_realization_to_unrealized(leaving_task)
         self._set_task_realization_to_realized(replacing_task, employee, start_time)
         self._update_tasks_realizations_based_on_sequences(
             employee, max(first_step_with_time_change_index, 1),
@@ -470,6 +658,43 @@ class SolutionLS(SolutionOpti):
 
         # Return whether or not the insertion has given a feasible solution
         return is_feasible
+
+    #################
+    # Miscellaneous #
+    #################
+
+    # TODO to remove
+    def try_inserting(self, employee: Employee, task: Task,
+                      tighten_times: bool = True, update_KPIs: bool = True):
+
+        # If the task to insert is realized by an employee,
+        # then remove it from his/her sequence
+        if self.get_task_realization(task):
+            self.remove_task(task, False, update_KPIs)
+
+        # Create and run the IP model for sequence optimization with attempt to insert new task
+        model = IPModelForSequenceInserting(self.get_sequence(employee), task)
+        model.optimize(mute=True)
+
+        # Get the sequence obtained by solving the IP model
+        new_sequence = SequenceLS.from_Sequence(model.solution_sequence)
+
+        # If the task has been inserted,
+        if task in new_sequence.get_contained_tasks():
+
+            # Replace sequence
+            if update_KPIs:
+                new_sequence.compute_KPIs()
+            if tighten_times:
+                new_sequence.tighten_times(update_KPIs)
+            self._replace_sequence_by_another(employee, new_sequence, update_KPIs)
+
+            # Return whether or not the insertion has given a feasible solution
+            return True
+
+        # If the task has not been inserted,
+        else:
+            return False
 
     def insert_task_at_all_costs(self, employee: Employee, task: Task,
                                  tighten_times: bool = True, update_KPIs: bool = True):
@@ -488,11 +713,10 @@ class SolutionLS(SolutionOpti):
         if self.get_task_realization(task):
             self.remove_task(task, False, update_KPIs)
 
-        # Create and run the IP model for sequence optimization
-        former_sequence_tasks = self.get_sequence(employee).get_contained_tasks()
-        candidate_tasks = former_sequence_tasks + [task]
+        # Create and run the IP model for sequence optimization with assigned tasks
+        candidate_tasks = self.get_sequence(employee).get_contained_tasks() + [task]
         prescribed_tasks = [task]
-        model = IPModelForSequence(self._instance, employee, candidate_tasks, prescribed_tasks)
+        model = IPModelForSequencePrescribing(self._instance, employee, candidate_tasks, prescribed_tasks)
         model.optimize(mute=True)
 
         # Save the sequence obtained by solving the IP model
@@ -506,9 +730,28 @@ class SolutionLS(SolutionOpti):
             new_sequence.tighten_times(update_KPIs)
 
         # Replace sequence
-        removed_tasks = set(former_sequence_tasks).difference(new_sequence.get_contained_tasks())
         self._replace_sequence_by_another(employee, new_sequence, update_KPIs)
 
         # Return whether or not the insertion has given a feasible solution
-        # as well as removed tasks
-        return True, removed_tasks
+        return True
+
+    def reorder(self, employee: Employee, tighten_times: bool = True, update_KPIs: bool = True):
+
+        # Create and run the IP model for sequence reordering optimization
+        model = IPModelForSequenceReordering(self.get_sequence(employee))
+        model.optimize(mute=True)
+
+        # Save the sequence obtained by solving the IP model
+        if not model.has_solution_sequence:
+            raise Exception(f"Reordering the tasks in {employee}'s sequence is infeasible")
+        new_sequence = SequenceLS.from_Sequence(model.solution_sequence)
+        if update_KPIs:
+            new_sequence.compute_KPIs()
+        if tighten_times:
+            new_sequence.tighten_times(update_KPIs)
+
+        # Replace sequence
+        self._replace_sequence_by_another(employee, new_sequence, update_KPIs)
+
+        # Return whether or not the insertion has given a feasible solution
+        return True

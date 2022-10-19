@@ -65,5 +65,5 @@ class SolutionOpti(Solution):
     def objective_value(self, objective_value: float):
         self._optimization_data[OBJECTIVE_VALUE_KEY] = str(objective_value)
 
-    def copy(self, copy_name=False):
-        return SolutionOpti.from_Solution(super().copy(copy_name))
+    def copy(self, name: str = None):
+        return SolutionOpti.from_Solution(super().copy(name))

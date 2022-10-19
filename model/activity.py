@@ -1,5 +1,6 @@
 # Local libraries
 from utils.location import Location
+from utils.time import convert_nb_minutes_to_time_string
 from utils.timeset import TimeInterval, TimeIntervalUnion
 
 
@@ -13,9 +14,7 @@ class Activity:
         self._duration = duration
         self._start_time_LB = start_time_LB
         self._end_time_UB = end_time_UB
-        self._TWs = TimeIntervalUnion(
-            [TimeInterval(lower_bound=start_time_LB, upper_bound=end_time_UB)]
-        )
+        self._TWs = TimeIntervalUnion([TimeInterval(lower_bound=start_time_LB, upper_bound=end_time_UB)])
         self._skill_level = skill_level
         self._location = location
 
@@ -31,13 +30,31 @@ class Activity:
     def duration(self):
         return self._duration
 
+    def get_duration(self, as_integer: bool = True):
+        if as_integer:
+            return self._duration
+        else:
+            return str(self._duration) + "min"
+
     @property
     def start_time_LB(self):
         return self._start_time_LB
 
+    def get_start_time_LB(self, as_integer: bool = True):
+        if as_integer:
+            return self._start_time_LB
+        else:
+            return convert_nb_minutes_to_time_string(self._start_time_LB)
+
     @property
     def end_time_UB(self):
         return self._end_time_UB
+
+    def get_end_time_UB(self, as_integer: bool = True):
+        if as_integer:
+            return self._end_time_UB
+        else:
+            return convert_nb_minutes_to_time_string(self._end_time_UB)
 
     @property
     def TWs(self):

@@ -36,6 +36,12 @@ class Sequence:
     def __repr__(self):
         return self._steps.__repr__()
 
+    def to_string(self, with_times: bool = False):
+        if with_times:
+            self.__repr__()
+        else:
+            return "[".join([step.activity.name + "; " for step in self._steps]).removesuffix('; ').join("]")
+
     @property
     def instance(self):
         return self._instance
@@ -149,40 +155,11 @@ class Sequence:
                 if isinstance(step.activity, Task) or include_unavailabilities:
                     activities.append(step.activity)
         if including_coming_back:
-            activities.append(self._steps[0].activity)
+            activities.append(self._steps[-1].activity)
         return activities
 
     def get_contained_tasks(self, in_alpha_order=False):
         return self.get_contained_activities(False, False, False, in_alpha_order)
-
-    # def getActivitiesNames(self, include_departure=True, includingEnd=True,
-    #                        includingUnavailabilities=True, alphaOrdered=False):
-    #     activitiesNames = []
-    #     if include_departure:
-    #         activitiesNames.append(self._steps[0].activity.activity_name)
-    #     if alphaOrdered:
-    #         tasksNamesPairs = []
-    #         unavailabilitiesNamesPairs = []
-    #         for step in self._steps[1:-1]:
-    #             if step.activity.isTask():
-    #                 tasksNamesPairs.append((int(step.activity.activity_name[1:]), step.activity.activity_name))
-    #             elif includingUnavailabilities:
-    #                 unavailabilitiesNamesPairs.append((int(step.activity.activity_name[1:]),
-    #                 step.activity.activity_name))
-    #         tasksNamesPairs.sort()
-    #         unavailabilitiesNamesPairs.sort()
-    #         activitiesNames += [taskName for _, taskName in tasksNamesPairs]
-    #         activitiesNames += [unavailabilityName for _, unavailabilityName in unavailabilitiesNamesPairs]
-    #     else:
-    #         for step in self._steps[1:-1]:
-    #             if step.activity.isTask() or includingUnavailabilities:
-    #                 activitiesNames.append(step.activity.activity_name)
-    #     if includingEnd:
-    #         activitiesNames.append(self._steps[0].activity.activity_name)
-    #     return activitiesNames
-
-    # def getTasksNames(self, alphaOrdered=False):
-    #     return self.getActivitiesNames(False, False, False, alphaOrdered)
 
     def contains(self, activity: Activity):
         return activity in self.get_contained_activities()
@@ -214,7 +191,12 @@ class Sequence:
     # Times #
     #########
 
-    def compute_times_based_on_fixed_start_times(self, lunch_break_description=None, update_coming_back_times=True):
+    def compute_end_times_based_on_fixed_start_times(self):
+        for step in self._steps:
+            step.end_time = step.start_time + step.activity.duration
+
+    def compute_times_based_on_fixed_start_times(self, lunch_break_description: dict = None,
+                                                 update_coming_back_times: bool = True):
         self._steps[0].arrival_time = self._steps[0].start_time
         self._steps[0].end_time = self._steps[0].start_time
         for previous_step_index, step in enumerate(self._steps[1:]):
@@ -231,6 +213,7 @@ class Sequence:
             self._steps[-1].end_time = self._steps[-1].start_time
 
     def update_times_according_to_earliest_policy(self):
+        # TODO to implement
         raise NotImplementedError("Code not yet implemented")
 
     # TODO adapt to lunch breaks

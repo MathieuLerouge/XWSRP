@@ -144,7 +144,7 @@ class SequenceLS(Sequence):
         return step_index
 
     def tighten_times(self, update_KPIs: bool = True):
-        assert(self.is_time_consistent, "The times are not consistent")
+        assert (self.is_time_consistent, "The times are not consistent")
         idle_time_loss = 0
         time_variation_forward = self[0].FTS
         if time_variation_forward > 0:
@@ -209,15 +209,15 @@ class SequenceLS(Sequence):
         self.update_BTS_forward_from(0)
         self.update_FTS_backward_from(self.nb_steps - 1)
 
-    ##############
-    # Looking up #
-    ##############
+    #########################
+    # Examining - Insertion #
+    #########################
 
     def examine_placing_between(self, entering_task: Task,
                                 step_before_placement_index: int, step_after_placement_index: int):
         """
         Examine the feasibility of placing the given entering task between
-        the step at the given index before the placement and the step at given index after  the placement;
+        the step at the given index before the placement and the step at given index after the placement;
         provide a dictionary, describing this examination, with keys:
         ('is_feasible', 'is_upstream_feasible', 'is_downstream_feasible'
         'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and
@@ -255,7 +255,7 @@ class SequenceLS(Sequence):
         """
 
         # Check the assumptions
-        assert (self.employee.is_capable_of_realizing(entering_task),
+        assert (self.employee.is_capable_of_performing(entering_task),
                 f"The employee {self.employee.name} is not capable of realizing the given task {entering_task.name}")
         assert (not (entering_task in self.get_contained_tasks()),
                 f"The given entering task {entering_task.name} is already in this sequence")
@@ -339,11 +339,12 @@ class SequenceLS(Sequence):
     # def examine_insertion_at(self, entering_task: Task, step_index: int):
     #     return self.examine_placing_between(entering_task, step_index - 1, step_index)
 
-    def examine_insertion_at(self, entering_task: Task, step_index: int):
+    def examine_insertion_at(self, entering_task: Task, step_index: int,
+                             compute_times_only_if_skill_constraints_satisfied: bool = True):
         """
         Examine the feasibility of the insertion of the given entering task at the given step index;
         provide a dictionary, describing this examination, with keys:
-        'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible',
+        'is_feasible', 'is_skill_feasible', 'is_time_feasible', 'is_upstream_feasible', 'is_downstream_feasible',
         'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and
         'traveling_duration_detour'.
 
@@ -358,26 +359,28 @@ class SequenceLS(Sequence):
 
         Assumptions (only checked in debug):
 
-        - 1. the given entering task can be realized by the employee of this sequence;
-        - 2. the given entering task must not be already in this sequence;
-        - 3. the given step index must be between 1 (included) and the number of steps - 1 (included);
-        - 4. the times of this sequence are consistent.
+        - 1. the given entering task must not be already in this sequence;
+        - 2. the given step index must be between 1 (included) and the number of steps - 1 (included);
+        - 3. the times of this sequence are consistent.
 
         :param entering_task: the task (Task) that is figured to be inserted
         :param step_index: the index of the step (int) where the given task would be inserted
-        :return: the dictionary with keys 'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible',
-          'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and
-          'traveling_duration_detour'
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+          if the skill constraints are not satisfied start times should still be computed
+        :return: the examination dictionary
         """
 
         # Check the assumptions
-        assert (self.employee.is_capable_of_realizing(entering_task),
-                f"The employee {self.employee.name} is not capable of realizing the given task {entering_task.name}")
         assert (not (entering_task in self.get_contained_tasks()),
                 f"The given entering task {entering_task.name} is already in this sequence")
         assert (0 < step_index < self.__len__(),
                 f"The given step index {step_index} is not between 1 and {self.__len__() - 1} included")
         assert self.is_time_consistent, "The times are not consistent"
+
+        # Examine skill-wise feasibility
+        is_skill_feasible = self.employee.is_capable_of_performing(entering_task)
+        if compute_times_only_if_skill_constraints_satisfied and not is_skill_feasible:
+            return dict(is_feasible=False, is_skill_feasible=False)
 
         # Get the step before and after the hypothetical insertion
         step_before = self[step_index - 1]
@@ -412,9 +415,9 @@ class SequenceLS(Sequence):
         upstream_portion_is_feasible = (earliest_start_time_of_entering_task + entering_task.duration <=
                                         entering_task.end_time_UB)
         downstream_portion_is_feasible = (latest_start_time_of_entering_task >= entering_task.start_time_LB)
-        is_feasible = (
+        is_time_feasible = (
                 upstream_portion_is_feasible and downstream_portion_is_feasible and
-                earliest_start_time_of_entering_task < latest_start_time_of_entering_task
+                earliest_start_time_of_entering_task <= latest_start_time_of_entering_task
         )
 
         # Initialize the artificial start times
@@ -423,7 +426,7 @@ class SequenceLS(Sequence):
 
         # If the consistency of both upstream and downstream portions can be guaranteed,
         # then set start time according to earliest policy
-        if is_feasible:
+        if is_time_feasible:
             start_time = earliest_start_time_of_entering_task
 
         # If the consistency of one the upstream or downstream portions can not be guaranteed,
@@ -431,18 +434,27 @@ class SequenceLS(Sequence):
         # and the start time it self as the average of these artificial start times
         else:
             start_time_for_upstream = earliest_start_time_of_entering_task
-            start_time = (earliest_start_time_of_entering_task + latest_start_time_of_entering_task) // 2
             start_time_for_downstream = latest_start_time_of_entering_task
+            start_time = (earliest_start_time_of_entering_task + latest_start_time_of_entering_task) // 2
+            if downstream_portion_is_feasible:
+                start_time = start_time_for_downstream
+            if upstream_portion_is_feasible:
+                start_time = start_time_for_upstream
 
-        return {'is_feasible': is_feasible,
-                'is_upstream_feasible': upstream_portion_is_feasible,
-                'is_downstream_feasible': downstream_portion_is_feasible,
-                'start_time': start_time,
-                'earliest_start_time_for_upstream': start_time_for_upstream,
-                'latest_start_time_for_downstream': start_time_for_downstream,
-                'traveling_duration_detour': traveling_duration_detour}
+        # Return examination
+        return dict(is_feasible=(is_time_feasible and is_skill_feasible),
+                    is_time_feasible=is_time_feasible,
+                    is_skill_feasible=is_skill_feasible,
+                    is_upstream_feasible=upstream_portion_is_feasible,
+                    is_downstream_feasible=downstream_portion_is_feasible,
+                    start_time=start_time,
+                    earliest_start_time_for_upstream=start_time_for_upstream,
+                    latest_start_time_for_downstream=start_time_for_downstream,
+                    traveling_duration_detour=traveling_duration_detour)
 
-    def examine_best_insertion(self, task: Task, tabu_indices: list[int] = None):
+    def examine_best_insertion_between_consecutive_activities(
+            self, task: Task, tabu_indices: list[int] = None,
+            compute_times_only_if_skill_constraints_satisfied: bool = True):
         """
         Examine the best insertion of the given task in this sequence, that is to say:
 
@@ -451,18 +463,25 @@ class SequenceLS(Sequence):
         - if there are no feasible insertions,
           the best insertion is the infeasible one that is the closest to be feasible duration-wise.
 
-        Provide a dictionary describing this examination with keys: 'is_feasible', 'is_upstream_feasible',
-        'step_index_for_insertion', 'start_time', 'traveling_duration_detour', 'late'.
+        Provide a dictionary describing this examination with keys:
+        'is_feasible', 'is_skill_feasible', 'is_time_feasible', 'is_upstream_feasible', 'step_index_for_insertion',
+        'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream',
+        'traveling_duration_detour', 'late'.
 
         Assumptions (only checked in debug):
-
-        - 1. the given task can be realized by the employee;
-        - 2. the times of this sequence are consistent.
+        The times of this sequence are consistent.
 
         :param task: the task (Task) that may be inserted
         :param tabu_indices: steps indices (list[int]) where the task cannot be inserted
-        :return: TODO
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+          if the skill constraints are not satisfied start times should still be computed
+        :return: the examination dictionary
         """
+
+        # Examine skill-wise feasibility
+        insertion_is_skill_feasible = self.employee.is_capable_of_performing(task)
+        if compute_times_only_if_skill_constraints_satisfied and not insertion_is_skill_feasible:
+            return dict(is_feasible=False, is_skill_feasible=False)
 
         # The assumptions are checked when calling examine_insertion_at
 
@@ -471,9 +490,10 @@ class SequenceLS(Sequence):
             tabu_indices = []
 
         # Initialize variables
-        insertion_is_feasible = False
-        insertion_is_upstream_feasible = False
-        best_step_index_for_insertion = None
+        best_insertion_is_time_feasible = False
+        best_insertion_is_upstream_feasible = False
+        best_insertion_is_downstream_feasible = False
+        best_insertion_step_index = None
         best_start_time_of_entering_task = None
         best_start_time_of_entering_task_for_upstream = None
         best_start_time_of_entering_task_for_downstream = None
@@ -483,42 +503,39 @@ class SequenceLS(Sequence):
         # Examine all step index for insertion starting from index 1
         examined_step_index = 1
         while examined_step_index <= self.nb_steps - 1:
-
             # If the examined step is tabu, then go to next step
             if examined_step_index in tabu_indices:
                 examined_step_index += 1
-
             # If the examined step is not tabu, then examine it
             else:
+                examination = self.examine_insertion_at(task, examined_step_index, False)
 
-                # Examine the insertion at step
-                examination = self.examine_insertion_at(task, examined_step_index)
+                # If the insertion is time-wise feasible, ...
+                if examination['is_time_feasible']:
 
-                # If the insertion is feasible, ...
-                if examination['is_feasible']:
-
-                    # If feasibility has not yet been noticed,
-                    if not insertion_is_feasible:
+                    # If time-wise feasibility has not yet been noticed,
+                    if not best_insertion_is_time_feasible:
 
                         # Signal that the insertion is feasible (and a fortiori upstream-feasible)
-                        insertion_is_feasible = True
-                        insertion_is_upstream_feasible = True
+                        best_insertion_is_time_feasible = True
+                        best_insertion_is_upstream_feasible = True
+                        best_insertion_is_downstream_feasible = True
                         best_start_time_of_entering_task_for_upstream = None
                         best_start_time_of_entering_task_for_downstream = None
                         best_late = None
 
                         # Save this insertion as the best one
-                        best_step_index_for_insertion = examined_step_index
+                        best_insertion_step_index = examined_step_index
                         best_start_time_of_entering_task = examination['start_time']
                         best_traveling_duration_detour = examination['traveling_duration_detour']
 
-                    # If feasibility has already been noticed,
+                    # If time-wise feasibility has already been noticed,
                     else:
 
                         # If it is the best feasible insertion traveling-duration-wise,
                         # then save it
                         if examination['traveling_duration_detour'] < best_traveling_duration_detour:
-                            best_step_index_for_insertion = examined_step_index
+                            best_insertion_step_index = examined_step_index
                             best_start_time_of_entering_task = examination['start_time']
                             best_traveling_duration_detour = examination['traveling_duration_detour']
 
@@ -529,20 +546,21 @@ class SequenceLS(Sequence):
                 elif examination['is_upstream_feasible']:
 
                     # If no feasible insertions are yet known, ...
-                    if not insertion_is_feasible:
+                    if not best_insertion_is_time_feasible:
                         late_due_to_upstream_at_step_after_insertion = (
-                                examination['earliest_start_time_for_upstream'] -
-                                examination['latest_start_time_for_downstream']
+                            examination['earliest_start_time_for_upstream'] -
+                            examination['latest_start_time_for_downstream']
                         )
 
                         # If upstream-feasibility has not yet been noticed,
-                        if not insertion_is_upstream_feasible:
+                        if not best_insertion_is_upstream_feasible:
 
                             # Signal that the insertion is upstream-feasible
-                            insertion_is_upstream_feasible = True
+                            best_insertion_is_upstream_feasible = True
 
                             # Save this insertion as the best one
-                            best_step_index_for_insertion = examined_step_index
+                            best_insertion_is_downstream_feasible = examination['is_downstream_feasible']
+                            best_insertion_step_index = examined_step_index
                             best_start_time_of_entering_task = examination['start_time']
                             best_start_time_of_entering_task_for_upstream = \
                                 examination['earliest_start_time_for_upstream']
@@ -557,7 +575,8 @@ class SequenceLS(Sequence):
                             # If it is the best insertion late-wise,
                             # then save it
                             if late_due_to_upstream_at_step_after_insertion < best_late:
-                                best_step_index_for_insertion = examined_step_index
+                                best_insertion_is_downstream_feasible = examination['is_downstream_feasible']
+                                best_insertion_step_index = examined_step_index
                                 best_start_time_of_entering_task = examination['start_time']
                                 best_start_time_of_entering_task_for_upstream = \
                                     examination['earliest_start_time_for_upstream']
@@ -574,10 +593,11 @@ class SequenceLS(Sequence):
 
                     # If no upstream-feasible insertions are yet known,
                     # then save it
-                    if not insertion_is_upstream_feasible:
+                    if not best_insertion_is_upstream_feasible:
+                        best_insertion_is_downstream_feasible = examination['is_downstream_feasible']
                         late_due_to_upstream_at_insertion = \
                             examination['earliest_start_time_for_upstream'] + task.duration - task.end_time_UB
-                        best_step_index_for_insertion = examined_step_index
+                        best_insertion_step_index = examined_step_index
                         best_start_time_of_entering_task = examination['start_time']
                         best_start_time_of_entering_task_for_upstream = \
                             examination['earliest_start_time_for_upstream']
@@ -589,14 +609,305 @@ class SequenceLS(Sequence):
                     # Stop the examinations
                     examined_step_index = self.nb_steps
 
-        return {'is_feasible': insertion_is_feasible,
-                'is_upstream_feasible': insertion_is_upstream_feasible,
-                'step_index_for_insertion': best_step_index_for_insertion,
+        return {'is_feasible': insertion_is_skill_feasible and best_insertion_is_time_feasible,
+                'is_time_feasible': best_insertion_is_time_feasible,
+                'is_skill_feasible': insertion_is_skill_feasible,
+                'is_upstream_feasible': best_insertion_is_upstream_feasible,
+                'is_downstream_feasible': best_insertion_is_downstream_feasible,
+                'step_index_for_insertion': best_insertion_step_index,
                 'start_time': best_start_time_of_entering_task,
                 'earliest_start_time_for_upstream': best_start_time_of_entering_task_for_upstream,
                 'latest_start_time_for_downstream': best_start_time_of_entering_task_for_downstream,
                 'traveling_duration_detour': best_traveling_duration_detour,
                 'late': best_late}
+
+    def examine_best_insertion_between_consecutive_activities_among_tasks_set(
+            self, tasks: list[Task], compute_times_only_if_skill_constraints_satisfied: bool = True):
+        """
+        Among all tasks of given set, examine the best insertion of a task in this sequence, that is to say:
+
+        - if there is any feasible insertion,
+          the best insertion is the feasible one that engenders the smallest additional traveling duration;
+        - if there are no feasible insertions,
+          the best insertion is the infeasible one that is the closest to be feasible duration-wise.
+
+        Provide a dictionary describing this examination with keys:
+        'is_feasible', 'is_skill_feasible', 'is_time_feasible', 'is_upstream_feasible', 'step_index_for_insertion',
+        'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream',
+        'traveling_duration_detour', 'late', 'task_name'.
+
+        Assumptions (only checked in debug):
+        The times of this sequence are consistent.
+
+        :param tasks: the list of candidate tasks (Task) that may be inserted
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+          if the skill constraints are not satisfied start times should still be computed
+        :return: the examination dictionary
+        """
+
+        # The assumptions are checked when calling examine_best_insertion_between_consecutive_activities
+
+        best_insertion_examination = self.examine_best_insertion_between_consecutive_activities(
+            tasks[0], None, compute_times_only_if_skill_constraints_satisfied
+        )
+        best_task = tasks[0]
+        for task in tasks[1:]:
+            examination = self.examine_best_insertion_between_consecutive_activities(
+                task, None, compute_times_only_if_skill_constraints_satisfied
+            )
+            # Case where the current insertion is feasible
+            if examination['is_feasible']:
+                if not best_insertion_examination['is_feasible'] or \
+                    (examination['traveling_duration_detour'] <
+                     best_insertion_examination['traveling_duration_detour']):
+                    best_insertion_examination = examination
+                    best_task = task
+            # Case where both the current insertion and the best currently known one are infeasible
+            elif not best_insertion_examination['is_feasible']:
+                # Case where the current insertion is infeasible skill-wise
+                if not examination['is_skill_feasible']:
+                    if not best_insertion_examination['is_skill_feasible'] and \
+                            task.skill_level < best_task.skill_level:
+                        best_insertion_examination = examination
+                        best_task = task
+                # Case where the current insertion is feasible skill-wise
+                else:
+                    if not best_insertion_examination['is_skill_feasible']:
+                        best_insertion_examination = examination
+                        best_task = task
+                    # Case where both the current insertion and the best currently known one are feasible skill-wise
+                    else:
+                        # Case where the current insertion is infeasible upstream-wise
+                        if not examination['is_upstream_feasible']:
+                            if not best_insertion_examination['is_upstream_feasible'] and \
+                                    examination['late'] < best_insertion_examination['late']:
+                                best_insertion_examination = examination
+                                best_task = task
+                        # Case where the current insertion is feasible upstream-wise
+                        else:
+                            if not best_insertion_examination['is_upstream_feasible']:
+                                best_insertion_examination = examination
+                                best_task = task
+                            # Case where both the current insertion and the best currently known one
+                            # are feasible upstream-wise
+                            elif examination['late'] < best_insertion_examination['late']:
+                                best_insertion_examination = examination
+                                best_task = task
+        best_insertion_examination['task_name'] = best_task.name
+        return best_insertion_examination
+
+    #########################
+    # Examining - Insertion #
+    #########################
+
+    def examine_swap_with_a_task(self, entering_task: Task, leaving_task: Task,
+                                 compute_times_only_if_skill_constraints_satisfied: bool = True):
+        # Check the assumptions
+        assert (not (entering_task in self.get_contained_tasks()),
+                f"The given entering task {entering_task.name} is already in this sequence")
+        assert (not (leaving_task in self.get_contained_tasks()),
+                f"The given leaving task {leaving_task.name} is not in this sequence")
+        assert self.is_time_consistent, "The times are not consistent"
+        # Examine skill-wise feasibility
+        is_skill_feasible = self.employee.is_capable_of_performing(entering_task)
+        if compute_times_only_if_skill_constraints_satisfied and not is_skill_feasible:
+            return dict(is_feasible=False, is_skill_feasible=False)
+        # Examine time-wise
+        sequence_copy = self.copy()
+        task_index = sequence_copy.get_step_index_of(leaving_task)
+        sequence_copy.remove_step(task_index, tighten_times=False, update_KPIs=False)
+        examination = sequence_copy.examine_insertion_at(entering_task, task_index,
+                                                         compute_times_only_if_skill_constraints_satisfied)
+        return examination
+
+    def examine_swap_with_any_task(self, task: Task, compute_times_only_if_skill_constraints_satisfied: bool = True):
+
+        # Examine skill-wise feasibility
+        swap_is_skill_feasible = self.employee.is_capable_of_performing(task)
+        if compute_times_only_if_skill_constraints_satisfied and not swap_is_skill_feasible:
+            return dict(is_feasible=False, is_skill_feasible=False)
+
+        # The assumptions are checked when calling examine_swap_with_a_tas
+
+        # Initialize variables
+        best_swap_is_time_feasible = False
+        best_swap_is_upstream_feasible = False
+        best_swap_is_downstream_feasible = False
+        best_swap_step_index = None
+        best_start_time_of_entering_task = None
+        best_start_time_of_entering_task_for_upstream = None
+        best_start_time_of_entering_task_for_downstream = None
+        best_traveling_duration_detour = None
+        best_late = None
+
+        # Examine all step index for swap starting from index 1
+        examined_step_index = 1
+        while examined_step_index <= self.nb_steps - 2:
+            leaving_task = self.get_step(examined_step_index).activity
+            examination = self.examine_swap_with_a_task(task, leaving_task, False)
+
+            # If the insertion is time-wise feasible, ...
+            if examination['is_time_feasible']:
+
+                # If time-wise feasibility has not yet been noticed,
+                if not best_swap_is_time_feasible:
+
+                    # Signal that the insertion is feasible (and a fortiori upstream-feasible)
+                    best_swap_is_time_feasible = True
+                    best_swap_is_upstream_feasible = True
+                    best_swap_is_downstream_feasible = True
+                    best_start_time_of_entering_task_for_upstream = None
+                    best_start_time_of_entering_task_for_downstream = None
+                    best_late = None
+
+                    # Save this insertion as the best one
+                    best_swap_step_index = examined_step_index
+                    best_start_time_of_entering_task = examination['start_time']
+                    best_traveling_duration_detour = examination['traveling_duration_detour']
+
+                # If time-wise feasibility has already been noticed,
+                else:
+
+                    # If it is the best feasible insertion traveling-duration-wise,
+                    # then save it
+                    if examination['traveling_duration_detour'] < best_traveling_duration_detour:
+                        best_swap_step_index = examined_step_index
+                        best_start_time_of_entering_task = examination['start_time']
+                        best_traveling_duration_detour = examination['traveling_duration_detour']
+
+                # Go to the next step
+                examined_step_index += 1
+
+            # If the insertion is upstream-feasible, ...
+            elif examination['is_upstream_feasible']:
+
+                # If no feasible insertions are yet known, ...
+                if not best_swap_is_time_feasible:
+                    late_due_to_upstream_at_step_after_insertion = (
+                            examination['earliest_start_time_for_upstream'] -
+                            examination['latest_start_time_for_downstream']
+                    )
+
+                    # If upstream-feasibility has not yet been noticed,
+                    if not best_swap_is_upstream_feasible:
+
+                        # Signal that the insertion is upstream-feasible
+                        best_swap_is_upstream_feasible = True
+
+                        # Save this insertion as the best one
+                        best_swap_is_downstream_feasible = examination['is_downstream_feasible']
+                        best_swap_step_index = examined_step_index
+                        best_start_time_of_entering_task = examination['start_time']
+                        best_start_time_of_entering_task_for_upstream = \
+                            examination['earliest_start_time_for_upstream']
+                        best_start_time_of_entering_task_for_downstream = \
+                            examination['latest_start_time_for_downstream']
+                        best_late = late_due_to_upstream_at_step_after_insertion
+                        best_traveling_duration_detour = examination['traveling_duration_detour']
+
+                    # If upstream-feasibility has already been noticed,
+                    else:
+
+                        # If it is the best insertion late-wise,
+                        # then save it
+                        if late_due_to_upstream_at_step_after_insertion < best_late:
+                            best_swap_is_downstream_feasible = examination['is_downstream_feasible']
+                            best_swap_step_index = examined_step_index
+                            best_start_time_of_entering_task = examination['start_time']
+                            best_start_time_of_entering_task_for_upstream = \
+                                examination['earliest_start_time_for_upstream']
+                            best_start_time_of_entering_task_for_downstream = \
+                                examination['latest_start_time_for_downstream']
+                            best_late = late_due_to_upstream_at_step_after_insertion
+                            best_traveling_duration_detour = examination['traveling_duration_detour']
+
+                # Go to the next step
+                examined_step_index += 1
+
+            # If the insertion is not upstream-feasible, ...
+            else:
+
+                # If no upstream-feasible insertions are yet known,
+                # then save it
+                if not best_swap_is_upstream_feasible:
+                    best_swap_is_downstream_feasible = examination['is_downstream_feasible']
+                    late_due_to_upstream_at_insertion = \
+                        examination['earliest_start_time_for_upstream'] + task.duration - task.end_time_UB
+                    best_swap_step_index = examined_step_index
+                    best_start_time_of_entering_task = examination['start_time']
+                    best_start_time_of_entering_task_for_upstream = \
+                        examination['earliest_start_time_for_upstream']
+                    best_start_time_of_entering_task_for_downstream = \
+                        examination['latest_start_time_for_downstream']
+                    best_late = late_due_to_upstream_at_insertion
+                    best_traveling_duration_detour = examination['traveling_duration_detour']
+
+                # Stop the examinations
+                examined_step_index = self.nb_steps
+
+        return {'is_feasible': swap_is_skill_feasible and best_swap_is_time_feasible,
+                'is_time_feasible': best_swap_is_time_feasible,
+                'is_skill_feasible': swap_is_skill_feasible,
+                'is_upstream_feasible': best_swap_is_upstream_feasible,
+                'is_downstream_feasible': best_swap_is_downstream_feasible,
+                'step_index_for_swap': best_swap_step_index,
+                'start_time': best_start_time_of_entering_task,
+                'earliest_start_time_for_upstream': best_start_time_of_entering_task_for_upstream,
+                'latest_start_time_for_downstream': best_start_time_of_entering_task_for_downstream,
+                'traveling_duration_detour': best_traveling_duration_detour,
+                'late': best_late}
+
+    def examine_best_swap_tasks_among_tasks_set(self, tasks: list[Task],
+                                                compute_times_only_if_skill_constraints_satisfied: bool = True):
+        best_examination = self.examine_swap_with_any_task(tasks[0], compute_times_only_if_skill_constraints_satisfied)
+        best_task = tasks[0]
+        for task in tasks[1:]:
+            examination = self.examine_swap_with_any_task(task, compute_times_only_if_skill_constraints_satisfied)
+            # Case where the current transformation is feasible
+            if examination['is_feasible']:
+                if not best_examination['is_feasible'] or \
+                        (examination['traveling_duration_detour'] <
+                         best_examination['traveling_duration_detour']):
+                    best_examination = examination
+                    best_task = task
+            # Case where both the current transformation and the best currently known one are infeasible
+            elif not best_examination['is_feasible']:
+                # Case where the current transformation is infeasible skill-wise
+                if not examination['is_skill_feasible']:
+                    if not best_examination['is_skill_feasible'] and \
+                            task.skill_level < best_task.skill_level:
+                        best_examination = examination
+                        best_task = task
+                # Case where the current transformation is feasible skill-wise
+                else:
+                    if not best_examination['is_skill_feasible']:
+                        best_examination = examination
+                        best_task = task
+                    # Case where both the current transformation and
+                    # the best currently known one are feasible skill-wise
+                    else:
+                        # Case where the current transformation is infeasible upstream-wise
+                        if not examination['is_upstream_feasible']:
+                            if not best_examination['is_upstream_feasible'] and \
+                                    examination['late'] < best_examination['late']:
+                                best_examination = examination
+                                best_task = task
+                        # Case where the current transformation is feasible upstream-wise
+                        else:
+                            if not best_examination['is_upstream_feasible']:
+                                best_examination = examination
+                                best_task = task
+                            # Case where both the current transformation and the best currently known one
+                            # are feasible upstream-wise
+                            elif examination['late'] < best_examination['late']:
+                                best_examination = examination
+                                best_task = task
+        best_examination['task_name'] = best_task.name
+        return best_examination
+
+    ##################
+    # Critical steps #
+    ##################
 
     def find_first_critical_step_index_backward_from(self, step_index: int):
         """
@@ -701,7 +1012,6 @@ class SequenceLS(Sequence):
 
         # Update KPIs if needed
         if update_KPIs:
-
             # Update tasks realization
             self._nb_realized_tasks -= 1
             self._total_working_duration -= removed_step.activity.duration
@@ -735,9 +1045,9 @@ class SequenceLS(Sequence):
 
             # Update traveling distance
             self._total_traveling_distance += (
-                step_before_removal.activity.distance_to(step_after_removal.activity) -
-                (step_before_removal.activity.distance_to(removed_step.activity) +
-                 removed_step.activity.distance_to(step_after_removal.activity))
+                    step_before_removal.activity.distance_to(step_after_removal.activity) -
+                    (step_before_removal.activity.distance_to(removed_step.activity) +
+                     removed_step.activity.distance_to(step_after_removal.activity))
             )
 
         # Update times slacks
@@ -826,7 +1136,7 @@ class SequenceLS(Sequence):
 
         # Update times before insertion
         arrival_times_difference_at_inserted_step = (
-            inserted_step.arrival_time - (step_before_insertion.end_time + traveling_duration_before)
+                inserted_step.arrival_time - (step_before_insertion.end_time + traveling_duration_before)
         )
         idle_time_variation_strictly_up_to_insertion = 0
         idle_time_at_inserted_step = 0
@@ -867,14 +1177,13 @@ class SequenceLS(Sequence):
 
         # Update KPIs if needed
         if update_KPIs:
-
             # Update tasks realization
             self._nb_realized_tasks += 1
             self._total_working_duration += inserted_step.activity.duration
 
             # Update traveling duration
             traveling_duration_variation = (
-                traveling_duration_before + traveling_duration_after - traveling_duration_before_after
+                    traveling_duration_before + traveling_duration_after - traveling_duration_before_after
             )
             self._total_traveling_duration += traveling_duration_variation
             assert (traveling_duration_variation >= 0,
@@ -882,15 +1191,15 @@ class SequenceLS(Sequence):
 
             # Update idle time
             idle_time_variation = (
-                idle_time_variation_strictly_up_to_insertion + idle_time_at_inserted_step +
-                idle_time_variation_strictly_down_from_insertion
+                    idle_time_variation_strictly_up_to_insertion + idle_time_at_inserted_step +
+                    idle_time_variation_strictly_down_from_insertion
             )
             self._total_idle_time += idle_time_variation
 
             # Update traveling distance
             self._total_traveling_distance += (
-                step_before_insertion.activity.distance_to(task) + step_after_insertion.activity.distance_to(task) -
-                step_before_insertion.activity.distance_to(step_after_insertion.activity)
+                    step_before_insertion.activity.distance_to(task) + step_after_insertion.activity.distance_to(task) -
+                    step_before_insertion.activity.distance_to(step_after_insertion.activity)
             )
 
         # Update times slacks
@@ -1032,14 +1341,14 @@ class SequenceLS(Sequence):
         # If the insertion is feasible (that is to say there are no start time for backward and forward),
         # then do the change and return a boolean True as it is feasible
         if insertion_is_feasible:
-            first_step_with_time_change_index, last_step_with_time_change_index =\
+            first_step_with_time_change_index, last_step_with_time_change_index = \
                 self._feasibly_insert_task_at(entering_task, step_index, start_time, tighten_times, update_KPIs)
             return True, (first_step_with_time_change_index, last_step_with_time_change_index)
 
         # If the insertion is not feasible,
         # then do the change and return a boolean False as it is not feasible
         else:
-            first_step_with_time_change_index, last_step_with_time_change_index =\
+            first_step_with_time_change_index, last_step_with_time_change_index = \
                 self._infeasibly_insert_task_at(entering_task, step_index, start_time,
                                                 start_time_for_backward, start_time_for_forward)
             return False, (first_step_with_time_change_index, last_step_with_time_change_index)

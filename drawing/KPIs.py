@@ -38,7 +38,7 @@ def create_bar_chart_figure(solutions: list, figure_id: str = None, for_UI: bool
     criteria_values = dict()
     for solution in solutions:
         criteria_values[solution] = [
-            solution.nb_realized_tasks,
+            solution.nb_performed_tasks,
             solution.total_working_duration / float(nb_employees),
             solution.total_traveling_duration / float(nb_employees),
             solution.total_idle_time / float(nb_employees)

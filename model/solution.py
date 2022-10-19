@@ -26,7 +26,7 @@ ACTIVITY_AFTER_LUNCH_KEY = 'activity_after'
 LUNCH_START_TIME_KEY = 'start_time'
 
 
-# TODO: create a class Realization
+# TODO: create a class Realization / Performance
 # Class Solution
 class Solution:
 
@@ -68,6 +68,14 @@ class Solution:
             representation = representation[:-2]
         return representation
 
+    def __gt__(self, other):
+        if not isinstance(other, Solution):
+            raise TypeError(f"The other object has a type {type(other)} instead of {Solution}")
+        else:
+            return (self.total_working_duration > other.total_working_duration or
+                    (self.total_working_duration == other.total_working_duration and
+                     self.total_traveling_duration < other.total_traveling_duration))
+
     @property
     def instance(self):
         return self._instance
@@ -81,7 +89,23 @@ class Solution:
         self._name = name
 
     @property
-    def nb_realized_tasks(self) -> int:
+    def performed_tasks(self):
+        return [task for task in self._instance.tasks if self.get_task_realization(task)]
+
+    @property
+    def performed_tasks_names(self):
+        return [task.name for task in self._instance.tasks if self.get_task_realization(task)]
+
+    @property
+    def not_performed_tasks(self):
+        return [task for task in self._instance.tasks if not self.get_task_realization(task)]
+
+    @property
+    def not_performed_tasks_names(self):
+        return [task.name for task in self._instance.tasks if not self.get_task_realization(task)]
+
+    @property
+    def nb_performed_tasks(self) -> int:
         try:
             return self._KPIs[NB_REALIZED_TASKS_KEY]
         except KeyError:
@@ -126,9 +150,16 @@ class Solution:
     def _copy_KPIs(self):
         return copy.deepcopy(self._KPIs)
 
-    def copy(self, copy_name=False):
-        name = self._name if copy_name else self._name + "_Copy"
+    def copy_deprecated(self, copy_name=False):
+        name = self._name if copy_name else self._name + "_copy"
         solution = Solution(self._instance, name, self._copy_sequences(), self._copy_tasks_realizations(),
+                            self._copy_lunch_breaks_realizations())
+        solution._KPIs = self._copy_KPIs()
+        return solution
+
+    def copy(self, name: str = None):
+        solution_name = self._name + "_copy" if name is None else name
+        solution = Solution(self._instance, solution_name, self._copy_sequences(), self._copy_tasks_realizations(),
                             self._copy_lunch_breaks_realizations())
         solution._KPIs = self._copy_KPIs()
         return solution
@@ -139,6 +170,9 @@ class Solution:
 
     def get_sequence(self, employee: Employee):
         return self._sequences[employee.name]
+
+    def get_sequence_by_name(self, employee_name: str):
+        return self._sequences[employee_name]
 
     ##############
     # Activities #
@@ -155,6 +189,18 @@ class Solution:
             return self._instance.get_employee_by_name(self._tasks_realizations[task.name][TASK_ASSIGNEE_KEY])
         else:
             raise ValueError(f"The task {task} is not realized, it does not have assignee")
+
+    def get_tasks_performed_by(self, employee: Employee, in_sequence_order=True):
+        if in_sequence_order:
+            return self.get_sequence(employee).get_contained_activities(
+                include_departure=False, include_unavailabilities=False, including_coming_back=False)
+        else:
+            return [task for task in self._instance.tasks
+                    if self.get_task_realization(task) and self.get_task_assignee(task) == employee]
+
+    def get_tasks_not_performed_by(self, employee: Employee):
+        return [task for task in self._instance.tasks
+                if not self.get_task_realization(task) or self.get_task_assignee(task) != employee]
 
     def get_activity_realization(self, activity: Activity):
         if not isinstance(activity, Task):
@@ -271,6 +317,10 @@ class Solution:
                 sequence.insert(insertion_index, step)
 
             self._sequences[employee.name] = sequence
+
+    def _compute_steps_end_times(self):
+        for sequence in self._sequences.values():
+            sequence.compute_end_times_based_on_fixed_start_times()
 
     def _compute_lunch_breaks_realizations(self):
 

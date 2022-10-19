@@ -1,7 +1,7 @@
 # TODO
 
-# def promptYesNoQuestion(question):
-#     print(f"XPer: {question} [Y/N]")
+# def promptYesNoQuestion(questioning):
+#     print(f"XPer: {questioning} [Y/N]")
 #     answer = input("XPee: ")
 #     if answer in ["Y", "y", "Yes", "yes"]:
 #         return True
@@ -10,7 +10,7 @@
 #     else:
 #         print("XPer: You gave an incorrect answer, please use Y for yes or N for no")
 #         print("")
-#         return promptYesNoQuestion(question)
+#         return promptYesNoQuestion(questioning)
 #
 #
 # def checkIfUserHasAnyQuestion():
@@ -20,7 +20,7 @@
 # def findOutAndAnswerUserQuestion(solution: Solution):
 #
 #     tabulation = "      "
-#     print("XPer: Which question do you want to ask among the following? [Give the number corresponding to your question] ")
+#     print("XPer: Which questioning do you want to ask among the following? [Give the number corresponding to your questioning] ")
 #     print(tabulation + "1. Why employee _ does not realize task _ instead of the task _ in his planning?")
 #     print(tabulation + "2.1. Why employee _ does not realize task _ just after the activity _ in his planning?")
 #     print(tabulation + "2.2. Why employee _ does not realize task _ in addition the tasks of his planning?")

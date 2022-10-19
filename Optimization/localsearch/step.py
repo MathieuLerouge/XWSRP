@@ -16,10 +16,10 @@ class StepLS(Step):
     def __repr__(self):
         representation = f"{BRACKET_LEFT_STRING}{self._activity.name}: "
         if self._arrival_time is not None:
-            representation += f"Ta = {convert_nb_minutes_to_time_string(self._arrival_time)}, "
-        representation += f"Ts = {convert_nb_minutes_to_time_string(self._start_time)}"
+            representation += f"Ta = {convert_nb_minutes_to_time_string(self._arrival_time)}({self._arrival_time}), "
+        representation += f"Ts = {convert_nb_minutes_to_time_string(self._start_time)}({self._start_time})"
         if self._end_time is not None:
-            representation += f", Te = {convert_nb_minutes_to_time_string(self._end_time)}"
+            representation += f", Te = {convert_nb_minutes_to_time_string(self._end_time)}({self._end_time})"
         if self._BTS is not None:
             representation += f", BTS = {self._BTS}, FTS = {self._FTS}"
         representation += f"{BRACKET_RIGHT_STRING}"

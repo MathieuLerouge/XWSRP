@@ -2,8 +2,8 @@
 from model.solution import Solution
 
 
-# Class Explanation
-class Explanation:
+# Class ExplanationDeprecated
+class ExplanationDeprecated:
 
     def __init__(self, text: str, solution: Solution = None, solution_is_feasible: bool = False,
                  infeasibility=None, critical_bounds=None):

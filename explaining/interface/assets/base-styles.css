@@ -1,0 +1,123 @@
+/* Base Styles */
+
+
+
+*/
+
+/* Links */
+
+a {
+  color: #1EAEDB;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+a:hover {
+  color: #0FA0CE;
+}
+
+
+
+/*
+dropdown {
+  color: red;
+  background-color: transparent;
+  border-radius: 4px;
+  border: 1px solid #4B5460;
+  cursor: pointer;
+}
+*/
+
+/*
+dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  padding: 12px 16px;
+  z-index: 1;
+}
+
+dropdown:hover {
+  color: #91dfd2;
+  border-color: white;
+}
+*/
+
+
+/* Row */
+
+.row,
+.rows {
+  float: top;
+  margin-top: 1rem;
+}
+
+.row:first-child,
+.rows:first-child {
+  margin-top: 0;
+}
+
+/* Column */
+
+.column,
+.columns {
+  float: left;
+  margin-left: 1rem;
+}
+
+.column:first-child,
+.columns:first-child {
+  margin-left: 0;
+}
+
+.one.column,
+.one.columns {
+  width: 4.66666666667%;
+}
+
+.two.columns {
+  width: 13.3333333333%;
+}
+
+.three.columns {
+  width: 22%;
+}
+
+.four.columns {
+  width: 30.6666666667%;
+}
+
+.five.columns {
+  width: 39.3333333333%;
+}
+
+.six.columns {
+  width: 48%;
+}
+
+.seven.columns {
+  width: 56.6666666667%;
+}
+
+.eight.columns {
+  width: 65.3333333333%;
+}
+
+.nine.columns {
+  width: 74.0%;
+}
+
+.ten.columns {
+  width: 82.6666666667%;
+}
+
+.eleven.columns {
+  width: 91.3333333333%;
+}
+
+.twelve.columns {
+  width: 100%;
+  margin-left: 0;
+}

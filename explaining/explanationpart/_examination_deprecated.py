@@ -27,17 +27,17 @@ def comment_placement(solution: SolutionLS, employee: Employee, entering_task: T
         if not examination['is_upstream_feasible']:
             if step_before_placement_index == 0:
                 comment += (
-                    f"By realizing {entering_task.name} "
+                    f"By performing {entering_task.name} "
                     f"after leaving {step_before_placement.activity.name} at the earliest possible, "
                 )
             elif step_before_placement_index == 1:
                 comment += (
-                    f"By realizing {step_before_placement.activity.name} "
+                    f"By performing {step_before_placement.activity.name} "
                     f"and {entering_task.name} at the earliest possible, "
                 )
             else:
                 comment += (
-                    f"By realizing all the activities before {entering_task.name} at the earliest possible, "
+                    f"By performing all the activities before {entering_task.name} at the earliest possible, "
                 )
             comment += (
                 f"{employee.name} can end {entering_task.name} "
@@ -54,7 +54,7 @@ def comment_placement(solution: SolutionLS, employee: Employee, entering_task: T
                 solution.instance.compute_traveling_duration(entering_task, step_after_placement.activity)
             )
             comment += (
-                f"By realizing all the activities before {step_after_placement.activity.name} "
+                f"By performing all the activities before {step_after_placement.activity.name} "
                 f"at the earliest possible, "
             )
             if step_after_placement_index == len(sequence) - 1:
@@ -124,7 +124,7 @@ def examine_placing_at(solution: SolutionLS, employee: Employee, entering_task: 
 
     Assumptions (only checked in debug):
 
-    - 1. the given entering task can be realized by the employee of this sequence;
+    - 1. the given entering task can be performed by the employee of this sequence;
     - 2. the given entering task must not be already in this sequence;
     - 3. the given index of step before the placement must be
     between 0 (included) and the number of steps - 2 (included);
@@ -135,7 +135,7 @@ def examine_placing_at(solution: SolutionLS, employee: Employee, entering_task: 
     - 6. the times of this sequence are consistent.
 
     :param solution: the solution (SolutionLS) for which the examination is done
-    :param employee: the employee (Employee) who is figured to realize the entering task
+    :param employee: the employee (Employee) who is figured to perform the entering task
     :param entering_task: the task (Task) that is figured to be inserted
     :param step_before_placement_index: the index of the step (int) before the position
       where the given task would be placed
@@ -181,13 +181,13 @@ def examine_insertion_at(solution: SolutionLS, employee: Employee, entering_task
 
     Assumptions (only checked in debug):
 
-    - 1. the given entering task can be realized by the employee of this sequence;
+    - 1. the given entering task can be performed by the employee of this sequence;
     - 2. the given entering task must not be already in this sequence;
     - 3. the given step index must be between 1 (included) and the number of steps - 1 (included);
     - 4. the times of this sequence are consistent.
 
     :param solution: the solution (SolutionLS) for which the examination is done
-    :param employee: the employee (Employee) who is figured to realize the entering task
+    :param employee: the employee (Employee) who is figured to perform the entering task
     :param entering_task: the task (Task) that is figured to be inserted
     :param step_index: the index of the step (int) where the given task would be inserted
     :return: the dictionary with keys 'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible'
@@ -220,6 +220,9 @@ def examine_best_insertion(solution: SolutionLS, entering_task: Task, employee: 
     Examine which insertion of the given entering task in the given employee's sequence is the best
     among the insertions at indices that are not tabu.
 
+    The entering task must not be performed by the employee, otherwise a ValueError is raised.
+    The entering task may be performed by another employee however.
+
     :param solution:
     :param entering_task:
     :param employee:
@@ -227,15 +230,19 @@ def examine_best_insertion(solution: SolutionLS, entering_task: Task, employee: 
     :return:
     """
 
+    if solution.get_sequence(employee).contains(entering_task):
+        raise ValueError(f"The entering task {entering_task.name} is performed by the employee {employee.name}")
+
     # Examine the best insertion
-    examination = solution.examine_best_insertion(entering_task, employee, tabu_indices)
+    examination = solution.examine_best_insertion_deprecated(entering_task, employee, tabu_indices)
     if employee is None:
         employee = examination['employee']
 
     # Add comment to the examination
     if employee is None:
         examination['comment'] = (
-            f"None of the employees is capable of realizing the task {entering_task} due to capacities or time windows."
+            f"None of the employees is capable of performing the task {entering_task} "
+            f"due to capacities or time windows."
         )
     else:
         step_before_placement_index = examination['step_index_for_insertion'] - 1
@@ -246,6 +253,22 @@ def examine_best_insertion(solution: SolutionLS, entering_task: Task, employee: 
         )
 
     # Return the examination
+    return examination
+
+
+# Examine the insertion of a task in an employee's planning in addition to their activities
+def examine_insertion_in_addition(solution: SolutionLS, employee: Employee, task: Task):
+    if solution.get_sequence(employee).contains(task):
+        raise ValueError(f"The task {task.name} to add is performed by the employee {employee.name}")
+    examination = solution.examine_best_insertion_in_addition(employee, task)
+    solution_with_entering_task = examination['solution']
+    step_index = examination['step_index_for_insertion']
+    step_before_placement = step_index - 1
+    step_after_placement = step_index + 1
+    examination['comment'] = comment_placement(
+        solution_with_entering_task, employee, task,
+        step_before_placement, step_after_placement, examination
+    )
     return examination
 
 

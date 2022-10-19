@@ -6,6 +6,7 @@
 from model.task import Task
 from model.unavailability import Unavailability
 from utils.location import Location
+from utils.time import convert_nb_minutes_to_time_string
 from utils.timeset import TimeInterval
 
 
@@ -43,9 +44,25 @@ class Employee:
     def start_time_LB(self):
         return self._start_time_LB
 
+    def get_start_time_LB(self, as_integer: bool = True):
+        if as_integer:
+            return self._start_time_LB
+        else:
+            return convert_nb_minutes_to_time_string(self._start_time_LB)
+
     @property
     def end_time_UB(self):
         return self._end_time_UB
+
+    def get_end_time_UB(self, as_integer: bool = True):
+        if as_integer:
+            return self._end_time_UB
+        else:
+            return convert_nb_minutes_to_time_string(self._end_time_UB)
+
+    @property
+    def TW(self):
+        return TimeInterval(self._start_time_LB, self._end_time_UB)
 
     @property
     def location(self):
@@ -62,7 +79,6 @@ class Employee:
     @property
     def unavailabilities(self) -> list[Unavailability]:
         return list(self._unavailabilities.values())
-        # return set(self._unavailabilities.values())
 
     def add_unavailability(self, location: Location, start_time: int, end_time: int):
         for unavailability in self._unavailabilities:
@@ -78,5 +94,5 @@ class Employee:
     def get_unavailability_by_name(self, unavailability_name: str) -> Unavailability:
         return self._unavailabilities[unavailability_name]
 
-    def is_capable_of_realizing(self, task: Task):
+    def is_capable_of_performing(self, task: Task):
         return self._skill_level >= task.skill_level

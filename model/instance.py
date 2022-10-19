@@ -64,6 +64,10 @@ class Instance:
     def nb_employees(self):
         return len(self._employees)
 
+    @property
+    def total_employees_availability_duration(self):
+        return sum([employee.end_time_UB - employee.start_time_LB for employee in self.employees])
+
     def get_employee_by_name(self, employee_name: str) -> Employee:
         try:
             return self._employees[employee_name]
@@ -72,7 +76,7 @@ class Instance:
 
     def add_employee(self, name: str, start_time_LB: int, end_time_UB: int, location: Location, skill_level: int):
         if name in self._employees.keys():
-            raise ValueError(f"The given employee {name} is already among the employees of this _instance")
+            raise ValueError(f"The given employee {name} is already among the employees of this instance")
         else:
             self._employees[name] = Employee(name, start_time_LB, end_time_UB, location, skill_level)
 
@@ -83,16 +87,18 @@ class Instance:
     @property
     def tasks(self) -> list[Task]:
         return list(self._tasks.values())
-        # return set(self._tasks.values())
 
     @property
     def tasks_names(self) -> list[str]:
         return list(self._tasks.keys())
-        # return set(self._tasks.keys())
 
     @property
     def nb_tasks(self):
         return len(self._tasks)
+
+    @property
+    def total_tasks_duration(self):
+        return sum([task.duration for task in self.tasks])
 
     def get_task_by_name(self, task_name: str) -> Task:
         try:
@@ -103,7 +109,7 @@ class Instance:
     def add_task(self, name: str, duration: int, start_time_LB: int, end_time_UB: int,
                  skill_level: int, location: Location):
         if name in self._tasks.keys():
-            raise ValueError(f"The given task {name} is already among the tasks of the _instance")
+            raise ValueError(f"The given task {name} is already among the tasks of the instance")
         else:
             self._tasks[name] = Task(name, duration, start_time_LB, end_time_UB, skill_level, location)
 
@@ -120,21 +126,21 @@ class Instance:
         try:
             return self._lunch_break["TW"].lower_bound
         except KeyError:
-            raise AttributeError("There is no lunch break in this _instance")
+            raise AttributeError("There is no lunch break in this instance")
 
     @property
     def lunch_break_time_UB(self) -> int:
         try:
             return self._lunch_break["TW"].upper_bound
         except KeyError:
-            raise AttributeError("There is no lunch break in this _instance")
+            raise AttributeError("There is no lunch break in this instance")
 
     @property
     def lunch_break_duration(self) -> int:
         try:
             return self._lunch_break["duration"]
         except KeyError:
-            raise AttributeError("There is no lunch break in this _instance")
+            raise AttributeError("There is no lunch break in this instance")
 
     @property
     def has_lunch_break(self):
@@ -210,3 +216,25 @@ class Instance:
 
     def compute_traveling_duration(self, activity1: Activity, activity2: Activity):
         return int(np.ceil(activity1.distance_to(activity2) / self.speed))
+
+    ########
+    # Copy #
+    ########
+
+    def copy(self, name: str = None):
+        if self.has_task_unavailabilities:
+            raise NotImplementedError("Instance copy for instance having task unavailabilities is not implemented")
+        instance_name = self._name + "_copy" if name is None else name
+        instance = Instance(instance_name, self._speed)
+        for employee in self.employees:
+            instance.add_employee(employee.name, employee.start_time_LB, employee.end_time_UB,
+                                  employee.location, employee.skill_level)
+            employee_copy = instance.get_employee_by_name(employee.name)
+            for unavailability in employee.unavailabilities:
+                employee_copy.add_unavailability(unavailability.location, unavailability.start_time_LB,
+                                                 unavailability.end_time_UB)
+        for task in self.tasks:
+            instance.add_task(task.name, task.duration, task.start_time_LB, task.end_time_UB,
+                              task.skill_level, task.location)
+        instance.update()
+        return instance

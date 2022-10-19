@@ -1,0 +1,592 @@
+/********/
+/* Base */
+/********/
+
+
+/* Typography */
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-weight: 300;
+}
+
+h1 {
+  font-size: 4.5rem;
+  line-height: 1.2;
+  letter-spacing: -.1rem;
+  margin-bottom: 2rem;
+}
+
+h2 {
+  font-size: 3.6rem;
+  line-height: 1.25;
+  letter-spacing: -.1rem;
+  margin-bottom: 1.8rem;
+  margin-top: 1.8rem;
+}
+
+h3 {
+  font-size: 3.0rem;
+  line-height: 1.3;
+  letter-spacing: -.1rem;
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+h4 {
+  font-size: 2.6rem;
+  line-height: 1.35;
+  letter-spacing: -.08rem;
+  margin-bottom: 1.2rem;
+  margin-top: 1.2rem;
+}
+
+h5 {
+  font-size: 2.2rem;
+  line-height: 1.5;
+  letter-spacing: -.05rem;
+  margin-bottom: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+h6 {
+  font-size: 2.0rem;
+  line-height: 1.6;
+  letter-spacing: 0;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+p {
+  margin-top: 0;
+}
+
+
+/* Button */
+
+button {
+  /* display: inline-block; */
+  min-width: 8rem;
+  box-sizing: border-box;
+  height: 3rem;
+  /* background-color: #194572;
+  background-image: linear-gradient(to top, #252525, #194572 33%); */
+  background-color: #353535;
+  background-image: linear-gradient(to top, #252525, #353535 33%);
+  border-radius: 4px;
+  border: 1px solid #4B5460;
+  /* padding: 0 30px; */
+  color: #f3f5f4;
+  text-align: center;
+  line-height: 1.2;
+  font-size: 1.4rem;
+  font-weight: 400;
+  /* letter-spacing: .1rem;
+  text-transform: uppercase;
+  text-decoration: none; */
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+button:hover:enabled {
+  border-color: #194572;
+}
+
+button:disabled,
+button[disabled]{
+  color: #4B5460;
+  background-color: #252525;
+  background-image: none;
+  cursor: not-allowed;
+}
+
+/* Dropdown */
+
+#current-instance-dropdown .Select,
+#current-solution-dropdown .Select {
+  border-radius: 4px;
+  display: grid;
+  align-items: center;
+  line-height: 1.2;
+  font-size: 1.4rem;
+  color: #111111;
+  cursor: pointer;
+}
+#other-instance-dropdown .Select,
+#other-solution-dropdown .Select,
+#template-question-dropdown .Select,
+#template-input-1 .Select,
+#template-input-2 .Select,
+#template-input-3 .Select {
+  border-radius: 4px;
+  display: grid;
+  align-items: center;
+  line-height: 1.2;
+  font-size: 1.4rem;
+  color: #f3f5f4;
+  cursor: pointer;
+}
+
+#current-instance-dropdown .Select-control,
+#current-solution-dropdown .Select-control {
+  background-color: #BFBFBF;
+  background-image: linear-gradient(to top, #959595, #BFBFBF 33%);
+  border: 1px solid #4B5460;
+  cursor: pointer;
+}
+#other-instance-dropdown .Select-control,
+#other-solution-dropdown .Select-control,
+#template-question-dropdown .Select-control,
+#template-input-1 .Select-control,
+#template-input-2 .Select-control,
+#template-input-3 .Select-control {
+  background-color: #353535;
+  background-image: linear-gradient(to top, #252525, #353535 33%);
+  border: 1px solid #4B5460;
+  cursor: pointer;
+}
+
+#current-instance-dropdown .Select-control:hover,
+#current-solution-dropdown .Select-control:hover,
+#other-instance-dropdown .Select-control:hover,
+#other-solution-dropdown .Select-control:hover,
+#template-question-dropdown .Select-control:hover,
+#template-input-1 .Select-control:hover,
+#template-input-2 .Select-control:hover,
+#template-input-3 .Select-control:hover {
+  border-color: #316499;
+}
+
+#current-instance-dropdown .Select-placeholder,
+#current-solution-dropdown .Select-placeholder,
+#other-instance-dropdown .Select-placeholder,
+#other-solution-dropdown .Select-placeholder,
+#template-question-dropdown .Select-placeholder,
+#template-input-1 .Select-placeholder,
+#template-input-2 .Select-placeholder,
+#template-input-3 .Select-placeholder {
+  color: grey;
+  font-style: italic;
+  cursor: pointer;
+}
+
+#current-instance-dropdown .Select-control > span,
+#current-solution-dropdown .Select-control > span,
+#other-instance-dropdown .Select-control > span,
+#other-solution-dropdown .Select-control > span,
+#template-question-dropdown .Select-control > span,
+#template-input-1 .Select-control > span,
+#template-input-2 .Select-control > span,
+#template-input-3 .Select-control > span {
+  background: #194572;
+  background-image: linear-gradient(to top, #252525, #194572 33%);
+}
+
+#current-instance-dropdown .Select.is-focused > .Select-control,
+#current-solution-dropdown .Select.is-focused > .Select-control {
+  background-color: #BFBFBF;
+  border-color: #316499;
+  color: #111111;
+}
+#other-instance-dropdown .Select.is-focused > .Select-control,
+#other-solution-dropdown .Select.is-focused > .Select-control,
+#template-question-dropdown .Select.is-focused > .Select-control,
+#template-input-1 .Select.is-focused > .Select-control,
+#template-input-2 .Select.is-focused > .Select-control,
+#template-input-3 .Select.is-focused > .Select-control {
+  background-color: #353535;
+  border-color: #316499;
+  color: #f3f5f4;
+}
+
+#current-instance-dropdown .Select.is-focused > .Select-control > span,
+#current-solution-dropdown .Select.is-focused > .Select-control > span,
+#other-instance-dropdown .Select.is-focused > .Select-control > span,
+#other-solution-dropdown .Select.is-focused > .Select-control > span,
+#template-question-dropdown .Select.is-focused > .Select-control > span,
+#template-input-1 .Select.is-focused > .Select-control > span,
+#template-input-2 .Select.is-focused > .Select-control > span,
+#template-input-3 .Select.is-focused > .Select-control > span {
+  background-color: #194572;
+  background-image: none;
+}
+
+#current-instance-dropdown .Select-menu-outer,
+#current-solution-dropdown .Select-menu-outer {
+  background-color: #BFBFBF;
+  border-color: #316499;
+}
+#other-instance-dropdown .Select-menu-outer,
+#other-solution-dropdown .Select-menu-outer,
+#template-question-dropdown .Select-menu-outer,
+#template-input-1 .Select-menu-outer,
+#template-input-2 .Select-menu-outer,
+#template-input-3 .Select-menu-outer {
+  background-color: #353535;
+  border-color: #316499;
+}
+
+#current-instance-dropdown .Select.is-focused:not(.is-open) > .Select-control,
+#current-solution-dropdown .Select.is-focused:not(.is-open) > .Select-control,
+#other-instance-dropdown .Select.is-focused:not(.is-open) > .Select-control,
+#other-solution-dropdown .Select.is-focused:not(.is-open) > .Select-control,
+#template-question-dropdown .Select.is-focused:not(.is-open) > .Select-control,
+#template-input-1 .Select.is-focused:not(.is-open) > .Select-control,
+#template-input-2 .Select.is-focused:not(.is-open) > .Select-control,
+#template-input-3 .Select.is-focused:not(.is-open) > .Select-control {
+  border-color: #316499;
+}
+
+/* Does not work
+.Select.is-focused:not(.is-open) > .Select-control > span {
+  background-color: #194572;
+  background-image: none;
+}
+*/
+
+#current-instance-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
+#current-solution-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label {
+  color: #111111;
+}
+#other-instance-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
+#other-solution-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
+#template-question-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
+#template-input-1 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
+#template-input-2 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
+#template-input-3 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label {
+  color: #f3f5f4;
+}
+
+#current-instance-dropdown .Select.is-disabled .Select-control,
+#current-solution-dropdown .Select.is-disabled .Select-control {
+  background-color: #AFAFAF;
+  background-image: none;
+  cursor: not-allowed;
+}
+#other-instance-dropdown .Select.is-disabled .Select-control,
+#other-solution-dropdown .Select.is-disabled .Select-control,
+#template-question-dropdown .Select.is-disabled .Select-control,
+#template-input-1 .Select.is-disabled .Select-control,
+#template-input-2 .Select.is-disabled .Select-control,
+#template-input-3 .Select.is-disabled .Select-control {
+  background-color: #252525;
+  background-image: none;
+  cursor: not-allowed;
+}
+
+#current-instance-dropdown .Select.is-disabled .Select-control:hover,
+#current-solution-dropdown .Select.is-disabled .Select-control:hover,
+#other-instance-dropdown .Select.is-disabled .Select-control:hover,
+#other-solution-dropdown .Select.is-disabled .Select-control:hover,
+#template-question-dropdown .Select.is-disabled .Select-control:hover,
+#template-input-1 .Select.is-disabled .Select-control:hover,
+#template-input-2 .Select.is-disabled .Select-control:hover,
+#template-input-3 .Select.is-disabled .Select-control:hover {
+  border-color: #4B5460;
+  cursor: not-allowed;
+}
+
+#current-instance-dropdown .Select.is-disabled .Select-control > span,
+#current-solution-dropdown .Select.is-disabled .Select-control > span,
+#other-instance-dropdown .Select.is-disabled .Select-control > span,
+#other-solution-dropdown .Select.is-disabled .Select-control > span,
+#template-question-dropdown .Select.is-disabled .Select-control > span,
+#template-input-1 .Select.is-disabled .Select-control > span,
+#template-input-2 .Select.is-disabled .Select-control > span,
+#template-input-3 .Select.is-disabled .Select-control > span {
+  background-color: #194572;
+  background-image: none;
+}
+
+#current-instance-dropdown .Select.is-disabled .Select-placeholder,
+#current-solution-dropdown .Select.is-disabled .Select-placeholder,
+#other-instance-dropdown .Select.is-disabled .Select-placeholder,
+#other-solution-dropdown .Select.is-disabled .Select-placeholder,
+#template-question-dropdown .Select.is-disabled .Select-placeholder,
+#template-input-1 .Select.is-disabled .Select-placeholder,
+#template-input-2 .Select.is-disabled .Select-placeholder,
+#template-input-3 .Select.is-disabled .Select-placeholder {
+  cursor: not-allowed;
+}
+
+.automated-text, .empty-automated-text {
+  background: #353535;
+  padding: .4rem 1rem;
+}
+
+.empty-automated-text {
+  color: grey;
+  font-style: italic;
+}
+
+
+/***************/
+/* Application */
+/***************/
+
+/* General */
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  width: 100%;
+  max-width: 100%;
+  height: 100vh;
+  margin: 0;
+  background-color: #111111;
+  font-family: "Open Sans", sans-serif;
+  font-size: 1.4em;
+  font-weight: 100;
+  color: #f3f5f4;
+  line-height: 1.6;
+}
+
+#main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Title banner */
+
+#title-banner {
+  width: 100%;
+  height: fit-content;
+  padding: 5px;
+  background-color: #194572;
+  border-bottom: 1px solid #4B5460;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#title-banner-text {
+  margin-left: 10px;
+}
+
+#title-banner h5 {
+  font-family: 'Open Sans Semi Bold', sans-serif;
+  font-weight: 500;
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+}
+
+#title-banner h6 {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+#title-banner-logos {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+#title-banner Img {
+  height: 4rem;
+  margin: 0px 10px;
+}
+
+/* Explorer banner */
+
+#explorer-banner {
+  width: 100%;
+  height: fit-content;
+  padding: 5px 0px;
+  background-color: #AFAFAF;
+  border-bottom: 1px solid #4B5460;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: left;
+}
+
+/*
+#explorer-banner .label {
+  font-weight: 500;
+  color: #111111;
+  font-size: 1.6rem;
+  letter-spacing: .5px;
+}
+*/
+
+#explorer-banner-title {
+  height: 18px;
+  width: 23rem;
+  padding-left: 10px;
+  padding-bottom: 6px;
+  margin-right: 11px;
+  justify-content: left;
+  font-weight: 500;
+  color: #111111;
+  font-size: 1.6rem;
+  letter-spacing: .5px;
+}
+
+/*
+#explorer-banner-container {
+  margin-right: 10px;
+  display: flex;
+  flex-direction: row;
+  flex:1;
+  align-items: center;
+  justify-content: left;
+}
+*/
+
+/* Sub banner layout */
+
+#sub-banner-layout {
+  width: 100%;
+  height: fit-content;
+  display: flex;
+  flex-direction: row;
+}
+
+/* Navigation */
+
+#navigation-left-panel {
+  width: fit-content;
+  min-height: 90vh;
+  padding: 10px 0px;
+  background: #353535;
+  border-right: 1px solid #4B5460;
+}
+
+#tabs-list {
+  height: fit-content;
+  width: 24rem;
+  margin: 0rem;
+  padding: 0rem;
+  border: 0;
+  cursor: pointer;
+}
+
+#instance-description-tab,
+#instances-comparison-tab,
+#solution-description-tab,
+#solutions-comparison-tab,
+#explainer-tab {
+  height: 18px;
+  width: 100%;
+  background: inherit;
+  padding: 20px 10px;
+  border: 0;
+  border-bottom: #1A232B solid 0px !important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: left;
+  color: inherit;
+  font-size: 1.6rem;
+  letter-spacing: .5px;
+  cursor: pointer;
+}
+
+#instance-description-tab.tab-button--selected,
+#instances-comparison-tab.tab-button--selected,
+#solution-description-tab.tab-button--selected,
+#solutions-comparison-tab.tab-button--selected,
+#explainer-tab.tab-button--selected {
+  background: #252525;
+  font-family: 'Open Sans Semi Bold', sans-serif;
+  font-weight: 500;
+}
+
+/* Tabs contents */
+
+#tab-content {
+  width: 100%;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Panels */
+
+.panel-with-bottom-margin,
+.panel {
+  margin: 5px;
+  background: #252525;
+  border: 1px solid #4B5460;
+  border-radius: 5px 5px 0px 0px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.panel-with-bottom-margin {
+  margin-bottom: 10px;
+}
+
+.panel-banner {
+  padding: 1rem 1rem;
+  background: #353535;
+  border-bottom: 1px solid #4b5460;
+  border-radius: 5px 5px 0px 0px;
+  font-size: 1.6rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.panel-content {
+  padding: 1rem 1rem;
+}
+
+.label {
+  padding-bottom: 0.8rem;
+  font-size: 1.6rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+/* Generic group of panels */
+
+.representation-panels-side-to-side,
+.panels-side-to-side {
+  display: flex;
+  flex-direction: row;
+}
+
+.representation-panels-side-to-side {
+  height: 50rem;
+}
+
+/* Instance and solution */
+
+#current-solution-spatial-representation,
+#other-solution-spatial-representation,
+.spatial-representation,
+#current-solution-temporal-representation,
+#other-solution-temporal-representation,
+.temporal-representation {
+  width: 100%;
+  height: 100%;
+}
+
+#horizontal-instance-metrics-figures,
+#horizontal-current-instance-metrics-figures,
+#horizontal-other-instance-metrics-figures,
+#horizontal-solution-metrics-figures,
+#horizontal-current-solution-metrics-figures,
+#horizontal-other-solution-metrics-figures,
+.horizontal-solution-metrics-figures {
+  height: 30rem;
+}
+
+#two-by-two-instance-metrics-figures,
+#two-by-two-current-instance-metrics-figures,
+#two-by-two-other-instance-metrics-figures,
+#two-by-two-solution-metrics-figures,
+#two-by-two-current-solution-metrics-figures,
+#two-by-two-other-solution-metrics-figures,
+.two-by-two-solution-metrics-figures{
+  height: 50rem;
+}

@@ -19,13 +19,26 @@ from utils.time import convert_time_string_to_nb_minutes
 def extract_instance_from_file(filename: str, ignore_employees_unavailabilities: bool = False,
                                ignore_tasks_unavailabilities: bool = False, ignore_lunch_breaks: bool = False,
                                ignore_version: bool = False):
+    """
+    Extract the instance stored in the given file
+
+    :param filename: name of the file which includes the extension .xls (str)
+    :param ignore_employees_unavailabilities: boolean indicating whether or not employees unavailabilities
+    must be ignored, which overrides the assumption of the version if any (bool)
+    :param ignore_tasks_unavailabilities: boolean indicating whether or not tasks unavailabilities
+    must be ignored, which overrides the assumption of the version if any (bool)
+    :param ignore_lunch_breaks: boolean indicating whether or not lunch breaks
+    must be ignored, which overrides the assumption of the version if any (bool)
+    :param ignore_version: boolean indicating whether or not the version must be ignored (bool)
+    :return:
+    """
 
     # Create an empty instance
     region_name, instance_version = extract_data_from_instance_filename(filename, ignore_version)
     if ignore_version:
-        instance_name = region_name
+        instance_name = "Instance" + region_name
     else:
-        instance_name = region_name + f"V{instance_version}"
+        instance_name = "Instance" + region_name + f"V{instance_version}"
     instance = Instance(name=instance_name)
 
     # Extract file's sheets

@@ -177,7 +177,7 @@ def check_skill_constraints(solution: Solution):
     for task in solution.instance.tasks:
         if solution.get_task_realization(task):
             employee = solution.get_task_assignee(task)
-            if not employee.is_capable_of_realizing(task):
+            if not employee.is_capable_of_performing(task):
                 satisfaction = False
                 checking_text += (f"In the given plan, {employee.name} is supposed to "
                                   f"do task {task.name}, which has a skill level equal to {task.skill_level}, "

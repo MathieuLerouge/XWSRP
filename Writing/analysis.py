@@ -15,7 +15,7 @@ def write_solution_analysis(solution: Solution, output_directory: str = None):
     # Write solution performances indicators
     if not solution.has_KPIs:
         solution.compute_KPIs()
-    file.write("Number of realized tasks: " + str(solution.nb_realized_tasks) + LINE_BREAK_STRING)
+    file.write("Number of realized tasks: " + str(solution.nb_performed_tasks) + LINE_BREAK_STRING)
     file.write("Total working duration (in min): " + str(solution.total_working_duration) + LINE_BREAK_STRING)
     file.write("Total traveling duration (in min): " + str(solution.total_traveling_duration) + LINE_BREAK_STRING)
     file.write("Total traveling distance (in km): " + str(solution.total_traveling_distance) + LINE_BREAK_STRING)

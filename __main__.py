@@ -4,7 +4,7 @@
 
 # Local libraries
 from checking.routine import apply_checking_routine
-from explanation.routine import apply_explanation_routine
+from explaining.routine import apply_explanation_routine
 from optimization.routine import apply_optimization_routine
 
 
@@ -13,31 +13,47 @@ CHECKING_ROUTINE_KEY = 'checking'
 OPTIMIZING_ROUTINE_KEY = 'optimizing'
 EXPLAINING_ROUTINE_KEY = 'explaining'
 
-# Variables to set
-# - Choose which routine to run
+# Choose which routine to run (Variables to set)
 # ROUTINE_KEY = CHECKING_ROUTINE_KEY
-# ROUTINE_KEY = CHECKING_ROUTINE_KEY
+# ROUTINE_KEY = OPTIMIZING_ROUTINE_KEY
 ROUTINE_KEY = EXPLAINING_ROUTINE_KEY
-# - Toggle model assumptions
-IGNORE_EMPLOYEES_UNAVAILABILITIES = False
-IGNORE_TASKS_UNAVAILABILITIES = True
-IGNORE_LUNCH_BREAKS = True
-# - Toggle behaviours
-SAVING_CHECKING = True
-SAVING_ANALYSIS = True
-SHOWING_FIGURES = False
-SAVING_FIGURES = True
-SOLVING_TIME_LIMIT_IN_SECONDS = 3*60
 
 
 # Main function
 def main():
+
     if ROUTINE_KEY == CHECKING_ROUTINE_KEY:
-        apply_checking_routine(SAVING_CHECKING, SAVING_ANALYSIS, SHOWING_FIGURES, SAVING_FIGURES)
+        # Toggle (Variables to set)
+        ignore_employees_unavailabilities = False
+        ignore_tasks_unavailabilities = False
+        ignore_lunch_breaks = False
+        ignore_solving_method = False
+        ignore_instance_version = False
+        saving_checking = False
+        saving_analysis = False
+        showing_figures = True
+        saving_figures = False
+        # Apply the routine
+        apply_checking_routine(
+            ignore_employees_unavailabilities, ignore_tasks_unavailabilities, ignore_lunch_breaks,
+            ignore_solving_method, ignore_instance_version,
+            saving_checking, saving_analysis, showing_figures, saving_figures
+        )
+
     elif ROUTINE_KEY == OPTIMIZING_ROUTINE_KEY:
-        apply_optimization_routine(SOLVING_TIME_LIMIT_IN_SECONDS)
+        # Toggle (Variables to set)
+        solving_time_limit_in_seconds = 3 * 60
+        # Apply the routine
+        apply_optimization_routine(solving_time_limit_in_seconds)
+
     elif ROUTINE_KEY == EXPLAINING_ROUTINE_KEY:
-        apply_explanation_routine(IGNORE_EMPLOYEES_UNAVAILABILITIES, IGNORE_TASKS_UNAVAILABILITIES, IGNORE_LUNCH_BREAKS)
+        # Toggle (Variables to set)
+        ignore_employees_unavailabilities = True
+        ignore_tasks_unavailabilities = True
+        ignore_lunch_breaks = True
+        # Apply the routine
+        apply_explanation_routine(ignore_employees_unavailabilities, ignore_tasks_unavailabilities, ignore_lunch_breaks)
+
     else:
         raise ValueError(f"The routine {ROUTINE_KEY} does not exist")
 

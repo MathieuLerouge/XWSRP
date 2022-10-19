@@ -15,10 +15,10 @@ EARTH_RADIUS_IN_KM = 6371
 class Location:
 
     def __init__(self, first_coordinate=None, second_coordinate=None, is_geographic=True):
-        """Create a location defined given either geographic _coordinates or cartesian _coordinates
+        """Create a location defined given either geographic coordinates or cartesian coordinates
 
-        :param first_coordinate: latitude in degrees, if _coordinates are geographic; x in km otherwise (float)
-        :param second_coordinate: longitude in degrees, if _coordinates are geographic; y in km otherwise (float)
+        :param first_coordinate: latitude in degrees, if coordinates are geographic; x in km otherwise (float)
+        :param second_coordinate: longitude in degrees, if coordinates are geographic; y in km otherwise (float)
         :param is_geographic: True if _coordinates are geographic, False otherwise (bool)
         """
         self._is_geographic = True
@@ -35,6 +35,32 @@ class Location:
     @property
     def coordinates(self):
         return self._coordinates
+
+    @property
+    def latitude(self):
+        if self.is_geographic():
+            return self.coordinates[0]
+        else:
+            raise ValueError("This location is not geographic")
+
+    def get_latitude(self, radians=True):
+        if radians:
+            return self.latitude
+        else:
+            return np.rad2deg(self.latitude)
+
+    @property
+    def longitude(self):
+        if self.is_geographic():
+            return self.coordinates[1]
+        else:
+            raise ValueError("This location is not geographic")
+
+    def get_longitude(self, radians=True):
+        if radians:
+            return self.longitude
+        else:
+            return np.rad2deg(self.longitude)
 
     def is_empty(self):
         return self._coordinates is None

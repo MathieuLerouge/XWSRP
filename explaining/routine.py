@@ -4,8 +4,10 @@
 
 # Local libraries
 from checking.feasibility import check_feasibility
-from explanation.explainer import Explainer
-from explanation.explainer_UI import ExplainerUI
+from explaining.explainer import Explainer
+from explaining._explainer_deprecated import ExplainerDeprecated
+from explaining.interface.explainer_UI import ExplainerUI
+from explaining.interface.explainer_web_UI import ExplainerWebGUI
 from extraction.solution import extract_solution_from_file
 from utils.constants import INPUTS_DIRECTORY
 from utils.display import print_title_frame
@@ -30,9 +32,12 @@ def apply_explanation_routine(ignore_employees_unavailabilities: bool = False,
     print("")
     print_title_frame(f"Explaining {solution.name}")
     print("")
+    explainer_deprecated = ExplainerDeprecated(solution)
+    explainerUI = ExplainerUI(explainer_deprecated)
+    # explainerUI.display()
     explainer = Explainer(solution)
-    explainerUI = ExplainerUI(explainer)
-    explainerUI.display()
+    explainerUI2 = ExplainerWebGUI(explainer)
+    explainerUI2.run()
 
 
 if __name__ == '__main__':
