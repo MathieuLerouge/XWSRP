@@ -12,7 +12,7 @@ def check_covering_constraints(solution: Solution):
     satisfaction = True
     checking_text = ""
     non_realized_tasks_names = [task.name for task in solution.instance.tasks
-                                if not (solution.get_task_realization(task))]
+                                if not (solution.get_task_performance_status(task))]
     if not (bool(non_realized_tasks_names)):
         satisfaction = False
         for task_name in non_realized_tasks_names:
@@ -30,7 +30,7 @@ def check_time_windows_constraints(solution: Solution):
 
     # Check that tasks are realized within availability time windows
     for task in solution.instance.tasks:
-        if solution.get_task_realization(task):
+        if solution.get_task_performance_status(task):
             start_time = solution.get_task_start_time(task)
             end_time = start_time + task.duration
             # - Task
@@ -175,7 +175,7 @@ def check_skill_constraints(solution: Solution):
     satisfaction = True
     checking_text = ""
     for task in solution.instance.tasks:
-        if solution.get_task_realization(task):
+        if solution.get_task_performance_status(task):
             employee = solution.get_task_assignee(task)
             if not employee.is_capable_of_performing(task):
                 satisfaction = False

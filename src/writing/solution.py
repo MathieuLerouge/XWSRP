@@ -15,7 +15,7 @@ def write_solution(solution: Solution, output_directory: str = None):
     file.write("taskId;performed;employee_name;start_time;" + LINE_BREAK_STRING)
     for task in solution.instance.tasks:
         line_string = task.name + ";"
-        if solution.get_task_realization(task):
+        if solution.get_task_performance_status(task):
             line_string += "1;"
             line_string += solution.get_task_assignee(task).name + ";"
             line_string += str(solution.get_task_start_time(task)) + ";"

@@ -57,7 +57,7 @@ def create_support_solution_and_infeasibility_for_category_3(solution: EditableS
     # Create support solution
     support_sequence = SequenceLS.from_Sequence(model.solution_sequence)
     support_solution = solution.copy(solution.name + "_support")
-    if support_solution.get_task_realization(task):
+    if support_solution.get_task_performance_status(task):
         support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
     if transformation_is_feasible:
         support_sequence.compute_KPIs()
@@ -98,7 +98,7 @@ def create_support_solution_and_infeasibility_for_insertion(solution: EditableSo
                                                             activity: Activity, examination: dict):
     transformation_is_feasible = examination['is_feasible']
     support_solution = solution.copy(solution.name + "_support")
-    if support_solution.get_task_realization(task):
+    if support_solution.get_task_performance_status(task):
         support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
     infeasibility = None
     if transformation_is_feasible:
@@ -417,7 +417,7 @@ def create_support_solution_infeasibility_and_alterations(solution: EditableSolu
     support_solution = solution.copy(solution.name + "_support")
     support_solution.instance = model.support_instance
     support_sequence = model.support_sequence
-    if support_solution.get_task_realization(task):
+    if support_solution.get_task_performance_status(task):
         support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
     if transformation_is_feasible:
         support_sequence.compute_KPIs()

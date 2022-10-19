@@ -1093,7 +1093,7 @@ class ExplainerDeprecated:
         # Create new solution
         new_sequence = model.solution_sequence
         infeasible_solution = self._copy_current_solution_for_infeasible_solution()
-        if infeasible_solution.get_task_realization(entering_task):
+        if infeasible_solution.get_task_performance_status(entering_task):
             infeasible_solution.remove_task(entering_task, False, False)
         infeasible_solution._replace_sequence_by_another(employee, new_sequence, False)
 

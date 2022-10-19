@@ -144,7 +144,7 @@ def main():
     tasks_strings_per_employee = {employee_name: [] for employee_name in ["None"] + solution.instance.employees_names}
     for task in solution.instance.tasks:
         employee_name = "None"
-        if solution.get_task_realization(task):
+        if solution.get_task_performance_status(task):
             employee_name = solution.get_task_assignee(task).name
         longitude = np.degrees(task.location.coordinates[1])
         latitude = np.degrees(task.location.coordinates[0])

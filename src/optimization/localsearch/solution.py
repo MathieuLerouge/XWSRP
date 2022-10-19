@@ -481,7 +481,7 @@ class SolutionLS(SolutionOpti):
         """
 
         # Check that the given task is realized
-        if not self.get_task_realization(task):
+        if not self.get_task_performance_status(task):
             raise ValueError(f"The given task {task.name} is not realized in this solution")
 
         # Get the sequence and the step index of the given task
@@ -551,7 +551,7 @@ class SolutionLS(SolutionOpti):
                              f"is not capable of realizing the given task to insert {task.name}")
 
         # If the task to insert is realized, remove it from its assigned employee's sequence
-        if self.get_task_realization(task):
+        if self.get_task_performance_status(task):
             self.remove_task(task, tighten_times, update_KPIs)
 
         # Get the sequence and the step index of the given activity
@@ -613,7 +613,7 @@ class SolutionLS(SolutionOpti):
         """
 
         # Check that the given leaving task is realized
-        if not self.get_task_realization(leaving_task):
+        if not self.get_task_performance_status(leaving_task):
             raise ValueError(f"The given leaving task {leaving_task.name} is not realized in this solution")
 
         # Check that the employee assigned to the leaving task is capable of realizing the replacing task
@@ -628,7 +628,7 @@ class SolutionLS(SolutionOpti):
                              "only if a start time is also given")
 
         # If the replacing task is realized, remove it from its assigned employee's sequence
-        if self.get_task_realization(replacing_task):
+        if self.get_task_performance_status(replacing_task):
             self.remove_task(replacing_task, tighten_times, update_KPIs)
 
         # Get the sequence and the step index of the given leaving task
@@ -668,7 +668,7 @@ class SolutionLS(SolutionOpti):
 
         # If the task to insert is realized by an employee,
         # then remove it from his/her sequence
-        if self.get_task_realization(task):
+        if self.get_task_performance_status(task):
             self.remove_task(task, False, update_KPIs)
 
         # Create and run the IP model for sequence optimization with attempt to insert new task
@@ -709,7 +709,7 @@ class SolutionLS(SolutionOpti):
 
         # If the task to insert is realized by an employee,
         # then remove it from his/her sequence
-        if self.get_task_realization(task):
+        if self.get_task_performance_status(task):
             self.remove_task(task, False, update_KPIs)
 
         # Create and run the IP model for sequence optimization with assigned tasks

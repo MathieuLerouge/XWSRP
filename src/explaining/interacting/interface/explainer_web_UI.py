@@ -1626,7 +1626,7 @@ class ExplainerWebGUI:
                 non_performed_tasks_latitudes, non_performed_tasks_longitudes, non_performed_tasks_descriptions = \
                     [], [], []
                 for task in instance.tasks:
-                    if not (solution.get_task_realization(task)):
+                    if not (solution.get_task_performance_status(task)):
                         non_performed_tasks_latitudes.append(task.location.get_latitude(radians=False))
                         non_performed_tasks_longitudes.append(task.location.get_longitude(radians=False))
                         non_performed_tasks_descriptions.append(create_task_description_in_routes_figure(task, False))

@@ -120,7 +120,7 @@ class QuestionTemplate:
                 employee_field_index = field_assumptions.field_index_of_employee_not_performing_this_field_activity
                 if employee_field_index in other_fields_values.keys():
                     employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
-                    possible_tasks = [task for task in possible_tasks if (not solution.get_task_realization(task) or
+                    possible_tasks = [task for task in possible_tasks if (not solution.get_task_performance_status(task) or
                                                                           solution.get_task_assignee(task) != employee)]
             return [task.name for task in possible_tasks]
         # Case where the field must be an activity name
@@ -216,7 +216,7 @@ class QuestionTemplate:
                     task_name = field_value
                     task = instance.get_task_by_name(task_name)
                     if field_assumptions.must_refer_to_performed_activity:
-                        if not solution.get_task_realization(task):
+                        if not solution.get_task_performance_status(task):
                             raise ValueError(f"The task {field_value} of field #{field_number} is not performed "
                                              f"while it must be")
                         if field_assumptions.must_refer_to_activity_performed_by_provided_employee:
@@ -229,11 +229,11 @@ class QuestionTemplate:
                                                      f"not performed by the employee {employee_name} "
                                                      f"of field #{employee_field_index} while it must be")
                     if field_assumptions.must_refer_to_not_performed_activity:
-                        if solution.get_task_realization(task):
+                        if solution.get_task_performance_status(task):
                             raise ValueError(f"The task {field_value} of field #{field_number} is performed "
                                              f"while it must not be")
                     if (field_assumptions.must_refer_to_activity_not_performed_by_provided_employee and
-                            solution.get_task_realization(task)):
+                            solution.get_task_performance_status(task)):
                         employee_field_index = \
                             field_assumptions.field_index_of_employee_not_performing_this_field_activity
                         if employee_field_index in fields_values.keys():

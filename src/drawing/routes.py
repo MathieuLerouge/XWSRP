@@ -126,7 +126,7 @@ def create_routes_figure(solution: Solution, figure_id: str = None, infeasibilit
     non_realized_tasks_second_coordinates = []
     non_realized_tasks_names = []
     for task in solution.instance.tasks:
-        if not(solution.get_task_realization(task)):
+        if not(solution.get_task_performance_status(task)):
             non_realized_tasks_first_coordinates.append(task.location.coordinates[0])
             non_realized_tasks_second_coordinates.append(task.location.coordinates[1])
             non_realized_tasks_names.append(task.name)

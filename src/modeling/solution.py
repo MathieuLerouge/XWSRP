@@ -18,7 +18,7 @@ from src.utils.constants import LINE_BREAK_STRING
 
 # Global variables
 DISPLACEMENT_STRING = ">>"
-TASK_REALIZATION_KEY = 'realized'
+TASK_PERFORMANCE_KEY = 'performed'
 TASK_ASSIGNEE_KEY = 'employee_name'
 TASK_START_TIME_KEY = 'start_time'
 ACTIVITY_BEFORE_LUNCH_KEY = 'activity_before'
@@ -43,7 +43,7 @@ class Solution:
             tasks_realizations = dict()
             for task_name in self._instance.tasks_names:
                 tasks_realizations[task_name] = dict()
-                tasks_realizations[task_name][TASK_REALIZATION_KEY] = False
+                tasks_realizations[task_name][TASK_PERFORMANCE_KEY] = False
         self._tasks_realizations = tasks_realizations
         self._lunch_breaks_realizations = lunch_breaks_realizations
         self._KPIs = dict()
@@ -90,19 +90,19 @@ class Solution:
 
     @property
     def performed_tasks(self):
-        return [task for task in self._instance.tasks if self.get_task_realization(task)]
+        return [task for task in self._instance.tasks if self.get_task_performance_status(task)]
 
     @property
     def performed_tasks_names(self):
-        return [task.name for task in self._instance.tasks if self.get_task_realization(task)]
+        return [task.name for task in self._instance.tasks if self.get_task_performance_status(task)]
 
     @property
     def not_performed_tasks(self):
-        return [task for task in self._instance.tasks if not self.get_task_realization(task)]
+        return [task for task in self._instance.tasks if not self.get_task_performance_status(task)]
 
     @property
     def not_performed_tasks_names(self):
-        return [task.name for task in self._instance.tasks if not self.get_task_realization(task)]
+        return [task.name for task in self._instance.tasks if not self.get_task_performance_status(task)]
 
     @property
     def nb_performed_tasks(self) -> int:
@@ -178,17 +178,17 @@ class Solution:
     # Activities #
     ##############
 
-    def get_task_realization(self, task: Task) -> bool:
-        return self._tasks_realizations[task.name][TASK_REALIZATION_KEY]
+    def get_task_performance_status(self, task: Task) -> bool:
+        return self._tasks_realizations[task.name][TASK_PERFORMANCE_KEY]
 
     def set_task_realization(self, task: Task, boolean: bool):
-        self._tasks_realizations[task.name][TASK_REALIZATION_KEY] = boolean
+        self._tasks_realizations[task.name][TASK_PERFORMANCE_KEY] = boolean
 
     def get_task_assignee(self, task: Task):
-        if self.get_task_realization(task):
+        if self.get_task_performance_status(task):
             return self._instance.get_employee_by_name(self._tasks_realizations[task.name][TASK_ASSIGNEE_KEY])
         else:
-            raise ValueError(f"The task {task} is not realized, it does not have assignee")
+            raise ValueError(f"The task {task} is not performed, it does not have assignee")
 
     def get_tasks_performed_by(self, employee: Employee, in_sequence_order=True):
         if in_sequence_order:
@@ -196,17 +196,17 @@ class Solution:
                 include_departure=False, include_unavailabilities=False, including_coming_back=False)
         else:
             return [task for task in self._instance.tasks
-                    if self.get_task_realization(task) and self.get_task_assignee(task) == employee]
+                    if self.get_task_performance_status(task) and self.get_task_assignee(task) == employee]
 
     def get_tasks_not_performed_by(self, employee: Employee):
         return [task for task in self._instance.tasks
-                if not self.get_task_realization(task) or self.get_task_assignee(task) != employee]
+                if not self.get_task_performance_status(task) or self.get_task_assignee(task) != employee]
 
     def get_activity_realization(self, activity: Activity):
         if not isinstance(activity, Task):
             return True
         else:
-            return self.get_task_realization(activity)
+            return self.get_task_performance_status(activity)
 
     def get_activity_assignee(self, activity: Activity):
         if not isinstance(activity, Task):
@@ -215,22 +215,22 @@ class Solution:
             return self.get_task_assignee(activity)
 
     def set_task_assignee(self, task: Task, employee: Employee):
-        if self.get_task_realization(task):
+        if self.get_task_performance_status(task):
             self._tasks_realizations[task.name][TASK_ASSIGNEE_KEY] = employee.name
         else:
-            raise ValueError(f"The task {task} is not realized, it must be set realized before having any assignee")
+            raise ValueError(f"The task {task} is not performed, it must be set performed before having any assignee")
 
     def get_task_start_time(self, task: Task) -> int:
         try:
             return self._tasks_realizations[task.name][TASK_START_TIME_KEY]
         except KeyError:
-            raise ValueError(f"The task {task} is not realized, it does not have start time")
+            raise ValueError(f"The task {task} is not performed, it does not have start time")
 
     def set_task_start_time(self, task: Task, start_time: int):
-        if self.get_task_realization(task):
+        if self.get_task_performance_status(task):
             self._tasks_realizations[task.name][TASK_START_TIME_KEY] = start_time
         else:
-            raise ValueError(f"The task {task} is not realized, it must be set realized before having any start time")
+            raise ValueError(f"The task {task} is not performed, it must be set performed before having any start time")
 
     def get_employee_lunch_break_start_time(self, employee: Employee):
         return self._lunch_breaks_realizations[employee.name][TASK_START_TIME_KEY]
@@ -247,17 +247,17 @@ class Solution:
         tasks_names = []
         if employee is None:
             for task in self._instance.tasks:
-                if not (excluding_realized_tasks and self.get_task_realization(task)):
+                if not (excluding_realized_tasks and self.get_task_performance_status(task)):
                     tasks_names.append(task.name)
         else:
             for task in self._instance.tasks:
                 if excluding_tasks_unassigned_to_employee:
-                    if self.get_task_realization(task) and self.get_task_assignee(task) == employee:
+                    if self.get_task_performance_status(task) and self.get_task_assignee(task) == employee:
                         tasks_names.append(task.name)
                 else:
-                    if (not (excluding_realized_tasks and self.get_task_realization(task)) and
+                    if (not (excluding_realized_tasks and self.get_task_performance_status(task)) and
                         not (excluding_tasks_with_higher_skills and employee.skill_level < task.skill_level) and
-                        not (excluding_tasks_assigned_to_employee and self.get_task_realization(task) and
+                        not (excluding_tasks_assigned_to_employee and self.get_task_performance_status(task) and
                              self.get_task_assignee(task) == employee)):
                         tasks_names.append(task.name)
         return tasks_names
@@ -275,12 +275,12 @@ class Solution:
 
     def _order_steps_in_sequences(self):
 
-        # Find the tasks realized by each employee
+        # Find the tasks performed by each employee
         employees_assigned_tasks = dict()
         for employee_name in self._instance.employees_names:
             employees_assigned_tasks[employee_name] = []
         for task in self._instance.tasks:
-            if self.get_task_realization(task):
+            if self.get_task_performance_status(task):
                 employees_assigned_tasks[self.get_task_assignee(task).name].append(
                     (self.get_task_start_time(task), task.name)
                 )
@@ -475,10 +475,6 @@ class Solution:
     # Traveling #
     #############
 
-    # TODO: remove if not necessary
-    # def computeTravelingDistance(self, step1: Step, step2: Step):
-    #     return self._instance.compute_traveling_distance(step1.activity, step2.activity)
-
     def compute_traveling_duration(self, step1: Step, step2: Step):
         return self._instance.compute_traveling_duration(step1.activity, step2.activity)
 
@@ -486,7 +482,7 @@ class Solution:
 def compare_solutions(solution1: Solution, solution2: Solution):
     KPIs_descriptions = dict()
     KPIs_descriptions[NB_REALIZED_TASKS_KEY] = {
-        'sense': 'max', 'full_name': "number of realized tasks", 'unit': ""
+        'sense': 'max', 'full_name': "number of performed tasks", 'unit': ""
     }
     KPIs_descriptions[TOTAL_WORKING_DURATION_KEY] = {
         'sense': 'max', 'full_name': "total working duration", 'unit': "min"
