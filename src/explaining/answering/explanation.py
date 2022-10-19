@@ -191,6 +191,12 @@ class Explanation:
                f"{current_solution.total_traveling_duration}min"
         return text
 
+    def to_dict(self):
+        dictionary = {'question': self.question.to_dict(), 'support solution': self.support_solution.to_dict()}
+        if self.applying_support_solution_transformation is not None:
+            dictionary['transformation'] = self.applying_support_solution_transformation
+        return dictionary
+
 
 ########################
 # Positive Explanation #
@@ -371,6 +377,11 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
     @abstractmethod
     def _compute_text(self, with_bold_emphasis: bool = False):
         pass
+
+    def to_dict(self):
+        dictionary = super().to_dict()
+        dictionary['infeasibility'] = self.infeasibility.to_dict()
+        return dictionary
 
 
 # Class SkillNegativeExplanation

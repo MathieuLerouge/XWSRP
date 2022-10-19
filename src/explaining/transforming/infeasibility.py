@@ -38,6 +38,9 @@ class Infeasibility:
     def __repr__(self):
         return f"Infeasibility due to {self._conflicting_employee.name} and {self._conflicting_task.name}"
 
+    def to_dict(self):
+        return {'employee': self.conflicting_employee.name, 'task': self.conflicting_task.name}
+
 
 ######################
 # SkillInfeasibility #

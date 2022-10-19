@@ -478,6 +478,21 @@ class Solution:
     def compute_traveling_duration(self, step1: Step, step2: Step):
         return self._instance.compute_traveling_duration(step1.activity, step2.activity)
 
+    ##########
+    # Export #
+    ##########
+
+    def to_dict(self):
+        dictionary = dict()
+        for task in self.instance.tasks:
+            if self.get_task_performance_status(task):
+                dictionary[task.name] = {'performed': 1,
+                                         'employee': self.get_task_assignee(task).name,
+                                         'start': self.get_task_start_time(task)}
+            else:
+                dictionary[task.name] = {'performed': 0}
+        return dictionary
+
 
 def compare_solutions(solution1: Solution, solution2: Solution):
     KPIs_descriptions = dict()

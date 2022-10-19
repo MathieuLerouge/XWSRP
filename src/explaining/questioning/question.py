@@ -44,6 +44,9 @@ class Question:
     def text(self):
         return self._text
 
+    def to_dict(self):
+        return {'solution': self.solution.to_dict(), 'template id': self.template.id, 'fields': self.fields_values}
+
 
 # Class ContrastiveQuestion
 class ContrastiveQuestion(Question):
