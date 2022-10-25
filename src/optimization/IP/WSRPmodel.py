@@ -870,7 +870,7 @@ class WSRPIPModel:
                 realized = True
             elif self.version == 2:
                 realized = self.vars_X[j].x > 0.99
-            solution.set_task_realization(task, realized)
+            solution.set_task_performance_status(task, realized)
             if realized:
                 solution.set_task_start_time(task, int(self.vars_T[j].x))
         for i in self._data.employees_indices:
@@ -890,7 +890,7 @@ class WSRPIPModel:
                                                                self._data.get_employee_by_index(i))
 
         # Compute full solution
-        solution.compute_sequences_based_on_realizations()
+        solution.compute_sequences_based_on_tasks_performances()
 
         self._solution = solution
 

@@ -2,6 +2,8 @@
 import numpy as np
 
 # Local libraries modules
+from src.modeling.constants import NB_PERFORMED_TASKS_KEY, TOTAL_TRAVELING_DURATION_KEY, TOTAL_WORKING_DURATION_KEY, \
+    TOTAL_TRAVELING_DISTANCE_KEY, TOTAL_IDLE_TIME_KEY
 from src.modeling.employee import Employee
 from src.modeling.instance import Instance
 from src.modeling.sequence import Sequence
@@ -27,11 +29,11 @@ class SequenceLS(Sequence):
 
     @property
     def _nb_realized_tasks(self) -> int:
-        return self._KPIs[NB_REALIZED_TASKS_KEY]
+        return self._KPIs[NB_PERFORMED_TASKS_KEY]
 
     @_nb_realized_tasks.setter
     def _nb_realized_tasks(self, nb_realized_tasks: int):
-        self._KPIs[NB_REALIZED_TASKS_KEY] = nb_realized_tasks
+        self._KPIs[NB_PERFORMED_TASKS_KEY] = nb_realized_tasks
 
     @property
     def _total_traveling_duration(self) -> int:

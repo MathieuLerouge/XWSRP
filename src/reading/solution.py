@@ -58,7 +58,7 @@ def extract_solution_from_file(filename: str, ignore_employees_unavailabilities:
         else:
             task = instance.get_task_by_name(task_name)
             task_is_realized = int(words[1]) == 1
-            solution.set_task_realization(task, task_is_realized)
+            solution.set_task_performance_status(task, task_is_realized)
             if task_is_realized:
                 solution.set_task_assignee(task, instance.get_employee_by_name(words[2]))
                 if not(":" in words[3]):
@@ -69,7 +69,7 @@ def extract_solution_from_file(filename: str, ignore_employees_unavailabilities:
         line_index += 1
 
     # Compute the sequences based on tasks realizations
-    solution.compute_sequences_based_on_realizations()
+    solution.compute_sequences_based_on_tasks_performances()
 
     return solution
 

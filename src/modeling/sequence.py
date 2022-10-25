@@ -56,7 +56,7 @@ class Sequence:
 
     @property
     def nb_realized_tasks(self) -> int:
-        return self._KPIs[NB_REALIZED_TASKS_KEY]
+        return self._KPIs[NB_PERFORMED_TASKS_KEY]
 
     @property
     def total_working_duration(self) -> int:
@@ -286,7 +286,7 @@ class Sequence:
             total_traveling_distance += distance
             total_idle_time += step.start_time - step.arrival_time
         self._KPIs = dict()
-        self._KPIs[NB_REALIZED_TASKS_KEY] = nb_realized_tasks
+        self._KPIs[NB_PERFORMED_TASKS_KEY] = nb_realized_tasks
         self._KPIs[TOTAL_WORKING_DURATION_KEY] = total_working_duration
         self._KPIs[TOTAL_TRAVELING_DISTANCE_KEY] = total_traveling_distance
         self._KPIs[TOTAL_TRAVELING_DURATION_KEY] = total_traveling_duration

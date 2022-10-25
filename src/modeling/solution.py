@@ -18,15 +18,17 @@ from src.utils.constants import LINE_BREAK_STRING
 
 # Global variables
 DISPLACEMENT_STRING = ">>"
-TASK_PERFORMANCE_KEY = 'performed'
-TASK_ASSIGNEE_KEY = 'employee_name'
-TASK_START_TIME_KEY = 'start_time'
+TASK_PERFORMANCE_STATUS_KEY = 'performed'
+TASK_ASSIGNEE_KEY = 'employee name'
+TASK_START_TIME_KEY = 'start time'
+TASKS_PERFORMANCES_KEY = 'tasks performances'
+SEQUENCES_KEY = 'sequences'
 ACTIVITY_BEFORE_LUNCH_KEY = 'activity_before'
 ACTIVITY_AFTER_LUNCH_KEY = 'activity_after'
 LUNCH_START_TIME_KEY = 'start_time'
 
 
-# TODO: create a class Realization / Performance
+# TODO: create a class Performance
 # Class Solution
 class Solution:
 
@@ -43,7 +45,7 @@ class Solution:
             tasks_realizations = dict()
             for task_name in self._instance.tasks_names:
                 tasks_realizations[task_name] = dict()
-                tasks_realizations[task_name][TASK_PERFORMANCE_KEY] = False
+                tasks_realizations[task_name][TASK_PERFORMANCE_STATUS_KEY] = False
         self._tasks_realizations = tasks_realizations
         self._lunch_breaks_realizations = lunch_breaks_realizations
         self._KPIs = dict()
@@ -89,6 +91,10 @@ class Solution:
         self._name = name
 
     @property
+    def short_name(self):
+        return self.name.removeprefix("Solution")
+
+    @property
     def performed_tasks(self):
         return [task for task in self._instance.tasks if self.get_task_performance_status(task)]
 
@@ -107,7 +113,7 @@ class Solution:
     @property
     def nb_performed_tasks(self) -> int:
         try:
-            return self._KPIs[NB_REALIZED_TASKS_KEY]
+            return self._KPIs[NB_PERFORMED_TASKS_KEY]
         except KeyError:
             raise AttributeError("KPIs are not computed")
 
@@ -179,16 +185,16 @@ class Solution:
     ##############
 
     def get_task_performance_status(self, task: Task) -> bool:
-        return self._tasks_realizations[task.name][TASK_PERFORMANCE_KEY]
+        return self._tasks_realizations[task.name][TASK_PERFORMANCE_STATUS_KEY]
 
-    def set_task_realization(self, task: Task, boolean: bool):
-        self._tasks_realizations[task.name][TASK_PERFORMANCE_KEY] = boolean
+    def set_task_performance_status(self, task: Task, boolean: bool):
+        self._tasks_realizations[task.name][TASK_PERFORMANCE_STATUS_KEY] = boolean
 
     def get_task_assignee(self, task: Task):
         if self.get_task_performance_status(task):
             return self._instance.get_employee_by_name(self._tasks_realizations[task.name][TASK_ASSIGNEE_KEY])
         else:
-            raise ValueError(f"The task {task} is not performed, it does not have assignee")
+            raise ValueError(f"The task {task.name} is not performed, it does not have assignee")
 
     def get_tasks_performed_by(self, employee: Employee, in_sequence_order=True):
         if in_sequence_order:
@@ -218,19 +224,21 @@ class Solution:
         if self.get_task_performance_status(task):
             self._tasks_realizations[task.name][TASK_ASSIGNEE_KEY] = employee.name
         else:
-            raise ValueError(f"The task {task} is not performed, it must be set performed before having any assignee")
+            raise ValueError(f"The task {task.name} is not performed, "
+                             f"it must be set performed before having any assignee")
 
     def get_task_start_time(self, task: Task) -> int:
         try:
             return self._tasks_realizations[task.name][TASK_START_TIME_KEY]
         except KeyError:
-            raise ValueError(f"The task {task} is not performed, it does not have start time")
+            raise ValueError(f"The task {task.name} is not performed, it does not have start time")
 
     def set_task_start_time(self, task: Task, start_time: int):
         if self.get_task_performance_status(task):
             self._tasks_realizations[task.name][TASK_START_TIME_KEY] = start_time
         else:
-            raise ValueError(f"The task {task} is not performed, it must be set performed before having any start time")
+            raise ValueError(f"The task {task.name} is not performed, "
+                             f"it must be set performed before having any start time")
 
     def get_employee_lunch_break_start_time(self, employee: Employee):
         return self._lunch_breaks_realizations[employee.name][TASK_START_TIME_KEY]
@@ -262,16 +270,9 @@ class Solution:
                         tasks_names.append(task.name)
         return tasks_names
 
-    ############################################
-    # Sequences - Update based on realizations #
-    ############################################
-
-    def compute_sequences_based_on_realizations(self):
-        self._order_steps_in_sequences()
-        if self._instance.has_lunch_break:
-            self._compute_lunch_breaks_realizations()
-        self._compute_departure_and_comeback_times()
-        self._compute_steps_arrival_times()
+    ###############################
+    # Sequences - Update - Common #
+    ###############################
 
     def _order_steps_in_sequences(self):
 
@@ -322,7 +323,7 @@ class Solution:
         for sequence in self._sequences.values():
             sequence.compute_end_times_based_on_fixed_start_times()
 
-    def _compute_lunch_breaks_realizations(self):
+    def _compute_lunch_breaks_performances(self):
 
         if self._instance.has_lunch_break:
             self._lunch_breaks_realizations = dict()
@@ -444,6 +445,43 @@ class Solution:
                     if lunch_break_realization[ACTIVITY_AFTER_LUNCH_KEY] == step.activity:
                         step.arrival_time += lunch_break_duration
 
+    ############################################
+    # Sequences - Update based on performances #
+    ############################################
+
+    def compute_sequences_based_on_tasks_performances(self):
+        self._order_steps_in_sequences()
+        if self._instance.has_lunch_break:
+            self._compute_lunch_breaks_performances()
+        self._compute_departure_and_comeback_times()
+        self._compute_steps_arrival_times()
+
+    #############################################
+    # Sequences - Update based on ordered tasks #
+    #############################################
+
+    def compute_sequences_based_on_ordered_tasks(self, ordered_tasks: dict[str, list[str]]):
+        for employee_name in ordered_tasks:
+            employee = self.instance.get_employee_by_name(employee_name)
+            sequence = Sequence(self._instance, employee)
+            sequence.append(
+                Step(activity=Departure(employee=employee), arrival_time=employee.start_time_LB,
+                     start_time=employee.start_time_LB, end_time=employee.start_time_LB)
+            )
+            for task_name in ordered_tasks[employee_name]:
+                task = self._instance.get_task_by_name(task_name)
+                start_time = self.get_task_start_time(task)
+                sequence.append(
+                    Step(activity=task, start_time=start_time, end_time=start_time + task.duration)
+                )
+            sequence.append(
+                Step(activity=ComeBack(employee=employee),
+                     start_time=employee.end_time_UB, end_time=employee.end_time_UB)
+            )
+            self._sequences[employee_name] = sequence
+        self._compute_departure_and_comeback_times()
+        self._compute_steps_arrival_times()
+
     ####################################################
     # Sequences - Updates according to earliest policy #
     ####################################################
@@ -478,25 +516,62 @@ class Solution:
     def compute_traveling_duration(self, step1: Step, step2: Step):
         return self._instance.compute_traveling_duration(step1.activity, step2.activity)
 
-    ##########
-    # Export #
-    ##########
+    ###################
+    # Import / Export #
+    ###################
 
-    def to_dict(self):
-        dictionary = dict()
-        for task in self.instance.tasks:
-            if self.get_task_performance_status(task):
-                dictionary[task.name] = {'performed': 1,
-                                         'employee': self.get_task_assignee(task).name,
-                                         'start': self.get_task_start_time(task)}
+    @classmethod
+    def from_dict(cls, dictionary, instance: Instance):
+        if dictionary['instance name'] != instance.name:
+            raise ValueError(f"The name {instance.name} of the given instance does not match "
+                             f"the instance name {dictionary['instance name']} in the given dictionary")
+        if SEQUENCES_KEY in dictionary and TASKS_PERFORMANCES_KEY not in dictionary:
+            raise ValueError("The framework does not support solution described via a dictionary such that"
+                             "sequences are described but not tasks performances")
+        solution = cls(instance, dictionary['name'])
+        if TASKS_PERFORMANCES_KEY in dictionary:
+            tasks_performances_dictionary = dictionary[TASKS_PERFORMANCES_KEY]
+            for task_name, performance_dict in tasks_performances_dictionary.items():
+                task = instance.get_task_by_name(task_name)
+                performance_status = bool(performance_dict[TASK_PERFORMANCE_STATUS_KEY])
+                solution.set_task_performance_status(task, performance_status)
+                if performance_status:
+                    solution.set_task_assignee(task, instance.get_employee_by_name(performance_dict[TASK_ASSIGNEE_KEY]))
+                    solution.set_task_start_time(task, int(performance_dict[TASK_START_TIME_KEY]))
+            if SEQUENCES_KEY in dictionary:
+                solution.compute_sequences_based_on_ordered_tasks(dictionary[SEQUENCES_KEY])
             else:
-                dictionary[task.name] = {'performed': 0}
+                solution.compute_sequences_based_on_tasks_performances()
+            solution.compute_KPIs()
+        return solution
+
+    def to_dict(self, with_tasks_performances: bool = True, with_sequences: bool = False):
+        if with_sequences and not with_tasks_performances:
+            raise ValueError("The framework does not support solution described via a dictionary such that"
+                             "sequences are described but not tasks performances")
+        dictionary = {'instance name': self.instance.name, 'name': self.name}
+        if with_tasks_performances:
+            tasks_performances_dictionary = dict()
+            for task in self.instance.tasks:
+                if self.get_task_performance_status(task):
+                    tasks_performances_dictionary[task.name] = {TASK_PERFORMANCE_STATUS_KEY: 1,
+                                                                TASK_ASSIGNEE_KEY: self.get_task_assignee(task).name,
+                                                                TASK_START_TIME_KEY: self.get_task_start_time(task)}
+                else:
+                    tasks_performances_dictionary[task.name] = {TASK_PERFORMANCE_STATUS_KEY: 0}
+            dictionary[TASKS_PERFORMANCES_KEY] = tasks_performances_dictionary
+        if with_sequences:
+            sequences_dictionary = dict()
+            for employee in self.instance.employees:
+                sequence = self.get_sequence(employee)
+                sequences_dictionary[employee.name] = [task.name for task in sequence.get_contained_tasks()]
+            dictionary[SEQUENCES_KEY] = sequences_dictionary
         return dictionary
 
 
 def compare_solutions(solution1: Solution, solution2: Solution):
     KPIs_descriptions = dict()
-    KPIs_descriptions[NB_REALIZED_TASKS_KEY] = {
+    KPIs_descriptions[NB_PERFORMED_TASKS_KEY] = {
         'sense': 'max', 'full_name': "number of performed tasks", 'unit': ""
     }
     KPIs_descriptions[TOTAL_WORKING_DURATION_KEY] = {

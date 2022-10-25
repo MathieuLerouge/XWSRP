@@ -1,9 +1,11 @@
 # Local libraries
 from src.modeling.activity import Activity
 from src.modeling.comeback import ComeBack
+from src.modeling.constants import NB_PERFORMED_TASKS_KEY, TOTAL_TRAVELING_DURATION_KEY, TOTAL_WORKING_DURATION_KEY, \
+    TOTAL_TRAVELING_DISTANCE_KEY, TOTAL_IDLE_TIME_KEY
 from src.modeling.employee import Employee
 from src.modeling.instance import Instance
-from src.modeling.solution import Solution
+from src.modeling.solution import Solution, TASK_PERFORMANCE_STATUS_KEY, TASK_ASSIGNEE_KEY, TASK_START_TIME_KEY
 from src.modeling.task import Task
 from src.optimization.IP.sequence.insertingmodel import IPModelForSequenceInserting
 from src.optimization.IP.sequence.prescribingmodel import IPModelForSequencePrescribing
@@ -40,11 +42,11 @@ class SolutionLS(SolutionOpti):
 
     @property
     def _nb_realized_tasks(self) -> int:
-        return self._KPIs[NB_REALIZED_TASKS_KEY]
+        return self._KPIs[NB_PERFORMED_TASKS_KEY]
 
     @_nb_realized_tasks.setter
     def _nb_realized_tasks(self, nb_realized_tasks: int):
-        self._KPIs[NB_REALIZED_TASKS_KEY] = nb_realized_tasks
+        self._KPIs[NB_PERFORMED_TASKS_KEY] = nb_realized_tasks
 
     @property
     def _total_traveling_duration(self) -> int:
@@ -413,17 +415,17 @@ class SolutionLS(SolutionOpti):
     # Local change - Private - General #
     ####################################
 
-    def _set_task_realization_to_unrealized(self, task: Task):
-        task_realization = self._tasks_realizations[task.name]
-        task_realization['realized'] = False
-        del task_realization['employee_name']
-        del task_realization['start_time']
+    def _set_task_performance_to_non_performed(self, task: Task):
+        task_performance = self._tasks_realizations[task.name]
+        task_performance[TASK_PERFORMANCE_STATUS_KEY] = False
+        del task_performance[TASK_ASSIGNEE_KEY]
+        del task_performance[TASK_START_TIME_KEY]
 
-    def _set_task_realization_to_realized(self, task: Task, employee: Employee, startTime: int):
-        task_realization = self._tasks_realizations[task.name]
-        task_realization['realized'] = True
-        task_realization['employee_name'] = employee.name
-        task_realization['start_time'] = startTime
+    def _set_task_performance_to_performed(self, task: Task, employee: Employee, startTime: int):
+        task_performance = self._tasks_realizations[task.name]
+        task_performance[TASK_PERFORMANCE_STATUS_KEY] = True
+        task_performance[TASK_ASSIGNEE_KEY] = employee.name
+        task_performance[TASK_START_TIME_KEY] = startTime
 
     def _update_tasks_realizations_based_on_sequences(self, employee: Employee,
                                                       start_step_index: int, end_step_index: int):
@@ -449,11 +451,11 @@ class SolutionLS(SolutionOpti):
         former_sequence = self.get_sequence(employee)
         former_sequence_KPIs = former_sequence.KPIs
         for task in former_sequence.get_contained_tasks():
-            self._set_task_realization_to_unrealized(task)
+            self._set_task_performance_to_non_performed(task)
         self._sequences[employee.name] = new_sequence
         for step in new_sequence.get_steps(1, -1):
             if isinstance(step.activity, Task):
-                self._set_task_realization_to_realized(step.activity, employee, step.start_time)
+                self._set_task_performance_to_performed(step.activity, employee, step.start_time)
         if update_KPIs:
             for key, value in former_sequence_KPIs.items():
                 self._KPIs[key] += new_sequence.get_KPI(key) - value
@@ -492,7 +494,7 @@ class SolutionLS(SolutionOpti):
         # Remove the task from its assigned employee's sequence (and update tasks realizations)
         removed_task = sequence.get_step(step_index).activity
         sequence.remove_step(step_index, tighten_times, update_KPIs)
-        self._set_task_realization_to_unrealized(removed_task)
+        self._set_task_performance_to_non_performed(removed_task)
 
         # Update KPIs if needed
         if update_KPIs:
@@ -567,7 +569,7 @@ class SolutionLS(SolutionOpti):
                 tighten_times, update_KPIs
             )
         is_feasible &= insertion_is_skill_feasible
-        self._set_task_realization_to_realized(task, employee, start_time)
+        self._set_task_performance_to_performed(task, employee, start_time)
         self._update_tasks_realizations_based_on_sequences(
             employee, max(first_step_with_time_change_index, 1),
             min(last_step_with_time_change_index, len(sequence) - 2)
@@ -643,8 +645,8 @@ class SolutionLS(SolutionOpti):
                 start_time, start_time_for_backward, start_time_for_forward,
                 tighten_times, update_KPIs
             )
-        self._set_task_realization_to_unrealized(leaving_task)
-        self._set_task_realization_to_realized(replacing_task, employee, start_time)
+        self._set_task_performance_to_non_performed(leaving_task)
+        self._set_task_performance_to_performed(replacing_task, employee, start_time)
         self._update_tasks_realizations_based_on_sequences(
             employee, max(first_step_with_time_change_index, 1),
             min(last_step_with_time_change_index, len(sequence) - 2)
