@@ -5,6 +5,10 @@ from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 
 
+# Global variables
+QUESTION_TYPE_KEY = 'type'
+
+
 # Class Question
 class Question:
 
@@ -22,11 +26,6 @@ class Question:
     def solution(self):
         return self._solution
 
-    # @solution.setter
-    # def solution(self, solution: Solution):
-    #     self._template.check_fields_values_validity(solution, self._fields_values, raise_error=True)
-    #     self._solution = solution
-
     @property
     def template(self):
         return self._template
@@ -35,17 +34,20 @@ class Question:
     def fields_values(self):
         return self._fields_values
 
-    # @fields_values.setter
-    # def fields_values(self, fields_values: list[str]):
-    #     self._template.check_fields_values_validity(self._solution, fields_values, raise_error=True)
-    #     self._fields_values = fields_values
-
     @property
     def text(self):
         return self._text
 
     def to_dict(self):
-        return {'solution': self.solution.to_dict(), 'template id': self.template.id, 'fields': self.fields_values}
+        return {'solution': self.solution.to_dict(with_tasks_performances=False),
+                'template id': self.template.id, 'fields values': self.fields_values}
+
+    @classmethod
+    def from_dict(cls, dictionary, solution: Solution):
+        if dictionary[QUESTION_TYPE_KEY] == 'contrastive':
+            return ContrastiveQuestion.from_dict(dictionary, solution)
+        else:
+            raise ValueError("The question must be of type contrastive")
 
 
 # Class ContrastiveQuestion
@@ -53,6 +55,15 @@ class ContrastiveQuestion(Question):
 
     def __init__(self, solution: Solution, question_template_id: str, fields_values: list[str]):
         super().__init__(solution, question_template_id, fields_values)
+
+    def to_dict(self):
+        dictionary = super().to_dict()
+        dictionary[QUESTION_TYPE_KEY] = 'contrastive'
+        return dictionary
+
+    @classmethod
+    def from_dict(cls, dictionary, solution: Solution):
+        return cls(solution, dictionary['template id'], dictionary['fields values'])
 
 
 # Class ScenarioQuestion

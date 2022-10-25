@@ -11,6 +11,13 @@ from src.utils.constants import LINE_BREAK_STRING
 from src.utils.time import convert_nb_minutes_to_time_string
 
 
+# Global variables
+QUESTION_KEY = 'question'
+SUPPORT_SOLUTION_KEY = 'support solution'
+TRANSFORMATION_KEY = 'transformation'
+INFEASIBILITY_KEY = 'infeasibility'
+
+
 ####################
 # Global functions #
 ####################
@@ -48,6 +55,16 @@ def create_explanation(question: Question, support_solution: Solution, infeasibi
                                            description_of_applied_transformation, instance_alterations)
         else:
             raise TypeError(f"There is a problem with the type of infeasibility which is {type(infeasibility)}")
+
+
+def create_explanation_from_dict(dictionary, solution: Solution):
+    question = Question.from_dict(dictionary[QUESTION_KEY], solution)
+    support_solution = Solution.from_dict(dictionary[SUPPORT_SOLUTION_KEY], solution.instance)
+    infeasibility = None
+    if INFEASIBILITY_KEY in dictionary:
+        infeasibility = Infeasibility.from_dict(dictionary[INFEASIBILITY_KEY], solution.instance)
+    transformation_description = dictionary[TRANSFORMATION_KEY]
+    return create_explanation(question, support_solution, infeasibility, transformation_description)
 
 
 ###############
@@ -102,10 +119,10 @@ class Explanation:
     def current_solution(self):
         return self._question.solution
 
-    @property
-    def solution(self):
-        print("explanation.solution is deprecated!")
-        return self._support_solution
+    # @property
+    # def solution(self):
+    #     print("explanation.solution is deprecated!")
+    #     return self._support_solution
 
     @property
     def support_solution(self):
@@ -117,7 +134,7 @@ class Explanation:
 
     @property
     @abstractmethod
-    def support_solution_is_feasible(self):
+    def support_solution_is_feasible(self) -> bool:
         pass
 
     @property
@@ -192,9 +209,12 @@ class Explanation:
         return text
 
     def to_dict(self):
-        dictionary = {'question': self.question.to_dict(), 'support solution': self.support_solution.to_dict()}
+        dictionary = {
+            QUESTION_KEY: self.question.to_dict(),
+            SUPPORT_SOLUTION_KEY: self.support_solution.to_dict(with_sequences=not self.support_solution_is_feasible)
+        }
         if self.applying_support_solution_transformation is not None:
-            dictionary['transformation'] = self.applying_support_solution_transformation
+            dictionary[TRANSFORMATION_KEY] = self.applying_support_solution_transformation
         return dictionary
 
 
@@ -380,7 +400,7 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
 
     def to_dict(self):
         dictionary = super().to_dict()
-        dictionary['infeasibility'] = self.infeasibility.to_dict()
+        dictionary[INFEASIBILITY_KEY] = self.infeasibility.to_dict()
         return dictionary
 
 
@@ -504,6 +524,9 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
             text += f"By performing all the activities from {upstream_critical_activity.name} to {task.name} " \
                     f"at the earliest possible time, "
         else:
+            print(self.question.text)
+            print(self.infeasibility)
+            print(sequence)
             raise ValueError(f"There is something wrong with the upstream critical step index which value "
                              f"{upstream_critical_step_index} is larger than the one of the step index {step_index}")
 

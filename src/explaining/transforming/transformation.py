@@ -129,7 +129,7 @@ def create_support_solution_and_infeasibility_for_insertion(solution: EditableSo
             )
     activity_name = activity.name
     if activity.name == "Start":
-        activity_name = "home"
+        activity_name = "Home"
     description_of_applied_transformation = f"inserting {task.name} just after {activity_name} " \
                                             f"in {employee.name}'s planning"
     return support_solution, infeasibility, description_of_applied_transformation

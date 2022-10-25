@@ -2170,12 +2170,12 @@ class ExplainerWebGUI:
     def current_instance(self):
         return self._explainer.current_instance
 
-    #######
-    # Run #
-    #######
+    ##########
+    # Launch #
+    ##########
 
-    def run(self):
+    def launch(self):
         """
-        Run the web Graphic User Interface of the explainer.
+        Launch the web Graphic User Interface of the explainer.
         """
         self._application.run_server(debug=True)

@@ -47,12 +47,8 @@ def main():
         apply_optimization_routine(solving_time_limit_in_seconds)
 
     elif ROUTINE_KEY == EXPLAINING_ROUTINE_KEY:
-        # Toggle (Variables to set)
-        ignore_employees_unavailabilities = True
-        ignore_tasks_unavailabilities = True
-        ignore_lunch_breaks = True
         # Apply the routine
-        apply_explanation_routine(ignore_employees_unavailabilities, ignore_tasks_unavailabilities, ignore_lunch_breaks)
+        apply_explanation_routine()
 
     else:
         raise ValueError(f"The routine {ROUTINE_KEY} does not exist")

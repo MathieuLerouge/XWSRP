@@ -153,6 +153,23 @@ class QuestionTemplate:
         else:
             raise NotImplementedError(f"The field is either an employee, a task or an activity name")
 
+    def compute_all_fields_valid_values(self, solution: Solution):
+        def aux(first_fields_valid_values: list[dict[int, str]]):
+            field_number = len(first_fields_valid_values[0])
+            if field_number == self.nb_fields:
+                return [list(fields_valid_values.values()) for fields_valid_values in first_fields_valid_values]
+            else:
+                next_first_fields_valid_values = []
+                for fields_valid_values in first_fields_valid_values:
+                    next_field_valid_values = \
+                        self.compute_field_valid_values(solution, field_number, fields_valid_values)
+                    for next_field_valid_value in next_field_valid_values:
+                        fields_valid_values_with_next_field = fields_valid_values.copy()
+                        fields_valid_values_with_next_field[field_number] = next_field_valid_value
+                        next_first_fields_valid_values.append(fields_valid_values_with_next_field)
+                return aux(next_first_fields_valid_values)
+        return aux([dict()])
+
     def _check_field_value_type(self, instance: Instance, field_number: int, field_value: str):
         """
         Check that the value of the field #number corresponds to a name of the right type w.r.t. the instance

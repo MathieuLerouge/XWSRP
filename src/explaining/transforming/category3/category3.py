@@ -46,14 +46,14 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     @property
     def pivot_task_time_gap(self):
         if self.has_solution_sequence:
-            return self.var_T_backward.x - self.var_T_forward.x
+            return int(self.var_T_backward.x - self.var_T_forward.x)
         else:
             raise AttributeError("There is no solution sequence stored")
 
     @property
     def pivot_task_start_time(self):
         if self.has_solution_sequence:
-            return self.var_T_backward.x
+            return int(self.var_T_backward.x)
             # return int((self.var_T_backward.x + self.var_T_forward.x)/2)
         else:
             raise AttributeError("There is no solution sequence stored")
@@ -61,14 +61,14 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     @property
     def pivot_task_start_time_for_backward(self):
         if self.has_solution_sequence:
-            return self.var_T_backward.x
+            return int(self.var_T_backward.x)
         else:
             raise AttributeError("There is no solution sequence stored")
 
     @property
     def pivot_task_start_time_for_forward(self):
         if self.has_solution_sequence:
-            return self.var_T_forward.x
+            return int(self.var_T_forward.x)
         else:
             raise AttributeError("There is no solution sequence stored")
 
@@ -369,12 +369,14 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
         return self.tasks_performances_expressions[task_key].getValue()
 
     def _extract_ordered_steps(self):
-        start_times_and_steps = [
-            (self.employee.start_time_LB,
-             Step(activity=Departure(employee=self.employee), start_time=self.employee.start_time_LB)),
-            (self.employee.end_time_UB,
-             Step(activity=ComeBack(employee=self.employee), start_time=self.employee.end_time_UB))
-        ]
+        # TODO remove if it is working
+        # start_times_and_steps = [
+        #     (self.employee.start_time_LB,
+        #      Step(activity=Departure(employee=self.employee), start_time=self.employee.start_time_LB)),
+        #     (self.employee.end_time_UB,
+        #      Step(activity=ComeBack(employee=self.employee), start_time=self.employee.end_time_UB))
+        # ]
+        start_times_and_steps = []
         for j in self.get_candidate_tasks_keys(including_pivot_task=False):
             if self._check_task_is_performed_by_key(j):
                 task = self.get_candidate_task_by_key(j)
@@ -390,4 +392,18 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
                 (unavailability.start_time_LB, Step(activity=unavailability, start_time=unavailability.start_time_LB))
             )
         start_times_and_steps.sort()
+        start_times_and_steps = \
+            [(self.employee.start_time_LB,
+              Step(activity=Departure(employee=self.employee), start_time=self.employee.start_time_LB))] + \
+            start_times_and_steps
+        start_times_and_steps.append(
+            (self.employee.end_time_UB,
+             Step(activity=ComeBack(employee=self.employee), start_time=self.employee.end_time_UB))
+        )
+        _, first_step = start_times_and_steps[0]
+        if not isinstance(first_step.activity, Departure):
+            raise Exception(f"The first activity of the sequence is not a departure but {first_step}")
+        _, last_step = start_times_and_steps[-1]
+        if not isinstance(last_step.activity, ComeBack):
+            raise Exception(f"The last activity of the sequence is not a comeback but {last_step}")
         return [step for _, step in start_times_and_steps]
