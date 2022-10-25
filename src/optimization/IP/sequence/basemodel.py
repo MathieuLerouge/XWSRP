@@ -442,12 +442,12 @@ class IPModelForSequenceOptimization:
                 (unavailability.start_time_LB, Step(activity=unavailability, start_time=unavailability.start_time_LB))
             )
         start_times_and_steps.sort()
-        _, first_activity = start_times_and_steps[0]
-        if not isinstance(first_activity, Departure):
-            raise Exception(f"The first activity of the sequence is not a departure but {first_activity}")
-        _, last_activity = start_times_and_steps[-1]
-        if not isinstance(first_activity, ComeBack):
-            raise Exception(f"The first activity of the sequence is not a comeback but {last_activity}")
+        _, first_step = start_times_and_steps[0]
+        if not isinstance(first_step.activity, Departure):
+            raise Exception(f"The first activity of the sequence is not a departure but {first_step}")
+        _, last_step = start_times_and_steps[-1]
+        if not isinstance(last_step.activity, ComeBack):
+            raise Exception(f"The last activity of the sequence is not a comeback but {last_step}")
         return [step for _, step in start_times_and_steps]
 
     def _extract_sequence_from_IP_solving(self):
