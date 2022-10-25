@@ -1,15 +1,23 @@
-data/
+data/demo/
+data/EJOR/
+data/teaching/
 env/
-inputs/
-outputs/
+inputs/*
+!inputs/.gitkeep
+outputs/*
+!outputs/.gitkeep
 src/checking/inputs/
+src/drawing/inputs/
+src/optimization/inputs/
 src/deprecated/
 src/miscellaneous/
+
 __pycache__/
 .idea/
 
 src/checking/tests.py
 src/drawing/tests.py
 src/optimization/tests.py
+
 todo.txt
 .DS_Store
