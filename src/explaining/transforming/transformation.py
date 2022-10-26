@@ -54,45 +54,46 @@ def apply_induced_transformation(solution: EditableSolution, question: Question)
         raise NotImplementedError(f"The transformation induced by the template {question_template_id} is not handled")
 
 
-def create_support_solution_and_infeasibility_for_category_3(solution: EditableSolution, employee: Employee, task: Task,
-                                                             model: IPModelForCategory3):
-    # Save whether or not the transformation is feasible
-    transformation_is_skill_feasible = employee.is_capable_of_performing(task)
-    transformation_is_feasible = transformation_is_skill_feasible and (model.pivot_task_time_gap == 0)
-    # Create support solution
-    support_sequence = SequenceLS.from_Sequence(model.solution_sequence)
-    support_solution = solution.copy(solution.name + "_support")
-    if support_solution.get_task_performance_status(task):
-        support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
-    if transformation_is_feasible:
-        support_sequence.compute_KPIs()
-    support_solution.replace_sequence_by_another(employee, support_sequence, transformation_is_feasible)
-    # Create infeasibility if any
-    step_index = support_sequence.get_step_index_of(task)
-    earliest_start_time_for_upstream = model.pivot_task_start_time_for_backward
-    latest_start_time_for_downstream = model.pivot_task_start_time_for_forward
-    infeasibility = None
-    if not transformation_is_feasible:
-        if not transformation_is_skill_feasible:
-            infeasibility = SkillInfeasibility(employee, task)
-        else:
-            sequence = support_solution.get_sequence(employee)
-            upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(step_index - 1)
-            downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(step_index + 1)
-            upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_UB
-            downstream_feasible = latest_start_time_for_downstream >= task.start_time_LB
-            infeasibility = TimeInfeasibility(
-                employee, task, upstream_feasible, downstream_feasible,
-                earliest_start_time_for_upstream, latest_start_time_for_downstream,
-                upstream_critical_step_index, downstream_critical_step_index
-            )
-    support_sequence_activities_names = [step.activity.name for step in support_sequence]
-    support_sequence_activities_names[0], support_sequence_activities_names[-1] = "Home", "Home"
-    description_of_support_sequence = "["
-    for activity_name in support_sequence_activities_names[:-1]:
-        description_of_support_sequence += activity_name + ", "
-    description_of_support_sequence += support_sequence_activities_names[-1] + "]"
-    return support_solution, infeasibility, description_of_support_sequence
+if GUROBI_IS_ENABLED:
+    def create_support_solution_and_infeasibility_for_category_3(solution: EditableSolution, employee: Employee,
+                                                                 task: Task, model: IPModelForCategory3):
+        # Save whether or not the transformation is feasible
+        transformation_is_skill_feasible = employee.is_capable_of_performing(task)
+        transformation_is_feasible = transformation_is_skill_feasible and (model.pivot_task_time_gap == 0)
+        # Create support solution
+        support_sequence = SequenceLS.from_Sequence(model.solution_sequence)
+        support_solution = solution.copy(solution.name + "_support")
+        if support_solution.get_task_performance_status(task):
+            support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
+        if transformation_is_feasible:
+            support_sequence.compute_KPIs()
+        support_solution.replace_sequence_by_another(employee, support_sequence, transformation_is_feasible)
+        # Create infeasibility if any
+        step_index = support_sequence.get_step_index_of(task)
+        earliest_start_time_for_upstream = model.pivot_task_start_time_for_backward
+        latest_start_time_for_downstream = model.pivot_task_start_time_for_forward
+        infeasibility = None
+        if not transformation_is_feasible:
+            if not transformation_is_skill_feasible:
+                infeasibility = SkillInfeasibility(employee, task)
+            else:
+                sequence = support_solution.get_sequence(employee)
+                upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(step_index - 1)
+                downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(step_index + 1)
+                upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_UB
+                downstream_feasible = latest_start_time_for_downstream >= task.start_time_LB
+                infeasibility = TimeInfeasibility(
+                    employee, task, upstream_feasible, downstream_feasible,
+                    earliest_start_time_for_upstream, latest_start_time_for_downstream,
+                    upstream_critical_step_index, downstream_critical_step_index
+                )
+        support_sequence_activities_names = [step.activity.name for step in support_sequence]
+        support_sequence_activities_names[0], support_sequence_activities_names[-1] = "Home", "Home"
+        description_of_support_sequence = "["
+        for activity_name in support_sequence_activities_names[:-1]:
+            description_of_support_sequence += activity_name + ", "
+        description_of_support_sequence += support_sequence_activities_names[-1] + "]"
+        return support_solution, infeasibility, description_of_support_sequence
 
 
 ########################################
@@ -412,51 +413,52 @@ def apply_induced_transformation_bis(solution: EditableSolution, question: Count
 # Counterfactual - Insertion #
 ##############################
 
-
-def create_support_solution_infeasibility_and_alterations(solution: EditableSolution, employee: Employee, task: Task,
-                                                          model: IPModelForInsertionAlteringInput):
-    # Save whether or not the transformation is feasible
-    transformation_is_skill_feasible = employee.is_capable_of_performing(task)
-    transformation_is_feasible = transformation_is_skill_feasible and (model.task_to_insert_time_gap == 0)
-    # Create support solution
-    support_solution = solution.copy(solution.name + "_support")
-    support_solution.instance = model.support_instance
-    support_sequence = model.support_sequence
-    if support_solution.get_task_performance_status(task):
-        support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
-    if transformation_is_feasible:
-        support_sequence.compute_KPIs()
-    support_solution.replace_sequence_by_another(employee, support_sequence, transformation_is_feasible)
-    # Create infeasibility if any
-    step_index = support_sequence.get_step_index_of(task)
-    earliest_start_time_for_upstream = model.task_to_insert_start_time_for_backward
-    latest_start_time_for_downstream = model.task_to_insert_start_time_for_forward
-    infeasibility = None
-    if not transformation_is_feasible:
-        print("Is this normal?")
-        if not transformation_is_skill_feasible:
-            infeasibility = SkillInfeasibility(employee, task)
-        else:
-            sequence = support_solution.get_sequence(employee)
-            upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(step_index - 1)
-            downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(step_index + 1)
-            upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_UB
-            downstream_feasible = latest_start_time_for_downstream >= task.start_time_LB
-            infeasibility = TimeInfeasibility(
-                employee, task, upstream_feasible, downstream_feasible,
-                earliest_start_time_for_upstream, latest_start_time_for_downstream,
-                upstream_critical_step_index, downstream_critical_step_index
-            )
-    # Create description of applied transformation
-    support_sequence_activities_names = [step.activity.name for step in support_sequence]
-    support_sequence_activities_names[0], support_sequence_activities_names[-1] = "Home", "Home"
-    description_of_support_sequence = "["
-    for activity_name in support_sequence_activities_names[:-1]:
-        description_of_support_sequence += activity_name + ", "
-    description_of_support_sequence += support_sequence_activities_names[-1] + "]"
-    description_of_applied_transformation = f"adding {task.name} in {employee.name}'s planning according to the " \
-                                            f"following route {description_of_support_sequence}"
-    return support_solution, infeasibility, description_of_applied_transformation, model.support_instance_alterations
+if GUROBI_IS_ENABLED:
+    def create_support_solution_infeasibility_and_alterations(solution: EditableSolution, employee: Employee,
+                                                              task: Task, model: IPModelForInsertionAlteringInput):
+        # Save whether or not the transformation is feasible
+        transformation_is_skill_feasible = employee.is_capable_of_performing(task)
+        transformation_is_feasible = transformation_is_skill_feasible and (model.task_to_insert_time_gap == 0)
+        # Create support solution
+        support_solution = solution.copy(solution.name + "_support")
+        support_solution.instance = model.support_instance
+        support_sequence = model.support_sequence
+        if support_solution.get_task_performance_status(task):
+            support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
+        if transformation_is_feasible:
+            support_sequence.compute_KPIs()
+        support_solution.replace_sequence_by_another(employee, support_sequence, transformation_is_feasible)
+        # Create infeasibility if any
+        step_index = support_sequence.get_step_index_of(task)
+        earliest_start_time_for_upstream = model.task_to_insert_start_time_for_backward
+        latest_start_time_for_downstream = model.task_to_insert_start_time_for_forward
+        infeasibility = None
+        if not transformation_is_feasible:
+            print("Is this normal?")
+            if not transformation_is_skill_feasible:
+                infeasibility = SkillInfeasibility(employee, task)
+            else:
+                sequence = support_solution.get_sequence(employee)
+                upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(step_index - 1)
+                downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(step_index + 1)
+                upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_UB
+                downstream_feasible = latest_start_time_for_downstream >= task.start_time_LB
+                infeasibility = TimeInfeasibility(
+                    employee, task, upstream_feasible, downstream_feasible,
+                    earliest_start_time_for_upstream, latest_start_time_for_downstream,
+                    upstream_critical_step_index, downstream_critical_step_index
+                )
+        # Create description of applied transformation
+        support_sequence_activities_names = [step.activity.name for step in support_sequence]
+        support_sequence_activities_names[0], support_sequence_activities_names[-1] = "Home", "Home"
+        description_of_support_sequence = "["
+        for activity_name in support_sequence_activities_names[:-1]:
+            description_of_support_sequence += activity_name + ", "
+        description_of_support_sequence += support_sequence_activities_names[-1] + "]"
+        description_of_applied_transformation = f"adding {task.name} in {employee.name}'s planning according to the " \
+                                                f"following route {description_of_support_sequence}"
+        return (support_solution, infeasibility, description_of_applied_transformation,
+                model.support_instance_alterations)
 
 
 def apply_ins_1_bis(solution: EditableSolution, employee_name: str, task_name: str, activity_name: str,
