@@ -3,18 +3,23 @@ from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.questioning.question import Question, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import *
-from src.explaining.transforming.category3.category3 import IPModelForCategory3
-from src.explaining.transforming.category3.insertion3 import IPModelForInsertion3
-from src.explaining.transforming.category3.swap3 import IPModelForSwap3
 from src.explaining.transforming.infeasibility import *
-from src.explaining.transforming.integerprogramming.insertion import IPModelForInsertionAlteringInput
-from src.explaining.transforming.integerprogramming.insertion1 import IPModelForIns1
-from src.explaining.transforming.integerprogramming.insertion2 import IPModelForIns2a
-from src.explaining.transforming.integerprogramming.insertion3 import IPModelForIns3
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.localsearch.sequence import SequenceLS
+
+
+# Local libraries under conditions
+from configuration import GUROBI_IS_ENABLED
+if GUROBI_IS_ENABLED:
+    from src.explaining.transforming.category3.category3 import IPModelForCategory3
+    from src.explaining.transforming.category3.insertion3 import IPModelForInsertion3
+    from src.explaining.transforming.category3.swap3 import IPModelForSwap3
+    from src.explaining.transforming.integerprogramming.insertion import IPModelForInsertionAlteringInput
+    from src.explaining.transforming.integerprogramming.insertion1 import IPModelForIns1
+    from src.explaining.transforming.integerprogramming.insertion2 import IPModelForIns2a
+    from src.explaining.transforming.integerprogramming.insertion3 import IPModelForIns3
 
 
 #############################################

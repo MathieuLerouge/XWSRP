@@ -7,11 +7,15 @@ from src.modeling.employee import Employee
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution, TASK_PERFORMANCE_STATUS_KEY, TASK_ASSIGNEE_KEY, TASK_START_TIME_KEY
 from src.modeling.task import Task
-from src.optimization.IP.sequence.insertingmodel import IPModelForSequenceInserting
-from src.optimization.IP.sequence.prescribingmodel import IPModelForSequencePrescribing
-from src.optimization.IP.sequence.reorderingmodel import IPModelForSequenceReordering
 from src.optimization.localsearch.sequence import SequenceLS
 from src.optimization.solution import SolutionOpti
+
+# Local libraries under conditions
+from configuration import GUROBI_IS_ENABLED
+if GUROBI_IS_ENABLED:
+    from src.optimization.IP.sequence.insertingmodel import IPModelForSequenceInserting
+    from src.optimization.IP.sequence.prescribingmodel import IPModelForSequencePrescribing
+    from src.optimization.IP.sequence.reorderingmodel import IPModelForSequenceReordering
 
 
 # Global variables
