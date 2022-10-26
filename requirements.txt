@@ -6,6 +6,7 @@ dash==2.6.2
 dash-core-components==2.0.0
 dash-html-components==2.0.0
 dash-table==5.0.0
+et-xmlfile==1.1.0
 Flask==2.2.2
 Flask-Compress==1.13
 fonttools==4.38.0
@@ -17,6 +18,7 @@ kiwisolver==1.4.4
 MarkupSafe==2.1.1
 matplotlib==3.6.0
 numpy==1.23.4
+openpyxl==3.0.10
 packaging==21.3
 pandas==1.5.1
 Pillow==9.2.0
