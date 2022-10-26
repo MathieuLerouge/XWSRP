@@ -1,1 +1,1 @@
-web: gunicorn heroku:server
+web: gunicorn deployed_application:server
