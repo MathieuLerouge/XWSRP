@@ -34,19 +34,21 @@ def prepare_explainer():
     )
     if not check_feasibility(solution)[0]:
         raise ValueError(f"The solution {solution.name} is not feasible")
-    return Explainer(solution)
+    explainer = Explainer(solution)
+    explainer.contrastive_explanations_directory = get_explanations_for_evaluation_directory_path()
+    explainer.use_already_computed_contrastive_explanations = True
+    return explainer
+
+
+def prepare_explainer_UI():
+    explainer = prepare_explainer()
+    explainer_UI = ExplainerWebGUI(explainer)
+    return explainer_UI
 
 
 def launch_explanation_UI():
-    explainer = prepare_explainer()
-    explainer.contrastive_explanations_directory = get_explanations_for_evaluation_directory_path()
-    explainer.use_already_computed_contrastive_explanations = True
-    explainer_UI = ExplainerWebGUI(explainer)
+    explainer_UI = prepare_explainer_UI()
     explainer_UI.launch()
-
-
-def run_evaluation_routine():
-    launch_explanation_UI()
 
 
 if __name__ == '__main__':

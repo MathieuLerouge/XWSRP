@@ -2159,6 +2159,10 @@ class ExplainerWebGUI:
     ##########
 
     @property
+    def application(self):
+        return self._application
+
+    @property
     def current_solution(self):
         return self._explainer.current_solution
 
