@@ -19,5 +19,6 @@ src/checking/tests.py
 src/drawing/tests.py
 src/optimization/tests.py
 
+local_requirements.txt
 todo.txt
 .DS_Store

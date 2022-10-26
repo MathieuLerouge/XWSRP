@@ -1,5 +1,4 @@
 gunicorn==20.1.0
-gurobipy~=9.1.2
 matplotlib~=3.4.2
 numpy~=1.21.1
 openpyxl~=3.0.7
