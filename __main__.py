@@ -60,6 +60,9 @@ from src.evaluation.routine import prepare_explainer_UI
 #     else:
 #         raise ValueError(f"The routine {ROUTINE_KEY} does not exist")
 
+explainer_UI = prepare_explainer_UI()
+server = explainer_UI.application.server
+explainer_UI.launch()
 
 if __name__ == '__main__':
     explainer_UI = prepare_explainer_UI()
