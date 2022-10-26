@@ -45,5 +45,9 @@ def launch_explanation_UI():
     explainer_UI.launch()
 
 
+def run_evaluation_routine():
+    launch_explanation_UI()
+
+
 if __name__ == '__main__':
     launch_explanation_UI()
