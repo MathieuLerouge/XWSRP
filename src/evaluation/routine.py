@@ -37,6 +37,7 @@ def prepare_explainer():
     explainer = Explainer(solution)
     explainer.contrastive_explanations_directory = get_explanations_for_evaluation_directory_path()
     explainer.use_already_computed_contrastive_explanations = True
+    explainer.export_contrastive_explanations = False
     return explainer
 
 

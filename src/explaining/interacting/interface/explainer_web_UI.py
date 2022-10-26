@@ -2182,4 +2182,4 @@ class ExplainerWebGUI:
         """
         Launch the web Graphic User Interface of the explainer.
         """
-        self._application.run_server(debug=False)
+        self._application.run_server(debug=True)
