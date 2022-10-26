@@ -144,7 +144,8 @@ class Explainer:
                 apply_induced_transformation(self.current_solution, contrastive_question)
             contrastive_explanation = create_explanation(contrastive_question, contrastive_support_solution,
                                                          infeasibility, description_of_applied_transformation)
-            export_explanation_to_json_file(contrastive_explanation, self.contrastive_explanations_directory)
+            if self.export_contrastive_explanations:
+                export_explanation_to_json_file(contrastive_explanation, self.contrastive_explanations_directory)
         self._last_contrastive_explanation = contrastive_explanation
         self._last_scenario_explanation = None
         self._last_counterfactual_explanation = None
