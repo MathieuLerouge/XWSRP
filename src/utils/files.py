@@ -1,145 +1,203 @@
 # Standard library
-from os import walk, path
+from os import getcwd, path, walk
 
 # Local library
 from src.utils.constants import *
+
+
+#####################
+# Project directory #
+#####################
+
+
+def get_project_directory_path():
+    current_working_directory = getcwd()
+    if "/src" in current_working_directory:
+        index = current_working_directory.find("/src")
+        return current_working_directory[:index]
+    else:
+        return current_working_directory
+
+
+def get_default_inputs_directory_path():
+    return get_project_directory_path() + f"/{INPUTS_DIRECTORY_RELATIVE_PATH}"
+
+
+def get_default_outputs_directory_path():
+    return get_project_directory_path() + f"/{OUTPUTS_DIRECTORY_RELATIVE_PATH}"
 
 
 ############
 # Instance #
 ############
 
-def get_instances_files_names(instances_directory: str = None):
-    if instances_directory is None:
-        instances_directory = INPUTS_DIRECTORY
+
+def get_instances_files_paths(directory_path: str = None):
+    if directory_path is None:
+        directory_path = get_default_inputs_directory_path()
     try:
-        _, _, files_names = next(walk(instances_directory))
+        _, _, files_names_with_extensions = next(walk(directory_path))
     except StopIteration:
-        raise FileNotFoundError(f"There are no instances in the directory {instances_directory}")
-    instances_files_names = []
-    for file_name in files_names:
-        if INSTANCE_FILENAME_EXTENSION in file_name and INSTANCE_FILENAME_PREFIX in file_name:
-            extended_file_name = instances_directory + "/" + file_name
-            instances_files_names.append(extended_file_name)
-    instances_files_names.sort()
-    return instances_files_names
+        raise FileNotFoundError(f"There are no instances in the directory {directory_path}")
+    instances_files_paths = []
+    for file_name_with_extension in files_names_with_extensions:
+        if (INSTANCE_FILE_EXTENSION in file_name_with_extension and
+                INSTANCE_FILE_NAME_PREFIX == file_name_with_extension[:len(INSTANCE_FILE_NAME_PREFIX)]):
+            instance_file_path = directory_path + "/" + file_name_with_extension
+            instances_files_paths.append(instance_file_path)
+    instances_files_paths.sort()
+    return instances_files_paths
 
 
-def extract_data_from_instance_filename(instance_filename: str = None, ignore_version: bool = False):
-    if not ignore_version and not (INSTANCE_VERSION_STRING in instance_filename):
-        raise ValueError(f"The given instance filename {instance_filename} is incorrect, "
-                         f"it does not contain {INSTANCE_VERSION_STRING} to signal the instance version")
-    words = instance_filename.split('/')[-1].\
-        removeprefix(INSTANCE_FILENAME_PREFIX).\
-        removesuffix(INSTANCE_FILENAME_EXTENSION).\
-        split(INSTANCE_VERSION_STRING)
-    region_name = words[0]
-    if ignore_version:
-        instance_version = None
+def identify_meta_data_in_instance_file_name(instance_file_name: str):
+    file_name_without_prefix = instance_file_name.removeprefix(INSTANCE_FILE_NAME_PREFIX)
+    words = file_name_without_prefix.split(INSTANCE_VERSION_STRING)
+    return {CORE_KEY: words[0], 'version': None if len(words) == 1 else int(words[1])}
+
+
+def identify_meta_data_in_instance_file_path(instance_file_path: str = None):
+    return identify_meta_data_in_instance_file_name(
+        instance_file_path.split('/')[-1].removesuffix(INSTANCE_FILE_EXTENSION)
+    )
+
+
+def create_instance_file_name(core: str, version: int = None):
+    if version is None:
+        version_suffix = ""
     else:
-        instance_version = int(words[1])
-    return region_name, instance_version
+        version_suffix = f"{INSTANCE_VERSION_STRING}{str(version)}"
+    return f"{INSTANCE_FILE_NAME_PREFIX}{core}{version_suffix}"
 
 
-def create_instance_filename(region_name: str, instance_version: int = None, instance_directory: str = None):
-    if instance_directory is None:
-        instance_directory = (INSTANCES_SETS_DIRECTORY + "/" +
-                              INSTANCE_SET_NAME_PREFIX + INSTANCE_VERSION_STRING + str(instance_version))
-    if instance_version is None:
-        instance_version_id = ""
-    else:
-        instance_version_id = INSTANCE_VERSION_STRING + str(instance_version)
-    return (instance_directory + "/" + INSTANCE_FILENAME_PREFIX + region_name +
-            instance_version_id + INSTANCE_FILENAME_EXTENSION)
+def get_instance_with_version_directory_path(version: int):
+    return f"{get_project_directory_path()}/{TEACHING_DATA_DIRECTORY_RELATIVE_PATH}/" \
+           f"{INSTANCE_VERSION_STRING}{str(version)}/instances"
+
+
+def create_instance_file_path(core: str, version: int = None, instance_directory_path: str = None):
+    if instance_directory_path is None:
+        if version is not None:
+            instance_directory_path = get_instance_with_version_directory_path(version)
+        else:
+            instance_directory_path = get_default_inputs_directory_path()
+    return f"{instance_directory_path}/{create_instance_file_name(core, version)}{INSTANCE_FILE_EXTENSION}"
 
 
 ############
 # Solution #
 ############
 
-def get_solutions_files_names(solutions_directory: str = None):
-    if solutions_directory is None:
-        solutions_directory = INPUTS_DIRECTORY
+
+def get_solution_directory_path_given_version(version: int):
+    return f"{get_project_directory_path()}/{TEACHING_DATA_DIRECTORY_RELATIVE_PATH}/" \
+           f"{INSTANCE_VERSION_STRING}{str(version)}/solutions"
+
+
+def get_solutions_files_paths_given_meta_data(core: str, version: int, solutions_directory_path: str = None):
+    if solutions_directory_path is None:
+        solutions_directory_path = get_solution_directory_path_given_version(version)
     try:
-        _, _, files_names = next(walk(solutions_directory))
+        _, _, files_names_with_extensions = next(walk(solutions_directory_path))
     except StopIteration:
-        raise FileNotFoundError(f"There are no solutions in the directory {solutions_directory}")
-    solutions_files_names = []
-    for file_name in files_names:
-        if (SOLUTION_FILENAME_EXTENSION in file_name and
-                SOLUTION_FILENAME_PREFIX in file_name and
-                not (SOLUTION_ANALYSIS_FILENAME_SUFFIX in file_name)):
-            extended_file_name = solutions_directory + "/" + file_name
-            solutions_files_names.append(extended_file_name)
-    solutions_files_names.sort()
-    return solutions_files_names
+        raise FileNotFoundError(f"There are no corresponding solutions in the directory {solutions_directory_path}")
+    solutions_files_paths = []
+    core_and_version = core + INSTANCE_VERSION_STRING + str(version)
+    for file_name_with_extension in files_names_with_extensions:
+        if (SOLUTION_FILE_EXTENSION in file_name_with_extension and
+                not(SOLUTION_ANALYSIS_FILE_NAME_SUFFIX in file_name_with_extension) and
+                core_and_version in file_name_with_extension):
+            solution_file_path = solutions_directory_path + "/" + file_name_with_extension
+            solutions_files_paths.append(solution_file_path)
+    return solutions_files_paths
 
 
-def extract_data_from_solution_filename(solution_filename: str,
-                                        ignore_instance_version: bool = False, ignore_solving_method: bool = False):
-    if not ignore_solving_method and not (SOLUTION_METHOD_STRING in solution_filename):
-        raise ValueError(f"The given solution filename {solution_filename} is incorrect, "
-                         f"it does not contain {SOLUTION_METHOD_STRING} to signal the solving method")
-    words = solution_filename.split('/')[-1].\
-        removeprefix(SOLUTION_FILENAME_PREFIX). \
-        removesuffix(SOLUTION_FILENAME_EXTENSION). \
-        split(SOLUTION_METHOD_STRING)
-    if ignore_solving_method:
-        solving_method_id = None
+def get_solutions_files_paths(directory_path: str = None):
+    if directory_path is None:
+        directory_path = get_default_inputs_directory_path()
+    try:
+        _, _, files_names_with_extensions = next(walk(directory_path))
+    except StopIteration:
+        raise FileNotFoundError(f"There are no solutions in the directory {directory_path}")
+    solutions_files_paths = []
+    for file_name_with_extension in files_names_with_extensions:
+        if (SOLUTION_FILE_EXTENSION in file_name_with_extension and
+                SOLUTION_FILE_NAME_PREFIX == file_name_with_extension[:len(SOLUTION_FILE_NAME_PREFIX)] and
+                SOLUTION_ANALYSIS_FILE_NAME_SUFFIX not in file_name_with_extension):
+            solution_file_path = directory_path + "/" + file_name_with_extension
+            solutions_files_paths.append(solution_file_path)
+    solutions_files_paths.sort()
+    return solutions_files_paths
+
+
+def identify_meta_data_in_solution_file_name(solution_file_name: str):
+    file_name_without_prefix = solution_file_name.removeprefix(SOLUTION_FILE_NAME_PREFIX)
+    words = file_name_without_prefix.split(INSTANCE_VERSION_STRING)
+    meta_data = {CORE_KEY: None, 'version': None, 'solving method': None}
+    if len(words) > 1:
+        meta_data[CORE_KEY] = words[0]
+        words = words[1].split(SOLUTION_METHOD_STRING)
+        meta_data['version'] = int(words[0])
+        if len(words) > 1:
+            meta_data['solving method'] = int(words[1])
     else:
-        solving_method_id = words[-1]
+        words = words[0].split(SOLUTION_METHOD_STRING)
+        meta_data[CORE_KEY] = words[0]
+        if len(words) > 1:
+            meta_data['solving method'] = int(words[1])
+    return meta_data
 
-    if not ignore_instance_version and not (INSTANCE_VERSION_STRING in words[0]):
-        raise ValueError(f"The given solution filename {solution_filename} is incorrect, "
-                         f"it does not contain {INSTANCE_VERSION_STRING} to signal the instance version")
-    words = words[0].split(INSTANCE_VERSION_STRING)
-    if ignore_instance_version:
-        instance_version = None
-    else:
-        instance_version = int(words[1])
-    region_name = words[0]
-    return region_name, instance_version, solving_method_id
+
+def identify_meta_data_in_solution_file_path(solution_file_path: str):
+    return identify_meta_data_in_solution_file_name(
+        solution_file_path.split('/')[-1].removesuffix(SOLUTION_FILE_EXTENSION)
+    )
 
 
 #########################
 # Instance and solution #
 #########################
 
-def find_specific_solutions_files_names(instance_version: int, region_name: str, solutions_directory: str = None):
-    if solutions_directory is None:
-        solutions_directory = (SOLUTIONS_SETS_DIRECTORY + "/" +
-                               INSTANCE_SET_NAME_PREFIX + INSTANCE_VERSION_STRING + str(instance_version))
-    try:
-        _, _, files_names = next(walk(solutions_directory))
-    except StopIteration:
-        raise FileNotFoundError(f"There are no corresponding solutions in the directory {solutions_directory}")
-    solutions_files_names = []
-    extended_region_name = region_name + INSTANCE_VERSION_STRING + str(instance_version)
-    for file_name in files_names:
-        if (SOLUTION_FILENAME_EXTENSION in file_name and not(SOLUTION_ANALYSIS_FILENAME_SUFFIX in file_name) and
-                extended_region_name in file_name):
-            extended_file_name = solutions_directory + "/" + file_name
-            solutions_files_names.append(extended_file_name)
-    return solutions_files_names
 
-
-def find_instance_filename_corresponding_to_solution(solution_filename: str = None, instance_directory: str = None,
-                                                     ignore_instance_version: bool = False,
-                                                     ignore_solving_method: bool = False):
-    region_name, instance_version, _ = extract_data_from_solution_filename(
-        solution_filename, ignore_instance_version, ignore_solving_method
-    )
-    if instance_directory is None:
-        instance_directory = INPUTS_DIRECTORY
-    instance_file_name_1 = create_instance_filename(region_name, instance_version, instance_directory)
-    instance_file_name_2_1 = create_instance_filename(region_name, instance_version, INPUTS_DIRECTORY)
-    instance_file_name_2_2 = create_instance_filename(region_name, instance_version)
-    if path.exists(instance_file_name_1):
-        return instance_file_name_1
-    elif path.exists(instance_file_name_2_1):
-        return instance_file_name_2_1
-    elif path.exists(instance_file_name_2_2):
-        return instance_file_name_2_2
+def find_instance_file_path_corresponding_to_solution(solution_file_path: str, instance_directory_path: str = None):
+    meta_data = identify_meta_data_in_solution_file_path(solution_file_path)
+    core, version = meta_data[CORE_KEY], meta_data['version']
+    if instance_directory_path is not None:
+        instance_file_path = create_instance_file_path(core, version, instance_directory_path)
+        if path.exists(instance_file_path):
+            return instance_file_path
+        else:
+            raise FileExistsError(f"{instance_file_path} does not exist")
     else:
-        raise FileExistsError(f"Neither {instance_file_name_1}, nor {instance_file_name_2_1}, "
-                              f"nor {instance_file_name_2_2} exist")
+        solution_folder_path = solution_file_path[:solution_file_path.rindex('/')]
+        instance_folder_path = solution_folder_path
+        instance_file_possible_path_1 = create_instance_file_path(core, version, instance_folder_path)
+        if path.exists(instance_file_possible_path_1):
+            return instance_file_possible_path_1
+        if "solutions" in solution_file_path:
+            instance_folder_path = solution_folder_path.replace("solutions", "instances")
+        instance_file_possible_path_2 = create_instance_file_path(core, version, instance_folder_path)
+        if path.exists(instance_file_possible_path_2):
+            return instance_file_possible_path_2
+        if version is not None:
+            instance_folder_path = create_instance_file_path(core, version)
+        instance_file_possible_path_3 = create_instance_file_path(core, version, instance_folder_path)
+        if path.exists(instance_file_possible_path_3):
+            return instance_file_possible_path_3
+        instance_file_possible_paths = {instance_file_possible_path_1, instance_file_possible_path_2,
+                                        instance_file_possible_path_3}
+        raise FileExistsError(f"None of the following possible files exist: {instance_file_possible_paths}")
+
+
+if __name__ == '__main__':
+    instance_file_path_ex = get_instances_files_paths()[0]
+    print(instance_file_path_ex)
+    instance_meta_data_ex = identify_meta_data_in_instance_file_path(instance_file_path_ex)
+    print(instance_meta_data_ex)
+    print(create_instance_file_path(instance_meta_data_ex[CORE_KEY], instance_meta_data_ex['version']))
+    print()
+    solution_file_path_ex = get_solutions_files_paths()[0]
+    print(solution_file_path_ex)
+    solution_meta_data_ex = identify_meta_data_in_solution_file_path(solution_file_path_ex)
+    print(solution_meta_data_ex)
+    print()
+    print(find_instance_file_path_corresponding_to_solution(solution_file_path_ex))

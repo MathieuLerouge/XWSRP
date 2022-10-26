@@ -1,14 +1,14 @@
 from src.reading.solution import extract_solution_from_file
-from src.utils.constants import INPUTS_DIRECTORY
-from src.utils.files import get_solutions_files_names
+from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH
+from src.utils.files import get_solutions_files_paths
 
 
 def main():
 
     try:
-        solution_file_name = get_solutions_files_names()[0]
+        solution_file_name = get_solutions_files_paths()[0]
     except IndexError:
-        raise FileNotFoundError(f"There are no solutions files found in directory {INPUTS_DIRECTORY}")
+        raise FileNotFoundError(f"There are no solutions files found in directory {INPUTS_DIRECTORY_RELATIVE_PATH}")
     ignore_employees_unavailabilities = True
     ignore_tasks_unavailabilities = True
     ignore_lunch_breaks = True

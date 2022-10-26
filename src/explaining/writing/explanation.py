@@ -4,7 +4,7 @@ import json
 # Local libraries
 from src.explaining.answering.explanation import Explanation
 from src.explaining.questioning.question import Question
-from src.utils.constants import OUTPUTS_DIRECTORY
+from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH
 
 
 def define_explanation_json_file_name(question: Question):
@@ -14,7 +14,7 @@ def define_explanation_json_file_name(question: Question):
 def export_explanation_to_json_file(explanation: Explanation, output_directory: str = None):
     file_name = define_explanation_json_file_name(explanation.question)
     if output_directory is None:
-        output_directory = OUTPUTS_DIRECTORY
+        output_directory = OUTPUTS_DIRECTORY_RELATIVE_PATH
     file_path = f"{output_directory}/{file_name}"
     with open(file_path, 'w') as file:
         json.dump(explanation.to_dict(), file, sort_keys=True, indent=4)
@@ -28,7 +28,7 @@ def define_explanations_json_file_name(explanations: list[Explanation]):
 def export_explanations_to_json_file(explanations: list[Explanation], output_directory: str = None):
     file_name = define_explanations_json_file_name(explanations)
     if output_directory is None:
-        output_directory = OUTPUTS_DIRECTORY
+        output_directory = OUTPUTS_DIRECTORY_RELATIVE_PATH
     file_path = f"{output_directory}/{file_name}"
     explanations_dicts = []
     solution_name = explanations[0].question.solution.name

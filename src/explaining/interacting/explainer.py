@@ -11,7 +11,7 @@ from src.explaining.transforming.transformation import apply_induced_transformat
 from src.explaining.writing.explanation import define_explanation_json_file_name, export_explanation_to_json_file
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.utils.constants import OUTPUTS_DIRECTORY
+from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH
 
 
 # Class Explainer
@@ -29,7 +29,7 @@ class Explainer:
         solution.instance = self._root_solution.instance.copy(name=solution.instance.name + ".1")
         self._history = History(solution)
         self._current_solution = solution
-        self._contrastive_explanations_directory = OUTPUTS_DIRECTORY
+        self._contrastive_explanations_directory = OUTPUTS_DIRECTORY_RELATIVE_PATH
         self._export_contrastive_explanations = False
         self._use_already_computed_contrastive_explanations = False
         self._last_contrastive_explanation = None

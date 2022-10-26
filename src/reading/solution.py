@@ -8,33 +8,32 @@ from os import path
 # Local libraries
 from src.reading.instance import extract_instance_from_file
 from src.modeling.solution import Solution
-from src.utils.files import find_instance_filename_corresponding_to_solution, find_specific_solutions_files_names
+from src.utils.constants import CORE_KEY, SOLUTION_FILE_NAME_PREFIX
+from src.utils.files import find_instance_file_path_corresponding_to_solution, \
+    get_solutions_files_paths_given_meta_data, identify_meta_data_in_solution_file_path
 from src.utils.time import convert_time_string_to_nb_minutes
 
 
-def extract_solution_from_file(filename: str, ignore_employees_unavailabilities: bool = False,
+def extract_solution_from_file(solution_file_path: str, ignore_employees_unavailabilities: bool = False,
                                ignore_tasks_unavailabilities: bool = False, ignore_lunch_breaks: bool = False,
                                ignore_instance_version: bool = False, ignore_solving_method: bool = False):
 
-    # Check if file exists
-    if not path.exists(filename):
-        raise FileNotFoundError(f"The given solution file {filename} does not exists")
+    if not path.exists(solution_file_path):
+        raise FileNotFoundError(f"The given solution file {solution_file_path} does not exists")
 
-    # Find the corresponding instance
-    instance_filename = find_instance_filename_corresponding_to_solution(
-        filename, ignore_instance_version=ignore_instance_version, ignore_solving_method=ignore_solving_method
-    )
+    # Extract corresponding instance
+    instance_file_path = find_instance_file_path_corresponding_to_solution(solution_file_path)
     instance = extract_instance_from_file(
-        instance_filename, ignore_employees_unavailabilities, ignore_tasks_unavailabilities, ignore_lunch_breaks,
+        instance_file_path, ignore_employees_unavailabilities, ignore_tasks_unavailabilities, ignore_lunch_breaks,
         ignore_instance_version
     )
 
-    # Initialize an empty solution adapted to the instance
-    solution_name = filename.split('/')[-1].split('.')[0]
-    solution = Solution(instance=instance, name=solution_name)
+    # Initialize a solution
+    meta_data = identify_meta_data_in_solution_file_path(solution_file_path)
+    solution = Solution(instance=instance, name=SOLUTION_FILE_NAME_PREFIX + meta_data[CORE_KEY])
 
     # Read lines of the solution file
-    with open(filename, 'r') as file:
+    with open(solution_file_path, 'r') as file:
         file_lines = [line for line in file]
 
     # Check the header of the paragraph about tasks
@@ -75,14 +74,14 @@ def extract_solution_from_file(filename: str, ignore_employees_unavailabilities:
 
 
 def main():
-    instance_version = 2
+    version = 2
     regions_names = ["Australia", "Austria", "Bordeaux", "Poland", "Spain"]
     for region_name in regions_names:
-        solutions_files_names = find_specific_solutions_files_names(instance_version, region_name)
-        for solution_file_name in solutions_files_names:
+        solutions_files_paths = get_solutions_files_paths_given_meta_data(region_name, version)
+        for solution_file_path in solutions_files_paths:
             print()
             print("Extraction of " + region_name)
-            solution = extract_solution_from_file(solution_file_name)
+            solution = extract_solution_from_file(solution_file_path)
             print(solution)
 
 

@@ -10,15 +10,15 @@ from src.explaining.questioning.questions_templates_bank import WHY_NOT_INS_1, W
     WHY_NOT_INS_2C, WHY_NOT_INS_3, WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3
 from src.explaining.writing.explanation import export_explanations_to_json_file
 from src.reading.solution import extract_solution_from_file
-from src.utils.constants import INPUTS_DIRECTORY
-from src.utils.files import get_solutions_files_names
+from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH
+from src.utils.files import get_solutions_files_paths
 
 
 def prepare_explainer():
     try:
-        solution_file_name = get_solutions_files_names()[0]
+        solution_file_name = get_solutions_files_paths()[0]
     except IndexError:
-        raise FileNotFoundError(f"There are no solutions files found in directory {INPUTS_DIRECTORY}")
+        raise FileNotFoundError(f"There are no solutions files found in directory {INPUTS_DIRECTORY_RELATIVE_PATH}")
     ignore_instance_version = True
     ignore_solving_method = True
     ignore_employees_unavailabilities = True

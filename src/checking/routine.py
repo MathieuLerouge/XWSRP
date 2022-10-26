@@ -6,9 +6,9 @@
 from src.checking.feasibility import check_feasibility
 from src.drawing.figuresmanager import FiguresManager
 from src.reading.solution import extract_solution_from_file
-from src.utils.constants import LINE_BREAK_STRING, OUTPUTS_DIRECTORY
+from src.utils.constants import LINE_BREAK_STRING, OUTPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.display import create_title_frame
-from src.utils.files import get_solutions_files_names
+from src.utils.files import get_solutions_files_paths
 from src.writing.common import write_text_to_file
 from src.writing.analysis import write_solution_analysis
 
@@ -22,7 +22,7 @@ def apply_checking_routine(ignore_employees_unavailabilities: bool = False,
                            ignore_solving_method: bool = False, ignore_instance_version: bool = False,
                            save_checking_as_file: bool = True, save_analysis: bool = True,
                            show_figures: bool = True, save_figures: bool = False):
-    solutions_files_names = get_solutions_files_names()
+    solutions_files_names = get_solutions_files_paths()
     solutions_checking_text = ""
     for solution_filename in solutions_files_names:
         solution = extract_solution_from_file(
@@ -48,7 +48,7 @@ def apply_checking_routine(ignore_employees_unavailabilities: bool = False,
         print(solution)
     solutions_checking_text = solutions_checking_text.removesuffix(LINE_BREAK_STRING)
     if save_checking_as_file:
-        write_text_to_file(solutions_checking_text, OUTPUTS_DIRECTORY + "/SolutionsChecks.txt")
+        write_text_to_file(solutions_checking_text, OUTPUTS_DIRECTORY_RELATIVE_PATH + "/SolutionsChecks.txt")
     if not show_figures:
         print("")
         print(solutions_checking_text)

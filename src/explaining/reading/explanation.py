@@ -5,12 +5,12 @@ import json
 # Local libraries
 from src.explaining.answering.explanation import create_explanation_from_dict
 from src.modeling.solution import Solution
-from src.utils.constants import INPUTS_DIRECTORY
+from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH
 
 
 def create_explanation_json_file_path(file_name: str, input_directory: str = None):
     if input_directory is None:
-        input_directory = INPUTS_DIRECTORY
+        input_directory = INPUTS_DIRECTORY_RELATIVE_PATH
     file_path = f"{input_directory}/{file_name}"
     return file_path
 

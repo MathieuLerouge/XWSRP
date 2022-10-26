@@ -8,14 +8,14 @@ from src.drawing.figuresmanager import FiguresManager
 from src.reading.instance import extract_instance_from_file
 from src.optimization.IP.WSRPmodel import WSRPIPModel
 from src.utils.display import print_title_frame
-from src.utils.files import get_instances_files_names
+from src.utils.files import get_instances_files_paths
 from src.writing.analysis import write_solution_analysis
 from src.writing.solution import write_solution
 
 
 # Optimization routine function
 def apply_optimization_routine(solving_time_limit_in_seconds: int = 3600):
-    instances_files_names = get_instances_files_names()
+    instances_files_names = get_instances_files_paths()
     for instance_file_name in instances_files_names:
         instance = extract_instance_from_file(instance_file_name)
         print("")

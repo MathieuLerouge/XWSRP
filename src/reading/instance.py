@@ -7,22 +7,21 @@ import pandas as pd
 
 # Local libraries
 from src.modeling.instance import Instance
-from src.utils.files import create_instance_filename, extract_data_from_instance_filename
+from src.utils.constants import *
+from src.utils.files import create_instance_file_path, identify_meta_data_in_instance_file_path, get_project_directory_path
 from src.utils.location import Location
 from src.utils.time import convert_time_string_to_nb_minutes
 
 
-# TODO Remove region_name in signature
-# TODO Add ignore_lunch_break in signature
-# TODO Add sheet_name with lunch_break to instances
-# TODO Add sheet_name with speed to instances
-def extract_instance_from_file(filename: str, ignore_employees_unavailabilities: bool = False,
+# TODO Add sheet_name with lunch_break to instances?
+# TODO Add sheet_name with speed to instances?
+def extract_instance_from_file(file_path: str, ignore_employees_unavailabilities: bool = False,
                                ignore_tasks_unavailabilities: bool = False, ignore_lunch_breaks: bool = False,
                                ignore_version: bool = False):
     """
     Extract the instance stored in the given file
 
-    :param filename: name of the file which includes the extension .xls (str)
+    :param file_path: name of the file which includes the extension .xls (str)
     :param ignore_employees_unavailabilities: boolean indicating whether or not employees unavailabilities
     must be ignored, which overrides the assumption of the version if any (bool)
     :param ignore_tasks_unavailabilities: boolean indicating whether or not tasks unavailabilities
@@ -34,18 +33,19 @@ def extract_instance_from_file(filename: str, ignore_employees_unavailabilities:
     """
 
     # Create an empty instance
-    region_name, instance_version = extract_data_from_instance_filename(filename, ignore_version)
-    if ignore_version:
-        instance_name = "Instance" + region_name
+    data = identify_meta_data_in_instance_file_path(file_path)
+    region_name, instance_version = data[CORE_KEY], data['version']
+    if instance_version is None:
+        instance_name = f"{INSTANCE_FILE_NAME_PREFIX}{region_name}"
     else:
-        instance_name = "Instance" + region_name + f"V{instance_version}"
+        instance_name = f"{INSTANCE_FILE_NAME_PREFIX}{region_name}{INSTANCE_VERSION_STRING}{instance_version}"
     instance = Instance(name=instance_name)
 
     # Extract file's sheets
     instance_data = dict()
     sheet_names = ['Employees', 'Employees Unavailabilities', 'Tasks', 'Tasks Unavailabilities']
     for sheet_name in sheet_names:
-        instance_data[sheet_name] = pd.read_excel(filename, sheet_name=sheet_name)
+        instance_data[sheet_name] = pd.read_excel(file_path, sheet_name=sheet_name)
 
     # Read the sheet "Employees"
     for _, employee_data in instance_data['Employees'].iterrows():
@@ -115,7 +115,7 @@ def main():
     version = 2
     regions_names = ["Australia", "Austria", "Bordeaux", "Poland", "Spain"]
     for region_name in regions_names:
-        file_name = "../" + create_instance_filename(region_name, version)
+        file_name = "../" + create_instance_file_path(region_name, version)
         print()
         print("Extraction of " + region_name)
         instance = extract_instance_from_file(file_name)
@@ -125,4 +125,14 @@ def main():
 
 
 if __name__ == '__main__':
+    regions_names = ["Australia", "Austria", "Bordeaux", "Poland", "Spain"]
+    instances_directory = get_project_directory_path() + "/data/instances/instancesV1"
+    for region_name in regions_names:
+        file_name = "../" + create_instance_file_path(region_name, version)
+        print()
+        print("Extraction of " + region_name)
+        instance = extract_instance_from_file(file_name)
+        print(instance)
+        print(instance.employees)
+        print(instance.tasks)
     main()

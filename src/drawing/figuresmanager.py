@@ -8,7 +8,7 @@ from src.drawing.KPIs import create_KPIs_figure
 from src.drawing.routes import create_routes_figure
 from src.drawing.schedules import create_schedules_figure
 from src.modeling.solution import Solution
-from src.utils.constants import OUTPUTS_DIRECTORY
+from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH
 
 # Set up
 matplotlib.use('Qt5Agg')
@@ -38,7 +38,7 @@ def create_figure(solution: Solution, figure_key: str, for_UI: bool = False):
 
 def create_figure_filename(solution: Solution, figure_key: str, output_directory: str = None):
     if output_directory is None:
-        output_directory = OUTPUTS_DIRECTORY
+        output_directory = OUTPUTS_DIRECTORY_RELATIVE_PATH
     return output_directory + "/" + solution.name + figure_key + ".png"
 
 

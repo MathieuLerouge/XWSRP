@@ -1,7 +1,7 @@
 # Local libraries
 from src.modeling.solution import Solution
 from src.modeling.task import Task
-from src.utils.constants import LINE_BREAK_STRING, OUTPUTS_DIRECTORY
+from src.utils.constants import LINE_BREAK_STRING, OUTPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.timeset import TimeInterval, convert_nb_minutes_to_time_string
 
 # Global variable
@@ -213,5 +213,5 @@ def check_feasibility(solution: Solution, covering: bool = False, time_windows: 
 
 def create_checking_filename(solution: Solution, output_directory: str = None):
     if output_directory is None:
-        output_directory = OUTPUTS_DIRECTORY
+        output_directory = OUTPUTS_DIRECTORY_RELATIVE_PATH
     return output_directory + "/" + solution.name + "Checks.txt"

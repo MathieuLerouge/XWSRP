@@ -7,7 +7,7 @@ def write_solution(solution: Solution, output_directory: str = None):
 
     # Open file name
     if output_directory is None:
-        output_directory = OUTPUTS_DIRECTORY
+        output_directory = OUTPUTS_DIRECTORY_RELATIVE_PATH
     file_name = output_directory + "/" + solution.name + ".txt"
     file = open(file_name, "w")
 

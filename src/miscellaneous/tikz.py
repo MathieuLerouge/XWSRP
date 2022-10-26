@@ -3,8 +3,8 @@ import numpy as np
 from src.reading.solution import extract_solution_from_file
 from src.modeling.comeback import ComeBack
 from src.modeling.departure import Departure
-from src.utils.constants import INPUTS_DIRECTORY
-from src.utils.files import get_solutions_files_names
+from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH
+from src.utils.files import get_solutions_files_paths
 from src.utils.time import convert_nb_minutes_to_time_string
 
 X_AXIS_LEFT = 1
@@ -53,9 +53,9 @@ def write_in_curly_brackets(x):
 def main():
 
     try:
-        solution_file_name = get_solutions_files_names()[0]
+        solution_file_name = get_solutions_files_paths()[0]
     except IndexError:
-        raise FileNotFoundError(f"There are no solutions files found in directory {INPUTS_DIRECTORY}")
+        raise FileNotFoundError(f"There are no solutions files found in directory {INPUTS_DIRECTORY_RELATIVE_PATH}")
     ignore_employees_unavailabilities = True
     ignore_tasks_unavailabilities = True
     ignore_lunch_breaks = True
