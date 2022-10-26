@@ -2,8 +2,8 @@ dash==2.3.1
 dash-bootstrap-components==1.1.0
 dash-core-components==2.0.0
 dash-html-components==2.0.0
-Flask==1.1.2
-Flask-Compress==1.11
+Flask==2.2.2
+Flask-Compress==1.13
 gunicorn==20.1.0
 matplotlib~=3.4.2
 numpy~=1.21.1
