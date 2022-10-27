@@ -16,29 +16,33 @@ from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH
 
 # Class Explainer
 class Explainer:
-    _selected_questions_templates_ids = [
+
+    _available_questions_templates_ids = [
         WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
         WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3
     ]
 
     def __init__(self, solution: Solution):
-        self._questions_templates = dict([(id, QUESTIONS_TEMPLATES[id]) for id in QUESTIONS_TEMPLATES.keys()
-                                          if id in self._selected_questions_templates_ids])
+        self._activated_questions_templates = dict([(id, QUESTIONS_TEMPLATES[id]) for id in QUESTIONS_TEMPLATES.keys()
+                                                    if id in self._available_questions_templates_ids])
         self._root_solution = EditableSolution.from_Solution(solution)
         solution = self._root_solution.copy(solution.name + ".1.1")
         solution.instance = self._root_solution.instance.copy(name=solution.instance.name + ".1")
+        self._history_is_enabled = True
         self._history = History(solution)
         self._current_solution = solution
         self._contrastive_explanations_directory = OUTPUTS_DIRECTORY_RELATIVE_PATH
         self._export_contrastive_explanations = False
         self._use_already_computed_contrastive_explanations = False
         self._last_contrastive_explanation = None
+        self._scenario_explanations_are_enabled = True
         self._last_scenario_explanation = None
+        self._counterfactual_explanations_are_enabled = True
         self._last_counterfactual_explanation = None
 
-    @property
-    def questions_templates(self):
-        return self._questions_templates.values()
+    #################################
+    # Current instance and solution #
+    #################################
 
     @property
     def current_solution(self):
@@ -56,9 +60,54 @@ class Explainer:
     def current_instance(self):
         return self._current_solution.instance
 
+    #####################
+    # Question template #
+    #####################
+
+    @property
+    def activated_questions_templates(self):
+        return list(self._activated_questions_templates.values())
+
+    def activate_question_template(self, question_template_id: str):
+        if question_template_id in self._available_questions_templates_ids:
+            self._activated_questions_templates[question_template_id] = QUESTIONS_TEMPLATES[question_template_id]
+
+    def activate_questions_templates(self, questions_templates_ids: list[str]):
+        for question_template_id in questions_templates_ids:
+            self.activate_question_template(question_template_id)
+
+    def activate_only_questions_templates(self, questions_templates_ids: list[str]):
+        self.deactivate_all_questions_templates()
+        self.activate_questions_templates(questions_templates_ids)
+
+    def deactivate_question_template(self, question_template_id: str):
+        if question_template_id in self._activated_questions_templates.keys():
+            del self._activated_questions_templates[question_template_id]
+
+    def deactivate_questions_templates(self, questions_templates_ids: list[str]):
+        for question_template_id in questions_templates_ids:
+            self.deactivate_question_template(question_template_id)
+
+    def deactivate_all_questions_templates(self):
+        self._activated_questions_templates = dict()
+
     ###########
     # History #
     ###########
+
+    @property
+    def history_is_enabled(self):
+        return self._history_is_enabled
+
+    @property
+    def history_is_disabled(self):
+        return not self._history_is_enabled
+
+    def enable_history(self):
+        self._history_is_enabled = True
+
+    def disable_history(self):
+        self._history_is_enabled = False
 
     @property
     def nb_instances(self):
@@ -93,9 +142,12 @@ class Explainer:
         return self._history.get_solutions_of_instance_by_name(instance_name)
 
     def store_solution(self, solution: Solution):
-        if not isinstance(solution, EditableSolution):
-            solution = EditableSolution.from_Solution(solution)
-        self._history.store_solution(solution)
+        if self._history_is_enabled:
+            if not isinstance(solution, EditableSolution):
+                solution = EditableSolution.from_Solution(solution)
+            self._history.store_solution(solution)
+        else:
+            raise PermissionError("Historizing is disabled")
 
     ###########################
     # Contrastive explanation #
@@ -117,6 +169,12 @@ class Explainer:
     def export_contrastive_explanations(self, export: bool):
         self._export_contrastive_explanations = export
 
+    def enable_exporting_contrastive_explanations(self):
+        self._export_contrastive_explanations = True
+
+    def disable_exporting_contrastive_explanations(self):
+        self._export_contrastive_explanations = False
+
     @property
     def use_already_computed_contrastive_explanations(self):
         return self._use_already_computed_contrastive_explanations
@@ -125,8 +183,14 @@ class Explainer:
     def use_already_computed_contrastive_explanations(self, use: bool):
         self._use_already_computed_contrastive_explanations = use
 
+    def enable_using_already_computed_contrastive_explanations(self):
+        self._use_already_computed_contrastive_explanations = True
+
+    def disable_using_already_computed_contrastive_explanations(self):
+        self._use_already_computed_contrastive_explanations = False
+
     def _create_contrastive_question(self, question_template_id: str, fields_values: list[str]):
-        if question_template_id not in self._questions_templates:
+        if question_template_id not in self._activated_questions_templates:
             raise ValueError(f"The template {question_template_id} is not handled by this explainer")
         return ContrastiveQuestion(self._current_solution, question_template_id, fields_values)
 
@@ -179,20 +243,37 @@ class Explainer:
     # Scenario explanation #
     ########################
 
+    @property
+    def scenario_explanations_are_enabled(self):
+        return self._scenario_explanations_are_enabled
+
+    @property
+    def scenario_explanations_are_disabled(self):
+        return not self._scenario_explanations_are_enabled
+
+    def enable_scenario_explanations(self):
+        self._scenario_explanations_are_enabled = True
+
+    def disable_scenario_explanations(self):
+        self._scenario_explanations_are_enabled = False
+
     def _create_scenario_question(self, scenario_instance: EditableInstance):
         return ScenarioQuestion(self.last_contrastive_explanation.question, scenario_instance)
 
     def compute_scenario_explanation(self, scenario_instance: EditableInstance):
-        scenario_question = self._create_scenario_question(scenario_instance)
-        current_solution = self.current_solution
-        scenario_current_solution = current_solution.copy(current_solution.name + "_scenario")
-        scenario_current_solution.instance = scenario_instance
-        scenario_support_solution, infeasibility, description_of_applied_transformation = \
-            apply_induced_transformation(scenario_current_solution, scenario_question)
-        scenario_explanation = create_explanation(scenario_question, scenario_support_solution, infeasibility,
-                                                  description_of_applied_transformation)
-        self._last_scenario_explanation = scenario_explanation
-        return scenario_explanation
+        if self.scenario_explanations_are_enabled:
+            scenario_question = self._create_scenario_question(scenario_instance)
+            current_solution = self.current_solution
+            scenario_current_solution = current_solution.copy(current_solution.name + "_scenario")
+            scenario_current_solution.instance = scenario_instance
+            scenario_support_solution, infeasibility, description_of_applied_transformation = \
+                apply_induced_transformation(scenario_current_solution, scenario_question)
+            scenario_explanation = create_explanation(scenario_question, scenario_support_solution, infeasibility,
+                                                      description_of_applied_transformation)
+            self._last_scenario_explanation = scenario_explanation
+            return scenario_explanation
+        else:
+            raise PermissionError("Scenario explanations are not enabled")
 
     def _get_name_for_scenario_support_solution_instance(self):
         return f"{self._root_solution.instance.name}.{str(self.nb_instances + 1)}"
@@ -219,21 +300,38 @@ class Explainer:
     # Counterfactual explanation #
     ##############################
 
+    @property
+    def counterfactual_explanations_are_enabled(self):
+        return self._counterfactual_explanations_are_enabled
+
+    @property
+    def counterfactual_explanations_are_disabled(self):
+        return not self._counterfactual_explanations_are_enabled
+
+    def enable_counterfactual_explanations(self):
+        self._counterfactual_explanations_are_enabled = True
+
+    def disable_counterfactual_explanations(self):
+        self._counterfactual_explanations_are_enabled = False
+
     def _create_counterfactual_question(self, instance_slacks: InstanceChanges = None):
         return CounterfactualQuestion(self.last_contrastive_explanation.question, instance_slacks)
 
     def compute_counterfactual_explanation(self, instance_slacks: InstanceChanges = None):
-        counterfactual_question = self._create_counterfactual_question(instance_slacks)
-        current_solution = self.current_solution
-        counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
-        (counterfactual_support_solution, infeasibility,
-         description_of_applied_transformation, instance_alterations) = \
-            apply_induced_transformation_bis(counterfactual_solution, counterfactual_question)
-        counterfactual_explanation = create_explanation(counterfactual_question, counterfactual_support_solution,
-                                                        infeasibility, description_of_applied_transformation,
-                                                        instance_alterations)
-        self._last_counterfactual_explanation = counterfactual_explanation
-        return counterfactual_explanation
+        if self.counterfactual_explanations_are_enabled:
+            counterfactual_question = self._create_counterfactual_question(instance_slacks)
+            current_solution = self.current_solution
+            counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
+            (counterfactual_support_solution, infeasibility,
+             description_of_applied_transformation, instance_alterations) = \
+                apply_induced_transformation_bis(counterfactual_solution, counterfactual_question)
+            counterfactual_explanation = create_explanation(counterfactual_question, counterfactual_support_solution,
+                                                            infeasibility, description_of_applied_transformation,
+                                                            instance_alterations)
+            self._last_counterfactual_explanation = counterfactual_explanation
+            return counterfactual_explanation
+        else:
+            raise PermissionError("Counterfactual explanations")
 
     def _get_name_for_counterfactual_support_solution_instance(self):
         return self._get_name_for_scenario_support_solution_instance()

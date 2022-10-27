@@ -92,8 +92,8 @@ class ExplainerWebGUI:
     ####################
 
     # Questions parameters
-    # Note: only the questions which keys are part of the list below will be available to the end-user
-    _questions_templates_ids = [
+    # Note: only the questions which keys are part of the list below can be handled by the UI
+    _available_questions_templates_ids = [
         WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
         WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3
     ]
@@ -126,7 +126,9 @@ class ExplainerWebGUI:
 
         # Explainer
         self._explainer = explainer
-        self._questions_templates = dict([(id, QUESTIONS_TEMPLATES[id]) for id in self._questions_templates_ids])
+        self._questions_templates = dict([(question_template.id, QUESTIONS_TEMPLATES[question_template.id])
+                                          for question_template in self._explainer.activated_questions_templates
+                                          if question_template.id in self._available_questions_templates_ids])
         self._scenario_instance_alterations = InstanceChanges()
         self._counterfactual_instance_alterations = None
 
@@ -142,13 +144,24 @@ class ExplainerWebGUI:
             Build the layout of the GUI: the banner at the top of the GUI and the layout underneath which is made of
             a vertical bar of navigation tabs on the left and the content of the selected tab on the right.
             """
-            return html.Div(
-                id="main-container",
-                children=[
-                    _build_title_banner(), _build_explorer_banner(),
-                    html.Div(id="sub-banner-layout", children=[_build_navigation_tabs(), html.Div(id="tab-content")]),
-                ],
-            )
+            if self._explainer.history_is_enabled:
+                return html.Div(
+                    id="main-container",
+                    children=[
+                        _build_title_banner(), _build_explorer_banner(),
+                        html.Div(id="sub-banner-layout",
+                                 children=[_build_navigation_tabs(), html.Div(id="tab-content")]),
+                    ],
+                )
+            else:
+                return html.Div(
+                    id="main-container",
+                    children=[
+                        _build_title_banner(),
+                        html.Div(id="sub-banner-layout",
+                                 children=[_build_navigation_tabs(), html.Div(id="tab-content")]),
+                    ],
+                )
 
         ################
         # Title banner #
@@ -219,59 +232,71 @@ class ExplainerWebGUI:
             )
             return explorer_banner
 
-        @self._application.callback(
-            Output('current-instance-dropdown', 'options'),
-            Input('current-instance-dropdown', 'disabled'),
-            State('current-instance-dropdown', 'options')
-        )
-        def _update_current_instance_dropdown_options(current_instance_dropdown_disabled: bool,
-                                                      current_instances_options):
-            if current_instance_dropdown_disabled:
-                raise PreventUpdate
-            else:
-                if len(current_instances_options) == len(self._explainer.instances_names):
+        if self._explainer.history_is_enabled:
+            #
+            @self._application.callback(
+                Output('current-instance-dropdown', 'disabled'),
+                Input('template-question-dropdown', 'disabled'),
+            )
+            def _update_current_instance_dropdown_status(template_question_dropdown_disabled: bool):
+                if template_question_dropdown_disabled:
+                    return True
+                else:
+                    return False
+
+            @self._application.callback(
+                Output('current-instance-dropdown', 'options'),
+                Input('current-instance-dropdown', 'disabled'),
+                State('current-instance-dropdown', 'options')
+            )
+            def _update_current_instance_dropdown_options(current_instance_dropdown_disabled: bool,
+                                                          current_instances_options):
+                if current_instance_dropdown_disabled:
                     raise PreventUpdate
                 else:
-                    return [{'label': instance_name, 'value': instance_name}
-                            for instance_name in self._explainer.instances_names]
+                    if len(current_instances_options) == len(self._explainer.instances_names):
+                        raise PreventUpdate
+                    else:
+                        return [{'label': instance_name, 'value': instance_name}
+                                for instance_name in self._explainer.instances_names]
 
-        @self._application.callback(
-            Output('current-solution-dropdown', 'disabled'),
-            Input('current-instance-dropdown', 'disabled')
-        )
-        def _update_current_solution_dropdown_status(current_instance_dropdown_disabled: bool):
-            if current_instance_dropdown_disabled:
-                return True
-            else:
-                return False
+            @self._application.callback(
+                Output('current-solution-dropdown', 'disabled'),
+                Input('current-instance-dropdown', 'disabled')
+            )
+            def _update_current_solution_dropdown_status(current_instance_dropdown_disabled: bool):
+                if current_instance_dropdown_disabled:
+                    return True
+                else:
+                    return False
 
-        @self._application.callback(
-            Output('current-solution-dropdown', 'options'),
-            Input('current-solution-dropdown', 'disabled'), Input('current-instance-dropdown', 'value'),
-            State('current-solution-dropdown', 'options')
-        )
-        def _update_current_solution_dropdown_options(current_solution_dropdown_disabled: bool,
-                                                      current_instance_name: str, current_solutions_options):
-            if current_solution_dropdown_disabled:
-                raise PreventUpdate
-            else:
-                solutions = self._explainer.get_solutions_of_instance_by_name(current_instance_name)
-                if (current_instance_name == self.current_instance.name and
-                        len(current_solutions_options) == len(solutions)):
+            @self._application.callback(
+                Output('current-solution-dropdown', 'options'),
+                Input('current-solution-dropdown', 'disabled'), Input('current-instance-dropdown', 'value'),
+                State('current-solution-dropdown', 'options')
+            )
+            def _update_current_solution_dropdown_options(current_solution_dropdown_disabled: bool,
+                                                          current_instance_name: str, current_solutions_options):
+                if current_solution_dropdown_disabled:
                     raise PreventUpdate
                 else:
-                    return [{'label': solution.name, 'value': solution.name} for solution in solutions]
+                    solutions = self._explainer.get_solutions_of_instance_by_name(current_instance_name)
+                    if (current_instance_name == self.current_instance.name and
+                            len(current_solutions_options) == len(solutions)):
+                        raise PreventUpdate
+                    else:
+                        return [{'label': solution.name, 'value': solution.name} for solution in solutions]
 
-        @self._application.callback(
-            Output('current-solution-dropdown', 'value'),
-            Input('current-solution-dropdown', 'options'),
-            State('current-solution-dropdown', 'value')
-        )
-        def _update_current_solution_dropdown_value(current_solutions_options, current_solution_name: str):
-            if current_solution_name in [option['value'] for option in current_solutions_options]:
-                raise PreventUpdate
-            else:
-                return current_solutions_options[0]['value']
+            @self._application.callback(
+                Output('current-solution-dropdown', 'value'),
+                Input('current-solution-dropdown', 'options'),
+                State('current-solution-dropdown', 'value')
+            )
+            def _update_current_solution_dropdown_value(current_solutions_options, current_solution_name: str):
+                if current_solution_name in [option['value'] for option in current_solutions_options]:
+                    raise PreventUpdate
+                else:
+                    return current_solutions_options[0]['value']
 
         ##############
         # Navigation #
@@ -281,43 +306,34 @@ class ExplainerWebGUI:
             """
             Build the navigation tabs on the left of the GUI.
             """
+            available_tabs = [
+                dcc.Tab(id="instance-description-tab", className="tab-button", label="Instance description",
+                        value="instance-description-tab", selected_className="tab-button--selected"),
+                dcc.Tab(id="instances-comparison-tab", className="tab-button", label="Instances comparison",
+                        value="instances-comparison-tab", selected_className="tab-button--selected"),
+                dcc.Tab(id="solution-description-tab", className="tab-button", label="Solution description",
+                        value="solution-description-tab", selected_className="tab-button--selected"),
+                dcc.Tab(id="solutions-comparison-tab", className="tab-button", label="Solutions comparison",
+                        value="solutions-comparison-tab", selected_className="tab-button--selected"),
+                dcc.Tab(id="explainer-tab", className="tab-button", label="Explainer",
+                        value="explainer-tab", selected_className="tab-button--selected")
+            ]
+            if self._explainer.history_is_enabled:
+                activated_tabs = available_tabs
+            else:
+                activated_tabs = [available_tabs[0], available_tabs[2], available_tabs[4]]
             navigation = html.Div(
                 id="navigation-left-panel",
                 children=[
                     dcc.Tabs(
                         id="tabs-list", parent_className='tabs-buttons', vertical=True, value="explainer-tab",
-                        children=[
-                            dcc.Tab(id="instance-description-tab", className="tab-button",
-                                    label="Instance description", value="instance-description-tab",
-                                    selected_className="tab-button--selected"),
-                            dcc.Tab(id="instances-comparison-tab", className="tab-button",
-                                    label="Instances comparison", value="instances-comparison-tab",
-                                    selected_className="tab-button--selected"),
-                            dcc.Tab(id="solution-description-tab", className="tab-button",
-                                    label="Solution description", value="solution-description-tab",
-                                    selected_className="tab-button--selected"),
-                            dcc.Tab(id="solutions-comparison-tab", className="tab-button",
-                                    label="Solutions comparison", value="solutions-comparison-tab",
-                                    selected_className="tab-button--selected"),
-                            dcc.Tab(id="explainer-tab", className="tab-button",
-                                    label="Explainer", value="explainer-tab",
-                                    selected_className="tab-button--selected")
-                        ],
+                        children=activated_tabs
                     )
                 ],
             )
             return navigation
 
-        @self._application.callback(
-            Output('tab-content', 'children'),
-            Input('tabs-list', 'value'), Input('current-solution-dropdown', 'value')
-        )
-        def _react_to_tab_selection(tab_value: str, current_solution_name: str):
-            """
-            React to the selection of a tab by the end-user by building the content corresponding to the selected tab.
-            """
-            if current_solution_name != self.current_solution.name:
-                self.current_solution = self._explainer.get_solution_by_name(current_solution_name)
+        def _build_tab_content(tab_value: str):
             if tab_value == "instance-description-tab":
                 return _build_instance_description_tab_content()
             elif tab_value == "instances-comparison-tab":
@@ -330,6 +346,34 @@ class ExplainerWebGUI:
                 return _build_question_explanation_tab_content()
             else:
                 raise ValueError(f"GUI Error: There is no {tab_value} tab.")
+
+        if self._explainer.history_is_enabled:
+            #
+            @self._application.callback(
+                Output('tab-content', 'children'),
+                Input('tabs-list', 'value'), Input('current-solution-dropdown', 'value')
+            )
+            def _update_tab_content(tab_value: str, current_solution_name: str):
+                """
+                React to the selection of a tab by the end-user
+                by building the content corresponding to the selected tab.
+                """
+                if current_solution_name != self.current_solution.name:
+                    self.current_solution = self._explainer.get_solution_by_name(current_solution_name)
+                return _build_tab_content(tab_value)
+            #
+        else:
+            #
+            @self._application.callback(
+                Output('tab-content', 'children'),
+                Input('tabs-list', 'value'),
+            )
+            def _update_tab_content(tab_value: str):
+                """
+                React to the selection of a tab by the end-user
+                by building the content corresponding to the selected tab.
+                """
+                return _build_tab_content(tab_value)
 
         ####################################
         # Instance description tab content #
@@ -381,6 +425,9 @@ class ExplainerWebGUI:
             Build the tab content about the comparison of two instances.
             One of the instance is the current one, the other can be selected by the end-user.
             """
+
+            if self._explainer.history_is_disabled:
+                raise PermissionError("Instances comparison is not enabled as historizing is disabled")
 
             current_instance = self.current_instance
             other_instance = current_instance
@@ -492,6 +539,9 @@ class ExplainerWebGUI:
             Build the tab content about the comparison of two solutions of the same instance.
             One of the solution is the current solution, the other can be selected by the end-user.
             """
+
+            if self._explainer.history_is_disabled:
+                raise PermissionError("Solutions comparison is not enabled as historizing is disabled")
 
             current_solution = self.current_solution
             other_solution = current_solution
@@ -605,7 +655,7 @@ class ExplainerWebGUI:
                         children=[
                             dcc.Dropdown(id='template-question-dropdown', className='dropdown', style=dict(flex=1),
                                          options=[{'label': self._questions_templates[key].text,
-                                                   'value': key} for key in self._questions_templates_ids],
+                                                   'value': key} for key in self._questions_templates.keys()],
                                          placeholder="Select a question template"),
                             dcc.Dropdown(id='template-input-1', className='dropdown',
                                          style=dict(width='15rem', paddingLeft='1rem'),
@@ -644,19 +694,28 @@ class ExplainerWebGUI:
                 return block
 
             def _build_contrastive_explanation_block():
+                #
                 def _build_contrastive_explanation_panel():
                     """
                     Build the panel providing to the end-user contrastive explanations.
                     """
-                    buttons = [
-                        html.Button(id='contrastive-ok-button', className='button', style=dict(marginBottom='1rem'),
-                                    children="Ok", disabled=True),
-                        html.Button(id='contrastive-save-button', className='button', style=dict(marginBottom='1rem'),
-                                    children="Save", disabled=True),
-                        html.Button(id='what-if-button', className='button', style=dict(marginBottom='1rem'),
-                                    children="What if?", disabled=True),
-                        html.Button(id='how-to-button', className='button', children="How to?", disabled=True),
-                    ]
+                    buttons = \
+                        [html.Button(id='contrastive-ok-button', className='button', children="Ok", disabled=True)]
+                    if self._explainer.history_is_enabled:
+                        buttons.append(
+                            html.Button(id='contrastive-save-button', className='button', style=dict(marginTop='1rem'),
+                                        children="Save", disabled=True)
+                        )
+                    if self._explainer.scenario_explanations_are_enabled:
+                        buttons.append(
+                            html.Button(id='what-if-button', className='button', style=dict(marginTop='1rem'),
+                                        children="What if?", disabled=True)
+                        )
+                    if self._explainer.counterfactual_explanations_are_enabled:
+                        buttons.append(
+                            html.Button(id='how-to-button', className='button', style=dict(marginTop='1rem'),
+                                        children="How to?", disabled=True)
+                        )
                     panel = html.Div(
                         id='contrastive-explanation-panel', className='panel-with-bottom-margin',
                         children=[
@@ -736,11 +795,12 @@ class ExplainerWebGUI:
                     """
                     Build the panel providing to the end-user what-if explanations.
                     """
-                    buttons = [
-                        html.Button(id='scenario-ok-button', className='button', style=dict(marginBottom='1rem'),
-                                    children="Ok", disabled=True),
-                        html.Button(id='scenario-save-button', className='button', children="Save", disabled=True),
-                    ]
+                    buttons = [html.Button(id='scenario-ok-button', className='button', children="Ok", disabled=True)]
+                    if self._explainer.history_is_enabled:
+                        buttons.append(
+                            html.Button(id='scenario-save-button', className='button', style=dict(marginTop='1rem'),
+                                        children="Save", disabled=True)
+                        )
                     panel = html.Div(
                         id='scenario-explanation-panel', className='panel-with-bottom-margin',
                         children=[
@@ -800,11 +860,13 @@ class ExplainerWebGUI:
                     Build the panel providing to the end-user how-to explanations.
                     """
                     buttons = [
-                        html.Button(id='counterfactual-ok-button', className='button', style=dict(marginBottom='1rem'),
-                                    children="Ok", disabled=True),
-                        html.Button(id='counterfactual-save-button', className='button',
-                                    children="Save", disabled=True),
+                        html.Button(id='counterfactual-ok-button', className='button', children="Ok", disabled=True)
                     ]
+                    if self._explainer.history_is_enabled:
+                        buttons.append(
+                            html.Button(id='counterfactual-save-button', className='button',
+                                        style=dict(marginTop='1rem'), children="Save", disabled=True)
+                        )
                     panel = html.Div(
                         id='counterfactual-explanation-panel', className='panel-with-bottom-margin',
                         children=[
@@ -833,13 +895,12 @@ class ExplainerWebGUI:
                                  ])
                 return block
 
-            tab_content = html.Div(
-                id="explainer-tab-content",
-                children=[
-                    _build_contrastive_question_block(), _build_contrastive_explanation_block(),
-                    _build_scenario_block(), _build_how_to_block()
-                ]
-            )
+            blocks = [_build_contrastive_question_block(), _build_contrastive_explanation_block()]
+            if self._explainer.scenario_explanations_are_enabled:
+                blocks.append(_build_scenario_block())
+            if self._explainer.counterfactual_explanations_are_enabled:
+                blocks.append(_build_how_to_block())
+            tab_content = html.Div(id="explainer-tab-content", children=blocks)
             return tab_content
 
         ##################################################
@@ -990,7 +1051,6 @@ class ExplainerWebGUI:
             Output('contrastive-explanation-representation-envelope', 'style'),
             Output('contrastive-explanation-representation-envelope', 'children'),
             Output('contrastive-submit-button', 'n_clicks'), Output('contrastive-ok-button', 'n_clicks'),
-            Output('current-instance-dropdown', 'disabled'),
             Input('contrastive-submit-button', 'n_clicks'), Input('contrastive-ok-button', 'n_clicks'),
             State('template-question-dropdown', 'value'),
             State('template-input-1', 'value'), State('template-input-2', 'value'), State('template-input-3', 'value')
@@ -1022,408 +1082,458 @@ class ExplainerWebGUI:
                                                       solution=solution, infeasibility=infeasibility)
                     ]
                 )
-                return (explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr,
-                        None, None, True)
+                return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr, None, None
             elif contrastive_ok_button_click == 1:
                 explanation_text = "Waiting for a why-not question to be submitted..."
-                return explanation_text, 'empty-automated-text', dict(display='none'), html.Div(), None, None, False
+                return explanation_text, 'empty-automated-text', dict(display='none'), html.Div(), None, None
             else:
                 raise NotImplementedError("There is a problem with contrastive submit button or ok button #clicks")
 
-        @self._application.callback(
-            Output('contrastive-ok-button', 'disabled'),
-            Input('contrastive-explanation-text', 'className'), Input('what-if-button', 'n_clicks')
-        )
-        def _update_contrastive_ok_button_status(contrastive_explanation_text_style: str, what_if_button_click: int):
+        def _update_contrastive_ok_button_status_aux(contrastive_explanation_text_style: str,
+                                                     what_if_button_click: int = None,
+                                                     how_to_button_click: int = None):
             if contrastive_explanation_text_style == 'empty-automated-text':
                 return True
-            else:
-                if what_if_button_click is None:
-                    return False
-                elif what_if_button_click == 1:
-                    return True
-                else:
-                    raise NotImplementedError("There is a problem with what-if buttons #clicks")
-
-        @self._application.callback(
-            Output('contrastive-save-button', 'disabled'),
-            Input('contrastive-explanation-text', 'className'), Input('contrastive-save-button', 'n_clicks')
-        )
-        def _update_contrastive_save_button_status(contrastive_explanation_text_style: str,
-                                                   contrastive_save_button_click: int):
-            if contrastive_explanation_text_style == 'empty-automated-text':
-                return True
-            else:
-                if contrastive_save_button_click is None or contrastive_save_button_click == 0:
-                    if self._explainer.last_contrastive_explanation.support_solution_is_feasible:
-                        return False
-                    else:
-                        return True
-                elif contrastive_save_button_click == 1:
-                    self._explainer.save_last_contrastive_support_solution()
-                    return True
-                else:
-                    raise NotImplementedError("There is a problem with contrastive save button #clicks")
-
-        @self._application.callback(
-            Output('contrastive-save-button', 'n_clicks'),
-            Input('contrastive-explanation-text', 'className'), State('contrastive-save-button', 'n_clicks')
-        )
-        def _reset_contrastive_save_button_click(contrastive_explanation_text_style: str,
-                                                 contrastive_save_button_click: int):
-            if contrastive_explanation_text_style == 'empty-automated-text':
-                return None
-            else:
-                return contrastive_save_button_click
-
-        @self._application.callback(
-            Output('what-if-button', 'disabled'), Output('how-to-button', 'disabled'),
-            Input('contrastive-explanation-text', 'className'),
-            Input('what-if-button', 'n_clicks'), Input('how-to-button', 'n_clicks')
-        )
-        def _update_what_if_and_how_to_buttons_status(contrastive_explanation_text_style: str,
-                                                      what_if_button_click: int, how_to_button_click: int):
-            if contrastive_explanation_text_style == 'empty-automated-text':
-                return True, True
             else:
                 if what_if_button_click is None and how_to_button_click is None:
-                    if self._explainer.last_contrastive_explanation.support_solution_is_feasible:
-                        return True, True
-                    else:
-                        return False, False
-                elif what_if_button_click is not None:
-                    if what_if_button_click >= 1:
-                        return True, True
-                    else:
-                        raise NotImplementedError("There is a problem with what-if buttons #clicks")
-                elif how_to_button_click >= 1:
-                    return True, True
+                    return False
+                elif what_if_button_click == 1 or how_to_button_click == 1:
+                    return True
                 else:
-                    raise NotImplementedError("There is a problem with how-to buttons #clicks")
+                    raise NotImplementedError("There is a problem with what-if or how-to buttons #clicks")
 
-        @self._application.callback(
-            Output('what-if-button', 'n_clicks'),
-            Input('scenario-ok-button', 'n_clicks')
-        )
-        def _reset_what_if_button_click(scenario_ok_button_click: int):
-            if scenario_ok_button_click is None:
-                raise PreventUpdate
-            if scenario_ok_button_click == 1:
-                return None
+        if self._explainer.scenario_explanations_are_disabled:
+            #
+            if self._explainer.counterfactual_explanations_are_disabled:
+                @self._application.callback(
+                    Output('contrastive-ok-button', 'disabled'), Input('contrastive-explanation-text', 'className')
+                )
+                def _update_contrastive_ok_button_status(contrastive_explanation_text_style: str):
+                    return _update_contrastive_ok_button_status_aux(contrastive_explanation_text_style, None, None)
             else:
-                raise NotImplementedError("There is a problem with the scenario ok button #clicks")
+                @self._application.callback(
+                    Output('contrastive-ok-button', 'disabled'),
+                    Input('contrastive-explanation-text', 'className'), Input('how-to-button', 'n_clicks')
+                )
+                def _update_contrastive_ok_button_status(contrastive_explanation_text_style: str,
+                                                         how_to_button_click: int = None):
+                    return _update_contrastive_ok_button_status_aux(contrastive_explanation_text_style,
+                                                                    None, how_to_button_click)
+        #
+        else:
+            if self._explainer.counterfactual_explanations_are_enabled:
+                @self._application.callback(
+                    Output('contrastive-ok-button', 'disabled'), Input('contrastive-explanation-text', 'className'),
+                    Input('what-if-button', 'n_clicks'), Input('how-to-button', 'n_clicks')
+                )
+                def _update_contrastive_ok_button_status(contrastive_explanation_text_style: str,
+                                                         what_if_button_click: int, how_to_button_click: int):
+                    return _update_contrastive_ok_button_status_aux(contrastive_explanation_text_style,
+                                                                    what_if_button_click, how_to_button_click)
+            else:
+                @self._application.callback(
+                    Output('contrastive-ok-button', 'disabled'),
+                    Input('contrastive-explanation-text', 'className'), Input('what-if-button', 'n_clicks')
+                )
+                def _update_contrastive_ok_button_status(contrastive_explanation_text_style: str,
+                                                         what_if_button_click: int):
+                    return _update_contrastive_ok_button_status_aux(contrastive_explanation_text_style,
+                                                                    what_if_button_click, None)
 
-        @self._application.callback(
-            Output('how-to-button', 'n_clicks'),
-            Input('counterfactual-ok-button', 'n_clicks')
-        )
-        def _reset_how_to_button_click(counterfactual_ok_button_click: int):
-            if counterfactual_ok_button_click is None:
-                raise PreventUpdate
-            if counterfactual_ok_button_click == 1:
-                return None
-            else:
-                raise NotImplementedError("There is a problem with the scenario ok button #clicks")
+        if self._explainer.history_is_enabled:
+            #
+            @self._application.callback(
+                Output('contrastive-save-button', 'disabled'),
+                Input('contrastive-explanation-text', 'className'), Input('contrastive-save-button', 'n_clicks')
+            )
+            def _update_contrastive_save_button_status(contrastive_explanation_text_style: str,
+                                                       contrastive_save_button_click: int):
+                if contrastive_explanation_text_style == 'empty-automated-text':
+                    return True
+                else:
+                    if contrastive_save_button_click is None or contrastive_save_button_click == 0:
+                        if self._explainer.last_contrastive_explanation.support_solution_is_feasible:
+                            return False
+                        else:
+                            return True
+                    elif contrastive_save_button_click == 1:
+                        self._explainer.save_last_contrastive_support_solution()
+                        return True
+                    else:
+                        raise NotImplementedError("There is a problem with contrastive save button #clicks")
+
+            @self._application.callback(
+                Output('contrastive-save-button', 'n_clicks'),
+                Input('contrastive-explanation-text', 'className'), State('contrastive-save-button', 'n_clicks')
+            )
+            def _reset_contrastive_save_button_click(contrastive_explanation_text_style: str,
+                                                     contrastive_save_button_click: int):
+                if contrastive_explanation_text_style == 'empty-automated-text':
+                    return None
+                else:
+                    return contrastive_save_button_click
+
+        if self._explainer.scenario_explanations_are_enabled:
+            #
+            @self._application.callback(
+                Output('what-if-button', 'disabled'), Input('contrastive-ok-button', 'disabled')
+            )
+            def _update_what_if_buttons_status(contrastive_ok_button_disabled: bool):
+                if contrastive_ok_button_disabled:
+                    return True
+                else:
+                    if self._explainer.last_contrastive_explanation.support_solution_is_feasible:
+                        return True
+                    else:
+                        return False
+
+            @self._application.callback(
+                Output('what-if-button', 'n_clicks'),
+                Input('scenario-ok-button', 'n_clicks')
+            )
+            def _reset_what_if_button_click(scenario_ok_button_click: int):
+                if scenario_ok_button_click is None:
+                    raise PreventUpdate
+                if scenario_ok_button_click == 1:
+                    return None
+                else:
+                    raise NotImplementedError("There is a problem with the scenario ok button #clicks")
+
+        if self._explainer.counterfactual_explanations_are_enabled:
+            #
+            @self._application.callback(
+                Output('how-to-button', 'disabled'), Input('contrastive-ok-button', 'disabled')
+            )
+            def _update_how_to_buttons_status(contrastive_ok_button_disabled: bool):
+                if contrastive_ok_button_disabled:
+                    return True
+                else:
+                    if self._explainer.last_contrastive_explanation.support_solution_is_feasible:
+                        return True
+                    else:
+                        return False
+
+            @self._application.callback(
+                Output('how-to-button', 'n_clicks'),
+                Input('counterfactual-ok-button', 'n_clicks')
+            )
+            def _reset_how_to_button_click(counterfactual_ok_button_click: int):
+                if counterfactual_ok_button_click is None:
+                    raise PreventUpdate
+                if counterfactual_ok_button_click == 1:
+                    return None
+                else:
+                    raise NotImplementedError("There is a problem with the scenario ok button #clicks")
 
         ################################################
         # Explainer tab content - Call back - Scenario #
         ################################################
 
-        @self._application.callback(
-            Output('scenario-question-block', 'style'),
-            Input('what-if-button', 'n_clicks')
-        )
-        def _update_scenario_visibility(what_if_button_click: int):
-            if what_if_button_click is None:
-                return dict(display='none')
-            elif what_if_button_click == 1:
-                self._scenario_instance_alterations = InstanceChanges()
-                return dict(display='block')
-            else:
-                raise NotImplementedError("There is a problem with the what-if button #clicks")
-
-        @self._application.callback(
-            Output('editable-instance-employees-data-table', 'style_data_conditional'),
-            Input('editable-instance-employees-data-table', 'data')
-        )
-        def _update_scenario_employees_data_style(employees_data):
-            return _build_employees_style_data_conditional(employees_data, self.current_instance)
-
-        @self._application.callback(
-            Output('editable-instance-tasks-data-table', 'style_data_conditional'),
-            Input('editable-instance-tasks-data-table', 'data')
-        )
-        def _update_scenario_tasks_data_style(tasks_data):
-            return _build_tasks_style_data_conditional(tasks_data, self.current_instance)
-
-        @self._application.callback(
-            Output('scenario-question-text', 'children'), Output('scenario-question-text', 'className'),
-            Input('editable-instance-employees-data-table', 'data'), Input('editable-instance-tasks-data-table', 'data')
-        )
-        def _update_scenario_question_text(employees_data, tasks_data):
-            current_instance = self.current_instance
-            instance_alterations = InstanceChanges()
-            for row in employees_data:
-                employee = current_instance.get_employee_by_name(row['name'])
-                start_time_LB = convert_time_string_to_nb_minutes(row['start'])
-                end_time_UB = convert_time_string_to_nb_minutes(row['end'])
-                instance_alterations.add_employee_change(
-                    employee,
-                    start_time_LB=(None if employee.start_time_LB == start_time_LB else start_time_LB),
-                    end_time_UB=(None if employee.end_time_UB == end_time_UB else end_time_UB)
-                )
-            for row in tasks_data:
-                task = current_instance.get_task_by_name(row['name'])
-                start_time_LB = convert_time_string_to_nb_minutes(row['start'])
-                end_time_UB = convert_time_string_to_nb_minutes(row['end'])
-                duration = int(row['duration'])
-                instance_alterations.add_task_change(
-                    task,
-                    start_time_LB=(None if task.start_time_LB == start_time_LB else start_time_LB),
-                    end_time_UB=(None if task.end_time_UB == end_time_UB else end_time_UB),
-                    duration=(None if task.duration == duration else duration)
-                )
-            self._scenario_instance_alterations = instance_alterations
-            question_text = f"What-if the data about the tasks are changed as follows?{LINE_BREAK_STRING}" \
-                            f"{instance_alterations.as_string(starting_with_uppercase=True)}"
-            question_text = convert_from_string_to_html(question_text)
-            return question_text, 'automated-text'
-
-        @self._application.callback(
-            Output('scenario-submit-button', 'disabled'),
-            Input('scenario-question-text', 'className')
-        )
-        def _update_scenario_submit_button_status(scenario_question_text_style: str):
-            if scenario_question_text_style == 'empty-automated-text':
-                return True
-            elif scenario_question_text_style == 'automated-text':
-                return False
-            else:
-                raise NotImplementedError("There is a problem with the scenario question text style")
-
-        @self._application.callback(
-            Output('scenario-submit-button', 'n_clicks'),
-            Input('scenario-question-block', 'style')
-        )
-        def _reset_scenario_submit_button_click(scenario_envelope_style):
-            if scenario_envelope_style['display'] in ['none', 'block']:
-                return None
-            else:
-                raise NotImplementedError("There is a problem with the scenario envelope style")
-
-        @self._application.callback(
-            Output('scenario-explanation-text', 'children'), Output('scenario-explanation-text', 'className'),
-            Output('scenario-explanation-representation-envelope', 'style'),
-            Output('scenario-explanation-representation-envelope', 'children'),
-            Input('scenario-submit-button', 'n_clicks'), Input('scenario-ok-button', 'n_clicks'),
-        )
-        def _update_scenario_explanation_text(scenario_submit_click: int, scenario_ok_button_click: int):
-            if scenario_submit_click is None and scenario_ok_button_click is None:
-                raise PreventUpdate
-            elif scenario_ok_button_click is not None:
-                if scenario_submit_click >= 1:
-                    explanation_text = "Waiting for a what-if question to be submitted..."
-                    return explanation_text, 'empty-automated-text', dict(display='none'), html.Div()
+        if self._explainer.scenario_explanations_are_enabled:
+            #
+            @self._application.callback(
+                Output('scenario-question-block', 'style'),
+                Input('what-if-button', 'n_clicks')
+            )
+            def _update_scenario_visibility(what_if_button_click: int):
+                if what_if_button_click is None:
+                    return dict(display='none')
+                elif what_if_button_click == 1:
+                    self._scenario_instance_alterations = InstanceChanges()
+                    return dict(display='block')
                 else:
-                    raise NotImplementedError("There is a problem with the scenario ok button #clicks")
-            elif scenario_submit_click >= 1:
+                    raise NotImplementedError("There is a problem with the what-if button #clicks")
+
+            @self._application.callback(
+                Output('editable-instance-employees-data-table', 'style_data_conditional'),
+                Input('editable-instance-employees-data-table', 'data')
+            )
+            def _update_scenario_employees_data_style(employees_data):
+                return _build_employees_style_data_conditional(employees_data, self.current_instance)
+
+            @self._application.callback(
+                Output('editable-instance-tasks-data-table', 'style_data_conditional'),
+                Input('editable-instance-tasks-data-table', 'data')
+            )
+            def _update_scenario_tasks_data_style(tasks_data):
+                return _build_tasks_style_data_conditional(tasks_data, self.current_instance)
+
+            @self._application.callback(
+                Output('scenario-question-text', 'children'), Output('scenario-question-text', 'className'),
+                Input('editable-instance-employees-data-table', 'data'), Input('editable-instance-tasks-data-table', 'data')
+            )
+            def _update_scenario_question_text(employees_data, tasks_data):
                 current_instance = self.current_instance
-                scenario_instance = current_instance.copy(current_instance.name + "_scenario")
-                scenario_instance.alter(self._scenario_instance_alterations)
-                explanation = self._explainer.compute_scenario_explanation(scenario_instance)
-                explanation_text = convert_from_string_to_html(explanation.text)
-                explanation_repr_visibility = dict(display='block')
-                panel_title_prefix = f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                                     f" new solution - "
-                panel_title_suffix = " (for what-if explanation)"
-                explanation_repr = html.Div(
-                    className='representation-panels-side-to-side',
-                    children=[
-                        _build_routes_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                   panel_title_suffix=panel_title_suffix,
-                                                   solution=explanation.support_solution,
-                                                   infeasibility=(None if explanation.support_solution_is_feasible
-                                                                  else explanation.infeasibility)),
-                        _build_schedules_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                      panel_title_suffix=panel_title_suffix,
-                                                      solution=explanation.support_solution,
-                                                      infeasibility=(None if explanation.support_solution_is_feasible
-                                                                     else explanation.infeasibility))
-                    ]
-                )
-                return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr
-            else:
-                raise NotImplementedError("There is a problem with the scenario submit button #clicks")
+                instance_alterations = InstanceChanges()
+                for row in employees_data:
+                    employee = current_instance.get_employee_by_name(row['name'])
+                    start_time_LB = convert_time_string_to_nb_minutes(row['start'])
+                    end_time_UB = convert_time_string_to_nb_minutes(row['end'])
+                    instance_alterations.add_employee_change(
+                        employee,
+                        start_time_LB=(None if employee.start_time_LB == start_time_LB else start_time_LB),
+                        end_time_UB=(None if employee.end_time_UB == end_time_UB else end_time_UB)
+                    )
+                for row in tasks_data:
+                    task = current_instance.get_task_by_name(row['name'])
+                    start_time_LB = convert_time_string_to_nb_minutes(row['start'])
+                    end_time_UB = convert_time_string_to_nb_minutes(row['end'])
+                    duration = int(row['duration'])
+                    instance_alterations.add_task_change(
+                        task,
+                        start_time_LB=(None if task.start_time_LB == start_time_LB else start_time_LB),
+                        end_time_UB=(None if task.end_time_UB == end_time_UB else end_time_UB),
+                        duration=(None if task.duration == duration else duration)
+                    )
+                self._scenario_instance_alterations = instance_alterations
+                question_text = f"What-if the data about the tasks are changed as follows?{LINE_BREAK_STRING}" \
+                                f"{instance_alterations.as_string(starting_with_uppercase=True)}"
+                question_text = convert_from_string_to_html(question_text)
+                return question_text, 'automated-text'
 
-        @self._application.callback(
-            Output('scenario-editable-employees-data-panel', 'children'),
-            Output('scenario-editable-tasks-data-panel', 'children'),
-            Input('scenario-ok-button', 'n_clicks')
-        )
-        def _reset_scenario_editable_data(scenario_ok_button_click: int):
-            if scenario_ok_button_click is None or scenario_ok_button_click == 0:
-                raise PreventUpdate
-            elif scenario_ok_button_click == 1:
-                return (_build_employees_data_panel(panel_title="Editable employees data for what-if question",
-                                                    editable=True),
-                        _build_tasks_data_panel(panel_title="Editable tasks data for what-if question",
-                                                editable=True))
-            else:
-                raise NotImplementedError("There is a problem with what-if ok button #clicks")
+            @self._application.callback(
+                Output('scenario-submit-button', 'disabled'),
+                Input('scenario-question-text', 'className')
+            )
+            def _update_scenario_submit_button_status(scenario_question_text_style: str):
+                if scenario_question_text_style == 'empty-automated-text':
+                    return True
+                elif scenario_question_text_style == 'automated-text':
+                    return False
+                else:
+                    raise NotImplementedError("There is a problem with the scenario question text style")
 
-        @self._application.callback(
-            Output('scenario-ok-button', 'disabled'),
-            Input('scenario-explanation-text', 'className')
-        )
-        def _update_scenario_ok_button_status(scenario_explanation_text_style: str):
-            if scenario_explanation_text_style == 'empty-automated-text':
-                return True
-            else:
-                return False
+            @self._application.callback(
+                Output('scenario-submit-button', 'n_clicks'),
+                Input('scenario-question-block', 'style')
+            )
+            def _reset_scenario_submit_button_click(scenario_envelope_style):
+                if scenario_envelope_style['display'] in ['none', 'block']:
+                    return None
+                else:
+                    raise NotImplementedError("There is a problem with the scenario envelope style")
 
-        @self._application.callback(
-            Output('scenario-ok-button', 'n_clicks'),
-            Input('scenario-question-block', 'style')
-        )
-        def _reset_scenario_ok_button_click(scenario_envelope_style):
-            if scenario_envelope_style['display'] in ['none', 'block']:
-                return None
-            else:
-                raise NotImplementedError("There is a problem with the scenario envelope style")
-
-        @self._application.callback(
-            Output('scenario-save-button', 'disabled'),
-            Input('scenario-explanation-text', 'className'), Input('scenario-save-button', 'n_clicks')
-        )
-        def _update_scenario_save_button_status(scenario_explanation_text_style: str, scenario_save_button_click: int):
-            if scenario_explanation_text_style == 'empty-automated-text':
-                return True
-            else:
-                explanation = self._explainer.last_scenario_explanation
-                if scenario_save_button_click is None or scenario_save_button_click == 0:
-                    if explanation.support_solution_is_feasible:
-                        return False
+            @self._application.callback(
+                Output('scenario-explanation-text', 'children'), Output('scenario-explanation-text', 'className'),
+                Output('scenario-explanation-representation-envelope', 'style'),
+                Output('scenario-explanation-representation-envelope', 'children'),
+                Input('scenario-submit-button', 'n_clicks'), Input('scenario-ok-button', 'n_clicks'),
+            )
+            def _update_scenario_explanation_text(scenario_submit_click: int, scenario_ok_button_click: int):
+                if scenario_submit_click is None and scenario_ok_button_click is None:
+                    raise PreventUpdate
+                elif scenario_ok_button_click is not None:
+                    if scenario_submit_click >= 1:
+                        explanation_text = "Waiting for a what-if question to be submitted..."
+                        return explanation_text, 'empty-automated-text', dict(display='none'), html.Div()
                     else:
-                        return True
-                elif scenario_save_button_click == 1:
-                    self._explainer.save_last_scenario_support_solution()
+                        raise NotImplementedError("There is a problem with the scenario ok button #clicks")
+                elif scenario_submit_click >= 1:
+                    current_instance = self.current_instance
+                    scenario_instance = current_instance.copy(current_instance.name + "_scenario")
+                    scenario_instance.alter(self._scenario_instance_alterations)
+                    explanation = self._explainer.compute_scenario_explanation(scenario_instance)
+                    explanation_text = convert_from_string_to_html(explanation.text)
+                    explanation_repr_visibility = dict(display='block')
+                    panel_title_prefix = f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
+                                         f" new solution - "
+                    panel_title_suffix = " (for what-if explanation)"
+                    explanation_repr = html.Div(
+                        className='representation-panels-side-to-side',
+                        children=[
+                            _build_routes_figure_panel(panel_title_prefix=panel_title_prefix,
+                                                       panel_title_suffix=panel_title_suffix,
+                                                       solution=explanation.support_solution,
+                                                       infeasibility=(None if explanation.support_solution_is_feasible
+                                                                      else explanation.infeasibility)),
+                            _build_schedules_figure_panel(panel_title_prefix=panel_title_prefix,
+                                                          panel_title_suffix=panel_title_suffix,
+                                                          solution=explanation.support_solution,
+                                                          infeasibility=(None if explanation.support_solution_is_feasible
+                                                                         else explanation.infeasibility))
+                        ]
+                    )
+                    return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr
+                else:
+                    raise NotImplementedError("There is a problem with the scenario submit button #clicks")
+
+            @self._application.callback(
+                Output('scenario-editable-employees-data-panel', 'children'),
+                Output('scenario-editable-tasks-data-panel', 'children'),
+                Input('scenario-ok-button', 'n_clicks')
+            )
+            def _reset_scenario_editable_data(scenario_ok_button_click: int):
+                if scenario_ok_button_click is None or scenario_ok_button_click == 0:
+                    raise PreventUpdate
+                elif scenario_ok_button_click == 1:
+                    return (_build_employees_data_panel(panel_title="Editable employees data for what-if question",
+                                                        editable=True),
+                            _build_tasks_data_panel(panel_title="Editable tasks data for what-if question",
+                                                    editable=True))
+                else:
+                    raise NotImplementedError("There is a problem with what-if ok button #clicks")
+
+            @self._application.callback(
+                Output('scenario-ok-button', 'disabled'),
+                Input('scenario-explanation-text', 'className')
+            )
+            def _update_scenario_ok_button_status(scenario_explanation_text_style: str):
+                if scenario_explanation_text_style == 'empty-automated-text':
                     return True
                 else:
-                    raise NotImplementedError("There is a problem with what-if save button #clicks")
+                    return False
 
-        @self._application.callback(
-            Output('scenario-save-button', 'n_clicks'),
-            Input('scenario-explanation-text', 'className'), State('scenario-save-button', 'n_clicks')
-        )
-        def _reset_scenario_save_button_click(scenario_explanation_text_style: str, scenario_save_button_click: int):
-            if scenario_explanation_text_style == 'empty-automated-text':
-                return None
-            else:
-                return scenario_save_button_click
+            @self._application.callback(
+                Output('scenario-ok-button', 'n_clicks'),
+                Input('scenario-question-block', 'style')
+            )
+            def _reset_scenario_ok_button_click(scenario_envelope_style):
+                if scenario_envelope_style['display'] in ['none', 'block']:
+                    return None
+                else:
+                    raise NotImplementedError("There is a problem with the scenario envelope style")
+
+            if self._explainer.history_is_enabled:
+                #
+                @self._application.callback(
+                    Output('scenario-save-button', 'disabled'),
+                    Input('scenario-explanation-text', 'className'), Input('scenario-save-button', 'n_clicks')
+                )
+                def _update_scenario_save_button_status(scenario_explanation_text_style: str,
+                                                        scenario_save_button_click: int):
+                    if scenario_explanation_text_style == 'empty-automated-text':
+                        return True
+                    else:
+                        explanation = self._explainer.last_scenario_explanation
+                        if scenario_save_button_click is None or scenario_save_button_click == 0:
+                            if explanation.support_solution_is_feasible:
+                                return False
+                            else:
+                                return True
+                        elif scenario_save_button_click == 1:
+                            self._explainer.save_last_scenario_support_solution()
+                            return True
+                        else:
+                            raise NotImplementedError("There is a problem with what-if save button #clicks")
+
+                @self._application.callback(
+                    Output('scenario-save-button', 'n_clicks'),
+                    Input('scenario-explanation-text', 'className'), State('scenario-save-button', 'n_clicks')
+                )
+                def _reset_scenario_save_button_click(scenario_explanation_text_style: str,
+                                                      scenario_save_button_click: int):
+                    if scenario_explanation_text_style == 'empty-automated-text':
+                        return None
+                    else:
+                        return scenario_save_button_click
 
         ######################################################
         # Explainer tab content - Call back - Counterfactual #
         ######################################################
 
-        @self._application.callback(
-            Output('counterfactual-question-block', 'style'),
-            Input('how-to-button', 'n_clicks')
-        )
-        def _update_counterfactual_visibility(how_to_button_click: int):
-            if how_to_button_click is None:
-                return dict(display='none')
-            elif how_to_button_click == 1:
-                self._counterfactual_instance_alterations = None
-                return dict(display='block')
-            else:
-                raise NotImplementedError("There is a problem with the how-to button #clicks")
+        if self._explainer.counterfactual_explanations_are_enabled:
+            #
+            @self._application.callback(
+                Output('counterfactual-question-block', 'style'),
+                Input('how-to-button', 'n_clicks')
+            )
+            def _update_counterfactual_visibility(how_to_button_click: int):
+                if how_to_button_click is None:
+                    return dict(display='none')
+                elif how_to_button_click == 1:
+                    self._counterfactual_instance_alterations = None
+                    return dict(display='block')
+                else:
+                    raise NotImplementedError("There is a problem with the how-to button #clicks")
 
-        @self._application.callback(
-            Output('counterfactual-explanation-text', 'children'),
-            Output('counterfactual-explanation-text', 'className'),
-            Output('counterfactual-explanation-representation-envelope', 'style'),
-            Output('counterfactual-explanation-representation-envelope', 'children'),
-            Input('how-to-button', 'n_clicks'), Input('counterfactual-ok-button', 'n_clicks')
-        )
-        def _update_counterfactual_explanation_text(how_to_button_click: int, counterfactual_ok_button_click: int):
-            if how_to_button_click is None and counterfactual_ok_button_click is None:
-                raise PreventUpdate
-            elif counterfactual_ok_button_click is not None:
-                explanation_text = "Waiting for a what-if question to be submitted..."
-                return explanation_text, 'empty-automated-text', dict(display='none'), html.Div()
-            elif how_to_button_click >= 1:
-                explanation = self._explainer.compute_counterfactual_explanation()
-                explanation_text = convert_from_string_to_html(explanation.text)
-                explanation_repr_visibility = dict(display='block')
-                panel_title_prefix = f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                                     f" new solution - "
-                panel_title_suffix = " (for how-to explanation)"
-                explanation_repr = html.Div(
-                    className='representation-panels-side-to-side',
-                    children=[
-                        _build_routes_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                   panel_title_suffix=panel_title_suffix,
-                                                   solution=explanation.support_solution),
-                        _build_schedules_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                      panel_title_suffix=panel_title_suffix,
-                                                      solution=explanation.support_solution)
-                    ]
-                )
-                return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr
-            else:
-                raise NotImplementedError("There is a problem with the how-to button #clicks")
+            @self._application.callback(
+                Output('counterfactual-explanation-text', 'children'),
+                Output('counterfactual-explanation-text', 'className'),
+                Output('counterfactual-explanation-representation-envelope', 'style'),
+                Output('counterfactual-explanation-representation-envelope', 'children'),
+                Input('how-to-button', 'n_clicks'), Input('counterfactual-ok-button', 'n_clicks')
+            )
+            def _update_counterfactual_explanation_text(how_to_button_click: int, counterfactual_ok_button_click: int):
+                if how_to_button_click is None and counterfactual_ok_button_click is None:
+                    raise PreventUpdate
+                elif counterfactual_ok_button_click is not None:
+                    explanation_text = "Waiting for a what-if question to be submitted..."
+                    return explanation_text, 'empty-automated-text', dict(display='none'), html.Div()
+                elif how_to_button_click >= 1:
+                    explanation = self._explainer.compute_counterfactual_explanation()
+                    explanation_text = convert_from_string_to_html(explanation.text)
+                    explanation_repr_visibility = dict(display='block')
+                    panel_title_prefix = f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
+                                         f" new solution - "
+                    panel_title_suffix = " (for how-to explanation)"
+                    explanation_repr = html.Div(
+                        className='representation-panels-side-to-side',
+                        children=[
+                            _build_routes_figure_panel(panel_title_prefix=panel_title_prefix,
+                                                       panel_title_suffix=panel_title_suffix,
+                                                       solution=explanation.support_solution),
+                            _build_schedules_figure_panel(panel_title_prefix=panel_title_prefix,
+                                                          panel_title_suffix=panel_title_suffix,
+                                                          solution=explanation.support_solution)
+                        ]
+                    )
+                    return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr
+                else:
+                    raise NotImplementedError("There is a problem with the how-to button #clicks")
 
-        @self._application.callback(
-            Output('counterfactual-ok-button', 'disabled'),
-            Input('counterfactual-explanation-text', 'className')
-        )
-        def _update_counterfactual_ok_button_status(counterfactual_explanation_text_style: str):
-            if counterfactual_explanation_text_style == 'empty-automated-text':
-                return True
-            else:
-                return False
-
-        @self._application.callback(
-            Output('counterfactual-ok-button', 'n_clicks'),
-            Input('counterfactual-question-block', 'style')
-        )
-        def _reset_counterfactual_ok_button_click(counterfactual_envelope_style):
-            if counterfactual_envelope_style['display'] in ['none', 'block']:
-                return None
-            else:
-                raise NotImplementedError("There is a problem with the counterfactual envelope style")
-
-        @self._application.callback(
-            Output('counterfactual-save-button', 'disabled'),
-            Input('counterfactual-explanation-text', 'className'), Input('counterfactual-save-button', 'n_clicks')
-        )
-        def _update_counterfactual_save_button_status(counterfactual_explanation_text_style: str,
-                                                      counterfactual_save_button_click: int):
-            if counterfactual_explanation_text_style == 'empty-automated-text':
-                return True
-            else:
-                explanation = self._explainer.last_counterfactual_explanation
-                if counterfactual_save_button_click is None or counterfactual_save_button_click == 0:
-                    if explanation.support_solution_is_feasible:
-                        return False
-                    else:
-                        return True
-                elif counterfactual_save_button_click == 1:
-                    self._explainer.save_last_counterfactual_support_solution()
+            @self._application.callback(
+                Output('counterfactual-ok-button', 'disabled'),
+                Input('counterfactual-explanation-text', 'className')
+            )
+            def _update_counterfactual_ok_button_status(counterfactual_explanation_text_style: str):
+                if counterfactual_explanation_text_style == 'empty-automated-text':
                     return True
                 else:
-                    raise NotImplementedError("There is a problem with counterfactual save button #clicks")
+                    return False
 
-        @self._application.callback(
-            Output('counterfactual-save-button', 'n_clicks'),
-            Input('counterfactual-explanation-text', 'className'), State('counterfactual-save-button', 'n_clicks')
-        )
-        def _reset_counterfactual_save_button_click(counterfactual_explanation_text_style: str,
-                                                    counterfactual_save_button_click: int):
-            if counterfactual_explanation_text_style == 'empty-automated-text':
-                return None
-            else:
-                return counterfactual_save_button_click
+            @self._application.callback(
+                Output('counterfactual-ok-button', 'n_clicks'),
+                Input('counterfactual-question-block', 'style')
+            )
+            def _reset_counterfactual_ok_button_click(counterfactual_envelope_style):
+                if counterfactual_envelope_style['display'] in ['none', 'block']:
+                    return None
+                else:
+                    raise NotImplementedError("There is a problem with the counterfactual envelope style")
+
+            if self._explainer.history_is_enabled:
+                #
+                @self._application.callback(
+                    Output('counterfactual-save-button', 'disabled'),
+                    Input('counterfactual-explanation-text', 'className'), Input('counterfactual-save-button', 'n_clicks')
+                )
+                def _update_counterfactual_save_button_status(counterfactual_explanation_text_style: str,
+                                                              counterfactual_save_button_click: int):
+                    if counterfactual_explanation_text_style == 'empty-automated-text':
+                        return True
+                    else:
+                        explanation = self._explainer.last_counterfactual_explanation
+                        if counterfactual_save_button_click is None or counterfactual_save_button_click == 0:
+                            if explanation.support_solution_is_feasible:
+                                return False
+                            else:
+                                return True
+                        elif counterfactual_save_button_click == 1:
+                            self._explainer.save_last_counterfactual_support_solution()
+                            return True
+                        else:
+                            raise NotImplementedError("There is a problem with counterfactual save button #clicks")
+
+                @self._application.callback(
+                    Output('counterfactual-save-button', 'n_clicks'),
+                    Input('counterfactual-explanation-text', 'className'), State('counterfactual-save-button', 'n_clicks')
+                )
+                def _reset_counterfactual_save_button_click(counterfactual_explanation_text_style: str,
+                                                            counterfactual_save_button_click: int):
+                    if counterfactual_explanation_text_style == 'empty-automated-text':
+                        return None
+                    else:
+                        return counterfactual_save_button_click
 
         #######################
         # Typical data tables #
