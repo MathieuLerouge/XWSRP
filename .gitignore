@@ -19,6 +19,5 @@ src/checking/tests.py
 src/drawing/tests.py
 src/optimization/tests.py
 
-requirements_with_gurobi.txt
 todo.txt
 .DS_Store
