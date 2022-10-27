@@ -1,4 +1,3 @@
-from src.evaluation.routine import prepare_explainer_UI
+from src.evaluation.deployed_application import *
 
-explainer_UI = prepare_explainer_UI()
-server = explainer_UI.application.server
+server = explainer_UI.server

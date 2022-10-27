@@ -5,6 +5,7 @@
 from src.checking.feasibility import check_feasibility
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
+from src.explaining.questioning.questions_templates_bank import *
 from src.reading.solution import extract_solution_from_file
 from src.utils.files import get_project_directory_path
 
@@ -36,8 +37,12 @@ def prepare_explainer():
         raise ValueError(f"The solution {solution.name} is not feasible")
     explainer = Explainer(solution)
     explainer.contrastive_explanations_directory = get_explanations_for_evaluation_directory_path()
-    explainer.use_already_computed_contrastive_explanations = True
-    explainer.export_contrastive_explanations = False
+    explainer.enable_using_already_computed_contrastive_explanations()
+    explainer.disable_exporting_contrastive_explanations()
+    explainer.activate_only_questions_templates([WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_SWP_1, WHY_NOT_SWP_2A])
+    explainer.disable_history()
+    explainer.disable_scenario_explanations()
+    explainer.disable_counterfactual_explanations()
     return explainer
 
 
