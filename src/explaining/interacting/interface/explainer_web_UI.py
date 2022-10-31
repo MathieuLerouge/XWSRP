@@ -132,8 +132,9 @@ class ExplainerWebGUI:
         self._scenario_instance_alterations = InstanceChanges()
         self._counterfactual_instance_alterations = None
 
-        # Dash application
+        # Application
         self._application = dash.Dash(name="XWSRP", assets_folder=self._assets_path, suppress_callback_exceptions=True)
+        self._explanations_representation_are_enabled = True
 
         ##########
         # Layout #
@@ -1067,21 +1068,25 @@ class ExplainerWebGUI:
                 infeasibility = None if explanation.support_solution_is_feasible else explanation.infeasibility
                 explanation_text = convert_from_string_to_html(explanation.text)
                 solution = explanation.support_solution
-                explanation_repr_visibility = dict(display='block')
-                panel_title_prefix = f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                                     f" new solution - "
-                panel_title_suffix = " (for why-not explanation)"
-                explanation_repr = html.Div(
-                    className='representation-panels-side-to-side',
-                    children=[
-                        _build_routes_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                   panel_title_suffix=panel_title_suffix,
-                                                   solution=solution, infeasibility=infeasibility),
-                        _build_schedules_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                      panel_title_suffix=panel_title_suffix,
-                                                      solution=solution, infeasibility=infeasibility)
-                    ]
-                )
+                if self.explanations_representation_are_enabled:
+                    explanation_repr_visibility = dict(display='block')
+                    panel_title_prefix = f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
+                                         f" new solution - "
+                    panel_title_suffix = " (for why-not explanation)"
+                    explanation_repr = html.Div(
+                        className='representation-panels-side-to-side',
+                        children=[
+                            _build_routes_figure_panel(panel_title_prefix=panel_title_prefix,
+                                                       panel_title_suffix=panel_title_suffix,
+                                                       solution=solution, infeasibility=infeasibility),
+                            _build_schedules_figure_panel(panel_title_prefix=panel_title_prefix,
+                                                          panel_title_suffix=panel_title_suffix,
+                                                          solution=solution, infeasibility=infeasibility)
+                        ]
+                    )
+                else:
+                    explanation_repr_visibility = dict(display='none')
+                    explanation_repr = html.Div()
                 return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr, None, None
             elif contrastive_ok_button_click == 1:
                 explanation_text = "Waiting for a why-not question to be submitted..."
@@ -2264,13 +2269,23 @@ class ExplainerWebGUI:
 
         self._application.layout = _build_layout()
 
-    ##########
-    # Basics #
-    ##########
+    ###############
+    # Application #
+    ###############
 
     @property
     def application(self):
         return self._application
+
+    def launch(self):
+        """
+        Launch the web Graphic User Interface of the explainer.
+        """
+        self._application.run_server(debug=True)
+
+    #########################
+    # Solution and instance #
+    #########################
 
     @property
     def current_solution(self):
@@ -2284,12 +2299,62 @@ class ExplainerWebGUI:
     def current_instance(self):
         return self._explainer.current_instance
 
-    ##########
-    # Launch #
-    ##########
+    ###################
+    # Functionalities #
+    ###################
 
-    def launch(self):
-        """
-        Launch the web Graphic User Interface of the explainer.
-        """
-        self._application.run_server(debug=True)
+    @property
+    def history_is_enabled(self):
+        return self._explainer.history_is_enabled
+
+    @property
+    def history_is_disabled(self):
+        return self._explainer.history_is_disabled
+
+    def enable_history(self):
+        self._explainer.enable_history()
+
+    def disable_history(self):
+        self._explainer.disable_history()
+
+    @property
+    def scenario_explanations_are_enabled(self):
+        return self._explainer.scenario_explanations_are_enabled
+
+    @property
+    def scenario_explanations_are_disabled(self):
+        return self._explainer.scenario_explanations_are_disabled
+
+    def enable_scenario_explanations(self):
+        self._explainer.enable_scenario_explanations()
+
+    def disable_scenario_explanations(self):
+        self._explainer.disable_scenario_explanations()
+
+    @property
+    def counterfactual_explanations_are_enabled(self):
+        return self._explainer.counterfactual_explanations_are_enabled
+
+    @property
+    def counterfactual_explanations_are_disabled(self):
+        return self._explainer.counterfactual_explanations_are_disabled
+
+    def enable_counterfactual_explanations(self):
+        self._explainer.enable_counterfactual_explanations()
+
+    def disable_counterfactual_explanations(self):
+        self._explainer.disable_counterfactual_explanations()
+
+    @property
+    def explanations_representation_are_enabled(self):
+        return self._explanations_representation_are_enabled
+
+    @property
+    def explanations_representation_are_disabled(self):
+        return not self._explanations_representation_are_enabled
+
+    def enable_explanations_representation(self):
+        self._explanations_representation_are_enabled = True
+
+    def disable_explanations_representation(self):
+        self._explanations_representation_are_enabled = False
