@@ -7,6 +7,7 @@ from src.modeling.comeback import COMING_BACK_HOME_STRING
 from src.modeling.departure import LEAVING_HOME_STRING
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
+from src.utils.constants import LANGUAGE_ENGLISH_KEY
 
 # Global variable
 TEMPLATE_FIELD_DEFAULT_VALUE = "_"
@@ -18,10 +19,37 @@ RETURN_VALUE = COMING_BACK_HOME_STRING
 class QuestionTemplate:
 
     def __init__(self, id: str, text: str, fields_assumptions: list[FieldAssumptions]):
+        self._language = LANGUAGE_ENGLISH_KEY
         self._id = id
+        # TODO replace input text with texts dictionnary
+        # self._texts = texts
         check_text_and_assumptions_consistency(text, fields_assumptions, raise_error=True)
+        # TODO uncomment the line below and remove the one below
+        # self._text = self._texts[self._language]
         self._text = text
         self._nb_fields = len(fields_assumptions)
+        self._fields_assumptions = fields_assumptions
+        # TODO to remove if ok
+        # self._fields_information = []
+        # field_number = 0
+        # field_start_index_in_text, field_end_index_in_text = 0, 0
+        # while field_number < self._nb_fields:
+        #     field_start_index_in_text = self._text.index('{', field_end_index_in_text)
+        #     field_end_index_in_text = self._text.index('}', field_start_index_in_text)
+        #     self._fields_information.append(
+        #         dict(start_index_in_text=field_start_index_in_text, end_index_in_text=field_end_index_in_text,
+        #              key=text[field_start_index_in_text:field_end_index_in_text+1],
+        #              assumptions=fields_assumptions[field_number])
+        #     )
+        #     field_number += 1
+        self._update_fields_information()
+        # TODO to remove if ok
+        # self._text_with_default_fields_values = self.complete_text_with_fields_values(
+        #     fields_values=[TEMPLATE_FIELD_DEFAULT_VALUE for _ in range(self._nb_fields)]
+        # )
+        self._update_text_with_default_fields_values()
+
+    def _update_fields_information(self):
         self._fields_information = []
         field_number = 0
         field_start_index_in_text, field_end_index_in_text = 0, 0
@@ -30,10 +58,12 @@ class QuestionTemplate:
             field_end_index_in_text = self._text.index('}', field_start_index_in_text)
             self._fields_information.append(
                 dict(start_index_in_text=field_start_index_in_text, end_index_in_text=field_end_index_in_text,
-                     key=text[field_start_index_in_text:field_end_index_in_text+1],
-                     assumptions=fields_assumptions[field_number])
+                     key=self._text[field_start_index_in_text:field_end_index_in_text+1],
+                     assumptions=self._fields_assumptions[field_number])
             )
             field_number += 1
+
+    def _update_text_with_default_fields_values(self):
         self._text_with_default_fields_values = self.complete_text_with_fields_values(
             fields_values=[TEMPLATE_FIELD_DEFAULT_VALUE for _ in range(self._nb_fields)]
         )
@@ -56,6 +86,17 @@ class QuestionTemplate:
     @property
     def text(self):
         return self._text_with_default_fields_values
+
+    @property
+    def language(self):
+        return self._language
+
+    def set_language(self, language_key: str):
+        self._language = language_key
+        # TODO uncomment the line below
+        # self._text = self._texts[self._language]
+        self._update_fields_information()
+        self._update_text_with_default_fields_values()
 
     def complete_text_with_fields_values(self, fields_values: Union[dict[int, str], list[str]]):
         if isinstance(fields_values, list):
