@@ -10,9 +10,13 @@ EXPLANATIONS_TEMPLATES_LIST = [
         id=WHY_NOT_INS_1,
         typical_expressions=dict(
             the_fact="{Task} is not performed by {Employee} just after {Activity}",
+            # LANGUAGE_FRENCH_KEY: "{Task} n'est pas réalisée par {Employee} juste après {Activity}"
             the_foil="{Task} is performed by {Employee} just after {Activity}",
+            # LANGUAGE_FRENCH_KEY: "{Task} est réalisée par {Employee} juste après {Activity}"
             having_the_foil="having {Task} performed by {Employee} just after {Activity}",
+            # LANGUAGE_FRENCH_KEY: "ayant {Task} réalisée par {Employee} juste après {Activity}"
             applying_the_foil_transformation="inserting {Task} just after {Activity} in {Employee}'s planning"
+            # LANGUAGE_FRENCH_KEY: "insérant {Task} juste après {Activity} dans le planning de {Employee}"
         )
     ),
     ExplanationTemplate(
