@@ -9,7 +9,7 @@ from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGU
 from src.explaining.questioning.questions_templates_bank import WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, \
     WHY_NOT_INS_2C, WHY_NOT_INS_3, WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3, \
     QUESTIONS_TEMPLATES
-from src.explaining.writing.explanation import export_explanations_to_json_file
+from src.explaining.writing.explanation import export_multiple_explanations_to_json_file
 from src.reading.solution import extract_solution_from_file
 from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import get_solutions_files_paths
@@ -58,7 +58,7 @@ def run_explanations_computation_routine():
             all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
             for fields_values in all_fields_valid_values:
                 explanations.append(explainer.compute_contrastive_explanation(question_template.id, fields_values))
-    export_explanations_to_json_file(explanations)
+    export_multiple_explanations_to_json_file(explanations)
 
 
 def apply_explanation_routine():

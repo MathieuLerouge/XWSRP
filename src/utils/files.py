@@ -27,6 +27,17 @@ def get_default_outputs_directory_path():
     return get_project_directory_path() + f"/{OUTPUTS_DIRECTORY_RELATIVE_PATH}"
 
 
+def create_inputs_file_path(file_name_with_extension: str, inputs_directory: str = None):
+    if inputs_directory is None:
+        inputs_directory = INPUTS_DIRECTORY_RELATIVE_PATH
+    file_path = f"{inputs_directory}/{file_name_with_extension}"
+    return file_path
+
+
+def check_inputs_file_existence(file_name_with_extension: str, inputs_directory: str = None):
+    return path.exists(create_inputs_file_path(file_name_with_extension, inputs_directory))
+
+
 ############
 # Instance #
 ############

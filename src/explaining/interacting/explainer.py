@@ -6,9 +6,10 @@ from src.explaining.modeling.solution import EditableSolution
 from src.explaining.interacting.history import History
 from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import *
-from src.explaining.reading.explanation import import_explanation_from_json_file, check_explanation_json_file_existence
+from src.explaining.reading.explanation import import_single_explanation_from_json_file
+from src.utils.files import check_inputs_file_existence
 from src.explaining.transforming.transformation import apply_induced_transformation, apply_induced_transformation_bis
-from src.explaining.writing.explanation import define_explanation_json_file_name, export_explanation_to_json_file
+from src.explaining.writing.explanation import define_single_explanation_json_file_name, export_single_explanation_to_json_file
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH
@@ -198,18 +199,18 @@ class Explainer:
         contrastive_question = self._create_contrastive_question(question_template_id, fields_values)
         contrastive_explanation = None
         if self.use_already_computed_contrastive_explanations:
-            file_name = define_explanation_json_file_name(contrastive_question)
-            if check_explanation_json_file_existence(file_name, self.contrastive_explanations_directory):
+            file_name = define_single_explanation_json_file_name(contrastive_question)
+            if check_inputs_file_existence(file_name, self.contrastive_explanations_directory):
                 contrastive_explanation = \
-                    import_explanation_from_json_file(file_name, contrastive_question.solution,
-                                                      self.contrastive_explanations_directory)
+                    import_single_explanation_from_json_file(file_name, contrastive_question.solution,
+                                                             self.contrastive_explanations_directory)
         if contrastive_explanation is None:
             contrastive_support_solution, infeasibility, description_of_applied_transformation = \
                 apply_induced_transformation(self.current_solution, contrastive_question)
             contrastive_explanation = create_explanation(contrastive_question, contrastive_support_solution,
                                                          infeasibility, description_of_applied_transformation)
             if self.export_contrastive_explanations:
-                export_explanation_to_json_file(contrastive_explanation, self.contrastive_explanations_directory)
+                export_single_explanation_to_json_file(contrastive_explanation, self.contrastive_explanations_directory)
         self._last_contrastive_explanation = contrastive_explanation
         self._last_scenario_explanation = None
         self._last_counterfactual_explanation = None
@@ -237,7 +238,7 @@ class Explainer:
 
     def export_last_contrastive_explanation(self):
         print(f"Exporting explanation to the question: {self.last_contrastive_explanation.question.text}")
-        export_explanation_to_json_file(self.last_contrastive_explanation)
+        export_single_explanation_to_json_file(self.last_contrastive_explanation)
 
     ########################
     # Scenario explanation #
