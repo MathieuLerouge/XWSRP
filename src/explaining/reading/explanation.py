@@ -31,11 +31,14 @@ def import_multiple_explanations_from_json_file(file_name_with_extension: str, s
     file_path = create_inputs_file_path(file_name_with_extension, input_directory)
     with open(file_path) as json_file:
         explanations_dictionaries = json.load(json_file)
-        explanations = dict()
+        # explanations = dict()
+        # for explanation_dictionary in explanations_dictionaries:
+        #     explanation = create_explanation_from_dict(explanation_dictionary, solution)
+        #     template_id = explanation.question.template.id
+        #     if template_id not in explanations:
+        #         explanations[template_id] = dict()
+        #     explanations[template_id][str(explanation.question.fields_values)] = explanation
+        explanations = list()
         for explanation_dictionary in explanations_dictionaries:
-            explanation = create_explanation_from_dict(explanation_dictionary, solution)
-            template_id = explanation.question.template.id
-            if template_id not in explanations:
-                explanations[template_id] = dict()
-            explanations[template_id][str(explanation.question.fields_values)] = explanation
+            explanations.append(create_explanation_from_dict(explanation_dictionary, solution))
     return explanations

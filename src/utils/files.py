@@ -19,12 +19,24 @@ def get_project_directory_path():
         return current_working_directory
 
 
+def make_absolute_path(relative_path: str):
+    return f"{get_project_directory_path()}/{relative_path}"
+
+
+# def get_default_inputs_directory_path():
+#     return get_project_directory_path() + f"/{INPUTS_DIRECTORY_RELATIVE_PATH}"
+#
+#
+# def get_default_outputs_directory_path():
+#     return get_project_directory_path() + f"/{OUTPUTS_DIRECTORY_RELATIVE_PATH}"
+
+
 def get_default_inputs_directory_path():
-    return get_project_directory_path() + f"/{INPUTS_DIRECTORY_RELATIVE_PATH}"
+    return make_absolute_path(INPUTS_DIRECTORY_RELATIVE_PATH)
 
 
 def get_default_outputs_directory_path():
-    return get_project_directory_path() + f"/{OUTPUTS_DIRECTORY_RELATIVE_PATH}"
+    return make_absolute_path(OUTPUTS_DIRECTORY_RELATIVE_PATH)
 
 
 def create_inputs_file_path(file_name_with_extension: str, inputs_directory: str = None):
@@ -200,6 +212,7 @@ def find_instance_file_path_corresponding_to_solution(solution_file_path: str, i
 
 
 if __name__ == '__main__':
+    print(get_project_directory_path())
     instance_file_path_ex = get_instances_files_paths()[0]
     print(instance_file_path_ex)
     instance_meta_data_ex = identify_meta_data_in_instance_file_path(instance_file_path_ex)

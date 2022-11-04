@@ -1064,7 +1064,7 @@ class ExplainerWebGUI:
             if contrastive_submit_button_click == 1:
                 question_template = self._questions_templates[question_template_id]
                 fields_values = [value for value in [input_1, input_2, input_3][:question_template.nb_fields]]
-                explanation = self._explainer.compute_contrastive_explanation(question_template_id, fields_values)
+                explanation = self._explainer.get_contrastive_explanation(question_template_id, fields_values)
                 infeasibility = None if explanation.support_solution_is_feasible else explanation.infeasibility
                 explanation_text = convert_from_string_to_html(explanation.text)
                 solution = explanation.support_solution
