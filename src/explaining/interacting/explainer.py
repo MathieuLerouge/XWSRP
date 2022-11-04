@@ -6,12 +6,16 @@ from src.explaining.modeling.solution import EditableSolution
 from src.explaining.interacting.history import History
 from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import *
-from src.explaining.reading.explanation import import_explanation_from_json_file, check_explanation_json_file_existence
+from src.explaining.reading.explanation import import_single_explanation_from_json_file, \
+    import_multiple_explanations_from_json_file
+from src.utils.files import check_inputs_file_existence
 from src.explaining.transforming.transformation import apply_induced_transformation, apply_induced_transformation_bis
-from src.explaining.writing.explanation import define_explanation_json_file_name, export_explanation_to_json_file
+from src.explaining.writing.explanation import define_single_contrastive_explanation_json_file_name, \
+    export_single_contrastive_explanation_to_json_file, define_multiple_contrastive_explanations_json_file_name, \
+    export_multiple_contrastive_explanations_to_json_file
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH
+from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH, OUTPUTS_DIRECTORY_RELATIVE_PATH
 
 
 # Class Explainer
@@ -26,18 +30,18 @@ class Explainer:
         self._activated_questions_templates = dict([(id, QUESTIONS_TEMPLATES[id]) for id in QUESTIONS_TEMPLATES.keys()
                                                     if id in self._available_questions_templates_ids])
         self._root_solution = EditableSolution.from_Solution(solution)
-        solution = self._root_solution.copy(solution.name + ".1.1")
-        solution.instance = self._root_solution.instance.copy(name=solution.instance.name + ".1")
-        self._history_is_enabled = True
-        self._history = History(solution)
-        self._current_solution = solution
-        self._contrastive_explanations_directory = OUTPUTS_DIRECTORY_RELATIVE_PATH
-        self._export_contrastive_explanations = False
-        self._use_already_computed_contrastive_explanations = False
+        self._history_is_enabled = False
+        self._history = History(self._root_solution)
+        self._current_solution = self._root_solution
+        self._contrastive_explanations_inputs_directory_relative_path = INPUTS_DIRECTORY_RELATIVE_PATH
+        self._contrastive_explanations_outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
+        self._automatically_exporting_single_contrastive_explanations_is_enabled = False
+        self._using_already_computed_contrastive_explanations_is_enabled = False
+        self._already_computed_contrastive_explanations = dict()
         self._last_contrastive_explanation = None
-        self._scenario_explanations_are_enabled = True
+        self._scenario_explanations_are_enabled = False
         self._last_scenario_explanation = None
-        self._counterfactual_explanations_are_enabled = True
+        self._counterfactual_explanations_are_enabled = False
         self._last_counterfactual_explanation = None
 
     #################################
@@ -105,9 +109,15 @@ class Explainer:
 
     def enable_history(self):
         self._history_is_enabled = True
+        solution = self._root_solution.copy(name=f"{self._root_solution.name}.1.1")
+        solution.instance = self._root_solution.instance.copy(name=f"{solution.instance.name}.1")
+        self._history = History(solution)
+        self._current_solution = solution
 
     def disable_history(self):
         self._history_is_enabled = False
+        self._history = History(self._root_solution)
+        self._current_solution = self._root_solution
 
     @property
     def nb_instances(self):
@@ -149,67 +159,158 @@ class Explainer:
         else:
             raise PermissionError("Historizing is disabled")
 
-    ###########################
-    # Contrastive explanation #
-    ###########################
+    #############################################
+    # Contrastive explanation - Import / export #
+    #############################################
 
     @property
-    def contrastive_explanations_directory(self):
-        return self._contrastive_explanations_directory
+    def contrastive_explanations_inputs_directory_relative_path(self):
+        return self._contrastive_explanations_inputs_directory_relative_path
 
-    @contrastive_explanations_directory.setter
-    def contrastive_explanations_directory(self, directory_path: bool):
-        self._contrastive_explanations_directory = directory_path
-
-    @property
-    def export_contrastive_explanations(self):
-        return self._export_contrastive_explanations
-
-    @export_contrastive_explanations.setter
-    def export_contrastive_explanations(self, export: bool):
-        self._export_contrastive_explanations = export
-
-    def enable_exporting_contrastive_explanations(self):
-        self._export_contrastive_explanations = True
-
-    def disable_exporting_contrastive_explanations(self):
-        self._export_contrastive_explanations = False
+    @contrastive_explanations_inputs_directory_relative_path.setter
+    def contrastive_explanations_inputs_directory_relative_path(self, directory_relative_path: bool):
+        self._contrastive_explanations_inputs_directory_relative_path = directory_relative_path
 
     @property
-    def use_already_computed_contrastive_explanations(self):
-        return self._use_already_computed_contrastive_explanations
+    def contrastive_explanations_outputs_directory_relative_path(self):
+        return self._contrastive_explanations_outputs_directory_relative_path
 
-    @use_already_computed_contrastive_explanations.setter
-    def use_already_computed_contrastive_explanations(self, use: bool):
-        self._use_already_computed_contrastive_explanations = use
+    @contrastive_explanations_outputs_directory_relative_path.setter
+    def contrastive_explanations_outputs_directory_relative_path(self, directory_relative_path: bool):
+        self._contrastive_explanations_outputs_directory_relative_path = directory_relative_path
+
+    def enable_exporting_automatically_single_contrastive_explanations(self):
+        self._automatically_exporting_single_contrastive_explanations_is_enabled = True
+
+    def disable_exporting_automatically_single_contrastive_explanations(self):
+        self._automatically_exporting_single_contrastive_explanations_is_enabled = False
+
+    @property
+    def automatically_export_single_contrastive_explanations(self):
+        return self._automatically_exporting_single_contrastive_explanations_is_enabled
+
+    @automatically_export_single_contrastive_explanations.setter
+    def automatically_export_single_contrastive_explanations(self, export: bool):
+        if export:
+            self.enable_exporting_automatically_single_contrastive_explanations()
+        else:
+            self.disable_exporting_automatically_single_contrastive_explanations()
+
+    def export_all_already_computed_contrastive_explanations(self, outputs_directory_relative_path: str = None):
+        export_multiple_contrastive_explanations_to_json_file(self.already_computed_contrastive_explanations,
+                                                              outputs_directory_relative_path)
+
+    #####################################################
+    # Contrastive explanation - Manage already computed #
+    #####################################################
+
+    @property
+    def already_computed_contrastive_explanations(self):
+        explanations = []
+        for template_id in self._already_computed_contrastive_explanations.keys():
+            for explanation in self._already_computed_contrastive_explanations[template_id].values():
+                explanations.append(explanation)
+        return explanations
+
+    def _add_contrastive_explanation_to_already_computed_ones(self, explanation: Explanation):
+        if not explanation.is_contrastive:
+            raise ValueError("Given explanation is not contrastive")
+        if not self._using_already_computed_contrastive_explanations_is_enabled:
+            raise PermissionError("Storing any contrastive explanation in already computed ones is not allowed"
+                                  "as using already computed contrastive explanations is disabled")
+        template_id = explanation.question.template.id
+        if template_id not in self._already_computed_contrastive_explanations.keys():
+            self._already_computed_contrastive_explanations[template_id] = dict()
+        fields_values_str = str(explanation.question.fields_values)
+        if fields_values_str not in self._already_computed_contrastive_explanations[template_id]:
+            self._already_computed_contrastive_explanations[template_id][fields_values_str] = explanation
+
+    def _add_contrastive_explanations_to_already_computed_ones(self, explanations: list[Explanation]):
+        for explanation in explanations:
+            self._add_contrastive_explanation_to_already_computed_ones(explanation)
+
+    def _check_if_contrastive_explanation_is_in_already_computed_ones(self, contrastive_question: ContrastiveQuestion):
+        template_id = contrastive_question.template.id
+        if template_id not in self._already_computed_contrastive_explanations.keys():
+            return False
+        fields_values_str = str(contrastive_question.fields_values)
+        return fields_values_str in self._already_computed_contrastive_explanations[template_id]
+
+    def _get_already_computed_contrastive_explanation(self, contrastive_question: ContrastiveQuestion):
+        if not self._check_if_contrastive_explanation_is_in_already_computed_ones(contrastive_question):
+            raise ValueError("Explanation associated to given question is not already computed")
+        template_id, fields_values_str = contrastive_question.template.id, str(contrastive_question.fields_values)
+        return self._already_computed_contrastive_explanations[template_id][fields_values_str]
 
     def enable_using_already_computed_contrastive_explanations(self):
-        self._use_already_computed_contrastive_explanations = True
+        self._using_already_computed_contrastive_explanations_is_enabled = True
+        multiple_explanations_json_file_name = \
+            define_multiple_contrastive_explanations_json_file_name(self._current_solution)
+        if check_inputs_file_existence(multiple_explanations_json_file_name,
+                                       self.contrastive_explanations_inputs_directory_relative_path):
+            self._add_contrastive_explanations_to_already_computed_ones(
+                import_multiple_explanations_from_json_file(
+                    multiple_explanations_json_file_name, self._current_solution,
+                    self.contrastive_explanations_inputs_directory_relative_path
+                )
+            )
 
     def disable_using_already_computed_contrastive_explanations(self):
-        self._use_already_computed_contrastive_explanations = False
+        self._using_already_computed_contrastive_explanations_is_enabled = False
+
+    @property
+    def is_using_already_computed_contrastive_explanations(self):
+        return self._using_already_computed_contrastive_explanations_is_enabled
+
+    @is_using_already_computed_contrastive_explanations.setter
+    def is_using_already_computed_contrastive_explanations(self, use: bool):
+        if use:
+            self.enable_using_already_computed_contrastive_explanations()
+        else:
+            self.disable_using_already_computed_contrastive_explanations()
+
+    #####################################
+    # Contrastive explanation - Compute #
+    #####################################
 
     def _create_contrastive_question(self, question_template_id: str, fields_values: list[str]):
         if question_template_id not in self._activated_questions_templates:
             raise ValueError(f"The template {question_template_id} is not handled by this explainer")
         return ContrastiveQuestion(self._current_solution, question_template_id, fields_values)
 
-    def compute_contrastive_explanation(self, question_template_id: str, fields_values: list[str]):
+    def _compute_contrastive_explanation(self, contrastive_question: ContrastiveQuestion):
+        contrastive_support_solution, infeasibility, description_of_applied_transformation = \
+            apply_induced_transformation(self.current_solution, contrastive_question)
+        contrastive_explanation = create_explanation(contrastive_question, contrastive_support_solution,
+                                                     infeasibility, description_of_applied_transformation)
+        if self.is_using_already_computed_contrastive_explanations:
+            self._add_contrastive_explanation_to_already_computed_ones(contrastive_explanation)
+        if self.automatically_export_single_contrastive_explanations:
+            export_single_contrastive_explanation_to_json_file(
+                contrastive_explanation, self.contrastive_explanations_outputs_directory_relative_path
+            )
+        return contrastive_explanation
+
+    #################################
+    # Contrastive explanation - Get #
+    #################################
+
+    def get_contrastive_explanation(self, question_template_id: str, fields_values: list[str]):
         contrastive_question = self._create_contrastive_question(question_template_id, fields_values)
         contrastive_explanation = None
-        if self.use_already_computed_contrastive_explanations:
-            file_name = define_explanation_json_file_name(contrastive_question)
-            if check_explanation_json_file_existence(file_name, self.contrastive_explanations_directory):
-                contrastive_explanation = \
-                    import_explanation_from_json_file(file_name, contrastive_question.solution,
-                                                      self.contrastive_explanations_directory)
+        if self.is_using_already_computed_contrastive_explanations:
+            if self._check_if_contrastive_explanation_is_in_already_computed_ones(contrastive_question):
+                contrastive_explanation = self._get_already_computed_contrastive_explanation(contrastive_question)
+            else:
+                file_name = define_single_contrastive_explanation_json_file_name(contrastive_question)
+                if check_inputs_file_existence(file_name, self.contrastive_explanations_inputs_directory_relative_path):
+                    contrastive_explanation = import_single_explanation_from_json_file(
+                        file_name, contrastive_question.solution,
+                        self.contrastive_explanations_inputs_directory_relative_path
+                    )
+                    self._add_contrastive_explanation_to_already_computed_ones(contrastive_explanation)
         if contrastive_explanation is None:
-            contrastive_support_solution, infeasibility, description_of_applied_transformation = \
-                apply_induced_transformation(self.current_solution, contrastive_question)
-            contrastive_explanation = create_explanation(contrastive_question, contrastive_support_solution,
-                                                         infeasibility, description_of_applied_transformation)
-            if self.export_contrastive_explanations:
-                export_explanation_to_json_file(contrastive_explanation, self.contrastive_explanations_directory)
+            contrastive_explanation = self._compute_contrastive_explanation(contrastive_question)
         self._last_contrastive_explanation = contrastive_explanation
         self._last_scenario_explanation = None
         self._last_counterfactual_explanation = None
@@ -237,7 +338,9 @@ class Explainer:
 
     def export_last_contrastive_explanation(self):
         print(f"Exporting explanation to the question: {self.last_contrastive_explanation.question.text}")
-        export_explanation_to_json_file(self.last_contrastive_explanation)
+        export_single_contrastive_explanation_to_json_file(
+            self.last_contrastive_explanation, self.contrastive_explanations_outputs_directory_relative_path
+        )
 
     ########################
     # Scenario explanation #

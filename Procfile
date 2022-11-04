@@ -1,1 +1,1 @@
-web: gunicorn deployed_application:server
+web: gunicorn --pythonpath src evaluation.deployed_application:server
