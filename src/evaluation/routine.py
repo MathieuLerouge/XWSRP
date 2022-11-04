@@ -62,7 +62,7 @@ def run_explanations_computation():
     export_multiple_contrastive_explanations_to_json_file(explanations)
 
 
-def launch_explainer_UI_on_evaluation_solution():
+def prepare_explainer_UI_on_evaluation_solution():
     explainer = Explainer(get_solution_for_evaluation())
     explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_FOR_EVALUATION)
     explainer.disable_history()
@@ -71,7 +71,11 @@ def launch_explainer_UI_on_evaluation_solution():
     explainer.contrastive_explanations_inputs_directory_relative_path = get_explanations_for_evaluation_directory_path()
     explainer.enable_using_already_computed_contrastive_explanations()
     explainer.disable_exporting_automatically_single_contrastive_explanations()
-    explainer_UI = ExplainerWebGUI(explainer)
+    return ExplainerWebGUI(explainer)
+
+
+def launch_explainer_UI_on_evaluation_solution():
+    explainer_UI = prepare_explainer_UI_on_evaluation_solution()
     explainer_UI.launch()
 
 
