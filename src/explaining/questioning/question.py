@@ -38,6 +38,18 @@ class Question:
     def text(self):
         return self._text
 
+    def set_language(self, language_key: str):
+        self.template.set_language(language_key)
+        self._text = self._template.complete_text_with_fields_values(self.fields_values)
+
+    @property
+    def language(self):
+        return self.template.language
+
+    @language.setter
+    def language(self, language_key: str):
+        self.set_language(language_key)
+
     def to_dict(self):
         return {'solution': self.solution.to_dict(with_tasks_performances=False),
                 'template id': self.template.id, 'fields values': self.fields_values}
@@ -83,6 +95,9 @@ class ScenarioQuestion(Question):
     def text(self):
         return "What if the instance is changed? " + self._contrastive_question.text
 
+    def set_language(self, language_key):
+        self._contrastive_question.set_language(language_key)
+
 
 # Class CounterfactualQuestion
 class CounterfactualQuestion(Question):
@@ -100,3 +115,6 @@ class CounterfactualQuestion(Question):
     @property
     def text(self):
         return "How to change the instance to make it possible? " + self._contrastive_question.text
+
+    def set_language(self, language_key):
+        self._contrastive_question.set_language(language_key)
