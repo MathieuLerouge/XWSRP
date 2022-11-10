@@ -30,7 +30,7 @@ QUESTIONS_TEMPLATES_LIST = [
     # Insertion
     QuestionTemplate(
         id=WHY_NOT_INS_1,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
                                   "just after the activity {Activity}?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
@@ -41,7 +41,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_INS_2A,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
                                   "between two consecutive activities of their route?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
@@ -51,7 +51,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_INS_2B,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing any non-performed task "
                                   "between two consecutive activities of their route?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas une des tâches non-réalisées "
@@ -61,7 +61,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_INS_2C,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is any employee not performing the task {Task} "
                                   "between two consecutive activities of their route?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que la tâche {Task} n'est pas réalisée par un des employés "
@@ -71,7 +71,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_INS_3,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
                                   "in addition to their already-performed activities"
                                   "(even if it means changing their order)?",
@@ -85,7 +85,7 @@ QUESTIONS_TEMPLATES_LIST = [
     # Swap
     QuestionTemplate(
         id=WHY_NOT_SWP_1,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task1} "
                                   "in place of the task {Task2}?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task1} "
@@ -96,7 +96,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_SWP_2A,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
                                   "in place of any of their already-performed tasks?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
@@ -106,7 +106,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_SWP_2B,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing any non-performed task "
                                   "in place of any of their already-performed tasks?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas une tâche non-réalisée "
@@ -117,7 +117,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_SWP_2C,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is any employee is not performing the task {Task} "
                                   "in place of any of their already-performed tasks?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce qu'un employé ne réalise pas la tâche {Task} "
@@ -127,7 +127,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_SWP_3,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
                                   "instead of any of their already-performed tasks"
                                   "(even if it means changing their order)?",
@@ -141,7 +141,7 @@ QUESTIONS_TEMPLATES_LIST = [
     # Reordering
     QuestionTemplate(
         id=WHY_NOT_ORD_LAT_1,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task1} "
                                   "later in their route, just after the task {Task2}?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task1} "
@@ -153,7 +153,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_ORD_EAR_1,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task1} "
                                   "earlier in their route, just before the task {Task2}?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task1} "
@@ -165,7 +165,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_ORD_LAT_2,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
                                   "later in their route?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
@@ -175,7 +175,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_ORD_EAR_2,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
                                   "earlier in their route?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
@@ -185,7 +185,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_ORD_2,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
                                   "at another position in their route?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
@@ -195,7 +195,7 @@ QUESTIONS_TEMPLATES_LIST = [
     ),
     QuestionTemplate(
         id=WHY_NOT_ORD_3,
-        texts={
+        all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the activities "
                                   "of their route in another order?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas les activités "

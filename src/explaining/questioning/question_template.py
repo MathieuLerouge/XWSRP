@@ -18,13 +18,13 @@ RETURN_VALUE = COMING_BACK_HOME_STRING
 # Class QuestionTemplate
 class QuestionTemplate:
 
-    def __init__(self, id: str, texts: dict[str, str], fields_assumptions: list[FieldAssumptions]):
+    def __init__(self, id: str, all_texts: dict[str, str], fields_assumptions: list[FieldAssumptions]):
         self._language = LANGUAGE_ENGLISH_KEY
         self._supported_languages = [LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY]
         self._id = id
-        self._texts = texts
-        check_texts_and_assumptions_consistency(texts, fields_assumptions, raise_error=True)
-        self._text = self._texts[self._language]
+        self._all_texts = all_texts
+        check_texts_and_assumptions_consistency(all_texts, fields_assumptions, raise_error=True)
+        self._text = self._all_texts[self._language]
         self._nb_fields = len(fields_assumptions)
         self._fields_assumptions = fields_assumptions
         self._update_fields_information()
@@ -77,7 +77,7 @@ class QuestionTemplate:
             raise ValueError(f"The language {language_key} is not supported,"
                              f"supported languages are {self.supported_languages}")
         self._language = language_key
-        self._text = self._texts[self._language]
+        self._text = self._all_texts[self._language]
         self._update_fields_information()
         self._update_text_with_default_fields_values()
 
@@ -152,8 +152,9 @@ class QuestionTemplate:
                 employee_field_index = field_assumptions.field_index_of_employee_not_performing_this_field_activity
                 if employee_field_index in other_fields_values.keys():
                     employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
-                    possible_tasks = [task for task in possible_tasks if (not solution.get_task_performance_status(task) or
-                                                                          solution.get_task_assignee(task) != employee)]
+                    possible_tasks = \
+                        [task for task in possible_tasks if (not solution.get_task_performance_status(task)
+                                                             or solution.get_task_assignee(task) != employee)]
             return [task.name for task in possible_tasks]
         # Case where the field must be an activity name
         elif field_assumptions.must_refer_to_activity:
