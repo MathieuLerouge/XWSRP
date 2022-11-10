@@ -22,11 +22,11 @@ class QuestionTemplate:
         self._language = LANGUAGE_ENGLISH_KEY
         self._supported_languages = [LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY]
         self._id = id
+        self._nb_fields = len(fields_assumptions)
+        self._fields_assumptions = fields_assumptions
         self._all_texts = all_texts
         check_texts_and_assumptions_consistency(all_texts, fields_assumptions, raise_error=True)
         self._text = self._all_texts[self._language]
-        self._nb_fields = len(fields_assumptions)
-        self._fields_assumptions = fields_assumptions
         self._update_fields_information()
         self._update_text_with_default_fields_values()
 
@@ -63,6 +63,16 @@ class QuestionTemplate:
     @property
     def fields_keys(self):
         return [information['key'] for information in self._fields_information]
+
+    @property
+    def all_texts(self):
+        current_language = self._language
+        texts = dict()
+        for language, text in self._all_texts.items():
+            self.set_language(language)
+            texts[language] = self._text
+        self.set_language(current_language)
+        return texts
 
     @property
     def text(self):

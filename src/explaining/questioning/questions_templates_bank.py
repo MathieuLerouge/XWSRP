@@ -207,10 +207,12 @@ QUESTIONS_TEMPLATES_LIST = [
 QUESTIONS_TEMPLATES = dict([(template.id, template) for template in QUESTIONS_TEMPLATES_LIST])
 
 # Run some tests
+
 if __name__ == '__main__':
     for template in QUESTIONS_TEMPLATES.values():
         print(template)
         print(template.fields_keys)
+        print(template.all_texts)
         print(template.text)
         template.set_language(LANGUAGE_FRENCH_KEY)
         print(template.text)
