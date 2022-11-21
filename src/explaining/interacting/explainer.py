@@ -27,6 +27,7 @@ class Explainer:
     ]
 
     def __init__(self, solution: Solution):
+        self._language_key = LANGUAGE_ENGLISH_KEY
         self._activated_questions_templates = dict([(id, QUESTIONS_TEMPLATES[id]) for id in QUESTIONS_TEMPLATES.keys()
                                                     if id in self._available_questions_templates_ids])
         self._root_solution = EditableSolution.from_Solution(solution)
@@ -43,6 +44,27 @@ class Explainer:
         self._last_scenario_explanation = None
         self._counterfactual_explanations_are_enabled = False
         self._last_counterfactual_explanation = None
+
+    ############
+    # Language #
+    ############
+
+    @property
+    def language(self):
+        return self._language_key
+
+    def set_language(self, language_key: str):
+        self._language_key = language_key
+        for question_template in self._activated_questions_templates.values():
+            question_template.set_language(language_key)
+        # for explanation in [self._last_contrastive_explanation, self._last_scenario_explanation,
+        #                     self.last_counterfactual_explanation]:
+        #     if isinstance(explanation, Explanation):
+        #         explanation.set_language(language_key)
+
+    @language.setter
+    def language(self, language_key: str):
+        self.set_language(language_key)
 
     #################################
     # Current instance and solution #
@@ -74,7 +96,9 @@ class Explainer:
 
     def activate_question_template(self, question_template_id: str):
         if question_template_id in self._available_questions_templates_ids:
-            self._activated_questions_templates[question_template_id] = QUESTIONS_TEMPLATES[question_template_id]
+            question_template = QUESTIONS_TEMPLATES[question_template_id]
+            question_template.set_language(self._language_key)
+            self._activated_questions_templates[question_template_id] = question_template
 
     def activate_questions_templates(self, questions_templates_ids: list[str]):
         for question_template_id in questions_templates_ids:
