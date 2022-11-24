@@ -2,11 +2,14 @@
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.utils.constants import LINE_BREAK_STRING
+from src.utils.language import LANGUAGE_ENGLISH_KEY, check_if_language_is_english, check_if_language_is_french
+from src.utils.time import convert_nb_minutes_to_time_string, TWELVE_HOURS_FORMAT, convert_time_string_in_given_format, \
+    get_hour_format_associated_with_language
 
 
-# Class InstanceChanges
-from src.utils.time import convert_nb_minutes_to_time_string
-
+#########################
+# Class InstanceChanges #
+#########################
 
 class InstanceChanges:
 
@@ -29,20 +32,20 @@ class InstanceChanges:
         return len(self._employees_params)
 
     def add_employee_change(self, employee: Employee, start_time_LB: int = None, end_time_UB: int = None,
-                            skill_level: int = None):
+                            skill_level: int = None, hour_format: str = TWELVE_HOURS_FORMAT):
         if not (start_time_LB is None and end_time_UB is None and skill_level is None):
             if employee.name not in self._employees_changed_params:
                 self._employees_params[employee.name] = \
                     dict(start_time_LB=employee.start_time_LB, end_time_UB=employee.end_time_UB,
                          skill_level=employee.skill_level)
                 self._employees_params_as_strings[employee.name] = \
-                    dict(start_time_LB=employee.get_start_time_LB(as_integer=False),
-                         end_time_UB=employee.get_end_time_UB(as_integer=False),
+                    dict(start_time_LB=employee.get_start_time_LB(False, hour_format),
+                         end_time_UB=employee.get_end_time_UB(False, hour_format),
                          skill_level=str(employee.skill_level))
                 start_time_LB_as_string = (None if start_time_LB is None
-                                           else convert_nb_minutes_to_time_string(start_time_LB))
+                                           else convert_nb_minutes_to_time_string(start_time_LB, hour_format))
                 end_time_UB_as_string = (None if end_time_UB is None
-                                         else convert_nb_minutes_to_time_string(end_time_UB))
+                                         else convert_nb_minutes_to_time_string(end_time_UB, hour_format))
                 self._employees_changed_params[employee.name] = \
                     dict(start_time_LB=start_time_LB, end_time_UB=end_time_UB, skill_level=skill_level)
                 self._employees_changed_params_as_strings[employee.name] = \
@@ -53,11 +56,11 @@ class InstanceChanges:
                 if start_time_LB is not None:
                     self._employees_changed_params[employee.name]['start_time_LB'] = start_time_LB
                     self._employees_changed_params_as_strings[employee.name]['start_time_LB'] = \
-                        convert_nb_minutes_to_time_string(start_time_LB)
+                        convert_nb_minutes_to_time_string(start_time_LB, hour_format)
                 if end_time_UB is not None:
                     self._employees_changed_params[employee.name]['end_time_UB'] = end_time_UB
                     self._employees_changed_params_as_strings[employee.name]['end_time_UB'] = \
-                        convert_nb_minutes_to_time_string(end_time_UB)
+                        convert_nb_minutes_to_time_string(end_time_UB, hour_format)
                 if skill_level is not None:
                     self._employees_changed_params[employee.name]['skill_level'] = skill_level
                     self._employees_changed_params_as_strings[employee.name]['skill_level'] = str(skill_level)
@@ -91,7 +94,7 @@ class InstanceChanges:
         return len(self._tasks_original_params)
 
     def add_task_change(self, task: Task, duration: int = None, start_time_LB: int = None, end_time_UB: int = None,
-                        skill_level: int = None):
+                        skill_level: int = None, hour_format: str = TWELVE_HOURS_FORMAT):
         if not (duration is None and start_time_LB is None and end_time_UB is None and skill_level is None):
             if task.name not in self._tasks_changed_params:
                 self._tasks_original_params[task.name] = \
@@ -99,16 +102,16 @@ class InstanceChanges:
                          end_time_UB=task.end_time_UB, skill_level=task.skill_level)
                 self._tasks_original_params_as_strings[task.name] = \
                     dict(duration=task.get_duration(as_integer=False),
-                         start_time_LB=task.get_start_time_LB(as_integer=False),
-                         end_time_UB=task.get_end_time_UB(as_integer=False),
+                         start_time_LB=task.get_start_time_LB(False, hour_format),
+                         end_time_UB=task.get_end_time_UB(False, hour_format),
                          skill_level=str(task.skill_level))
                 self._tasks_changed_params[task.name] = \
                     dict(duration=duration, start_time_LB=start_time_LB,
                          end_time_UB=end_time_UB, skill_level=skill_level)
                 start_time_LB_as_string = (None if start_time_LB is None
-                                           else convert_nb_minutes_to_time_string(start_time_LB))
+                                           else convert_nb_minutes_to_time_string(start_time_LB, hour_format))
                 end_time_UB_as_string = (None if end_time_UB is None
-                                         else convert_nb_minutes_to_time_string(end_time_UB))
+                                         else convert_nb_minutes_to_time_string(end_time_UB, hour_format))
                 self._tasks_changed_params_as_strings[task.name] = \
                     dict(duration=None if duration is None else str(duration)+"min",
                          start_time_LB=None if start_time_LB is None else start_time_LB_as_string,
@@ -121,11 +124,11 @@ class InstanceChanges:
                 if start_time_LB is not None:
                     self._tasks_changed_params[task.name]['start_time_LB'] = start_time_LB
                     self._tasks_changed_params_as_strings[task.name]['start_time_LB'] = \
-                        convert_nb_minutes_to_time_string(start_time_LB)
+                        convert_nb_minutes_to_time_string(start_time_LB, hour_format)
                 if end_time_UB is not None:
                     self._tasks_changed_params[task.name]['end_time_UB'] = end_time_UB
                     self._tasks_changed_params_as_strings[task.name]['end_time_UB'] = \
-                        convert_nb_minutes_to_time_string(end_time_UB)
+                        convert_nb_minutes_to_time_string(end_time_UB, hour_format)
                 if skill_level is not None:
                     self._tasks_changed_params[task.name]['skill_level'] = skill_level
                     self._tasks_changed_params_as_strings[task.name]['skill_level'] = str(skill_level)
@@ -160,36 +163,79 @@ class InstanceChanges:
     def get_task_skill_level_by_name(self, task_name: str):
         return self._tasks_changed_params[task_name]['skill_level']
 
-    def as_list_of_strings(self, starting_with_uppercase: bool = False):
+    def as_list_of_strings(self, starting_with_uppercase: bool = False, language: str = LANGUAGE_ENGLISH_KEY):
+        hour_format = get_hour_format_associated_with_language(language)
         changes_texts = []
-        employee_parameters_names = dict(start_time_LB="earliest working time", end_time_UB="latest working time",
-                                         skill_level="skill level")
+        if check_if_language_is_english(language):
+            employee_parameters_names = dict(start_time_LB="earliest working time", end_time_UB="latest working time",
+                                             skill_level="skill level")
+            task_parameters_names = dict(start_time_LB="earliest start time", end_time_UB="latest end time",
+                                         duration="duration", skill_level="skill level")
+        elif check_if_language_is_french(language):
+            employee_parameters_names = dict(start_time_LB="heure de début de journée travail",
+                                             end_time_UB="heure de fin de journée de travail",
+                                             skill_level="niveau de compétence level")
+            task_parameters_names = dict(start_time_LB="heure de début de disponibilité",
+                                         end_time_UB="heure de fin de disponibilité",
+                                         duration="durée", skill_level="niveau de compétence exigée")
+        else:
+            raise NotImplementedError(f"Language {language} is not supported")
         for employee_name, changes in self._employees_changed_params_as_strings.items():
             for parameter, value in changes.items():
                 if value is not None:
-                    text = f"{'The' if starting_with_uppercase else 'the'} " \
-                           f"{employee_parameters_names[parameter]} of {employee_name} is changed " \
-                           f"to {value} instead of {self._employees_params_as_strings[employee_name][parameter]}"
+                    if check_if_language_is_english(language):
+                        text = f"{'The' if starting_with_uppercase else 'the'} " \
+                               f"{employee_parameters_names[parameter]} of {employee_name} is changed " \
+                               f"to {value} instead of {self._employees_params_as_strings[employee_name][parameter]}"
+                    elif check_if_language_is_french(language):
+                        original_value = self._employees_params_as_strings[employee_name][parameter]
+                        if parameter == 'start_time_LB' or parameter == 'end_time_UB':
+                            value = convert_time_string_in_given_format(value, hour_format)
+                            original_value = convert_time_string_in_given_format(original_value, hour_format)
+                        text = f"{'La donnée' if starting_with_uppercase else 'la donnée'} " \
+                               f"'{employee_parameters_names[parameter]}' de {employee_name} vaut " \
+                               f"{value} au lieu de {original_value}"
+                    else:
+                        raise NotImplementedError(f"Language {language} is not supported")
                     changes_texts.append(text)
-        task_parameters_names = dict(start_time_LB="earliest start time", end_time_UB="latest end time",
-                                     duration="duration", skill_level="skill level")
         for task_name, changes in self._tasks_changed_params_as_strings.items():
             for parameter, value in changes.items():
                 if value is not None:
-                    text = f"{'The' if starting_with_uppercase else 'the'} " \
-                           f"{task_parameters_names[parameter]} of {task_name} is changed " \
-                           f"to {value} instead of {self._tasks_original_params_as_strings[task_name][parameter]}"
+                    if check_if_language_is_english(language):
+                        text = f"{'The' if starting_with_uppercase else 'the'} " \
+                               f"{task_parameters_names[parameter]} of {task_name} is changed " \
+                               f"to {value} instead of {self._tasks_original_params_as_strings[task_name][parameter]}"
+                    elif check_if_language_is_french(language):
+                        original_value = self._tasks_original_params_as_strings[task_name][parameter]
+                        if parameter == 'start_time_LB' or parameter == 'end_time_UB':
+                            value = convert_time_string_in_given_format(value, hour_format)
+                            original_value = convert_time_string_in_given_format(original_value, hour_format)
+                        text = f"{'La donnée' if starting_with_uppercase else 'la donnée'} " \
+                               f"'{task_parameters_names[parameter]}' de {task_name} vaut " \
+                               f"{value} au lieu de {original_value}"
+                    else:
+                        raise NotImplementedError(f"Language {language} is not supported")
                     changes_texts.append(text)
         return changes_texts
 
-    def as_string(self, starting_with_uppercase: bool = False):
+    def as_string(self, starting_with_uppercase: bool = False, language: str = LANGUAGE_ENGLISH_KEY):
         text = ""
         if self.nb_changes > 1:
-            for change_text in self.as_list_of_strings(starting_with_uppercase):
-                text += f"- {change_text};{LINE_BREAK_STRING}"
-            text = text.removesuffix(LINE_BREAK_STRING).removesuffix(';') + ". "
+            for change_text in self.as_list_of_strings(starting_with_uppercase, language):
+                text += f"- {change_text}"
+                if check_if_language_is_english(language):
+                    text += ";"
+                elif check_if_language_is_french(language):
+                    text += " ;"
+                else:
+                    raise NotImplementedError(f"Language {language} is not supported")
+                text += LINE_BREAK_STRING
+            if check_if_language_is_english(language):
+                text = text.removesuffix(LINE_BREAK_STRING).removesuffix(';') + ". "
+            elif check_if_language_is_french(language):
+                text = text.removesuffix(LINE_BREAK_STRING).removesuffix(' ;') + ". "
         elif self.nb_changes == 1:
-            text += self.as_list_of_strings(starting_with_uppercase)[0] + ". "
+            text += self.as_list_of_strings(starting_with_uppercase, language)[0] + ". "
         return text
 
     def __repr__(self):

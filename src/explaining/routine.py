@@ -11,8 +11,9 @@ from src.explaining.questioning.questions_templates_bank import WHY_NOT_INS_1, W
     QUESTIONS_TEMPLATES
 from src.explaining.writing.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.reading.solution import extract_solution_from_file
-from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH, LANGUAGE_FRENCH_KEY
-from src.utils.files import get_project_directory_path, get_solutions_files_paths, make_absolute_path
+from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH
+from src.utils.language import LANGUAGE_FRENCH_KEY
+from src.utils.files import get_project_directory_path, get_solutions_files_paths
 
 
 def get_demo_solution_path():

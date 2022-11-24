@@ -430,8 +430,8 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
                 alterations.add_task_change(
                     task,
                     int(task.duration - self.vars_D_dt_t[task_key].x) if self.vars_X_dt_t[task_key].x == 1 else None,
-                    int(task.start_time_LB - self.vars_D_LB_t[task_key].x) if self.vars_X_LB_t[
-                                                                                  task_key].x == 1 else None,
+                    (int(task.start_time_LB - self.vars_D_LB_t[task_key].x)
+                     if self.vars_X_LB_t[task_key].x == 1 else None),
                     int(task.end_time_UB + self.vars_D_UB_t[task_key].x) if self.vars_X_UB_t[task_key].x == 1 else None,
                     None
                 )

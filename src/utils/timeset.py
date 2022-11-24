@@ -4,7 +4,7 @@
 
 # Local libraries
 from src.utils.intset import IntInterval, IntIntervalUnion
-from src.utils.time import convert_nb_minutes_to_time_string
+from src.utils.time import convert_nb_minutes_to_time_string, TWELVE_HOURS_FORMAT
 
 
 # Class TimeInterval
@@ -14,12 +14,15 @@ class TimeInterval(IntInterval):
     def from_IntInterval(cls, interval: IntInterval):
         return cls(interval.lower_bound, interval.upper_bound)
 
-    def __repr__(self):
+    def as_string(self, hour_format: str = TWELVE_HOURS_FORMAT):
         if self.is_empty():
             return "Ø"
         else:
-            return f"[{convert_nb_minutes_to_time_string(self._lower_bound)};" \
-                   f"{convert_nb_minutes_to_time_string(self._upper_bound)}]"
+            return f"[{convert_nb_minutes_to_time_string(self._lower_bound, hour_format)};" \
+                   f"{convert_nb_minutes_to_time_string(self._upper_bound, hour_format)}]"
+
+    def __repr__(self):
+        return self.as_string()
 
     def intersect(self, interval):
         return self.from_IntInterval(super().intersect(interval))
@@ -40,6 +43,12 @@ class TimeIntervalUnion(IntIntervalUnion):
     @classmethod
     def from_IntIntervalUnion(cls, union: IntIntervalUnion):
         return cls(union.intervals)
+
+    def as_string(self, hour_format: str = TWELVE_HOURS_FORMAT):
+        if self.is_empty():
+            return "Ø"
+        else:
+            return "U".join([interval.as_string(hour_format) for interval in self._intervals])
 
 
 # Main function

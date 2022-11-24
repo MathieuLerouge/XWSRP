@@ -50,6 +50,14 @@ class Question:
     def language(self, language_key: str):
         self.set_language(language_key)
 
+    @property
+    def language_is_english(self):
+        return self.template.language_is_english
+
+    @property
+    def language_is_french(self):
+        return self.template.language_is_french
+
     def to_dict(self):
         return {'solution': self.solution.to_dict(with_tasks_performances=False),
                 'template id': self.template.id, 'fields values': self.fields_values}
@@ -93,7 +101,12 @@ class ScenarioQuestion(Question):
 
     @property
     def text(self):
-        return "What if the instance is changed? " + self._contrastive_question.text
+        if self._contrastive_question.language_is_english:
+            return "What if the instance is changed? " + self._contrastive_question.text
+        elif self._contrastive_question.language_is_french:
+            return "Et si l'instance est modifiée ? " + self._contrastive_question.text
+        else:
+            raise NotImplementedError(f"Language {self.language} not supported")
 
     def set_language(self, language_key):
         self._contrastive_question.set_language(language_key)
@@ -114,7 +127,12 @@ class CounterfactualQuestion(Question):
 
     @property
     def text(self):
-        return "How to change the instance to make it possible? " + self._contrastive_question.text
+        if self._contrastive_question.language_is_english:
+            return "How to change the instance to make it possible? " + self._contrastive_question.text
+        elif self._contrastive_question.language_is_french:
+            return "Comment modifier l'instance pour que cela soit possible ? " + self._contrastive_question.text
+        else:
+            raise NotImplementedError(f"Language {self.language} not supported")
 
     def set_language(self, language_key):
         self._contrastive_question.set_language(language_key)

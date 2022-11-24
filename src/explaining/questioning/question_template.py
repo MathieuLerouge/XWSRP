@@ -7,7 +7,7 @@ from src.modeling.comeback import COMING_BACK_HOME_STRING
 from src.modeling.departure import LEAVING_HOME_STRING
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.utils.constants import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
+from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 # Global variable
 TEMPLATE_FIELD_DEFAULT_VALUE = "_"
@@ -98,6 +98,14 @@ class QuestionTemplate:
     @language.setter
     def language(self, language_key: str):
         self.set_language(language_key)
+
+    @property
+    def language_is_english(self):
+        return self._language == LANGUAGE_ENGLISH_KEY
+
+    @property
+    def language_is_french(self):
+        return self._language == LANGUAGE_FRENCH_KEY
 
     def complete_text_with_fields_values(self, fields_values: Union[dict[int, str], list[str]]):
         if isinstance(fields_values, list):

@@ -7,9 +7,9 @@ from src.modeling.solution import Solution
 from src.explaining.questioning.question import Question, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
 from src.explaining.answering.explanations_templates_bank import EXPLANATIONS_TEMPLATES
 from src.explaining.transforming.infeasibility import Infeasibility, SkillInfeasibility, TimeInfeasibility
-from src.utils.constants import LINE_BREAK_STRING, LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
-from src.utils.time import convert_nb_minutes_to_time_string
-
+from src.utils.constants import LINE_BREAK_STRING
+from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
+from src.utils.time import convert_nb_minutes_to_time_string, get_hour_format_associated_with_language
 
 # Global variables
 QUESTION_KEY = 'question'
@@ -38,21 +38,21 @@ def emphasize(text: str, make_bold: bool = False):
 
 
 def create_explanation(question: Question, support_solution: Solution, infeasibility: Infeasibility,
-                       description_of_applied_transformation: str, instance_alterations: InstanceChanges = None):
+                       all_descriptions_of_applied_transformation: dict[str, str], instance_alterations: InstanceChanges = None):
     if infeasibility is None:
         if support_solution > question.solution:
             return PositiveExplanation(question, support_solution,
-                                       description_of_applied_transformation, instance_alterations)
+                                       all_descriptions_of_applied_transformation, instance_alterations)
         else:
             return NonImprovingNegativeExplanation(question, support_solution,
-                                                   description_of_applied_transformation, instance_alterations)
+                                                   all_descriptions_of_applied_transformation, instance_alterations)
     else:
         if isinstance(infeasibility, SkillInfeasibility):
             return SkillNegativeExplanation(question, support_solution, infeasibility,
-                                            description_of_applied_transformation, instance_alterations)
+                                            all_descriptions_of_applied_transformation, instance_alterations)
         elif isinstance(infeasibility, TimeInfeasibility):
             return TimeNegativeExplanation(question, support_solution, infeasibility,
-                                           description_of_applied_transformation, instance_alterations)
+                                           all_descriptions_of_applied_transformation, instance_alterations)
         else:
             raise TypeError(f"There is a problem with the type of infeasibility which is {type(infeasibility)}")
 
@@ -63,8 +63,8 @@ def create_explanation_from_dict(dictionary, solution: Solution):
     infeasibility = None
     if INFEASIBILITY_KEY in dictionary:
         infeasibility = Infeasibility.from_dict(dictionary[INFEASIBILITY_KEY], solution.instance)
-    transformation_description = dictionary[TRANSFORMATION_KEY]
-    return create_explanation(question, support_solution, infeasibility, transformation_description)
+    all_descriptions_of_applied_trasnformation = dictionary[TRANSFORMATION_KEY]
+    return create_explanation(question, support_solution, infeasibility, all_descriptions_of_applied_trasnformation)
 
 
 ###############
@@ -76,7 +76,8 @@ def create_explanation_from_dict(dictionary, solution: Solution):
 class Explanation:
 
     def __init__(self, question: Question, support_solution: Solution,
-                 description_of_applied_transformation: str = None, instance_alterations: InstanceChanges = None):
+                 all_descriptions_of_applied_transformation: dict[str, str] = None,
+                 instance_alterations: InstanceChanges = None):
         self._question = question
         self._support_solution = support_solution
         self._is_based_on_most_relevant_neighboring_solution = (question.template.id[-1] != '1')
@@ -89,7 +90,8 @@ class Explanation:
             [(id, complete_expression_with_field_values(expression, fields_key_value_map))
              for (id, expression) in template.typical_expressions.items()]
         )
-        self._typical_expressions['applying_support_solution_transformation'] = description_of_applied_transformation
+        self._typical_expressions['applying_support_solution_transformation'] = \
+            all_descriptions_of_applied_transformation
         self._text = self._compute_text()
 
     ############
@@ -107,6 +109,10 @@ class Explanation:
     @property
     def language_is_french(self):
         return self.language == LANGUAGE_FRENCH_KEY
+
+    @property
+    def _hour_format(self):
+        return get_hour_format_associated_with_language(self.language)
 
     ############
     # Question #
@@ -159,7 +165,7 @@ class Explanation:
 
     @property
     def applying_support_solution_transformation(self):
-        return self._typical_expressions['applying_support_solution_transformation']
+        return self._typical_expressions['applying_support_solution_transformation'][self.language]
 
     @property
     def _the_fact(self):
@@ -235,8 +241,8 @@ class Explanation:
                     f"{current_solution.total_traveling_duration}min"
         elif self.language_is_french:
             text += f"{'La' if start_with_cap else 'la'} durée totale de déplacement de la nouvelle solution est " \
-                    f"{new_solution.total_working_duration}min tandis que celle de la solution courante est " \
-                    f"{current_solution.total_working_duration}min"
+                    f"{new_solution.total_traveling_duration}min tandis que celle de la solution courante est " \
+                    f"{current_solution.total_traveling_duration}min"
         return text
 
     def to_dict(self):
@@ -245,7 +251,7 @@ class Explanation:
             SUPPORT_SOLUTION_KEY: self.support_solution.to_dict(with_sequences=not self.support_solution_is_feasible)
         }
         if self.applying_support_solution_transformation is not None:
-            dictionary[TRANSFORMATION_KEY] = self.applying_support_solution_transformation
+            dictionary[TRANSFORMATION_KEY] = self._typical_expressions['applying_support_solution_transformation']
         return dictionary
 
 
@@ -293,7 +299,7 @@ class PositiveExplanation(Explanation):
                         f"{'s are ' if self._instance_alterations.nb_changes > 1 else ' is '}" \
                         f"applied to the instance: " \
                         f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                        f"{self._instance_alterations.as_string()}"\
+                        f"{self._instance_alterations.as_string(language=self.language)}"\
                         f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
                         f"Then, {self._having_the_foil} becomes interesting.{LINE_BREAK_STRING}" \
                         f"Indeed, "
@@ -304,7 +310,7 @@ class PositiveExplanation(Explanation):
                         f"soi{'en' if self._instance_alterations.nb_changes > 1 else ''}t " \
                         f"appliqué{'s' if self._instance_alterations.nb_changes > 1 else ''} à l'instance : " \
                         f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                        f"{self._instance_alterations.as_string()}"\
+                        f"{self._instance_alterations.as_string(language=self.language)}"\
                         f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
                         f"Alors, {self._having_the_foil} devient intéressant.{LINE_BREAK_STRING}" \
                         f"En effet, "
@@ -321,11 +327,10 @@ class PositiveExplanation(Explanation):
         else:
             if self.language_is_english:
                 text += f"by {self._applying_the_foil_transformation} to the current solution, " \
-                        f"a new feasible solution can be found that is better than the current one:"
+                        f"we obtain a new feasible solution that is better than the current one:"
             elif self.language_is_french:
-                text += f"en {self._applying_the_foil_transformation} à la solution courante, " \
-                        f"une nouvelle solution réalisable peut être trouvée " \
-                        f"qui est meilleure que la solution courante :"
+                text += f"en {self._applying_the_foil_transformation} dans la solution courante, " \
+                        f"on obtient une nouvelle solution réalisable qui est meilleure que la solution courante :"
         text += f"{LINE_BREAK_STRING}" \
                 f"- {self._compare_total_working_duration()};{LINE_BREAK_STRING}" \
                 f"- {self._compare_total_traveling_duration()}."
@@ -386,7 +391,7 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
                             f"{'s are ' if self._instance_alterations.nb_changes > 1 else ' is '}" \
                             f"applied to the instance: " \
                             f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"{self._instance_alterations.as_string()}"\
+                            f"{self._instance_alterations.as_string(language=self.language)}"\
                             f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
                             f"Then, {self._having_the_foil} remains not interesting.{LINE_BREAK_STRING}"
                 elif self.language_is_french:
@@ -396,7 +401,7 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
                             f"soi{'en' if self._instance_alterations.nb_changes > 1 else ''}t " \
                             f"appliqué{'s' if self._instance_alterations.nb_changes > 1 else ''} à l'instance : " \
                             f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"{self._instance_alterations.as_string()}"\
+                            f"{self._instance_alterations.as_string(language=self.language)}"\
                             f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
                             f"Alors, {self._having_the_foil} n'est toujours pas intéressant.{LINE_BREAK_STRING}"
             else:
@@ -430,7 +435,7 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
                             f"{'s are ' if self._instance_alterations.nb_changes > 1 else ' is '}" \
                             f"applied to the instance: " \
                             f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"{self._instance_alterations.as_string()}" \
+                            f"{self._instance_alterations.as_string(language=self.language)}" \
                             f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
                             f"Then, {self._having_the_foil} remains not interesting.{LINE_BREAK_STRING}" \
                             f"Indeed, "
@@ -441,7 +446,7 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
                             f"soi{'en' if self._instance_alterations.nb_changes > 1 else ''}t " \
                             f"appliqué{'s' if self._instance_alterations.nb_changes > 1 else ''} à l'instance : " \
                             f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"{self._instance_alterations.as_string()}" \
+                            f"{self._instance_alterations.as_string(language=self.language)}" \
                             f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
                             f"Alors, {self._having_the_foil} n'est toujours pas intéressant.{LINE_BREAK_STRING}" \
                             f"En effet, "
@@ -498,9 +503,9 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
 class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 
     def __init__(self, question: Question, support_solution: Solution, infeasibility: SkillInfeasibility,
-                 description_of_applied_transformation: str = None, instance_alterations: InstanceChanges = None):
+                 all_descriptions_of_applied_transformation: dict[str, str] = None, instance_alterations: InstanceChanges = None):
         super().__init__(question, support_solution, infeasibility,
-                         description_of_applied_transformation, instance_alterations)
+                         all_descriptions_of_applied_transformation, instance_alterations)
 
     def _compute_text(self, with_bold_emphasis: bool = False):
         employee = self._conflicting_employee
@@ -553,9 +558,9 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 class TimeNegativeExplanation(InfeasibleNegativeExplanation):
 
     def __init__(self, question: Question, support_solution: Solution, infeasibility: TimeInfeasibility,
-                 description_of_applied_transformation: str = None, instance_alterations: InstanceChanges = None):
+                 all_descriptions_of_applied_transformation: dict[str, str] = None, instance_alterations: InstanceChanges = None):
         super().__init__(question, support_solution, infeasibility,
-                         description_of_applied_transformation, instance_alterations)
+                         all_descriptions_of_applied_transformation, instance_alterations)
         self._infeasibility = infeasibility
 
     @property
@@ -584,6 +589,7 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
         # General explanation #
         #######################
 
+        hour_format = self._hour_format
         new_solution = self._support_solution
         text = ""
         if self.is_contrastive:
@@ -633,7 +639,7 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
             if self.language_is_english:
                 text += f"By performing {task.name} at the earliest possible time after leaving home, "
             elif self.language_is_french:
-                text += f"En réalisant {task.name} le plus tôt possible après avoir quitter son domicile, "
+                text += f"En réalisant {task.name} le plus tôt possible après avoir quitté son domicile, "
         elif upstream_critical_step_index == 0:
             if self.language_is_english:
                 text += f"By performing all the activities from home to {task.name} at the earliest possible time, "
@@ -660,52 +666,52 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
         # - Part of the text about time conflict at task with upstream steps (if upstream-infeasible)
         if not self._solution_is_upstream_feasible:
             earliest_end_time = self._earliest_upstream_feasible_start_time_of_conflicting_task + task.duration
-            earliest_end_time = convert_nb_minutes_to_time_string(earliest_end_time)
+            earliest_end_time = convert_nb_minutes_to_time_string(earliest_end_time, hour_format)
             if self.language_is_english:
                 text += f"{employee.name} can end {task.name} at the earliest at {earliest_end_time}, " \
-                        f"while {task.name} must be ended by {task.get_end_time_UB(as_integer=False)}. "
+                        f"while {task.name} must be ended by {task.get_end_time_UB(False, hour_format)}. "
             elif self.language_is_french:
                 text += f"{employee.name} peut terminer {task.name} au plus tôt à {earliest_end_time}, " \
-                        f"alors que {task.name} doit être terminé avant {task.get_end_time_UB(as_integer=False)}. "
+                        f"alors que {task.name} doit être terminée avant {task.get_end_time_UB(False, hour_format)}. "
 
         # - Part of the text about time conflict at task with downstream steps (if downstream-infeasible)
         else:
             earliest_start_time = self._earliest_upstream_feasible_start_time_of_conflicting_task
-            earliest_start_time = convert_nb_minutes_to_time_string(earliest_start_time)
+            earliest_start_time = convert_nb_minutes_to_time_string(earliest_start_time, hour_format)
             latest_start_time = self._latest_downstream_feasible_start_time_of_conflicting_task
-            latest_start_time = convert_nb_minutes_to_time_string(latest_start_time)
+            latest_start_time = convert_nb_minutes_to_time_string(latest_start_time, hour_format)
             if self.language_is_english:
                 text += f"{employee.name} can start {task.name} at the earliest at {earliest_start_time}, " \
                         f"while {task.name} must be started at the latest at {latest_start_time} so that "
             elif self.language_is_french:
                 text += f"{employee.name} peut commencer {task.name} au plus tôt à {earliest_start_time}, " \
-                        f"alors que {task.name} doit être commencé au plus tard à {latest_start_time} pour "
+                        f"alors que {task.name} doit être commencée au plus tard à {latest_start_time} pour "
             downstream_critical_step_index = self._downstream_critical_step_index
             downstream_critical_activity = sequence[downstream_critical_step_index].activity
             if step_index == sequence.nb_steps - 2:
                 if self.language_is_english:
-                    text += f"{employee.name} can then be at home by {employee.get_end_time_UB(as_integer=False)}. "
+                    text += f"{employee.name} can then be at home by {employee.get_end_time_UB(False, hour_format)}. "
                 elif self.language_is_french:
                     text += f"permettre à {employee.name} d'être de retour à son domicile " \
-                            f"avant {employee.get_end_time_UB(as_integer=False)}. "
+                            f"avant {employee.get_end_time_UB(False, hour_format)}. "
             elif downstream_critical_step_index == sequence.nb_steps - 1:
                 if self.language_is_english:
                     text += f"{employee.name} can perform all the activities from {task.name} to home " \
-                            f"and be at home by {employee.get_end_time_UB(as_integer=False)}. "
+                            f"and be at home by {employee.get_end_time_UB(False, hour_format)}. "
                 elif self.language_is_french:
                     text += f"permettre à {employee.name} de réaliser toutes les activités à partir de {task.name} " \
-                            f"et d'être à son domicile avant {employee.get_end_time_UB(as_integer=False)}. "
+                            f"et d'être à son domicile avant {employee.get_end_time_UB(False, hour_format)}. "
             elif downstream_critical_step_index < sequence.nb_steps - 1:
                 if self.language_is_english:
                     text += f"{employee.name} can perform all the activities from {task.name} to " \
                             f"{downstream_critical_activity.name} " \
                             f"and end {downstream_critical_activity.name} " \
-                            f"by {downstream_critical_activity.get_end_time_UB(as_integer=False)}. "
+                            f"by {downstream_critical_activity.get_end_time_UB(False, hour_format)}. "
                 elif self.language_is_french:
                     text += f"permettre à {employee.name} de réaliser toutes les activités de {task.name} jusque " \
                             f"{downstream_critical_activity.name} " \
                             f"et terminer {downstream_critical_activity.name} " \
-                            f"avant {downstream_critical_activity.get_end_time_UB(as_integer=False)}. "
+                            f"avant {downstream_critical_activity.get_end_time_UB(False, hour_format)}. "
             else:
                 raise ValueError(f"There is something wrong with the downstream critical step index which value is "
                                  f"{downstream_critical_step_index} while the one of the step index is {step_index} "

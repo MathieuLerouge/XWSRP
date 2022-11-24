@@ -1,8 +1,11 @@
 # Local libraries
-from src.utils.constants import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
+from src.utils.language import LANGUAGE_ENGLISH_KEY
 
 
-# Class ExplanationTemplate
+#############################
+# Class ExplanationTemplate #
+#############################
+
 class ExplanationTemplate:
 
     def __init__(self, id: str, all_typical_expressions: dict[str, dict[str, str]]):

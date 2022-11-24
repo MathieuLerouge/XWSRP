@@ -16,9 +16,9 @@ EXPLANATIONS_TEMPLATES_LIST = [
                 applying_the_foil_transformation="inserting {Task} just after {Activity} in {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Task} n'est pas réalisé par {Employee} juste après {Activity}",
-                the_foil="{Task} est réalisé par {Employee} juste après {Activity}",
-                having_the_foil="avoir {Task} réalisé par {Employee} juste après {Activity}",
+                the_fact="{Task} n'est pas réalisée par {Employee} juste après {Activity}",
+                the_foil="{Task} est réalisée par {Employee} juste après {Activity}",
+                having_the_foil="faire que {Task} soit réalisée par {Employee} juste après {Activity}",
                 applying_the_foil_transformation="insérant {Task} juste après {Activity} dans le planning de {Employee}",
             )
         }
@@ -35,9 +35,9 @@ EXPLANATIONS_TEMPLATES_LIST = [
                           "between two consecutive activities of {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Task} n'est pas réalisé par {Employee} entre deux activités consécutives de son planning",
-                the_foil="{Task} est réalisé par {Employee} entre deux activités consécutives de son planning",
-                having_the_foil="avoir {Task} réalisé par {Employee} "
+                the_fact="{Task} n'est pas réalisée par {Employee} entre deux activités consécutives de son planning",
+                the_foil="{Task} est réalisée par {Employee} entre deux activités consécutives de son planning",
+                having_the_foil="faire que {Task} soit réalisée par {Employee} "
                                 "entre deux activités consécutives de son planning",
                 neighbors="solutions obtenues en insérant {Task} "
                           "entre deux activités consécutives du planning de {Employee}",
@@ -60,9 +60,9 @@ EXPLANATIONS_TEMPLATES_LIST = [
             LANGUAGE_FRENCH_KEY: dict(
                 the_fact="{Employee} ne réalise pas une tâche parmi les non-réalisées "
                          "entre deux activités consécutives de son planning",
-                the_foil="une tâche précédemment non-réalisée est réalisé par {Employee} "
+                the_foil="une tâche précédemment non-réalisée est réalisée par {Employee} "
                          "entre deux activités consécutives de son planning",
-                having_the_foil="avoir une tâche précédemment non-réalisée désormais réalisée par {Employee} "
+                having_the_foil="faire qu'une tâche précédemment non-réalisée soit désormais réalisée par {Employee} "
                                 "entre deux activités consécutives de son planning",
                 neighbors="solutions obtenues en insérant une tâche non-réalisée "
                           "entre deux activités consécutives du planning de {Employee}"
@@ -82,9 +82,9 @@ EXPLANATIONS_TEMPLATES_LIST = [
                           "between two consecutive activities of an employee's planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Task} n'est réalisé par aucun employé entre deux activités consécutives de leur planning",
-                the_foil="{Task} est réalisé par un employé entre deux activités consécutives de son planning",
-                having_the_foil="avoir {Task} réalisé par un employé "
+                the_fact="{Task} n'est réalisée par aucun employé entre deux activités consécutives de leur planning",
+                the_foil="{Task} est réalisée par un employé entre deux activités consécutives de son planning",
+                having_the_foil="faire que {Task} soit réalisée par un employé "
                                 "entre deux activités consécutives de son planning",
                 neighbors="solutions obtenues en insérant {Task}"
                           " entre deux activités consécutives du planning d'un employé"
@@ -101,9 +101,9 @@ EXPLANATIONS_TEMPLATES_LIST = [
                 neighbors="solutions obtained by assigning {Task} to {Employee} in addition to their activities"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Task} n'est pas réalisé par {Employee} en plus des activités de son planning",
-                the_foil="{Task} est réalisé par {Employee} en plus des activités de son planning",
-                having_the_foil="avoir {Task} est réalisé par {Employee} en plus des activités de son planning",
+                the_fact="{Task} n'est pas réalisée par {Employee} en plus des activités de son planning",
+                the_foil="{Task} est réalisée par {Employee} en plus des activités de son planning",
+                having_the_foil="faire que {Task} soit réalisée par {Employee} en plus des activités de son planning",
                 neighbors="solutions obtenues en affectant {Task} à {Employee} en plus des activités de son planning"
             )
         }
@@ -120,9 +120,9 @@ EXPLANATIONS_TEMPLATES_LIST = [
                 applying_the_foil_transformation="replacing {Task2} with {Task1} in {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Task1} n'est pas réalisé par {Employee} à la place de {Task2}",
-                the_foil="{Task1} est réalisé par {Employee} à la place de {Task2}",
-                having_the_foil="avoir {Task1} réalisé par {Employee} à la place de {Task2}",
+                the_fact="{Task1} n'est pas réalisée par {Employee} à la place de {Task2}",
+                the_foil="{Task1} est réalisée par {Employee} à la place de {Task2}",
+                having_the_foil="faire que {Task1} soit réalisée par {Employee} à la place de {Task2}",
                 applying_the_foil_transformation="remplaçant {Task1} par {Task2} dans le planning {Employee}"
             )
         }
@@ -137,9 +137,9 @@ EXPLANATIONS_TEMPLATES_LIST = [
                 neighbors="solutions obtained by replacing a task in {Employee}'s planning with {Task}"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Task} n'est pas réalisé par {Employee} à la place d'une tâche de son planning",
-                the_foil="{Task} est réalisé par {Employee} à la place d'une tâche de son planning",
-                having_the_foil="faire que {Task} soit réalisé par {Employee} à la place d'une tâche de son planning",
+                the_fact="{Task} n'est pas réalisée par {Employee} à la place d'une tâche de son planning",
+                the_foil="{Task} est réalisée par {Employee} à la place d'une tâche de son planning",
+                having_the_foil="faire que {Task} soit réalisée par {Employee} à la place d'une tâche de son planning",
                 neighbors="solutions obtenues en remplaçant une tâche dans le planning de {Employee} par {Task}"
             )
         }
@@ -175,9 +175,9 @@ EXPLANATIONS_TEMPLATES_LIST = [
                 neighbors="solutions obtained by swapping {Task} with one of the tasks performed by an employee"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Task} n'est réalisé par aucun employé à la place d'une tâche de son planning",
-                the_foil="{Task} est réalisé par un employé à la place d'une tâche de son planning",
-                having_the_foil="faire que {Task} soit réalisé par un employé à la place d'une tâche de son planning",
+                the_fact="{Task} n'est réalisée par aucun employé à la place d'une tâche de son planning",
+                the_foil="{Task} est réalisée par un employé à la place d'une tâche de son planning",
+                having_the_foil="faire que {Task} soit réalisée par un employé à la place d'une tâche de son planning",
                 neighbors="solutions obtenues en remplaçant {Task} par une tâche du planning d'un employé"
             )
         }
@@ -192,9 +192,9 @@ EXPLANATIONS_TEMPLATES_LIST = [
                 neighbors="solutions obtained by exchanging {Task} with one of the tasks performed by {Employee}"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Task} n'est réalisé par {Employee} à la place d'une tâche de son planning",
-                the_foil="{Task} est réalisé par {Employee} à la place d'une tâche de son planning",
-                having_the_foil="faire que {Task} soit réalisé par {Employee} à la place d'une tâche de son planning",
+                the_fact="{Task} n'est pas réalisée par {Employee} à la place d'une tâche de son planning",
+                the_foil="{Task} est réalisée par {Employee} à la place d'une tâche de son planning",
+                having_the_foil="faire que {Task} soit réalisée par {Employee} à la place d'une tâche de son planning",
                 neighbors="solutions obtenues en remplaçant une tâche dans le planning de {Employee} par {Task}"
             )
         }

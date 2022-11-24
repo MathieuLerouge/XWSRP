@@ -8,17 +8,21 @@ from src.explaining.questioning.question import ContrastiveQuestion, Counterfact
 from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.reading.explanation import import_single_explanation_from_json_file, \
     import_multiple_explanations_from_json_file
-from src.utils.files import check_inputs_file_existence
 from src.explaining.transforming.transformation import apply_induced_transformation, apply_induced_transformation_bis
 from src.explaining.writing.explanation import define_single_contrastive_explanation_json_file_name, \
     export_single_contrastive_explanation_to_json_file, define_multiple_contrastive_explanations_json_file_name, \
     export_multiple_contrastive_explanations_to_json_file
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
+from src.utils.files import check_inputs_file_existence
+from src.utils.language import check_if_language_is_english, check_if_language_is_french
 from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH, OUTPUTS_DIRECTORY_RELATIVE_PATH
 
 
-# Class Explainer
+###################
+# Class Explainer #
+###################
+
 class Explainer:
 
     _available_questions_templates_ids = [
@@ -65,6 +69,14 @@ class Explainer:
     @language.setter
     def language(self, language_key: str):
         self.set_language(language_key)
+
+    @property
+    def language_is_english(self):
+        return check_if_language_is_english(self._language_key)
+
+    @property
+    def language_is_french(self):
+        return check_if_language_is_french(self._language_key)
 
     #################################
     # Current instance and solution #
@@ -303,10 +315,10 @@ class Explainer:
         return ContrastiveQuestion(self._current_solution, question_template_id, fields_values)
 
     def _compute_contrastive_explanation(self, contrastive_question: ContrastiveQuestion):
-        contrastive_support_solution, infeasibility, description_of_applied_transformation = \
+        contrastive_support_solution, infeasibility, all_descriptions_of_applied_transformation = \
             apply_induced_transformation(self.current_solution, contrastive_question)
         contrastive_explanation = create_explanation(contrastive_question, contrastive_support_solution,
-                                                     infeasibility, description_of_applied_transformation)
+                                                     infeasibility, all_descriptions_of_applied_transformation)
         if self.is_using_already_computed_contrastive_explanations:
             self._add_contrastive_explanation_to_already_computed_ones(contrastive_explanation)
         if self.automatically_export_single_contrastive_explanations:
@@ -458,7 +470,7 @@ class Explainer:
             self._last_counterfactual_explanation = counterfactual_explanation
             return counterfactual_explanation
         else:
-            raise PermissionError("Counterfactual explanations")
+            raise PermissionError("Counterfactual explanations are not enabled")
 
     def _get_name_for_counterfactual_support_solution_instance(self):
         return self._get_name_for_scenario_support_solution_instance()

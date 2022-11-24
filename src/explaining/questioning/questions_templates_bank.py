@@ -1,7 +1,7 @@
 # Local libraries
 from src.explaining.questioning.question_template_field import *
 from src.explaining.questioning.question_template import QuestionTemplate
-from src.utils.constants import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
+from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 # Why-not / contrastive questions templates ids
 # - Insertion

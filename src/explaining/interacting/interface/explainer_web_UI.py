@@ -3,27 +3,25 @@ import pathlib
 
 # Third-party libraries
 import dash
-from dash import dcc, html, dash_table
+from dash import dcc, html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-import matplotlib.colors as predefined_colors
 import numpy as np
-import plotly.express as px
-import plotly.graph_objs as go
 
 # Local libraries
+from src.explaining.interacting.interface.figures import build_map_figure, build_routes_figure, \
+    build_schedules_figure, build_instance_metrics_figures, build_solution_metrics_figures
+from src.explaining.interacting.interface.panels import build_routes_figure_panel, build_schedules_figure_panel, \
+    build_instance_metrics_panel, build_solution_metrics_panel, build_tasks_data_panel, build_panel_banner, \
+    build_employees_data_panel
+from src.explaining.interacting.interface.tables import build_tasks_style_data_conditional, build_tasks_data, \
+    build_employees_style_data_conditional, build_employees_data
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.interacting.explainer import Explainer
-from src.explaining.transforming.infeasibility import Infeasibility, TimeInfeasibility
-from src.modeling.activity import Activity
-from src.modeling.comeback import ComeBack
-from src.modeling.departure import Departure
-from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.modeling.task import Task
 from src.utils.constants import LINE_BREAK_STRING
-from src.utils.time import convert_nb_minutes_to_time_string, convert_time_string_to_nb_minutes
+from src.utils.time import convert_time_string_to_nb_minutes, get_hour_format_associated_with_language
 
 
 ####################
@@ -38,47 +36,6 @@ def convert_from_string_to_html(text: str):
         html_text.append(html.Br())
     html_text.append(paragraphs[-1])
     return html_text
-
-
-def create_home_description_in_schedules_figure(activity: Activity, time_as_string: str):
-    if isinstance(activity, Departure):
-        text_first_line = "Leaving home"
-    elif isinstance(activity, ComeBack):
-        text_first_line = "Returning home"
-    else:
-        raise TypeError(f"The activity {activity} must either a Departure or a ComeBack")
-    return (f"<b>{text_first_line}</b><br>"
-            f"Time: <b>{time_as_string}</b><br>"
-            f"---<br>"
-            f"WH: {activity.employee.TW}<br>")
-
-
-def create_task_description_in_schedules_figure(task: Task, start_time_as_string: str, end_time_as_string: str):
-    return (f"<b>{task.name}</b><br>"
-            f"Start time: <b>{start_time_as_string}</b><br>"
-            f"End time: <b>{end_time_as_string}</b><br>"
-            f"---<br>"
-            f"Duration: {task.get_duration(as_integer=False)}<br>"
-            f"ATW: {task.TWs}<br>")
-
-
-def create_task_description_in_routes_figure(task: Task, is_performed: bool = None):
-    if is_performed is None:
-        text = (f"<b>{task.name}</b><br>"
-                f"Skill level: {task.skill_level}<br>"
-                f"Duration: {task.get_duration(as_integer=False)}<br>"
-                f"ATW: {task.TWs}<br>")
-    elif is_performed:
-        text = (f"<b>{task.name}</b> <br>"
-                f"Skill level: {task.skill_level}")
-    else:
-        text = (f"<b>{task.name}</b><br>"
-                f"Non-performed<br>"
-                f"---<br>"
-                f"Skill level: {task.skill_level}<br>"
-                f"Duration: {task.get_duration(as_integer=False)}<br>"
-                f"ATW: {task.TWs}<br>")
-    return text
 
 
 #########################
@@ -100,23 +57,6 @@ class ExplainerWebGUI:
 
     # Assets-related parameters
     _assets_path = str(pathlib.Path(__file__).parent.resolve()) + '/assets'
-
-    # Style parameters
-    # Note: these style parameters must coincide with their corresponding parameters in the .css file about style
-    _body_background_color = '#111111'
-    _font_color = '#f3f5f4'
-    _top_banner_color = '#194572'
-    _panel_banner_color = '#353535'
-    _panel_content_color = '#252525'
-    _line_color = '#4B5460'
-    _table_style_data = {'padding-left': '10px', 'border': f'1px solid {_line_color}',
-                         'backgroundColor': _body_background_color, 'hover': 'transparent',
-                         'color': _font_color, 'textAlign': 'left', 'font-family': 'sans-serif', 'fontSize': 14}
-    _table_style_header = {'padding-left': '10px', 'border': f'1px solid {_line_color}',
-                           'backgroundColor': _panel_content_color,
-                           'color': _font_color, 'textAlign': 'left', 'font-family': 'sans-serif', 'fontSize': 14}
-    _conflict_task_color = predefined_colors.TABLEAU_COLORS['tab:red']
-    _conflict_bound_color = predefined_colors.CSS4_COLORS['firebrick']
 
     def __init__(self, explainer: Explainer):
 
@@ -172,15 +112,19 @@ class ExplainerWebGUI:
             """
             Build the title banner at the top of the GUI.
             """
+            if self.language_is_english:
+                banner_subtitle = html.H6("Explainer of Workforce Scheduling and Routing Problem solutions")
+            elif self.language_is_french:
+                banner_subtitle = \
+                    html.H6("Outil d'explication des solutions de Problèmes de planification de personnel mobile")
+            else:
+                raise NotImplementedError(f"Language {self.language} is not supported")
             banner = html.Div(
                 id="title-banner",
                 children=[
                     html.Div(
                         id="title-banner-text",
-                        children=[
-                            html.H5("XWSRP"),
-                            html.H6("Explainer of Workforce Scheduling and Routing Problem solutions"),
-                        ],
+                        children=[html.H5("XWSRP"), html.H6(banner_subtitle)],
                     ),
                     html.Div(
                         id="title-banner-logo",
@@ -223,10 +167,15 @@ class ExplainerWebGUI:
                          for solution in self._explainer.get_solutions_of_instance(self.current_instance)],
                 value=self.current_solution.name, placeholder="Select current solution", clearable=False
             )
+            explorer_title = ""
+            if self.language_is_english:
+                explorer_title = "Instance & solution explorer"
+            elif self.language_is_french:
+                explorer_title = "Choix d'instance-solution"
             explorer_banner = html.Div(
                 id="explorer-banner",
                 children=[
-                    html.Div(id='explorer-banner-title', children="Instance - solution explorer"),
+                    html.Div(id='explorer-banner-title', children=explorer_title),
                     html.Div(style=dict(display='flex', flexdirection='row', flex=1),
                              children=[current_instance_dropdown, current_solution_dropdown])
                 ]
@@ -307,16 +256,30 @@ class ExplainerWebGUI:
             """
             Build the navigation tabs on the left of the GUI.
             """
+            if self.language_is_english:
+                instance_description_tab_title = "Instance description"
+                instances_comparison_tab_title = "Instances comparison"
+                solution_description_tab_title = "Solution description"
+                solutions_comparison_tab_title = "Solutions comparison"
+                explainer_tab_title = "Explainer"
+            elif self.language_is_french:
+                instance_description_tab_title = "Description de l'instance"
+                instances_comparison_tab_title = "Comparaison d'instances"
+                solution_description_tab_title = "Description de la solution"
+                solutions_comparison_tab_title = "Comparaison de solutions"
+                explainer_tab_title = "Outil d'explication"
+            else:
+                raise NotImplementedError(f"Language {self.language} is not supported")
             available_tabs = [
-                dcc.Tab(id="instance-description-tab", className="tab-button", label="Instance description",
+                dcc.Tab(id="instance-description-tab", className="tab-button", label=instance_description_tab_title,
                         value="instance-description-tab", selected_className="tab-button--selected"),
-                dcc.Tab(id="instances-comparison-tab", className="tab-button", label="Instances comparison",
+                dcc.Tab(id="instances-comparison-tab", className="tab-button", label=instances_comparison_tab_title,
                         value="instances-comparison-tab", selected_className="tab-button--selected"),
-                dcc.Tab(id="solution-description-tab", className="tab-button", label="Solution description",
+                dcc.Tab(id="solution-description-tab", className="tab-button", label=solution_description_tab_title,
                         value="solution-description-tab", selected_className="tab-button--selected"),
-                dcc.Tab(id="solutions-comparison-tab", className="tab-button", label="Solutions comparison",
+                dcc.Tab(id="solutions-comparison-tab", className="tab-button", label=solutions_comparison_tab_title,
                         value="solutions-comparison-tab", selected_className="tab-button--selected"),
-                dcc.Tab(id="explainer-tab", className="tab-button", label="Explainer",
+                dcc.Tab(id="explainer-tab", className="tab-button", label=explainer_tab_title,
                         value="explainer-tab", selected_className="tab-button--selected")
             ]
             if self._explainer.history_is_enabled:
@@ -386,29 +349,44 @@ class ExplainerWebGUI:
             By default, the instance that is described is the instance of the current solution.
             """
             instance = self.current_instance
+            if self.language_is_english:
+                employees_locations_map_title = "Employees' locations"
+                tasks_locations_map_title = "Tasks' locations"
+            elif self.language_is_french:
+                employees_locations_map_title = "Domiciles des employés"
+                tasks_locations_map_title = "Lieux des tâches"
+            else:
+                raise NotImplementedError(f"Language {self.language} is not supported")
             tab_content = html.Div(
                 id="instance-description-tab-content",
                 children=[
-                    _build_instance_metrics_panel(), _build_employees_data_panel(), _build_tasks_data_panel(),
+                    build_instance_metrics_panel(instance=self.current_instance, is_current_instance=True,
+                                                 language=self.language),
+                    build_employees_data_panel(instance=self.current_instance, is_current_instance=True,
+                                               language=self.language),
+                    build_tasks_data_panel(instance=self.current_instance, is_current_instance=True, 
+                                           language=self.language),
                     html.Div(
                         className="representation-panels-side-to-side",
                         children=[
                             html.Div(
                                 className='panel',
                                 children=[
-                                    _build_panel_banner("Employees' locations"),
+                                    build_panel_banner(employees_locations_map_title),
                                     dcc.Graph(
                                         id=f"employees-spatial-representation", className="spatial-representation",
-                                        figure=_build_map_figure(instance=instance, mode='employees'))
+                                        figure=build_map_figure(instance=instance, mode='employees',
+                                                                language=self.language))
                                 ],
                             ),
                             html.Div(
                                 className='panel',
                                 children=[
-                                    _build_panel_banner("Tasks' locations"),
+                                    build_panel_banner(tasks_locations_map_title),
                                     dcc.Graph(
                                         id=f"tasks-spatial-representation", className="spatial-representation",
-                                        figure=_build_map_figure(instance=instance, mode='tasks'))
+                                        figure=build_map_figure(instance=instance, mode='tasks',
+                                                                language=self.language))
                                 ],
                             )
                         ]
@@ -451,14 +429,28 @@ class ExplainerWebGUI:
                 - if the selection of another instance is disabled, the name of the current instance;
                 - else, a dropdown for selecting another instance to compare with the current one.
                 """
-                panel_title = f"{'Other' if enable_other_instance else 'Current'} instance"
+                if self.language_is_english:
+                    panel_title = f"{'Other' if enable_other_instance else 'Current'} instance"
+                elif self.language_is_french:
+                    panel_title = f"{'Autre instance' if enable_other_instance else 'Instance courante'}"
+                else:
+                    raise ValueError(f"Language '{self.language}' is not supported.")
                 line = _build_other_instance_dropdown() if enable_other_instance else \
                     html.Div(className='automated-text', style=dict(flex=1), children=current_instance.name)
                 panel = html.Div(
                     className='panel',
-                    children=[_build_panel_banner(panel_title), html.Div(className='panel-content', children=line)]
+                    children=[build_panel_banner(panel_title), html.Div(className='panel-content', children=line)]
                 )
                 return panel
+
+            if self.language_is_english:
+                current_instance_panel_title_prefix = "Current instance - "
+                other_instance_panel_title_prefix = "Other instance - "
+            elif self.language_is_french:
+                current_instance_panel_title_prefix = "Instance courante - "
+                other_instance_panel_title_prefix = "Autre instance - "
+            else:
+                raise ValueError(f"Language '{self.language}' is not supported.")
 
             tab_content = html.Div(
                 id="instances-comparison-tab-content",
@@ -469,19 +461,32 @@ class ExplainerWebGUI:
                     ),
                     html.Div(
                         className="panels-side-to-side",
-                        children=[_build_employees_data_panel(), _build_employees_data_panel(instance=other_instance)]
+                        children=[build_employees_data_panel(instance=self.current_instance, is_current_instance=True,
+                                                             panel_title_prefix=current_instance_panel_title_prefix,
+                                                             language=self.language),
+                                  build_employees_data_panel(instance=other_instance, is_current_instance=False,
+                                                             instance_to_compare_with=self.current_instance,
+                                                             panel_title_prefix=other_instance_panel_title_prefix,
+                                                             language=self.language)]
                     ),
                     html.Div(
                         className="panels-side-to-side",
-                        children=[_build_tasks_data_panel(), _build_tasks_data_panel(instance=other_instance)]
+                        children=[build_tasks_data_panel(instance=self.current_instance, is_current_instance=True,
+                                                         panel_title_prefix=current_instance_panel_title_prefix,
+                                                         language=self.language),
+                                  build_tasks_data_panel(instance=other_instance, is_current_instance=False,
+                                                         instance_to_compare_with=self.current_instance,
+                                                         panel_title_prefix=other_instance_panel_title_prefix,
+                                                         language=self.language)]
                     ),
                     html.Div(
                         className="panels-side-to-side",
-                        children=[
-                            _build_instance_metrics_panel(panel_title="Current instance - Metrics", horizontal=False),
-                            _build_instance_metrics_panel(panel_title="Other instance - Metrics", horizontal=False,
-                                                          instance=other_instance)
-                        ]
+                        children=[build_instance_metrics_panel(instance=current_instance, is_current_instance=True,
+                                                               panel_title_prefix=current_instance_panel_title_prefix,
+                                                               horizontal=False, language=self.language),
+                                  build_instance_metrics_panel(instance=other_instance, is_current_instance=False,
+                                                               panel_title_prefix=other_instance_panel_title_prefix,
+                                                               horizontal=False, language=self.language)]
                     )
                 ]
             )
@@ -502,13 +507,13 @@ class ExplainerWebGUI:
             """
             current_instance = self.current_instance
             other_instance = self._explainer.get_instance_by_name(other_instance_name)
-            employees_data = _build_employees_data(other_instance)
-            employees_style_data_conditional = _build_employees_style_data_conditional(employees_data, current_instance)
-            tasks_data = _build_tasks_data(other_instance)
-            tasks_style_data_conditional = _build_tasks_style_data_conditional(tasks_data, current_instance)
+            employees_data = build_employees_data(other_instance, self.language)
+            employees_style_data_conditional = build_employees_style_data_conditional(employees_data, current_instance)
+            tasks_data = build_tasks_data(other_instance, self.language)
+            tasks_style_data_conditional = build_tasks_style_data_conditional(tasks_data, current_instance)
             return (employees_data, employees_style_data_conditional, tasks_data, tasks_style_data_conditional,
-                    _build_instance_metrics_figures(instance=other_instance, reference_instance=current_instance,
-                                                    horizontal=False))
+                    build_instance_metrics_figures(instance=other_instance, reference_instance=current_instance,
+                                                   horizontal=False, language=self.language))
 
         ####################################
         # Solution description tab content #
@@ -517,16 +522,19 @@ class ExplainerWebGUI:
         def _build_solution_description_tab_content():
             """
             Build the tab content about the description of a solution.
-            By default, the solution that is described is the current solution.
             """
             tab_content = html.Div(
                 id="solution-description-tab-content",
                 children=[
                     html.Div(
                         className="representation-panels-side-to-side",
-                        children=[_build_routes_figure_panel(), _build_schedules_figure_panel()]
+                        children=[build_routes_figure_panel(solution=self.current_solution, is_current_solution=True,
+                                                            language=self.language),
+                                  build_schedules_figure_panel(solution=self.current_solution, is_current_solution=True,
+                                                               language=self.language)]
                     ),
-                    _build_solution_metrics_panel()
+                    build_solution_metrics_panel(solution=self.current_solution, is_current_solution=True,
+                                                 language=self.language)
                 ]
             )
             return tab_content
@@ -566,17 +574,31 @@ class ExplainerWebGUI:
                 - if the selection of another solution is disabled, the name of the current solution itself;
                 - else, a dropdown for selecting another solution to compare with the current one.
                 """
-                panel_title = f"{'Other' if enable_other_solution else 'Current'} solution"
+                if self.language_is_english:
+                    panel_title = f"{'Other' if enable_other_solution else 'Current'} solution"
+                elif self.language_is_french:
+                    panel_title = f"{'Autre solution' if enable_other_solution else 'Solution courante'}"
+                else:
+                    raise ValueError(f"Language '{self.language}' is not supported.")
                 first_line = html.Div(className='automated-text', style=dict(flex=1, margin='0rem 0rem 1rem 0rem'),
                                       children=instance.name)
                 second_line = _build_other_solution_dropdown() if enable_other_solution else \
                     html.Div(className='automated-text', style=dict(flex=1), children=current_solution.name)
                 panel = html.Div(
                     className='panel',
-                    children=[_build_panel_banner(panel_title),
+                    children=[build_panel_banner(panel_title),
                               html.Div(className='panel-content', children=[first_line, second_line])]
                 )
                 return panel
+
+            if self.language_is_english:
+                current_solution_panel_title_prefix = "Current solution - "
+                other_solution_panel_title_prefix = "Other solution - "
+            elif self.language_is_french:
+                current_solution_panel_title_prefix = "Solution courante - "
+                other_solution_panel_title_prefix = "Autre solution - "
+            else:
+                raise ValueError(f"Language '{self.language}' is not supported.")
 
             tab_content = html.Div(
                 id="solutions-comparison-tab-content",
@@ -588,25 +610,34 @@ class ExplainerWebGUI:
                     html.Div(
                         className="representation-panels-side-to-side",
                         children=[
-                            _build_routes_figure_panel(panel_title_prefix="Current solution - "),
-                            _build_routes_figure_panel(panel_title_prefix="Other solution - ",
-                                                       solution=other_solution)
+                            build_routes_figure_panel(solution=current_solution, is_current_solution=True,
+                                                      panel_title_prefix=current_solution_panel_title_prefix,
+                                                      language=self.language),
+                            build_routes_figure_panel(solution=other_solution, is_current_solution=False,
+                                                      panel_title_prefix=other_solution_panel_title_prefix,
+                                                      language=self.language)
                         ]
                     ),
                     html.Div(
                         className="representation-panels-side-to-side",
                         children=[
-                            _build_schedules_figure_panel(panel_title_prefix="Current solution - "),
-                            _build_schedules_figure_panel(panel_title_prefix="Other solution - ",
-                                                          solution=other_solution)
+                            build_schedules_figure_panel(solution=current_solution, is_current_solution=True,
+                                                         panel_title_prefix=current_solution_panel_title_prefix,
+                                                         language=self.language),
+                            build_schedules_figure_panel(solution=other_solution, is_current_solution=False,
+                                                         panel_title_prefix=other_solution_panel_title_prefix,
+                                                         language=self.language)
                         ]
                     ),
                     html.Div(
                         className="panels-side-to-side",
                         children=[
-                            _build_solution_metrics_panel(panel_title="Current solution - Metrics", horizontal=False),
-                            _build_solution_metrics_panel(panel_title="Other solution - Metrics", horizontal=False,
-                                                          solution=other_solution)
+                            build_solution_metrics_panel(solution=current_solution, is_current_solution=True,
+                                                         panel_title_prefix=current_solution_panel_title_prefix,
+                                                         horizontal=False, language=self.language),
+                            build_solution_metrics_panel(solution=other_solution, is_current_solution=False,
+                                                         panel_title_prefix=other_solution_panel_title_prefix,
+                                                         horizontal=False, language=self.language)
                         ]
                     )
                 ]
@@ -627,9 +658,10 @@ class ExplainerWebGUI:
             current_solution = self.current_solution
             other_solution = self._explainer.get_solution_by_name(other_solution_name)
             return (
-                _build_routes_figure(solution=other_solution), _build_schedules_figure(solution=other_solution),
-                _build_solution_metrics_figures(solution=other_solution, reference_solution=current_solution,
-                                                horizontal=False)
+                build_routes_figure(solution=other_solution, language=self.language),
+                build_schedules_figure(solution=other_solution, language=self.language),
+                build_solution_metrics_figures(solution=other_solution, reference_solution=current_solution,
+                                               horizontal=False, language=self.language)
             )
 
         ##################################
@@ -647,6 +679,28 @@ class ExplainerWebGUI:
 
             def _build_contrastive_question_block():
                 #
+                if self.language_is_english:
+                    current_solution_prefix = "Current solution - "
+                    question_panel_title = "Why-not question"
+                    template_question_dropdown_placeholder = "Select a question template"
+                    input_1_placeholder = "Fill input 1"
+                    input_2_placeholder = "Fill input 2"
+                    input_3_placeholder = "Fill input 3"
+                    contrastive_question_text_placeholder = "Waiting for the definition of a 'why-not' question..."
+                    submit_button_label = "Submit"
+                elif self.language_is_french:
+                    current_solution_prefix = "Solution courante - "
+                    question_panel_title = "Question de type 'pourquoi-pas'"
+                    template_question_dropdown_placeholder = "Sélectionner un modèle de question"
+                    input_1_placeholder = "Donnée 1"
+                    input_2_placeholder = "Donnée 2"
+                    input_3_placeholder = "Donnée 3"
+                    contrastive_question_text_placeholder = \
+                        "En attente qu'une question de type 'pourquoi-pas' soit définie..."
+                    submit_button_label = "Soumettre"
+                else:
+                    raise ValueError(f"Unsupported language: {self.language}")
+
                 def _build_contrastive_question_panel():
                     """
                     Build the panel allowing the end-user to submit contrastive questions.
@@ -657,16 +711,16 @@ class ExplainerWebGUI:
                             dcc.Dropdown(id='template-question-dropdown', className='dropdown', style=dict(flex=1),
                                          options=[{'label': self._questions_templates[key].text,
                                                    'value': key} for key in self._questions_templates.keys()],
-                                         placeholder="Select a question template"),
+                                         placeholder=template_question_dropdown_placeholder),
                             dcc.Dropdown(id='template-input-1', className='dropdown',
                                          style=dict(width='15rem', paddingLeft='1rem'),
-                                         placeholder="Fill input 1"),
+                                         placeholder=input_1_placeholder),
                             dcc.Dropdown(id='template-input-2', className='dropdown',
                                          style=dict(width='15rem', paddingLeft='1rem'),
-                                         placeholder="Fill input 2"),
+                                         placeholder=input_2_placeholder),
                             dcc.Dropdown(id='template-input-3', className='dropdown',
                                          style=dict(width='15rem', paddingLeft='1rem'),
-                                         placeholder="Fill input 3"),
+                                         placeholder=input_3_placeholder),
                         ]
                     )
                     second_line = html.Div(
@@ -674,22 +728,30 @@ class ExplainerWebGUI:
                         children=[
                             html.Div(id='contrastive-question-text', className='empty-automated-text',
                                      style=dict(flex=1, marginRight='1rem'),
-                                     children="Waiting for the definition of a why-not question..."),
+                                     children=contrastive_question_text_placeholder),
                             html.Button(id='contrastive-submit-button', className='button',
-                                        children="Submit", disabled=True)
+                                        children=submit_button_label, disabled=True)
                         ]
                     )
                     panel = html.Div(
                         id="question-panel", className='panel-with-bottom-margin',
-                        children=[_build_panel_banner("Why-not question"),
+                        children=[build_panel_banner(question_panel_title),
                                   html.Div(className='panel-content', children=[first_line, second_line])]
                     )
                     return panel
 
                 block = html.Div(children=[
                     html.Div(className='representation-panels-side-to-side',
-                             children=[_build_routes_figure_panel(panel_title_prefix="Current solution - "),
-                                       _build_schedules_figure_panel(panel_title_prefix="Current solution - ")]),
+                             children=[
+                                 build_routes_figure_panel(
+                                     solution=self.current_solution, is_current_solution=True,
+                                     panel_title_prefix=current_solution_prefix, language=self.language
+                                 ),
+                                 build_schedules_figure_panel(
+                                     solution=self.current_solution, is_current_solution=True,
+                                     panel_title_prefix=current_solution_prefix, language=self.language
+                                 )
+                             ]),
                     _build_contrastive_question_panel()
                 ])
                 return block
@@ -700,33 +762,49 @@ class ExplainerWebGUI:
                     """
                     Build the panel providing to the end-user contrastive explanations.
                     """
+                    if self.language_is_english:
+                        save_button_text = "Save"
+                        what_if_button_text = "What if?"
+                        how_to_button_text = "How to?"
+                        contrastive_explanation_text_placeholder = \
+                            "Waiting for a 'why-not' question to be submitted..."
+                        contrastive_explanation_panel_title = "Why-not explanation"
+                    elif self.language_is_french:
+                        save_button_text = "Enregistrer"
+                        what_if_button_text = "Et si ?"
+                        how_to_button_text = "Comment ?"
+                        contrastive_explanation_text_placeholder = \
+                            "En attente qu'une question de type 'pourquoi-pas' soit soumise..."
+                        contrastive_explanation_panel_title = "Explication de type 'pourquoi-pas'"
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
                     buttons = \
                         [html.Button(id='contrastive-ok-button', className='button', children="Ok", disabled=True)]
                     if self._explainer.history_is_enabled:
                         buttons.append(
                             html.Button(id='contrastive-save-button', className='button', style=dict(marginTop='1rem'),
-                                        children="Save", disabled=True)
+                                        children=save_button_text, disabled=True)
                         )
                     if self._explainer.scenario_explanations_are_enabled:
                         buttons.append(
                             html.Button(id='what-if-button', className='button', style=dict(marginTop='1rem'),
-                                        children="What if?", disabled=True)
+                                        children=what_if_button_text, disabled=True)
                         )
                     if self._explainer.counterfactual_explanations_are_enabled:
                         buttons.append(
                             html.Button(id='how-to-button', className='button', style=dict(marginTop='1rem'),
-                                        children="How to?", disabled=True)
+                                        children=how_to_button_text, disabled=True)
                         )
                     panel = html.Div(
                         id='contrastive-explanation-panel', className='panel-with-bottom-margin',
                         children=[
-                            _build_panel_banner("Why-not explanation"),
+                            build_panel_banner(contrastive_explanation_panel_title),
                             html.Div(
                                 className='panel-content', style=dict(display='flex', flexDirection='row'),
                                 children=[
                                     html.Div(id='contrastive-explanation-text', className='empty-automated-text',
                                              style=dict(flex=1, height='20rem', marginRight='1rem'),
-                                             children="Waiting for a why-not question to be submitted..."),
+                                             children=contrastive_explanation_text_placeholder),
                                     html.Div(style=dict(display='flex', flexDirection='column',
                                                         justifyContent='flex-end'),
                                              children=buttons)
@@ -750,42 +828,66 @@ class ExplainerWebGUI:
                 #
                 def _build_scenario_editable_employees_data_panel():
                     """
-                    Build the panel allowing the end-user to edit the employees data for what-if questions.
+                    Build the panel allowing the end-user to edit the employees data for 'what-if' questions.
                     """
+                    if self.language_is_english:
+                        panel_title = "Editable employees data for 'what-if' question"
+                    elif self.language_is_french:
+                        panel_title = "Données relatives aux employés à éditer"
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
                     panel = html.Div(
                         id='scenario-editable-employees-data-panel',
-                        children=_build_employees_data_panel(panel_title="Editable employees data for what-if question",
-                                                             editable=True)
+                        children=build_employees_data_panel(instance=self.current_instance, is_current_instance=True,
+                                                            panel_title=panel_title, editable=True,
+                                                            language=self.language)
                     )
                     return panel
 
                 def _build_scenario_editable_tasks_data_panel():
                     """
-                    Build the panel allowing the end-user to edit the tasks data for what-if questions.
+                    Build the panel allowing the end-user to edit the tasks data for 'what-if' questions.
                     """
+                    if self.language_is_english:
+                        panel_title = "Editable tasks data for 'what-if' question"
+                    elif self.language_is_french:
+                        panel_title = "Données relatives aux tâches à éditer"
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
                     panel = html.Div(
                         id='scenario-editable-tasks-data-panel',
-                        children=_build_tasks_data_panel(panel_title="Editable tasks data for what-if question",
-                                                         editable=True)
+                        children=build_tasks_data_panel(instance=self.current_instance, is_current_instance=True,
+                                                        panel_title=panel_title, editable=True, language=self.language)
                     )
                     return panel
 
                 def _build_scenario_question_panel():
                     """
-                    Build the panel allowing the end-user to submit what-if questions.
+                    Build the panel allowing the end-user to submit 'what-if' questions.
                     """
+                    if self.language_is_english:
+                        scenario_question_panel_title = "What-if question"
+                        scenario_question_text_placeholder = "Waiting for the definition of a 'what-if' question..."
+                        submit_button_label = "Submit"
+                    elif self.language_is_french:
+                        scenario_question_panel_title = "Question de type 'et-si'"
+                        scenario_question_text_placeholder = \
+                            "En attente qu'une question de type 'et-si' soit définie..."
+                        submit_button_label = "Soumettre"
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
                     panel = html.Div(
                         id='scenario-question-panel', className='panel-with-bottom-margin',
                         children=[
-                            _build_panel_banner("What-if question"),
+                            build_panel_banner(scenario_question_panel_title),
                             html.Div(
                                 className='panel-content', style=dict(display='flex', flexdirection='row'),
                                 children=[
                                     html.Div(id='scenario-question-text', className='empty-automated-text',
                                              style=dict(flex=1, alignItems='end', marginRight='1rem'),
-                                             children="Waiting for the definition of a what-if question..."),
+                                             children=scenario_question_text_placeholder),
                                     html.Button(id='scenario-submit-button', className='button',
-                                                children="Submit", disabled=True)
+                                                children=submit_button_label, disabled=True)
                                 ]
                             )
                         ]
@@ -796,30 +898,43 @@ class ExplainerWebGUI:
                     """
                     Build the panel providing to the end-user what-if explanations.
                     """
+                    if self.language_is_english:
+                        scenario_explanation_panel_title = "What-if explanation"
+                        scenario_explanation_text_placeholder = "Waiting for a 'what-if' question to be submitted..."
+                        save_button_text = "Save"
+                    elif self.language_is_french:
+                        scenario_explanation_panel_title = "Explication de type 'et-si'"
+                        scenario_explanation_text_placeholder = \
+                            "En attente qu'une question de type 'et-si' soit soumise..."
+                        save_button_text = "Enregistrer"
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
                     buttons = [html.Button(id='scenario-ok-button', className='button', children="Ok", disabled=True)]
                     if self._explainer.history_is_enabled:
                         buttons.append(
                             html.Button(id='scenario-save-button', className='button', style=dict(marginTop='1rem'),
-                                        children="Save", disabled=True)
+                                        children=save_button_text, disabled=True)
                         )
                     panel = html.Div(
                         id='scenario-explanation-panel', className='panel-with-bottom-margin',
                         children=[
-                            _build_panel_banner("What-if explanation"),
+                            build_panel_banner(scenario_explanation_panel_title),
                             html.Div(
                                 className='panel-content', style=dict(display='flex', flexDirection='row'),
                                 children=[
                                     html.Div(id='scenario-explanation-text', className='empty-automated-text',
                                              style=dict(flex=1, height='20rem', marginRight='1rem'),
-                                             children="Waiting for a what-if question to be submitted..."),
+                                             children=scenario_explanation_text_placeholder),
                                     html.Div(
                                         style=dict(display='flex', flexDirection='column', justifyContent='flex-end'),
-                                        children=buttons)
+                                        children=buttons
+                                    )
                                 ]
                             )
                         ]
                     )
                     return panel
+
                 #
                 block = html.Div(id='scenario-question-block', style=dict(display='none'), children=[
                     _build_scenario_editable_employees_data_panel(),
@@ -841,13 +956,13 @@ class ExplainerWebGUI:
                 #     panel = html.Div(
                 #         id='how-to-question-panel', className='panel',
                 #         children=[
-                #             _build_panel_banner("How-to question"),
+                #             build_panel_banner("How-to question"),
                 #             html.Div(
                 #                 className='panel-content', style=dict(display='flex', flexdirection='row'),
                 #                 children=[
                 #                     html.Div(id='how-to-question-text', className='empty-automated-text',
                 #                              style=dict(flex=1, marginRight='1rem'),
-                #                              children="Waiting for the definition of a how-to question..."),
+                #                              children="Waiting for the definition of a 'how-to' question..."),
                 #                     html.Button(id='how-to-explain-button', className='button', children="Submit",
                 #                                 disabled=False)
                 #                 ]
@@ -858,26 +973,38 @@ class ExplainerWebGUI:
 
                 def _build_counterfactual_explanation_panel():
                     """
-                    Build the panel providing to the end-user how-to explanations.
+                    Build the panel providing to the end-user 'how-to' explanations.
                     """
+                    if self.language_is_english:
+                        counterfactual_explanation_panel_title = "How-to explanation"
+                        counterfactual_explanation_text_placeholder = \
+                            "Waiting for a 'how-to' question to be submitted..."
+                        save_button_text = "Save"
+                    elif self.language_is_french:
+                        counterfactual_explanation_panel_title = "Explication de type 'comment-faire'"
+                        counterfactual_explanation_text_placeholder = \
+                            "En attente qu'une question de type 'comment-faire' soit soumise..."
+                        save_button_text = "Enregistrer"
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
                     buttons = [
                         html.Button(id='counterfactual-ok-button', className='button', children="Ok", disabled=True)
                     ]
                     if self._explainer.history_is_enabled:
                         buttons.append(
                             html.Button(id='counterfactual-save-button', className='button',
-                                        style=dict(marginTop='1rem'), children="Save", disabled=True)
+                                        style=dict(marginTop='1rem'), children=save_button_text, disabled=True)
                         )
                     panel = html.Div(
                         id='counterfactual-explanation-panel', className='panel-with-bottom-margin',
                         children=[
-                            _build_panel_banner("How-to explanation"),
+                            build_panel_banner(counterfactual_explanation_panel_title),
                             html.Div(
                                 className='panel-content', style=dict(display='flex', flexDirection='row'),
                                 children=[
                                     html.Div(id='counterfactual-explanation-text', className='empty-automated-text',
                                              style=dict(flex=1, height='20rem', marginRight='1rem', overflow='scroll'),
-                                             children="Waiting for a how-to question to be submitted..."),
+                                             children=counterfactual_explanation_text_placeholder),
                                     html.Div(
                                         style=dict(display='flex', flexDirection='column', justifyContent='flex-end'),
                                         children=buttons)
@@ -886,6 +1013,7 @@ class ExplainerWebGUI:
                         ]
                     )
                     return panel
+
                 #
                 # TODO _build_how_to_question_panel() in children?
                 block = html.Div(id='counterfactual-question-block', style=dict(display='none'),
@@ -952,8 +1080,7 @@ class ExplainerWebGUI:
 
         @self._application.callback(
             Output('template-input-1', 'options'), Output('template-input-2', 'options'),
-            Output('template-input-3', 'options'),
-            Input('template-question-dropdown', 'value'),
+            Output('template-input-3', 'options'), Input('template-question-dropdown', 'value'),
             Input('template-input-1', 'search_value'), Input('template-input-1', 'value'),
             State('template-input-1', 'options'),
             Input('template-input-2', 'search_value'), Input('template-input-2', 'value'),
@@ -1012,13 +1139,20 @@ class ExplainerWebGUI:
 
         @self._application.callback(
             Output('contrastive-question-text', 'children'), Output('contrastive-question-text', 'className'),
-            Input('template-question-dropdown', 'value'),
-            Input('template-input-1', 'value'), Input('template-input-2', 'value'), Input('template-input-3', 'value')
+            Input('template-question-dropdown', 'value'), Input('template-input-1', 'value'),
+            Input('template-input-2', 'value'), Input('template-input-3', 'value')
         )
         def _update_contrastive_question_text(question_template_id: str, input_1: str, input_2: str, input_3: str):
             # Case where the questions templates dropdown is empty
             if question_template_id is None:
-                return "Waiting for the definition of a why-not question...", 'empty-automated-text'
+                if self.language_is_english:
+                    contrastive_question_text_placeholder = "Waiting for the definition of a 'why-not' question..."
+                elif self.language_is_french:
+                    contrastive_question_text_placeholder = \
+                        "En attente qu'une question de type 'pourquoi-pas' soit définie..."
+                else:
+                    raise NotImplementedError(f"Language {self.language} is not supported")
+                return contrastive_question_text_placeholder, 'empty-automated-text'
             # Case where the questions templates dropdown is non-empty
             else:
                 question_template = self._questions_templates[question_template_id]
@@ -1053,8 +1187,8 @@ class ExplainerWebGUI:
             Output('contrastive-explanation-representation-envelope', 'children'),
             Output('contrastive-submit-button', 'n_clicks'), Output('contrastive-ok-button', 'n_clicks'),
             Input('contrastive-submit-button', 'n_clicks'), Input('contrastive-ok-button', 'n_clicks'),
-            State('template-question-dropdown', 'value'),
-            State('template-input-1', 'value'), State('template-input-2', 'value'), State('template-input-3', 'value')
+            State('template-question-dropdown', 'value'), State('template-input-1', 'value'),
+            State('template-input-2', 'value'), State('template-input-3', 'value')
         )
         def _update_contrastive_explanation_text_and_representation(
                 contrastive_submit_button_click: int, contrastive_ok_button_click: int,
@@ -1070,18 +1204,37 @@ class ExplainerWebGUI:
                 solution = explanation.support_solution
                 if self.explanations_representation_are_enabled:
                     explanation_repr_visibility = dict(display='block')
-                    panel_title_prefix = f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                                         f" new solution - "
-                    panel_title_suffix = " (for why-not explanation)"
+                    if self.language_is_english:
+                        # panel_title_prefix = \
+                        #     f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
+                        #     f" new solution - "
+                        # panel_title_suffix = f" (for 'why-not' explanation)"
+                        panel_title_prefix = \
+                            f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
+                            f" solution involved in 'why-not' explanation - "
+                        panel_title_suffix = ""
+                    elif self.language_is_french:
+                        # panel_title_prefix = \
+                        #     f"Nouvelle solution " \
+                        #     f"{'faisable' if explanation.support_solution_is_feasible else 'infaisable'} - "
+                        # panel_title_suffix = f" dans la solution de l'explication pourquoi-pas"
+                        panel_title_prefix = "Solution intervenant dans l'explication - "
+                        panel_title_suffix = ""
+                    else:
+                        raise NotImplementedError(f"Language {self.language} is not supported")
                     explanation_repr = html.Div(
                         className='representation-panels-side-to-side',
                         children=[
-                            _build_routes_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                       panel_title_suffix=panel_title_suffix,
-                                                       solution=solution, infeasibility=infeasibility),
-                            _build_schedules_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                          panel_title_suffix=panel_title_suffix,
-                                                          solution=solution, infeasibility=infeasibility)
+                            build_routes_figure_panel(
+                                solution=solution, is_current_solution=False,
+                                panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
+                                infeasibility=infeasibility, language=self.language
+                            ),
+                            build_schedules_figure_panel(
+                                solution=solution, is_current_solution=False,
+                                panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
+                                infeasibility=infeasibility, language=self.language
+                            )
                         ]
                     )
                 else:
@@ -1089,7 +1242,12 @@ class ExplainerWebGUI:
                     explanation_repr = html.Div()
                 return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr, None, None
             elif contrastive_ok_button_click == 1:
-                explanation_text = "Waiting for a why-not question to be submitted..."
+                if self.language_is_english:
+                    explanation_text = "Waiting for a 'why-not' question to be submitted..."
+                elif self.language_is_french:
+                    explanation_text = "En attente qu'une question de type 'pourquoi-pas' soit soumise..."
+                else:
+                    raise NotImplementedError(f"Language {self.language} is not supported")
                 return explanation_text, 'empty-automated-text', dict(display='none'), html.Div(), None, None
             else:
                 raise NotImplementedError("There is a problem with contrastive submit button or ok button #clicks")
@@ -1193,8 +1351,7 @@ class ExplainerWebGUI:
                         return False
 
             @self._application.callback(
-                Output('what-if-button', 'n_clicks'),
-                Input('scenario-ok-button', 'n_clicks')
+                Output('what-if-button', 'n_clicks'), Input('scenario-ok-button', 'n_clicks')
             )
             def _reset_what_if_button_click(scenario_ok_button_click: int):
                 if scenario_ok_button_click is None:
@@ -1219,8 +1376,7 @@ class ExplainerWebGUI:
                         return False
 
             @self._application.callback(
-                Output('how-to-button', 'n_clicks'),
-                Input('counterfactual-ok-button', 'n_clicks')
+                Output('how-to-button', 'n_clicks'), Input('counterfactual-ok-button', 'n_clicks')
             )
             def _reset_how_to_button_click(counterfactual_ok_button_click: int):
                 if counterfactual_ok_button_click is None:
@@ -1237,8 +1393,7 @@ class ExplainerWebGUI:
         if self._explainer.scenario_explanations_are_enabled:
             #
             @self._application.callback(
-                Output('scenario-question-block', 'style'),
-                Input('what-if-button', 'n_clicks')
+                Output('scenario-question-block', 'style'), Input('what-if-button', 'n_clicks')
             )
             def _update_scenario_visibility(what_if_button_click: int):
                 if what_if_button_click is None:
@@ -1254,18 +1409,19 @@ class ExplainerWebGUI:
                 Input('editable-instance-employees-data-table', 'data')
             )
             def _update_scenario_employees_data_style(employees_data):
-                return _build_employees_style_data_conditional(employees_data, self.current_instance)
+                return build_employees_style_data_conditional(employees_data, self.current_instance)
 
             @self._application.callback(
                 Output('editable-instance-tasks-data-table', 'style_data_conditional'),
                 Input('editable-instance-tasks-data-table', 'data')
             )
             def _update_scenario_tasks_data_style(tasks_data):
-                return _build_tasks_style_data_conditional(tasks_data, self.current_instance)
+                return build_tasks_style_data_conditional(tasks_data, self.current_instance)
 
             @self._application.callback(
                 Output('scenario-question-text', 'children'), Output('scenario-question-text', 'className'),
-                Input('editable-instance-employees-data-table', 'data'), Input('editable-instance-tasks-data-table', 'data')
+                Input('editable-instance-employees-data-table', 'data'),
+                Input('editable-instance-tasks-data-table', 'data')
             )
             def _update_scenario_question_text(employees_data, tasks_data):
                 current_instance = self.current_instance
@@ -1277,7 +1433,8 @@ class ExplainerWebGUI:
                     instance_alterations.add_employee_change(
                         employee,
                         start_time_LB=(None if employee.start_time_LB == start_time_LB else start_time_LB),
-                        end_time_UB=(None if employee.end_time_UB == end_time_UB else end_time_UB)
+                        end_time_UB=(None if employee.end_time_UB == end_time_UB else end_time_UB),
+                        hour_format=get_hour_format_associated_with_language(self.language)
                     )
                 for row in tasks_data:
                     task = current_instance.get_task_by_name(row['name'])
@@ -1288,17 +1445,24 @@ class ExplainerWebGUI:
                         task,
                         start_time_LB=(None if task.start_time_LB == start_time_LB else start_time_LB),
                         end_time_UB=(None if task.end_time_UB == end_time_UB else end_time_UB),
-                        duration=(None if task.duration == duration else duration)
+                        duration=(None if task.duration == duration else duration),
+                        hour_format=get_hour_format_associated_with_language(self.language)
                     )
                 self._scenario_instance_alterations = instance_alterations
-                question_text = f"What-if the data about the tasks are changed as follows?{LINE_BREAK_STRING}" \
-                                f"{instance_alterations.as_string(starting_with_uppercase=True)}"
+                if self.language_is_english:
+                    question_text = f"What if tasks data are changed as follows?{LINE_BREAK_STRING}" \
+                                    f"{instance_alterations.as_string(True, self.language)}"
+                elif self.language_is_french:
+                    question_text = f"Et si les données relatives aux tâches étaient modifiées comme suit?" \
+                                    f"{LINE_BREAK_STRING}" \
+                                    f"{instance_alterations.as_string(True, self.language)}"
+                else:
+                    raise NotImplementedError(f"Language {self.language} is not supported")
                 question_text = convert_from_string_to_html(question_text)
                 return question_text, 'automated-text'
 
             @self._application.callback(
-                Output('scenario-submit-button', 'disabled'),
-                Input('scenario-question-text', 'className')
+                Output('scenario-submit-button', 'disabled'), Input('scenario-question-text', 'className')
             )
             def _update_scenario_submit_button_status(scenario_question_text_style: str):
                 if scenario_question_text_style == 'empty-automated-text':
@@ -1309,8 +1473,7 @@ class ExplainerWebGUI:
                     raise NotImplementedError("There is a problem with the scenario question text style")
 
             @self._application.callback(
-                Output('scenario-submit-button', 'n_clicks'),
-                Input('scenario-question-block', 'style')
+                Output('scenario-submit-button', 'n_clicks'), Input('scenario-question-block', 'style')
             )
             def _reset_scenario_submit_button_click(scenario_envelope_style):
                 if scenario_envelope_style['display'] in ['none', 'block']:
@@ -1329,7 +1492,12 @@ class ExplainerWebGUI:
                     raise PreventUpdate
                 elif scenario_ok_button_click is not None:
                     if scenario_submit_click >= 1:
-                        explanation_text = "Waiting for a what-if question to be submitted..."
+                        if self.language_is_english:
+                            explanation_text = "Waiting for a 'what-if' question to be submitted..."
+                        elif self.language_is_french:
+                            explanation_text = "En attente qu'une question de type 'what-if' soit soumise..."
+                        else:
+                            raise NotImplementedError(f"Language {self.language} is not supported")
                         return explanation_text, 'empty-automated-text', dict(display='none'), html.Div()
                     else:
                         raise NotImplementedError("There is a problem with the scenario ok button #clicks")
@@ -1340,22 +1508,37 @@ class ExplainerWebGUI:
                     explanation = self._explainer.compute_scenario_explanation(scenario_instance)
                     explanation_text = convert_from_string_to_html(explanation.text)
                     explanation_repr_visibility = dict(display='block')
-                    panel_title_prefix = f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                                         f" new solution - "
-                    panel_title_suffix = " (for what-if explanation)"
+                    if self.language_is_english:
+                        # panel_title_prefix = \
+                        #     f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
+                        #     f" new solution - "
+                        # panel_title_suffix = f" " (for 'what-if' explanation)"
+                        panel_title_prefix = \
+                            f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
+                            f" solution involved in 'what-if' explanation - "
+                        panel_title_suffix = ""
+                    elif self.language_is_french:
+                        panel_title_prefix = "Solution intervenant dans l'explication - "
+                        panel_title_suffix = ""
+                    else:
+                        raise NotImplementedError(f"Language {self.language} is not supported")
                     explanation_repr = html.Div(
                         className='representation-panels-side-to-side',
                         children=[
-                            _build_routes_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                       panel_title_suffix=panel_title_suffix,
-                                                       solution=explanation.support_solution,
-                                                       infeasibility=(None if explanation.support_solution_is_feasible
-                                                                      else explanation.infeasibility)),
-                            _build_schedules_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                          panel_title_suffix=panel_title_suffix,
-                                                          solution=explanation.support_solution,
-                                                          infeasibility=(None if explanation.support_solution_is_feasible
-                                                                         else explanation.infeasibility))
+                            build_routes_figure_panel(
+                                solution=explanation.support_solution, is_current_solution=False,
+                                panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
+                                infeasibility=(None if explanation.support_solution_is_feasible
+                                               else explanation.infeasibility),
+                                language=self.language
+                            ),
+                            build_schedules_figure_panel(
+                                solution=explanation.support_solution, is_current_solution=False,
+                                panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
+                                infeasibility=(None if explanation.support_solution_is_feasible
+                                               else explanation.infeasibility),
+                                language=self.language
+                            )
                         ]
                     )
                     return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr
@@ -1371,16 +1554,25 @@ class ExplainerWebGUI:
                 if scenario_ok_button_click is None or scenario_ok_button_click == 0:
                     raise PreventUpdate
                 elif scenario_ok_button_click == 1:
-                    return (_build_employees_data_panel(panel_title="Editable employees data for what-if question",
-                                                        editable=True),
-                            _build_tasks_data_panel(panel_title="Editable tasks data for what-if question",
-                                                    editable=True))
+                    if self.language_is_english:
+                        employees_data_panel_title = "Editable employees data for 'what-if' question"
+                        tasks_data_panel_title = "Editable tasks data for 'what-if' question"
+                    elif self.language_is_french:
+                        employees_data_panel_title = "Données relatives aux employés à éditer"
+                        tasks_data_panel_title = "Données relatives aux tâches à éditer"
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
+                    return (build_employees_data_panel(instance=self.current_instance, is_current_instance=True,
+                                                       panel_title=employees_data_panel_title, editable=True,
+                                                       language=self.language),
+                            build_tasks_data_panel(instance=self.current_instance, is_current_instance=True,
+                                                   panel_title=tasks_data_panel_title, editable=True,
+                                                   language=self.language))
                 else:
                     raise NotImplementedError("There is a problem with what-if ok button #clicks")
 
             @self._application.callback(
-                Output('scenario-ok-button', 'disabled'),
-                Input('scenario-explanation-text', 'className')
+                Output('scenario-ok-button', 'disabled'), Input('scenario-explanation-text', 'className')
             )
             def _update_scenario_ok_button_status(scenario_explanation_text_style: str):
                 if scenario_explanation_text_style == 'empty-automated-text':
@@ -1389,8 +1581,7 @@ class ExplainerWebGUI:
                     return False
 
             @self._application.callback(
-                Output('scenario-ok-button', 'n_clicks'),
-                Input('scenario-question-block', 'style')
+                Output('scenario-ok-button', 'n_clicks'), Input('scenario-question-block', 'style')
             )
             def _reset_scenario_ok_button_click(scenario_envelope_style):
                 if scenario_envelope_style['display'] in ['none', 'block']:
@@ -1439,8 +1630,7 @@ class ExplainerWebGUI:
         if self._explainer.counterfactual_explanations_are_enabled:
             #
             @self._application.callback(
-                Output('counterfactual-question-block', 'style'),
-                Input('how-to-button', 'n_clicks')
+                Output('counterfactual-question-block', 'style'), Input('how-to-button', 'n_clicks')
             )
             def _update_counterfactual_visibility(how_to_button_click: int):
                 if how_to_button_click is None:
@@ -1462,24 +1652,42 @@ class ExplainerWebGUI:
                 if how_to_button_click is None and counterfactual_ok_button_click is None:
                     raise PreventUpdate
                 elif counterfactual_ok_button_click is not None:
-                    explanation_text = "Waiting for a what-if question to be submitted..."
+                    if self.language_is_english:
+                        explanation_text = "Waiting for a 'how-to' question to be submitted..."
+                    elif self.language_is_french:
+                        explanation_text = "En attente d'une question de type 'comment-faire'..."
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
                     return explanation_text, 'empty-automated-text', dict(display='none'), html.Div()
                 elif how_to_button_click >= 1:
                     explanation = self._explainer.compute_counterfactual_explanation()
                     explanation_text = convert_from_string_to_html(explanation.text)
                     explanation_repr_visibility = dict(display='block')
-                    panel_title_prefix = f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                                         f" new solution - "
-                    panel_title_suffix = " (for how-to explanation)"
+                    if self.language_is_english:
+                        # panel_title_prefix = \
+                        #     f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}"\
+                        #     f" new solution - "
+                        # panel_title_suffix = " (for 'how-to' explanation)"
+                        panel_title_prefix = "Solution involved in 'how-to' explication - "
+                        panel_title_suffix = ""
+                    elif self.language_is_french:
+                        panel_title_prefix = "Solution intervenant dans l'explication - "
+                        panel_title_suffix = ""
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
                     explanation_repr = html.Div(
                         className='representation-panels-side-to-side',
                         children=[
-                            _build_routes_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                       panel_title_suffix=panel_title_suffix,
-                                                       solution=explanation.support_solution),
-                            _build_schedules_figure_panel(panel_title_prefix=panel_title_prefix,
-                                                          panel_title_suffix=panel_title_suffix,
-                                                          solution=explanation.support_solution)
+                            build_routes_figure_panel(
+                                solution=explanation.support_solution, is_current_solution=False,
+                                panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
+                                language=self.language
+                            ),
+                            build_schedules_figure_panel(
+                                solution=explanation.support_solution, is_current_solution=False,
+                                panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
+                                language=self.language
+                            )
                         ]
                     )
                     return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr
@@ -1487,8 +1695,7 @@ class ExplainerWebGUI:
                     raise NotImplementedError("There is a problem with the how-to button #clicks")
 
             @self._application.callback(
-                Output('counterfactual-ok-button', 'disabled'),
-                Input('counterfactual-explanation-text', 'className')
+                Output('counterfactual-ok-button', 'disabled'), Input('counterfactual-explanation-text', 'className')
             )
             def _update_counterfactual_ok_button_status(counterfactual_explanation_text_style: str):
                 if counterfactual_explanation_text_style == 'empty-automated-text':
@@ -1497,8 +1704,7 @@ class ExplainerWebGUI:
                     return False
 
             @self._application.callback(
-                Output('counterfactual-ok-button', 'n_clicks'),
-                Input('counterfactual-question-block', 'style')
+                Output('counterfactual-ok-button', 'n_clicks'), Input('counterfactual-question-block', 'style')
             )
             def _reset_counterfactual_ok_button_click(counterfactual_envelope_style):
                 if counterfactual_envelope_style['display'] in ['none', 'block']:
@@ -1510,7 +1716,8 @@ class ExplainerWebGUI:
                 #
                 @self._application.callback(
                     Output('counterfactual-save-button', 'disabled'),
-                    Input('counterfactual-explanation-text', 'className'), Input('counterfactual-save-button', 'n_clicks')
+                    Input('counterfactual-explanation-text', 'className'),
+                    Input('counterfactual-save-button', 'n_clicks')
                 )
                 def _update_counterfactual_save_button_status(counterfactual_explanation_text_style: str,
                                                               counterfactual_save_button_click: int):
@@ -1531,7 +1738,8 @@ class ExplainerWebGUI:
 
                 @self._application.callback(
                     Output('counterfactual-save-button', 'n_clicks'),
-                    Input('counterfactual-explanation-text', 'className'), State('counterfactual-save-button', 'n_clicks')
+                    Input('counterfactual-explanation-text', 'className'),
+                    State('counterfactual-save-button', 'n_clicks')
                 )
                 def _reset_counterfactual_save_button_click(counterfactual_explanation_text_style: str,
                                                             counterfactual_save_button_click: int):
@@ -1539,729 +1747,6 @@ class ExplainerWebGUI:
                         return None
                     else:
                         return counterfactual_save_button_click
-
-        #######################
-        # Typical data tables #
-        #######################
-
-        def _build_employees_data(instance: Instance):
-            return [dict(name=employee.name, level=employee.skill_level,
-                         start=employee.get_start_time_LB(as_integer=False),
-                         end=employee.get_end_time_UB(as_integer=False))
-                    for employee in instance.employees]
-
-        def _build_employees_style_data_conditional(employees_data, reference_instance: Instance):
-            employees_style_data_conditional = []
-            for row_index, employee_data in enumerate(employees_data):
-                reference_employee = reference_instance.get_employee_by_name(employee_data['name'])
-                if convert_time_string_to_nb_minutes(employee_data['start']) != reference_employee.start_time_LB:
-                    employees_style_data_conditional.append({'if': {'column_id': 'start', 'row_index': row_index},
-                                                             'backgroundColor': 'dodgerblue', 'color': 'white'})
-                if convert_time_string_to_nb_minutes(employee_data['end']) != reference_employee.end_time_UB:
-                    employees_style_data_conditional.append({'if': {'column_id': 'end', 'row_index': row_index},
-                                                             'backgroundColor': 'dodgerblue', 'color': 'white'})
-            return employees_style_data_conditional
-
-        def _build_employees_data_table(instance: Instance = None, editable: bool = False):
-            comparison_to_reference = instance is not None
-            instance_to_describe = instance if comparison_to_reference else self.current_instance
-            reference_instance = self.current_instance if comparison_to_reference else None
-            table_id = "editable" if editable else ("other" if comparison_to_reference else "current")
-            table_id += '-instance-employees-data-table'
-            data = _build_employees_data(instance_to_describe)
-            style_data_conditional = (_build_employees_style_data_conditional(data, reference_instance)
-                                      if comparison_to_reference else None)
-            columns = [{'name': 'Name', 'id': 'name'}, {'name': 'Skill level', 'id': 'level'},
-                       {'name': 'Earliest working time', 'id': 'start', 'editable': editable},
-                       {'name': 'Latest working time', 'id': 'end', 'editable': editable}]
-            table = dash_table.DataTable(
-                id=table_id, data=data, columns=columns, style_as_list_view=True,
-                style_header=self._table_style_header, style_data=self._table_style_data,
-                style_cell_conditional=[{'if': {'column_id': 'name'}, 'width': '20%'},
-                                        {'if': {'column_id': 'level'}, 'width': '20%'},
-                                        {'if': {'column_id': 'start'}, 'width': '20%'},
-                                        {'if': {'column_id': 'end'}, 'width': '40%'}],
-                style_data_conditional=style_data_conditional
-            )
-            return table
-
-        def _build_tasks_data(instance: Instance):
-            return [dict(name=task.name, level=task.skill_level, duration=task.duration,
-                         start=task.get_start_time_LB(as_integer=False), end=task.get_end_time_UB(as_integer=False))
-                    for task in instance.tasks]
-
-        def _build_tasks_style_data_conditional(tasks_data, reference_instance: Instance):
-            tasks_style_data_conditional = []
-            for row_index, task_data in enumerate(tasks_data):
-                reference_task = reference_instance.get_task_by_name(task_data['name'])
-                if convert_time_string_to_nb_minutes(task_data['start']) != reference_task.start_time_LB:
-                    tasks_style_data_conditional.append({'if': {'column_id': 'start', 'row_index': row_index},
-                                                         'backgroundColor': 'dodgerblue', 'color': 'white'})
-                if convert_time_string_to_nb_minutes(task_data['end']) != reference_task.end_time_UB:
-                    tasks_style_data_conditional.append({'if': {'column_id': 'end', 'row_index': row_index},
-                                                         'backgroundColor': 'dodgerblue', 'color': 'white'})
-                if int(task_data['duration']) != reference_task.duration:
-                    tasks_style_data_conditional.append({'if': {'column_id': 'duration', 'row_index': row_index},
-                                                         'backgroundColor': 'dodgerblue', 'color': 'white'})
-            return tasks_style_data_conditional
-
-        def _build_tasks_data_table(instance: Instance = None, editable: bool = False):
-            comparison_to_reference = instance is not None
-            instance_to_describe = instance if comparison_to_reference else self.current_instance
-            reference_instance = self.current_instance if comparison_to_reference else None
-            table_id = "editable" if editable else ("other" if comparison_to_reference else "current")
-            table_id += '-instance-tasks-data-table'
-            data = _build_tasks_data(instance_to_describe)
-            columns = [{'name': 'Name', 'id': 'name'}, {'name': 'Skill level', 'id': 'level'},
-                       {'name': 'Earliest start time', 'id': 'start', 'editable': editable},
-                       {'name': 'Latest end time', 'id': 'end', 'editable': editable},
-                       {'name': 'Duration (min)', 'id': 'duration', 'editable': editable}]
-            style_data_conditional = \
-                _build_tasks_style_data_conditional(data, reference_instance) if comparison_to_reference else None
-            table = dash_table.DataTable(
-                id=table_id, data=data, columns=columns, style_as_list_view=True,
-                style_header=self._table_style_header, style_data=self._table_style_data,
-                style_cell_conditional=[{'if': {'column_id': 'name'}, 'width': '20%'},
-                                        {'if': {'column_id': 'level'}, 'width': '20%'},
-                                        {'if': {'column_id': 'start'}, 'width': '20%'},
-                                        {'if': {'column_id': 'end'}, 'width': '20%'},
-                                        {'if': {'column_id': 'duration'}, 'width': '20%'}],
-                style_table={'max-height': 400, 'overflowY': 'scroll'},
-                style_data_conditional=style_data_conditional
-            )
-            return table
-
-        ###################
-        # Typical figures #
-        ###################
-
-        def _compute_employees_colors(instance: Instance):
-            """
-            Compute a list of color values that can then be associated respectively to the employees.
-            """
-            # See https://plotly.com/python/builtin-colorscales/ for various color scales
-            # Interesting color scales: viridis from 0 to .9; agsunset from 0 to .9; sunsetdark from 0 to 1
-            nb_employees = instance.nb_employees
-            return px.colors.sample_colorscale('agsunset', [n / (nb_employees - 1) * .9 for n in range(nb_employees)])
-
-        def _build_map_figure(instance: Instance, solution: Solution = None, infeasibility: Infeasibility = None,
-                              mode: str = 'all'):
-            """
-            Build a typical map figure that be used for displaying the locations of the employees, the ones of the task
-            or the routes of the employees.
-            """
-
-            def _compute_map_zoom_and_center(locations_longitudes: list[float], locations_latitudes: list[float],
-                                             projection: str = 'mercator', width_to_height: float = 2.0):
-                """
-                Compute proper zoom and center for a plotly mapbox.
-
-                :param locations_longitudes: list of longitudes in degrees of the locations
-                :param locations_latitudes: list of latitudes in degrees of the locations
-                :param projection: str, only accepting 'mercator' at the moment,
-                    raises `NotImplementedError` if other is passed
-                :param width_to_height: float, expected ratio of final graph's with to height,
-                    used to select the constrained axis.
-
-                :return:
-                zoom: float, from 1 to 20
-                center: dict, gps position with 'lon' and 'lat' keys
-                """
-                longitudes_max, longitudes_min = max(locations_longitudes), min(locations_longitudes)
-                latitudes_max, latitudes_min = max(locations_latitudes), min(locations_latitudes)
-                locations_center = {'lon': round((longitudes_max + longitudes_min) / 2, 6),
-                                    'lat': round((latitudes_max + latitudes_min) / 2, 6)}
-                longitude_zoom_range = np.array([
-                    0.0007, 0.0014, 0.003, 0.006, 0.012, 0.024, 0.048, 0.096, 0.192, 0.3712, 0.768, 1.536,
-                    3.072, 6.144, 11.8784, 23.7568, 47.5136, 98.304, 190.0544, 360.0
-                ])
-                if projection == 'mercator':
-                    margin = 3  # 1.2
-                    height = (latitudes_max - latitudes_min) * margin * width_to_height
-                    width = (longitudes_max - longitudes_min) * margin
-                    longitude_zoom = np.interp(width, longitude_zoom_range, range(20, 0, -1))
-                    latitude_zoom = np.interp(height, longitude_zoom_range, range(20, 0, -1))
-                    map_zoom = round(min(longitude_zoom, latitude_zoom), 2)
-                else:
-                    raise NotImplementedError(f"{projection} projection is not implemented")
-                return map_zoom, locations_center
-
-            if solution is not None:
-                instance = solution.instance
-
-            latitudes, longitudes = [], []
-            for task in instance.tasks:
-                latitudes.append(task.location.get_latitude(radians=False))
-                longitudes.append(task.location.get_longitude(radians=False))
-            zoom, center = _compute_map_zoom_and_center(longitudes, latitudes)
-
-            colors = _compute_employees_colors(instance)
-            fig = px.scatter_mapbox(lat=[], lon=[], hover_name=[], zoom=zoom, center=center)
-
-            # Case where the map figure is supposed to display information about the instance
-            if solution is None:
-
-                show_tasks = (mode == 'all') or ('tasks' in mode)
-                show_employees = (mode == 'all') or ('employees' in mode)
-
-                # Case where the map figure is supposed to display tasks locations
-                if show_tasks:
-                    texts, latitudes, latitudes, descriptions = [], [], [], []
-                    for task in instance.tasks:
-                        texts.append(f"{task.name}<br><br> ")
-                        latitudes.append(task.location.get_latitude(radians=False))
-                        longitudes.append(task.location.get_longitude(radians=False))
-                        descriptions.append(create_task_description_in_routes_figure(task))
-                    fig.add_trace(go.Scattermapbox(
-                        mode="markers+text", marker=dict(color=colors[0], size=9),
-                        lat=latitudes, lon=longitudes, hoverinfo='text', hovertext=descriptions, text=texts,
-                        showlegend=False
-                    ))
-
-                # Case where the map figure is supposed to display employees locations
-                if show_employees:
-                    for i, employee in enumerate(instance.employees):
-                        latitude = employee.location.get_latitude(radians=False)
-                        longitude = employee.location.get_longitude(radians=False)
-                        description = f"<b>{employee.name}</b> <br>" \
-                                      f"Skill level: {employee.skill_level} <br>" \
-                                      f"WH: {employee.TW}"
-                        # NB: Scattermapbox can not handle marker symbol other than circles
-                        fig.add_trace(go.Scattermapbox(
-                            mode='markers+text', marker=dict(color=colors[i], size=12),
-                            lat=[latitude], lon=[longitude],
-                            hoverinfo='text', hovertext=[description], text=[f"{employee.name}'s home<br><br> "],
-                            showlegend=False
-                        ))
-
-            # Case where the map figure is supposed to display information about the solution
-            else:
-                if mode != 'all':
-                    raise NotImplementedError(f"The mode {mode} is not handled")
-                non_performed_tasks_latitudes, non_performed_tasks_longitudes, non_performed_tasks_descriptions = \
-                    [], [], []
-                for task in instance.tasks:
-                    if not (solution.get_task_performance_status(task)):
-                        non_performed_tasks_latitudes.append(task.location.get_latitude(radians=False))
-                        non_performed_tasks_longitudes.append(task.location.get_longitude(radians=False))
-                        non_performed_tasks_descriptions.append(create_task_description_in_routes_figure(task, False))
-                fig.add_trace(go.Scattermapbox(
-                    name="None", mode='markers', marker=dict(color='grey', size=9),
-                    opacity=1 if infeasibility is None else .5,
-                    lat=non_performed_tasks_latitudes, lon=non_performed_tasks_longitudes,
-                    hoverinfo='text+name', hovertext=non_performed_tasks_descriptions,
-                    showlegend=False
-                ))
-                for i, employee in enumerate(solution.instance.employees):
-                    sequence = solution.get_sequence(employee)
-                    route_steps_latitudes = [employee.location.get_latitude(radians=False)]
-                    route_steps_longitudes = [employee.location.get_longitude(radians=False)]
-                    route_steps_descriptions = [""]
-                    route_steps_names = [""]
-                    route_steps_marker_sizes = [12]
-                    for step in sequence[1:-1]:
-                        activity = step.activity
-                        route_steps_latitudes.append(activity.location.get_latitude(radians=False))
-                        route_steps_longitudes.append(activity.location.get_longitude(radians=False))
-                        route_steps_descriptions.append(create_task_description_in_routes_figure(activity, True))
-                        route_steps_names.append(activity.name)
-                        route_steps_marker_sizes.append(9)
-                    route_steps_latitudes.append(employee.location.get_latitude(radians=False))
-                    route_steps_longitudes.append(employee.location.get_longitude(radians=False))
-                    route_steps_descriptions.append(f"<b>{employee.name}'s home</b> <br>"
-                                                    f"Skill level: {employee.skill_level}")
-                    route_steps_names.append("Home")
-                    route_steps_marker_sizes.append(12)
-                    if infeasibility is None:
-                        fig.add_trace(go.Scattermapbox(
-                            name=employee.name, mode='markers+lines+text',
-                            marker=dict(color=colors[i], size=route_steps_marker_sizes),
-                            lat=route_steps_latitudes, lon=route_steps_longitudes,
-                            hoverinfo='text+name', hovertext=route_steps_descriptions,
-                            text=[name + "<br><br> " for name in route_steps_names]
-                        ))
-                    else:
-                        if employee.name == infeasibility.conflicting_employee.name:
-                            fig.add_trace(go.Scattermapbox(
-                                name=employee.name, mode='markers+lines+text',
-                                line=dict(width=2),
-                                marker=dict(color=colors[i], size=route_steps_marker_sizes),
-                                lat=route_steps_latitudes, lon=route_steps_longitudes,
-                                hoverinfo='text+name', hovertext=route_steps_descriptions,
-                                text=[name + "<br><br> " for name in route_steps_names]
-                            ))
-                        else:
-                            fig.add_trace(go.Scattermapbox(
-                                name=employee.name, mode='markers+lines+text', opacity=.5,
-                                marker=dict(color=colors[i], size=route_steps_marker_sizes),
-                                lat=route_steps_latitudes, lon=route_steps_longitudes,
-                                hoverinfo='text+name', hovertext=route_steps_descriptions,
-                                text=[name + "<br><br> " for name in route_steps_names]
-                            ))
-
-            fig.update_layout(
-                mapbox_style="mapbox://styles/mathieu-lerouge/cl2nlkbiz002v14rvw77fv32q",
-                mapbox_accesstoken='pk.eyJ1IjoibWF0aGlldS1sZXJvdWdlIiwiYSI6ImNsMm5sajY4bDIxZGIzaXA5MDNscjFoa2UifQ'
-                                   '.SHh5_g--Pv6LEy6P3mk7eQ',
-                # Another possible map box style is the open street map one, which does not require any access token.
-                # However, with this style, names do not show up, then it should be used only if the token is an issue.
-                # mapbox_style="open-street-map"
-                margin={"r": 10, "t": 0, "l": 10, "b": 10},
-                legend=dict(traceorder='normal', orientation='h', xanchor='center', x=0.5, y=1.1,
-                            font=dict(family='Arial', size=10, color=self._font_color)),
-                paper_bgcolor=self._panel_content_color
-            )
-            return fig
-
-        def _build_routes_figure(solution: Solution = None, infeasibility: Infeasibility = None):
-            """
-            Build a map figure of the employees' routes.
-            By default, if no other solution is given, the solution that is represented is the current solution.
-            """
-            if solution is None:
-                solution = self.current_solution
-            return _build_map_figure(solution.instance, solution=solution, infeasibility=infeasibility)
-
-        def _build_schedules_figure(solution: Solution = None, infeasibility: Infeasibility = None):
-            """
-            Build a gantt chart of the employees' schedules.
-            By default, if no other solution is given, the solution that is represented is the current solution.
-            """
-            if solution is None:
-                solution = self.current_solution
-            instance = solution.instance
-            colors = _compute_employees_colors(instance)
-            fig = go.Figure(layout=dict(barmode='stack'))
-            for i, employee in enumerate(instance.employees):
-                sequence = solution.get_sequence(employee)
-                # Departure
-                start_step = sequence[0]
-                fig.add_trace(go.Bar(
-                    orientation='h', width=.3, marker=dict(color=colors[i]),
-                    opacity=(0.5 if infeasibility is not None else 1),
-                    base=[start_step.start_time - 5], x=[5], y=[employee.name],
-                    name=employee.name, hoverinfo='text+name',
-                    hovertext=[create_home_description_in_schedules_figure(
-                        start_step.activity, start_step.get_start_time(as_string=True))],
-                    showlegend=False
-                ))
-                if infeasibility is not None and isinstance(infeasibility, TimeInfeasibility) and \
-                        infeasibility.conflicting_employee.name == employee.name:
-                    conflicting_task = infeasibility.conflicting_task
-                    conflict_index = sequence.get_step_index_of(conflicting_task)
-                    assert (conflict_index != 0)
-                    employee_name_bis = employee.name + "2"
-                    # Steps before conflict (excluding conflict) - Traveling phases
-                    for step_index, step in enumerate(sequence[:conflict_index]):
-                        traveling_duration = \
-                            int(np.ceil(solution.compute_traveling_duration(step, sequence[step_index + 1])))
-                        fig.add_trace(go.Bar(
-                            orientation='h', width=.3, marker=dict(color='lightgrey'),
-                            base=[step.end_time], x=[traveling_duration], y=[employee.name], name=employee.name,
-                            hoverinfo='text',
-                            hovertext=f'<b>{traveling_duration}min</b> for traveling <br>'
-                                      f'<b>from {step.activity.name} to {sequence[step_index + 1].activity.name}</b>',
-                            showlegend=False
-                        ))
-                    # Steps before conflict (excluding conflict) - Steps
-                    steps_names, steps_hover_texts, steps_start_times, steps_durations = [], [], [], []
-                    for step in sequence[1:conflict_index]:
-                        activity = step.activity
-                        steps_names.append(activity.name)
-                        steps_hover_texts.append(create_task_description_in_schedules_figure(
-                            activity, step.get_start_time(as_string=True), step.get_end_time(as_string=True)
-                        ))
-                        steps_start_times.append(step.start_time)
-                        steps_durations.append(step.activity.duration)
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=.8, marker=dict(color=colors[i]),
-                        base=steps_start_times, x=steps_durations,
-                        y=[employee.name for _ in steps_start_times],
-                        name=employee.name, hoverinfo='text+name', hovertext=steps_hover_texts,
-                        text=steps_names, insidetextanchor='middle'
-                    ))
-                    # Step of conflict - Satisfying upstream constraints
-                    conflict_step = sequence[conflict_index]
-                    before_conflict_step = sequence[conflict_index - 1]
-                    traveling_duration = \
-                        int(np.ceil(solution.compute_traveling_duration(before_conflict_step, conflict_step)))
-                    conflict_activity = conflict_step.activity
-                    conflict_step_earliest_start_time = max(before_conflict_step.end_time + traveling_duration,
-                                                            conflict_activity.start_time_LB)
-                    conflict_step_earliest_end_time = conflict_step_earliest_start_time + conflict_activity.duration
-                    conflict_step_earliest_start_time_as_string = \
-                        convert_nb_minutes_to_time_string(conflict_step_earliest_start_time)
-                    conflict_step_earliest_end_time_as_string = \
-                        convert_nb_minutes_to_time_string(conflict_step_earliest_end_time)
-                    step_hover_text = create_task_description_in_schedules_figure(
-                        conflict_activity, conflict_step_earliest_start_time_as_string,
-                        conflict_step_earliest_end_time_as_string
-                    )
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=.8, marker=dict(color=self._conflict_task_color),
-                        base=[conflict_step_earliest_start_time], x=[conflict_activity.duration], y=[employee.name],
-                        name=employee.name, hoverinfo='text+name', hovertext=[step_hover_text],
-                        text=[conflict_activity.name], insidetextanchor='middle',
-                        showlegend=False
-                    ))
-                    # Step of conflict - Satisfying downstream constraints
-                    after_conflict_step = sequence[conflict_index + 1]
-                    traveling_duration = \
-                        int(np.ceil(solution.compute_traveling_duration(conflict_step, after_conflict_step)))
-                    conflict_step_latest_end_time = min(after_conflict_step.start_time - traveling_duration,
-                                                        conflict_activity.end_time_UB)
-                    conflict_step_latest_start_time = conflict_step_latest_end_time - conflict_activity.duration
-                    conflict_step_latest_start_time_as_string = \
-                        convert_nb_minutes_to_time_string(conflict_step_latest_start_time)
-                    conflict_step_latest_end_time_as_string = \
-                        convert_nb_minutes_to_time_string(conflict_step_latest_end_time)
-                    step_hover_text = create_task_description_in_schedules_figure(
-                        conflict_activity, conflict_step_latest_start_time_as_string,
-                        conflict_step_latest_end_time_as_string
-                    )
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=.8, marker=dict(color=self._conflict_task_color),
-                        base=[conflict_step_latest_start_time], x=[conflict_activity.duration], y=[employee_name_bis],
-                        name=employee.name, hoverinfo='text+name', hovertext=[step_hover_text],
-                        text=[conflict_activity.name], insidetextanchor='middle',
-                        showlegend=False
-                    ))
-                    # Step of conflict - Traveling phase
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=.3, marker=dict(color='lightgrey'),
-                        base=[conflict_step_latest_end_time], x=[traveling_duration], y=[employee_name_bis],
-                        name=employee.name, hoverinfo='text',
-                        hovertext=f'<b>{traveling_duration}min</b> for traveling <br>'
-                                  f'<b>from {conflict_activity.name} to {after_conflict_step.activity.name}</b>',
-                        showlegend=False
-                    ))
-                    # Steps after conflict (excluding conflict) - Traveling phases
-                    for step_index, step in enumerate(sequence[conflict_index + 1:-1]):
-                        step_index += conflict_index + 1
-                        traveling_duration = \
-                            int(np.ceil(solution.compute_traveling_duration(step, sequence[step_index + 1])))
-                        fig.add_trace(go.Bar(
-                            orientation='h', width=.3, marker=dict(color='lightgrey'),
-                            base=[step.end_time], x=[traveling_duration], y=[employee_name_bis],
-                            name=employee.name,
-                            hoverinfo='text',
-                            hovertext=f'<b>{traveling_duration}min</b> for traveling <br>'
-                                      f'<b>from {step.activity.name} to {sequence[step_index + 1].activity.name}</b>',
-                            showlegend=False
-                        ))
-                    # Steps after conflict (excluding conflict) - Steps
-                    steps_names, steps_hover_texts, steps_start_times, steps_durations = [], [], [], []
-                    for step in sequence[conflict_index + 1:-1]:
-                        activity = step.activity
-                        steps_names.append(activity.name)
-                        steps_hover_texts.append(create_task_description_in_schedules_figure(
-                            activity, step.get_start_time(as_string=True), step.get_end_time(as_string=True)
-                        ))
-                        steps_start_times.append(step.start_time)
-                        steps_durations.append(step.activity.duration)
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=.8, marker=dict(color=colors[i]),
-                        base=steps_start_times, x=steps_durations, y=[employee_name_bis for _ in steps_start_times],
-                        name=employee.name, hoverinfo='text+name', hovertext=steps_hover_texts,
-                        text=steps_names, insidetextanchor='middle',
-                        showlegend=False
-                    ))
-                    # Return
-                    return_step = sequence[-1]
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=.3, marker=dict(color=colors[i]),
-                        base=[return_step.start_time], x=[5], y=[employee_name_bis],
-                        name=employee.name, hoverinfo='text+name',
-                        hovertext=[create_home_description_in_schedules_figure(
-                            return_step.activity, return_step.get_start_time(as_string=True))],
-                        showlegend=False
-                    ))
-                    # Critical bounds
-                    upstream_critical_step_index = infeasibility.upstream_critical_step_index
-                    upstream_critical_bound_y_suffix = ""
-                    downstream_critical_step_index = infeasibility.downstream_critical_step_index
-                    downstream_critical_bound_y_suffix = "2"
-                    if infeasibility.solution_is_upstream_feasible:
-                        if not infeasibility.solution_is_downstream_feasible:
-                            if conflict_step_earliest_start_time == conflicting_task.start_time_LB:
-                                upstream_critical_step_index = conflict_index
-                    else:
-                        if infeasibility.solution_is_downstream_feasible:
-                            if conflict_step_latest_end_time == conflicting_task.end_time_UB:
-                                downstream_critical_step_index = conflict_index
-                    upstream_critical_step = sequence[upstream_critical_step_index]
-                    upstream_critical_bound = upstream_critical_step.activity.start_time_LB
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=1, marker=dict(color=self._conflict_bound_color),
-                        base=[upstream_critical_bound - 3], x=[3], y=[employee.name + upstream_critical_bound_y_suffix],
-                        name=employee.name, hoverinfo='text+name',
-                        hovertext=[f"Yielding <b>lower bound</b><br>"
-                                   f"of <b>{upstream_critical_step.activity.name}</b> availability<br>"
-                                   f"time window"],
-                        showlegend=False
-                    ))
-                    downstream_critical_step = sequence[downstream_critical_step_index]
-                    downstream_critical_bound = downstream_critical_step.activity.end_time_UB
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=1, marker=dict(color=self._conflict_bound_color),
-                        base=[downstream_critical_bound], x=[3], y=[employee.name + downstream_critical_bound_y_suffix],
-                        name=employee.name, hoverinfo='text+name',
-                        hovertext=["Yielding <b>upper bound</b><br>"
-                                   f"of <b>{downstream_critical_step.activity.name}</b> availability<br>"
-                                   f"time window"],
-                        showlegend=False
-                    ))
-                else:
-                    for step_index, step in enumerate(sequence[:-1]):
-                        traveling_duration = \
-                            int(np.ceil(solution.compute_traveling_duration(step, sequence[step_index + 1])))
-                        fig.add_trace(go.Bar(
-                            orientation='h', width=.3, marker=dict(color='lightgrey'),
-                            opacity=(0.5 if infeasibility is not None else 1),
-                            base=[step.end_time], x=[traveling_duration], y=[employee.name], name=employee.name,
-                            hoverinfo='text',
-                            hovertext=f'<b>{traveling_duration}min</b> for traveling <br>'
-                                      f'<b>from {step.activity.name} to {sequence[step_index + 1].activity.name}</b>',
-                            showlegend=False
-                        ))
-                    steps_names, steps_hover_texts, steps_start_times, steps_durations = [], [], [], []
-                    for step in sequence[1:-1]:
-                        activity = step.activity
-                        steps_names.append(activity.name)
-                        steps_hover_texts.append(create_task_description_in_schedules_figure(
-                            activity, step.get_start_time(as_string=True), step.get_end_time(as_string=True)
-                        ))
-                        steps_start_times.append(step.start_time)
-                        steps_durations.append(step.activity.duration)
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=.8, marker=dict(color=colors[i]),
-                        opacity=(0.5 if infeasibility is not None else 1),
-                        base=steps_start_times, x=steps_durations,
-                        y=[employee.name for _ in steps_start_times],
-                        name=employee.name, hoverinfo='text+name', hovertext=steps_hover_texts,
-                        text=steps_names, insidetextanchor='middle'
-                    ))
-                    return_step = sequence[-1]
-                    fig.add_trace(go.Bar(
-                        orientation='h', width=.3, marker=dict(color=colors[i]),
-                        opacity=(0.5 if infeasibility is not None else 1),
-                        base=[return_step.start_time], x=[5], y=[employee.name],
-                        name=employee.name, hoverinfo='text+name',
-                        hovertext=[create_home_description_in_schedules_figure(
-                            return_step.activity, return_step.get_start_time(as_string=True))],
-                        showlegend=False
-                    ))
-            fig.update_layout(
-                margin={"t": 0, "r": 10, "b": 20, "l": 10},
-                xaxis=dict(automargin=True, tickmode='array', tickvals=[h * 60 for h in range(7, 20)],
-                           ticktext=[convert_nb_minutes_to_time_string(h * 60).replace(':00', '') for h in
-                                     range(7, 20)]),
-                yaxis=dict(automargin=True, autorange='reversed', visible=False),
-                legend=dict(orientation='h', xanchor='center', x=0.5, y=1.1,
-                            font=dict(family='Arial', size=10, color=self._font_color), traceorder='normal'),
-                paper_bgcolor=self._panel_content_color, plot_bgcolor='#637485', font=dict(color=self._font_color)
-            )
-            return fig
-
-        def _build_instance_metrics_figures(instance: Instance, reference_instance: Instance = None,
-                                            horizontal: bool = True):
-            """
-            Build a gantt chart of the employees' schedules.
-            """
-            comparison_to_reference = False if (reference_instance is None) else True
-            reference_instance = instance if (reference_instance is None) else reference_instance
-            fig = go.Figure()
-            fig.add_trace(go.Indicator(
-                title=dict(text="# Employees", font=dict(color=self._font_color)),
-                mode=f"number{'+delta' if comparison_to_reference else ''}",
-                number=dict(font=dict(color=self._font_color)),
-                value=instance.nb_employees, delta=dict(reference=reference_instance.nb_employees),
-                domain={'row': 0, 'column': 0}))
-            fig.add_trace(go.Indicator(
-                title=dict(text="Total employees<br>working time", font=dict(color=self._font_color)),
-                mode=f"number{'+delta' if comparison_to_reference else ''}",
-                number=dict(font=dict(color=self._font_color), suffix='min'),
-                value=instance.total_employees_availability_duration,
-                delta=dict(reference=reference_instance.total_employees_availability_duration),
-                domain={'row': 0 if horizontal else 1, 'column': 2 if horizontal else 0}))
-            fig.add_trace(go.Indicator(
-                title=dict(text="# Tasks", font=dict(color=self._font_color)),
-                mode=f"number{'+delta' if comparison_to_reference else ''}",
-                number=dict(font=dict(color=self._font_color)),
-                value=instance.nb_tasks, delta=dict(reference=reference_instance.nb_tasks),
-                domain={'row': 0, 'column': 1}))
-            fig.add_trace(go.Indicator(
-                title=dict(text="Total tasks<br>duration", font=dict(color=self._font_color)),
-                mode=f"number{'+delta' if comparison_to_reference else ''}",
-                number=dict(font=dict(color=self._font_color), suffix='min'),
-                value=instance.total_tasks_duration, delta=dict(reference=reference_instance.total_tasks_duration),
-                domain={'row': 0 if horizontal else 1, 'column': 3 if horizontal else 1}))
-            fig.update_layout(
-                grid={'rows': 1 if horizontal else 2, 'columns': 4 if horizontal else 2, 'pattern': 'independent'},
-                paper_bgcolor=self._panel_content_color, font={'color': self._font_color}
-            )
-            return fig
-
-        def _build_solution_metrics_figures(solution, reference_solution=None, horizontal=True):
-            """
-            Build a gantt chart of the employees' schedules.
-            """
-            comparison_to_reference = False if (reference_solution is None) else True
-            reference_solution = solution if (reference_solution is None) else reference_solution
-            instance = solution.instance
-            fig = go.Figure()
-            fig.add_trace(go.Indicator(
-                title=dict(text="# Performed tasks", font=dict(color=self._font_color)),
-                mode=f"gauge+number{'+delta' if comparison_to_reference else ''}",
-                gauge=dict(axis=dict(range=[0, instance.nb_tasks], tickcolor=self._line_color),
-                           bordercolor=self._line_color),
-                number=dict(font=dict(color=self._font_color)),
-                value=solution.nb_performed_tasks, delta=dict(reference=reference_solution.nb_performed_tasks),
-                domain={'row': 0, 'column': 0})
-            )
-            fig.add_trace(go.Indicator(
-                title=dict(text="Total working time", font=dict(color=self._font_color)),
-                mode=f"gauge+number{'+delta' if comparison_to_reference else ''}",
-                gauge=dict(axis=dict(range=[0, instance.total_employees_availability_duration],
-                                     tickcolor=self._line_color), bordercolor=self._line_color),
-                number=dict(font=dict(color=self._font_color), suffix='min'),
-                value=solution.total_working_duration, delta=dict(reference=reference_solution.total_working_duration),
-                domain={'row': 0, 'column': 1})
-            )
-            fig.add_trace(go.Indicator(
-                title=dict(text="Total traveling time", font=dict(color=self._font_color)),
-                mode=f"gauge+number{'+delta' if comparison_to_reference else ''}",
-                gauge=dict(axis=dict(range=[0, instance.total_employees_availability_duration],
-                                     tickcolor=self._line_color), bar=dict(color='red'), bordercolor=self._line_color),
-                number=dict(font=dict(color=self._font_color), suffix='min'),
-                value=solution.total_traveling_duration,
-                delta=dict(reference=reference_solution.total_traveling_duration,
-                           increasing=dict(color='red'), decreasing=dict(color='green')),
-                domain={'row': 0 if horizontal else 1, 'column': 2 if horizontal else 0})
-            )
-            fig.update_layout(
-                grid={'rows': 1 if horizontal else 2, 'columns': 3 if horizontal else 2, 'pattern': 'independent'},
-                paper_bgcolor=self._panel_content_color, font={'color': self._font_color}
-            )
-            return fig
-
-        ##################
-        # Typical panels #
-        ##################
-
-        def _build_panel_banner(panel_title: str):
-            """
-            Build the banner of a typical panel.
-            """
-            return html.Div(className="panel-banner", children=panel_title)
-
-        def _build_employees_data_panel(panel_title: str = "Employees data", instance: Instance = None,
-                                        editable: bool = False):
-            """
-            Build a panel containing a table with data about the employees.
-            """
-            panel = html.Div(
-                id="employees-panel", className='panel-with-bottom-margin',
-                children=[_build_panel_banner(panel_title), _build_employees_data_table(instance, editable)]
-            )
-            return panel
-
-        def _build_tasks_data_panel(panel_title: str = "Tasks data", panel_title_prefix: str = "",
-                                    panel_title_suffix: str = "", instance: Instance = None,
-                                    editable: bool = False):
-            """
-            Build a panel containing a table with data about the tasks.
-            """
-            panel_title = panel_title_prefix + panel_title + panel_title_suffix
-            panel = html.Div(
-                id="tasks-panel", className='panel',
-                children=[_build_panel_banner(panel_title), _build_tasks_data_table(instance, editable)]
-            )
-            return panel
-
-        def _build_routes_figure_panel(panel_title: str = "Employees' routes", panel_title_prefix: str = "",
-                                       panel_title_suffix: str = "", solution: Solution = None,
-                                       infeasibility: Infeasibility = None):
-            """
-            Build a panel containing a map of the employees' routes for a given solution.
-            By default, if no other solution is given, the solution that is represented is the current solution.
-            """
-            panel_title = panel_title_prefix + panel_title + panel_title_suffix
-            solution_to_represent = self.current_solution if (solution is None) else solution
-            panel = html.Div(
-                className='panel',
-                children=[
-                    _build_panel_banner(panel_title),
-                    dcc.Graph(
-                        id=f"{'current' if solution is None else 'other'}-solution-spatial-representation",
-                        className='spatial-representation', style=dict(padding='1rem 0rem 0rem 0rem'),
-                        figure=_build_routes_figure(solution=solution_to_represent, infeasibility=infeasibility))
-                ]
-            )
-            return panel
-
-        def _build_schedules_figure_panel(panel_title: str = "Employees' schedules", panel_title_prefix: str = "",
-                                          panel_title_suffix: str = "", solution: Solution = None,
-                                          infeasibility: Infeasibility = None):
-            """
-            Build a panel containing a gantt chart of the employees' schedules for a given solution.
-            By default, if no solution is given, the solution that is represented is the current solution.
-            """
-            panel_title = panel_title_prefix + panel_title + panel_title_suffix
-            solution_to_represent = self.current_solution if (solution is None) else solution
-            panel = html.Div(
-                className='panel',
-                children=[
-                    _build_panel_banner(panel_title),
-                    dcc.Graph(
-                        id=f"{'current' if solution is None else 'other'}-solution-temporal-representation",
-                        className="temporal-representation", style=dict(padding='1rem 0rem 1rem 0rem'),
-                        figure=_build_schedules_figure(solution=solution_to_represent, infeasibility=infeasibility))
-                ]
-            )
-            return panel
-
-        def _build_instance_metrics_panel(panel_title: str = "Metrics", panel_title_prefix: str = "",
-                                          horizontal: bool = True, instance: Instance = None):
-            """
-            Build a panel containing some metrics data about the instance.
-            """
-            panel_title = panel_title_prefix + panel_title
-            instance_to_describe = self.current_instance if (instance is None) else instance
-            reference_instance = None if (instance is None) else self.current_instance
-            panel = html.Div(
-                className=f'panel',
-                children=[
-                    _build_panel_banner(panel_title),
-                    dcc.Graph(id=f"{'horizontal' if horizontal else 'two-by-two'}-"
-                                 f"{'current' if (instance is None) else 'other'}-instance-metrics-figures",
-                              figure=_build_instance_metrics_figures(instance_to_describe, reference_instance,
-                                                                     horizontal))
-                ]
-            )
-            return panel
-
-        def _build_solution_metrics_panel(panel_title: str = "Metrics", panel_title_prefix: str = "",
-                                          horizontal: bool = True, solution: Solution = None):
-            """
-            Build a panel containing a figure with metrics about the solution.
-            If no solution is given, then the metrics of the current solution are represented.
-            Else, the metrics of the given solution are represented and compared to the ones of the current solution.
-            """
-            panel_title = panel_title_prefix + panel_title
-            solution_to_describe = self.current_solution if (solution is None) else solution
-            reference_solution = None if (solution is None) else self.current_solution
-            panel = html.Div(
-                className=f'panel',
-                children=[
-                    _build_panel_banner(panel_title),
-                    dcc.Graph(id=f"{'horizontal' if horizontal else 'two-by-two'}-"
-                                 f"{'current' if (solution is None) else 'other'}-solution-metrics-figures",
-                              figure=_build_solution_metrics_figures(solution_to_describe, reference_solution,
-                                                                     horizontal))
-                ]
-            )
-            return panel
 
         ##########
         # Layout #
@@ -2282,6 +1767,22 @@ class ExplainerWebGUI:
         Launch the web Graphic User Interface of the explainer.
         """
         self._application.run_server(debug=True)
+
+    #################
+    # Configuration #
+    #################
+
+    @property
+    def language(self):
+        return self._explainer.language
+
+    @property
+    def language_is_english(self):
+        return self._explainer.language_is_english
+
+    @property
+    def language_is_french(self):
+        return self._explainer.language_is_french
 
     #########################
     # Solution and instance #
