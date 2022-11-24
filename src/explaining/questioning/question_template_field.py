@@ -155,3 +155,11 @@ def check_text_and_assumptions_consistency(text: str, fields_assumptions: list[F
             raise error
         else:
             return False
+
+
+def check_texts_and_assumptions_consistency(texts: dict[str, str], fields_assumptions: list[FieldAssumptions],
+                                            raise_error=False):
+    for text in texts.values():
+        if not check_text_and_assumptions_consistency(text, fields_assumptions, raise_error):
+            return False
+    return True
