@@ -61,7 +61,7 @@ def build_tasks_data_panel(instance: Instance, is_current_instance: bool,
     return panel
 
 
-def build_routes_figure_panel(solution: Solution, is_current_solution: bool,  panel_title: str = "Employees' routes",
+def build_routes_figure_panel(solution: Solution, is_current_solution: bool, panel_title: str = "Employees' routes",
                               panel_title_prefix: str = "", panel_title_suffix: str = "",
                               infeasibility: Infeasibility = None, language: str = LANGUAGE_ENGLISH_KEY):
     """
@@ -75,11 +75,11 @@ def build_routes_figure_panel(solution: Solution, is_current_solution: bool,  pa
         className='panel',
         children=[
             build_panel_banner(panel_title),
-            dcc.Graph(
-                id=f"{'current' if is_current_solution else 'other'}-solution-spatial-representation",
-                className='spatial-representation', style=dict(padding='1rem 0rem 0rem 0rem'),
-                figure=build_routes_figure(solution=solution, infeasibility=infeasibility, language=language)
-            )
+            dcc.Graph(id=f"{'current' if is_current_solution else 'other'}-solution-spatial-representation",
+                      className='spatial-representation', style=dict(padding='1rem 0rem 0rem 0rem'),
+                      figure=build_routes_figure(solution=solution, infeasibility=infeasibility, language=language),
+                      config={'modeBarButtonsToRemove': ['zoom', 'pan', 'select', 'lasso', 'zoomIn', 'zoomOut'],
+                              'displaylogo': False})
         ]
     )
     return panel
@@ -100,11 +100,12 @@ def build_schedules_figure_panel(solution: Solution, is_current_solution: bool,
         className='panel',
         children=[
             build_panel_banner(panel_title),
-            dcc.Graph(
-                id=f"{'current' if is_current_solution else 'other'}-solution-temporal-representation",
-                className="temporal-representation", style=dict(padding='1rem 0rem 1rem 0rem'),
-                figure=build_schedules_figure(solution=solution, infeasibility=infeasibility, language=language)
-            )
+            dcc.Graph(id=f"{'current' if is_current_solution else 'other'}-solution-temporal-representation",
+                      className="temporal-representation", style=dict(padding='1rem 0rem 1rem 0rem'),
+                      figure=build_schedules_figure(solution=solution, infeasibility=infeasibility, language=language),
+                      config={'modeBarButtonsToRemove': ['zoom', 'pan', 'select', 'lasso', 'zoomIn', 'zoomOut',
+                                                         'autoScale'],
+                              'displaylogo': False})
         ]
     )
     return panel
@@ -127,7 +128,8 @@ def build_instance_metrics_panel(instance: Instance, is_current_instance: bool,
             build_panel_banner(panel_title),
             dcc.Graph(id=f"{'horizontal' if horizontal else 'two-by-two'}-"
                          f"{'current' if is_current_instance else 'other'}-instance-metrics-figures",
-                      figure=build_instance_metrics_figures(instance, instance_to_compare_with, horizontal, language))
+                      figure=build_instance_metrics_figures(instance, instance_to_compare_with, horizontal, language),
+                      config={'displayModeBar': False})
         ]
     )
     return panel
@@ -150,7 +152,8 @@ def build_solution_metrics_panel(solution: Solution = None, is_current_solution:
             build_panel_banner(panel_title),
             dcc.Graph(id=f"{'horizontal' if horizontal else 'two-by-two'}-"
                          f"{'current' if is_current_solution else 'other'}-solution-metrics-figures",
-                      figure=build_solution_metrics_figures(solution, solution_to_compare_with, horizontal, language))
+                      figure=build_solution_metrics_figures(solution, solution_to_compare_with, horizontal, language),
+                      config={'displayModeBar': False})
         ]
     )
     return panel
