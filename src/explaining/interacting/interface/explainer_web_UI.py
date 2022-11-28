@@ -1485,12 +1485,20 @@ class ExplainerWebGUI:
                     for row in employees_data:
                         employee = current_instance.get_employee_by_name(row['name'])
                         try:
-                            convert_time_string_to_nb_minutes(row['start'])
+                            data_in_right_format = convert_nb_minutes_to_time_string(
+                                convert_time_string_to_nb_minutes(row['start']), hour_format)
+                            if row['start'] != data_in_right_format:
+                                row['start'] = data_in_right_format
+                                corrected = True
                         except ValueError:
                             row['start'] = convert_nb_minutes_to_time_string(employee.start_time_LB, hour_format)
                             corrected = True
                         try:
-                            convert_time_string_to_nb_minutes(row['end'])
+                            data_in_right_format = convert_nb_minutes_to_time_string(
+                                convert_time_string_to_nb_minutes(row['end']), hour_format)
+                            if row['end'] != data_in_right_format:
+                                row['end'] = data_in_right_format
+                                corrected = True
                         except ValueError:
                             row['end'] = convert_nb_minutes_to_time_string(employee.end_time_UB, hour_format)
                             corrected = True
@@ -1499,17 +1507,25 @@ class ExplainerWebGUI:
                     for row in tasks_data:
                         task = current_instance.get_task_by_name(row['name'])
                         try:
-                            convert_time_string_to_nb_minutes(row['start'])
+                            data_in_right_format = convert_nb_minutes_to_time_string(
+                                convert_time_string_to_nb_minutes(row['start']), hour_format)
+                            if row['start'] != data_in_right_format:
+                                row['start'] = data_in_right_format
+                                corrected = True
                         except ValueError:
                             row['start'] = convert_nb_minutes_to_time_string(task.start_time_LB, hour_format)
                             corrected = True
                         try:
-                            convert_time_string_to_nb_minutes(row['end'])
+                            data_in_right_format = convert_nb_minutes_to_time_string(
+                                convert_time_string_to_nb_minutes(row['end']), hour_format)
+                            if row['end'] != data_in_right_format:
+                                row['end'] = data_in_right_format
+                                corrected = True
                         except ValueError:
                             row['end'] = convert_nb_minutes_to_time_string(task.end_time_UB, hour_format)
                             corrected = True
                         try:
-                            int(row['duration'])
+                            row['duration'] = int(row['duration'])
                         except ValueError:
                             row['duration'] = task.duration
                             corrected = True

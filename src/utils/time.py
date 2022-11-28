@@ -35,9 +35,13 @@ def convert_time_string_to_nb_minutes(time_string: str):
     :return: number of minutes (int)
     """
     if get_hour_format(time_string) == TWELVE_HOURS_FORMAT:
+        if time_string[-3] == ':':
+            time_string = time_string[-2] + "00" + time_string[:-2]
         return int((dt.datetime.strptime(time_string, '%I:%M%p') -
                     dt.datetime.strptime("00:00am", '%H:%M%p')).total_seconds()/60)
     elif get_hour_format(time_string) == TWENTY_FOUR_HOURS_FORMAT:
+        if time_string[-1] == 'h':
+            time_string += "00"
         return int((dt.datetime.strptime(time_string, '%Hh%M') -
                     dt.datetime.strptime("00:00", '%H:%M')).total_seconds() / 60)
     else:
