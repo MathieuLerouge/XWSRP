@@ -21,7 +21,8 @@ from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.interacting.explainer import Explainer
 from src.modeling.solution import Solution
 from src.utils.constants import LINE_BREAK_STRING
-from src.utils.time import convert_time_string_to_nb_minutes, get_hour_format_associated_with_language
+from src.utils.time import convert_time_string_to_nb_minutes, get_hour_format_associated_with_language, \
+    convert_nb_minutes_to_time_string
 
 
 ####################
@@ -181,6 +182,17 @@ class ExplainerWebGUI:
                 ]
             )
             return explorer_banner
+
+        @self._application.callback(
+            Output('instance-description-tab', 'disabled'), Output('instances-comparison-tab', 'disabled'),
+            Output('solution-description-tab', 'disabled'), Output('solutions-comparison-tab', 'disabled'),
+            Output('explainer-tab', 'disabled'), Input('template-question-dropdown', 'disabled'),
+        )
+        def _update_tab_button_status(template_question_dropdown_disabled: bool):
+            if template_question_dropdown_disabled:
+                return True, True, True, True, True
+            else:
+                return False, False, False, False, False
 
         if self._explainer.history_is_enabled:
             #
@@ -869,13 +881,25 @@ class ExplainerWebGUI:
                         scenario_question_panel_title = "What-if question"
                         scenario_question_text_placeholder = "Waiting for the definition of a 'what-if' question..."
                         submit_button_label = "Submit"
+                        reset_button_label = "Reset"
+                        cancel_button_label = "Return"
                     elif self.language_is_french:
                         scenario_question_panel_title = "Question de type 'et-si'"
                         scenario_question_text_placeholder = \
                             "En attente qu'une question de type 'et-si' soit définie..."
                         submit_button_label = "Soumettre"
+                        reset_button_label = "Réinit."
+                        cancel_button_label = "Retour"
                     else:
                         raise ValueError(f"Unsupported language: {self.language}")
+                    buttons = [
+                        html.Button(id='scenario-submit-button', className='button',
+                                    children=submit_button_label, disabled=True),
+                        html.Button(id='scenario-reset-button', className='button', style=dict(marginTop='1rem'),
+                                    children=reset_button_label, disabled=True),
+                        html.Button(id='scenario-return-button', className='button', style=dict(marginTop='1rem'),
+                                    children=cancel_button_label, disabled=False)
+                    ]
                     panel = html.Div(
                         id='scenario-question-panel', className='panel-with-bottom-margin',
                         children=[
@@ -886,8 +910,9 @@ class ExplainerWebGUI:
                                     html.Div(id='scenario-question-text', className='empty-automated-text',
                                              style=dict(flex=1, alignItems='end', marginRight='1rem'),
                                              children=scenario_question_text_placeholder),
-                                    html.Button(id='scenario-submit-button', className='button',
-                                                children=submit_button_label, disabled=True)
+                                    html.Div(style=dict(display='flex', flexDirection='column',
+                                                        justifyContent='flex-end'),
+                                             children=buttons)
                                 ]
                             )
                         ]
@@ -1351,12 +1376,12 @@ class ExplainerWebGUI:
                         return False
 
             @self._application.callback(
-                Output('what-if-button', 'n_clicks'), Input('scenario-ok-button', 'n_clicks')
+                Output('what-if-button', 'n_clicks'), Input('scenario-return-button', 'n_clicks'),
             )
-            def _reset_what_if_button_click(scenario_ok_button_click: int):
-                if scenario_ok_button_click is None:
+            def _reset_what_if_button_click(scenario_cancel_button_click: int):
+                if scenario_cancel_button_click is None:
                     raise PreventUpdate
-                if scenario_ok_button_click == 1:
+                elif scenario_cancel_button_click == 1:
                     return None
                 else:
                     raise NotImplementedError("There is a problem with the scenario ok button #clicks")
@@ -1405,10 +1430,100 @@ class ExplainerWebGUI:
                     raise NotImplementedError("There is a problem with the what-if button #clicks")
 
             @self._application.callback(
+                Output('scenario-submit-button', 'n_clicks'), Input('scenario-question-block', 'style')
+            )
+            def _reset_scenario_submit_button_click(scenario_envelope_style):
+                if scenario_envelope_style['display'] in ['none', 'block']:
+                    return None
+                else:
+                    raise NotImplementedError("There is a problem with the scenario envelope style")
+
+            @self._application.callback(
+                Output('scenario-return-button', 'n_clicks'), Input('scenario-question-block', 'style')
+            )
+            def _reset_scenario_cancel_button_click(scenario_envelope_style):
+                if scenario_envelope_style['display'] in ['none', 'block']:
+                    return None
+                else:
+                    raise NotImplementedError("There is a problem with the scenario envelope style")
+
+            @self._application.callback(
+                Output('editable-instance-employees-data-table', 'data'),
+                Output('editable-instance-tasks-data-table', 'data'),
+                Output('scenario-reset-button', 'n_clicks'),
+                Input('editable-instance-employees-data-table', 'data'),
+                Input('editable-instance-tasks-data-table', 'data'),
+                Input('what-if-button', 'n_clicks'), Input('scenario-reset-button', 'n_clicks')
+            )
+            def _build_maintain_and_reset_editable_data_tables(employees_data, tasks_data, what_if_button_click: int,
+                                                               reset_button_click: int):
+                current_instance = self.current_instance
+                if reset_button_click is not None:
+                    if reset_button_click == 1:
+                        return (build_employees_data(current_instance, self.language),
+                                build_tasks_data(current_instance, self.language), None)
+                    else:
+                        raise NotImplementedError("There is a problem with the scenario reset button #clicks")
+                if what_if_button_click is None:
+                    for row in employees_data:
+                        employee = current_instance.get_employee_by_name(row['name'])
+                        if (convert_time_string_to_nb_minutes(row['start']) != employee.start_time_LB or
+                                convert_time_string_to_nb_minutes(row['end']) != employee.end_time_UB):
+                            return (build_employees_data(current_instance, self.language),
+                                    build_tasks_data(current_instance, self.language), reset_button_click)
+                    for row in tasks_data:
+                        task = current_instance.get_task_by_name(row['name'])
+                        if (convert_time_string_to_nb_minutes(row['start']) != task.start_time_LB or
+                                convert_time_string_to_nb_minutes(row['end']) != task.end_time_UB or
+                                row['duration'] != task.duration):
+                            return (build_employees_data(current_instance, self.language),
+                                    build_tasks_data(current_instance, self.language), reset_button_click)
+                    raise PreventUpdate
+                elif what_if_button_click == 1:
+                    corrected = False
+                    hour_format = get_hour_format_associated_with_language(self.language)
+                    for row in employees_data:
+                        employee = current_instance.get_employee_by_name(row['name'])
+                        try:
+                            convert_time_string_to_nb_minutes(row['start'])
+                        except ValueError:
+                            row['start'] = convert_nb_minutes_to_time_string(employee.start_time_LB, hour_format)
+                            corrected = True
+                        try:
+                            convert_time_string_to_nb_minutes(row['end'])
+                        except ValueError:
+                            row['end'] = convert_nb_minutes_to_time_string(employee.end_time_UB, hour_format)
+                            corrected = True
+                    if corrected:
+                        return employees_data, tasks_data, reset_button_click
+                    for row in tasks_data:
+                        task = current_instance.get_task_by_name(row['name'])
+                        try:
+                            convert_time_string_to_nb_minutes(row['start'])
+                        except ValueError:
+                            row['start'] = convert_nb_minutes_to_time_string(task.start_time_LB, hour_format)
+                            corrected = True
+                        try:
+                            convert_time_string_to_nb_minutes(row['end'])
+                        except ValueError:
+                            row['end'] = convert_nb_minutes_to_time_string(task.end_time_UB, hour_format)
+                            corrected = True
+                        try:
+                            int(row['duration'])
+                        except ValueError:
+                            row['duration'] = task.duration
+                            corrected = True
+                    if corrected:
+                        return employees_data, tasks_data, reset_button_click
+                    raise PreventUpdate
+                else:
+                    raise NotImplementedError("There is a problem with the what-if button #clicks")
+
+            @self._application.callback(
                 Output('editable-instance-employees-data-table', 'style_data_conditional'),
                 Input('editable-instance-employees-data-table', 'data')
             )
-            def _update_scenario_employees_data_style(employees_data):
+            def _update_scenario_employees_data_conditional_style(employees_data):
                 return build_employees_style_data_conditional(employees_data, self.current_instance)
 
             @self._application.callback(
@@ -1453,7 +1568,7 @@ class ExplainerWebGUI:
                     question_text = f"What if tasks data are changed as follows?{LINE_BREAK_STRING}" \
                                     f"{instance_alterations.as_string(True, self.language)}"
                 elif self.language_is_french:
-                    question_text = f"Et si les données relatives aux tâches étaient modifiées comme suit?" \
+                    question_text = f"Et si les données relatives aux tâches étaient modifiées comme suit ?" \
                                     f"{LINE_BREAK_STRING}" \
                                     f"{instance_alterations.as_string(True, self.language)}"
                 else:
@@ -1462,24 +1577,51 @@ class ExplainerWebGUI:
                 return question_text, 'automated-text'
 
             @self._application.callback(
-                Output('scenario-submit-button', 'disabled'), Input('scenario-question-text', 'className')
+                Output('scenario-submit-button', 'disabled'),
+                Input('scenario-question-text', 'className'), Input('scenario-explanation-text', 'className')
             )
-            def _update_scenario_submit_button_status(scenario_question_text_style: str):
+            def _update_scenario_submit_button_status(scenario_question_text_style: str,
+                                                      scenario_explanation_text_style: str):
                 if scenario_question_text_style == 'empty-automated-text':
                     return True
                 elif scenario_question_text_style == 'automated-text':
-                    return False
+                    if (self._scenario_instance_alterations.nb_changes == 0 or
+                            scenario_explanation_text_style == 'automated-text'):
+                        return True
+                    else:
+                        return False
                 else:
-                    raise NotImplementedError("There is a problem with the scenario question text style")
+                    raise NotImplementedError("There is a problem with the scenario question or explanation "
+                                              "texts styles")
 
             @self._application.callback(
-                Output('scenario-submit-button', 'n_clicks'), Input('scenario-question-block', 'style')
+                Output('scenario-reset-button', 'disabled'),
+                Input('scenario-question-text', 'className'), Input('scenario-explanation-text', 'className')
             )
-            def _reset_scenario_submit_button_click(scenario_envelope_style):
-                if scenario_envelope_style['display'] in ['none', 'block']:
-                    return None
+            def _update_scenario_reset_button_status(scenario_question_text_style: str,
+                                                     scenario_explanation_text_style: str):
+                if scenario_question_text_style == 'empty-automated-text':
+                    return True
+                elif scenario_question_text_style == 'automated-text':
+                    if (self._scenario_instance_alterations.nb_changes == 0 or
+                            scenario_explanation_text_style == 'automated-text'):
+                        return True
+                    else:
+                        return False
                 else:
-                    raise NotImplementedError("There is a problem with the scenario envelope style")
+                    raise NotImplementedError("There is a problem with the scenario question or explanation "
+                                              "texts styles")
+
+            @self._application.callback(
+                Output('scenario-return-button', 'disabled'), Input('scenario-explanation-text', 'className')
+            )
+            def _update_scenario_cancel_button_status(scenario_explanation_text_style: str):
+                if scenario_explanation_text_style == 'empty-automated-text':
+                    return False
+                elif scenario_explanation_text_style == 'automated-text':
+                    return True
+                else:
+                    raise NotImplementedError("There is a problem with the scenario explanation text style")
 
             @self._application.callback(
                 Output('scenario-explanation-text', 'children'), Output('scenario-explanation-text', 'className'),
@@ -1509,10 +1651,6 @@ class ExplainerWebGUI:
                     explanation_text = convert_from_string_to_html(explanation.text)
                     explanation_repr_visibility = dict(display='block')
                     if self.language_is_english:
-                        # panel_title_prefix = \
-                        #     f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                        #     f" new solution - "
-                        # panel_title_suffix = f" " (for 'what-if' explanation)"
                         panel_title_prefix = \
                             f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
                             f" solution involved in 'what-if' explanation - "
@@ -1548,12 +1686,12 @@ class ExplainerWebGUI:
             @self._application.callback(
                 Output('scenario-editable-employees-data-panel', 'children'),
                 Output('scenario-editable-tasks-data-panel', 'children'),
-                Input('scenario-ok-button', 'n_clicks')
+                Input('scenario-reset-button', 'n_clicks')
             )
-            def _reset_scenario_editable_data(scenario_ok_button_click: int):
-                if scenario_ok_button_click is None or scenario_ok_button_click == 0:
+            def _reset_scenario_editable_data(scenario_reset_button_click: int):
+                if scenario_reset_button_click is None or scenario_reset_button_click == 0:
                     raise PreventUpdate
-                elif scenario_ok_button_click == 1:
+                elif scenario_reset_button_click == 1:
                     if self.language_is_english:
                         employees_data_panel_title = "Editable employees data for 'what-if' question"
                         tasks_data_panel_title = "Editable tasks data for 'what-if' question"
@@ -1569,7 +1707,7 @@ class ExplainerWebGUI:
                                                    panel_title=tasks_data_panel_title, editable=True,
                                                    language=self.language))
                 else:
-                    raise NotImplementedError("There is a problem with what-if ok button #clicks")
+                    raise NotImplementedError("There is a problem with scenario ok or reset button #clicks")
 
             @self._application.callback(
                 Output('scenario-ok-button', 'disabled'), Input('scenario-explanation-text', 'className')
@@ -1581,13 +1719,16 @@ class ExplainerWebGUI:
                     return False
 
             @self._application.callback(
-                Output('scenario-ok-button', 'n_clicks'), Input('scenario-question-block', 'style')
+                Output('scenario-ok-button', 'n_clicks'),
+                Input('scenario-explanation-text', 'className')
             )
-            def _reset_scenario_ok_button_click(scenario_envelope_style):
-                if scenario_envelope_style['display'] in ['none', 'block']:
+            def _reset_scenario_ok_button_click(scenario_explanation_text_style: str):
+                if scenario_explanation_text_style == 'empty-automated-text':
                     return None
+                elif scenario_explanation_text_style == 'automated-text':
+                    raise PreventUpdate
                 else:
-                    raise NotImplementedError("There is a problem with the scenario envelope style")
+                    raise NotImplementedError("There is a problem with the scenario explanation text style")
 
             if self._explainer.history_is_enabled:
                 #
@@ -1599,7 +1740,7 @@ class ExplainerWebGUI:
                                                         scenario_save_button_click: int):
                     if scenario_explanation_text_style == 'empty-automated-text':
                         return True
-                    else:
+                    elif scenario_explanation_text_style == 'automated-text':
                         explanation = self._explainer.last_scenario_explanation
                         if scenario_save_button_click is None or scenario_save_button_click == 0:
                             if explanation.support_solution_is_feasible:
@@ -1611,6 +1752,8 @@ class ExplainerWebGUI:
                             return True
                         else:
                             raise NotImplementedError("There is a problem with what-if save button #clicks")
+                    else:
+                        raise NotImplementedError("There is a problem with the scenario explanation text style")
 
                 @self._application.callback(
                     Output('scenario-save-button', 'n_clicks'),
@@ -1620,8 +1763,10 @@ class ExplainerWebGUI:
                                                       scenario_save_button_click: int):
                     if scenario_explanation_text_style == 'empty-automated-text':
                         return None
-                    else:
+                    elif scenario_explanation_text_style == 'automated-text':
                         return scenario_save_button_click
+                    else:
+                        raise NotImplementedError("There is a problem with the scenario explanation text style")
 
         ######################################################
         # Explainer tab content - Call back - Counterfactual #
@@ -1664,10 +1809,6 @@ class ExplainerWebGUI:
                     explanation_text = convert_from_string_to_html(explanation.text)
                     explanation_repr_visibility = dict(display='block')
                     if self.language_is_english:
-                        # panel_title_prefix = \
-                        #     f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}"\
-                        #     f" new solution - "
-                        # panel_title_suffix = " (for 'how-to' explanation)"
                         panel_title_prefix = "Solution involved in 'how-to' explication - "
                         panel_title_suffix = ""
                     elif self.language_is_french:
