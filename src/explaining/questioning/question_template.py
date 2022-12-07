@@ -165,7 +165,7 @@ class QuestionTemplate:
                         employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
                         possible_tasks = solution.get_tasks_performed_by(employee)
             elif field_assumptions.must_refer_to_not_performed_activity:
-                possible_tasks = solution.not_performed_tasks
+                possible_tasks = solution.non_performed_tasks
             if field_assumptions.must_refer_to_activity_not_performed_by_provided_employee:
                 employee_field_index = field_assumptions.field_index_of_employee_not_performing_this_field_activity
                 if employee_field_index in other_fields_values.keys():
@@ -186,7 +186,7 @@ class QuestionTemplate:
                         possible_activities_names = \
                             [activity.name for activity in solution.get_sequence(employee).get_contained_activities()]
             elif field_assumptions.must_refer_to_not_performed_activity:
-                possible_activities_names = solution.not_performed_tasks_names
+                possible_activities_names = solution.non_performed_tasks_names
             if field_assumptions.must_refer_to_activity_not_performed_by_provided_employee:
                 employee_field_index = field_assumptions.field_index_of_employee_not_performing_this_field_activity
                 if employee_field_index in other_fields_values.keys():

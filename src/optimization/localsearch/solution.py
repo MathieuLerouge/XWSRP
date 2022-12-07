@@ -28,7 +28,12 @@ class SolutionLS(SolutionOpti):
     def __init__(self, instance: Instance, name: str = None, sequences: dict[str, SequenceLS] = None,
                  tasks_realizations: dict = None, lunch_breaks_realizations: dict = None):
         super().__init__(LS_ID, instance, name, None, tasks_realizations, lunch_breaks_realizations)
+        if sequences is None:
+            sequences = dict()
+            for employee in self._instance.employees:
+                sequences[employee.name] = SequenceLS(instance, employee)
         self._sequences = sequences
+        self.compute_KPIs()
 
     @classmethod
     def from_SolutionOpti(cls, solution: SolutionOpti):

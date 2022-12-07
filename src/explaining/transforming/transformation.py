@@ -193,7 +193,7 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     examination = solution.examine_best_insertion_between_consecutive_activities_among_sets(
-        solution.not_performed_tasks, [employee], False
+        solution.non_performed_tasks, [employee], False
     )
     task = solution.instance.get_task_by_name(examination['task_name'])
     index = examination['step_index_for_insertion']
@@ -334,7 +334,7 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
     :return:
     """
     employee = solution.instance.get_employee_by_name(employee_name)
-    examination = solution.examine_swap_tasks_among_sets([employee], solution.not_performed_tasks, False)
+    examination = solution.examine_swap_tasks_among_sets([employee], solution.non_performed_tasks, False)
     entering_task = solution.instance.get_task_by_name(examination['task_name'])
     index = examination['step_index_for_swap']
     leaving_task = solution.get_sequence(employee).get_step(index).activity

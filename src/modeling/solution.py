@@ -94,49 +94,6 @@ class Solution:
     def short_name(self):
         return self.name.removeprefix("Solution")
 
-    @property
-    def performed_tasks(self):
-        return [task for task in self._instance.tasks if self.get_task_performance_status(task)]
-
-    @property
-    def performed_tasks_names(self):
-        return [task.name for task in self._instance.tasks if self.get_task_performance_status(task)]
-
-    @property
-    def not_performed_tasks(self):
-        return [task for task in self._instance.tasks if not self.get_task_performance_status(task)]
-
-    @property
-    def not_performed_tasks_names(self):
-        return [task.name for task in self._instance.tasks if not self.get_task_performance_status(task)]
-
-    @property
-    def nb_performed_tasks(self) -> int:
-        try:
-            return self._KPIs[NB_PERFORMED_TASKS_KEY]
-        except KeyError:
-            raise AttributeError("KPIs are not computed")
-
-    @property
-    def total_working_duration(self) -> int:
-        return self._KPIs[TOTAL_WORKING_DURATION_KEY]
-
-    @property
-    def total_traveling_duration(self) -> int:
-        return self._KPIs[TOTAL_TRAVELING_DURATION_KEY]
-
-    @property
-    def total_traveling_distance(self) -> float:
-        return np.round(self._KPIs[TOTAL_TRAVELING_DISTANCE_KEY], 3)
-
-    @property
-    def total_idle_time(self) -> int:
-        return self._KPIs[TOTAL_IDLE_TIME_KEY]
-
-    @property
-    def has_KPIs(self):
-        return bool(self._KPIs)
-
     ########
     # Copy #
     ########
@@ -183,6 +140,33 @@ class Solution:
     ##############
     # Activities #
     ##############
+
+    @property
+    def performed_tasks(self):
+        return [task for task in self._instance.tasks if self.get_task_performance_status(task)]
+
+    @property
+    def performed_tasks_names(self):
+        return [task.name for task in self._instance.tasks if self.get_task_performance_status(task)]
+
+    @property
+    def non_performed_tasks(self):
+        return [task for task in self._instance.tasks if not self.get_task_performance_status(task)]
+
+    @property
+    def non_performed_tasks_names(self):
+        return [task.name for task in self._instance.tasks if not self.get_task_performance_status(task)]
+
+    @property
+    def nb_performed_tasks(self) -> int:
+        try:
+            return self._KPIs[NB_PERFORMED_TASKS_KEY]
+        except KeyError:
+            raise AttributeError("KPIs are not computed")
+
+    @property
+    def nb_non_performed_tasks(self):
+        return self._instance.nb_tasks - self.nb_performed_tasks
 
     def get_task_performance_status(self, task: Task) -> bool:
         return self._tasks_realizations[task.name][TASK_PERFORMANCE_STATUS_KEY]
@@ -493,6 +477,26 @@ class Solution:
     ########
     # KPIs #
     ########
+
+    @property
+    def total_working_duration(self) -> int:
+        return self._KPIs[TOTAL_WORKING_DURATION_KEY]
+
+    @property
+    def total_traveling_duration(self) -> int:
+        return self._KPIs[TOTAL_TRAVELING_DURATION_KEY]
+
+    @property
+    def total_traveling_distance(self) -> float:
+        return np.round(self._KPIs[TOTAL_TRAVELING_DISTANCE_KEY], 3)
+
+    @property
+    def total_idle_time(self) -> int:
+        return self._KPIs[TOTAL_IDLE_TIME_KEY]
+
+    @property
+    def has_KPIs(self):
+        return bool(self._KPIs)
 
     def get_KPI(self, key: str):
         try:
