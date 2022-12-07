@@ -75,6 +75,9 @@ class Instance:
         except KeyError:
             raise ValueError(f"The given employee's name {employee_name} is not one of the employees' names")
 
+    def get_employees_with_skill_level_higher_than(self, skill_level: int):
+        return [employee for employee in self.employees if employee.skill_level >= skill_level]
+
     def add_employee(self, name: str, start_time_LB: int, end_time_UB: int, location: Location, skill_level: int):
         if name in self._employees.keys():
             raise ValueError(f"The given employee {name} is already among the employees of this instance")
