@@ -72,6 +72,13 @@ class Location:
         return not self.is_geographic()
 
     def distance_to(self, location):
+        """
+        Compute the distance between two locations
+        NB: the distance is in km
+
+        :param location: the location to which the distance is computed (Location)
+        :return:
+        """
         if self.is_empty():
             raise ValueError("this location is empty")
         elif location is None or location.is_empty():
