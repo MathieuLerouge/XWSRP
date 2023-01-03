@@ -12,6 +12,8 @@ from src.modeling.departure import Departure, LEAVING_HOME_STRING
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.utils.location import Location
+from src.utils.speed import convert_speed_from_to, M_PER_S_STRING, KM_PER_MIN_STRING, KM_PER_H_STRING
+from src.utils.time import convert_time_string_to_nb_minutes, convert_nb_minutes_to_time_string
 from src.utils.timeset import TimeInterval
 from src.utils.constants import LINE_BREAK_STRING
 
@@ -200,11 +202,30 @@ class Instance:
 
     @property
     def speed(self):
+        """
+        Returns  of the employees in the instance
+        NB: the speed unit is km/min
+
+        :return:
+        """
         return self._speed
 
     @speed.setter
     def speed(self, speed: float):
+        """
+        Set the speed of the employees in the instance.
+        NB: the speed unit is km/min
+
+        :param speed: the speed of the employees in the instance in km/min
+        :return:
+        """
         self._speed = speed
+
+    def set_speed(self, speed: float, unit: str):
+        if unit in [M_PER_S_STRING, KM_PER_H_STRING, KM_PER_MIN_STRING]:
+            self.speed = convert_speed_from_to(speed, unit, KM_PER_MIN_STRING)
+        else:
+            raise ValueError(f"The given unit {unit} is not among the accepted units")
 
     ############
     # Location #
@@ -242,3 +263,60 @@ class Instance:
                               task.skill_level, task.location)
         instance.update()
         return instance
+
+    ###################
+    # Import / Export #
+    ###################
+
+    @classmethod
+    def from_dict(cls, dictionary):
+        """
+        Create an instance from a dictionary
+        NB: the current version of this function does not support task and employees unavailabilities
+
+        :param dictionary: the dictionary containing the instance's data
+        :return: the instance (Instance)
+        """
+        instance = cls(dictionary['name'])
+        instance.set_speed(dictionary['speed']['value'], dictionary['speed']['unit'])
+        for employee_name, employee_data in dictionary['employees'].items():
+            start_time = convert_time_string_to_nb_minutes(employee_data['availability']['start_time'])
+            end_time = convert_time_string_to_nb_minutes(employee_data['availability']['end_time'])
+            location = Location(employee_data['location']['latitude'], employee_data['location']['longitude'])
+            skill_level = int(employee_data['skill level'])
+            instance.add_employee(employee_name, start_time, end_time, location, skill_level)
+        for task_name, task_data in dictionary['tasks'].items():
+            start_time = convert_time_string_to_nb_minutes(task_data['availability']['start_time'])
+            end_time = convert_time_string_to_nb_minutes(task_data['availability']['end_time'])
+            location = Location(task_data['location']['latitude'], task_data['location']['longitude'])
+            duration = int(task_data['duration'])
+            skill_level = int(task_data['skill level'])
+            instance.add_task(task_name, duration, start_time, end_time, skill_level, location)
+        instance.update()
+        return instance
+
+    def to_dict(self):
+        """
+        Create a dictionary from the instance
+        NB: the current version of this function does not support task and employees unavailabilities
+
+        :return: the dictionary
+        """
+        dictionary = {'name': self.name, 'speed': {'value': self.speed, 'unit': KM_PER_MIN_STRING},
+                      'employees': dict(), 'tasks': dict()}
+        for employee in self.employees:
+            dictionary['employees'][employee.name] = {
+                'availability': {'start_time': convert_nb_minutes_to_time_string(employee.start_time_LB),
+                                 'end_time': convert_nb_minutes_to_time_string(employee.end_time_UB)},
+                'location': {'latitude': employee.location.latitude, 'longitude': employee.location.longitude},
+                'skill level': employee.skill_level
+            }
+        for task in self.tasks:
+            dictionary['tasks'][task.name] = {
+                'availability': {'start_time': convert_nb_minutes_to_time_string(task.start_time_LB),
+                                 'end_time': convert_nb_minutes_to_time_string(task.end_time_UB)},
+                'location': {'latitude': task.location.latitude, 'longitude': task.location.longitude},
+                'duration': task.duration,
+                'skill level': task.skill_level
+            }
+        return dictionary

@@ -1,6 +1,5 @@
-#! /usr/bin/env python3
-# coding: utf-8
-
+# Standard library
+import json
 
 # Third party library
 import pandas as pd
@@ -8,16 +7,32 @@ import pandas as pd
 # Local libraries
 from src.modeling.instance import Instance
 from src.utils.constants import *
-from src.utils.files import create_instance_file_path, identify_meta_data_in_instance_file_path, get_project_directory_path
+from src.utils.files import create_instance_file_path, identify_meta_data_in_instance_file_path, \
+    get_project_directory_path
 from src.utils.location import Location
 from src.utils.time import convert_time_string_to_nb_minutes
 
 
+def extract_instance_from_json_file(file_path: str):
+    """
+    Extract the instance stored in the given json file
+
+    :param file_path: path of the file which includes the extension .json (str)
+    :return: the instance (Instance)
+    """
+    if ".json" not in file_path:
+        raise FileNotFoundError(f"The given file path {file_path} does not have a json extension")
+    with open(file_path) as json_file:
+        instance_dictionary = json.load(json_file)
+        instance = Instance.from_dict(instance_dictionary)
+    return instance
+
+
 # TODO Add sheet_name with lunch_break to instances?
 # TODO Add sheet_name with speed to instances?
-def extract_instance_from_file(file_path: str, ignore_employees_unavailabilities: bool = False,
-                               ignore_tasks_unavailabilities: bool = False, ignore_lunch_breaks: bool = False,
-                               ignore_version: bool = False):
+def extract_instance_from_xlsx_file(file_path: str, ignore_employees_unavailabilities: bool = False,
+                                    ignore_tasks_unavailabilities: bool = False, ignore_lunch_breaks: bool = False,
+                                    ignore_version: bool = False):
     """
     Extract the instance stored in the given file
 
@@ -110,6 +125,18 @@ def extract_instance_from_file(file_path: str, ignore_employees_unavailabilities
     return instance
 
 
+def extract_instance_from_file(file_path: str, ignore_employees_unavailabilities: bool = False,
+                               ignore_tasks_unavailabilities: bool = False, ignore_lunch_breaks: bool = False,
+                               ignore_version: bool = False):
+    if ".json" in file_path:
+        return extract_instance_from_json_file(file_path)
+    elif ".xls" in file_path:
+        return extract_instance_from_xlsx_file(file_path, ignore_employees_unavailabilities,
+                                               ignore_tasks_unavailabilities, ignore_lunch_breaks, ignore_version)
+    else:
+        raise ValueError("The file must be a JSON or XLSX file")
+
+
 # Main function
 def main():
     version = 2
@@ -118,10 +145,10 @@ def main():
         file_name = "../" + create_instance_file_path(region_name, version)
         print()
         print("Extraction of " + region_name)
-        instance = extract_instance_from_file(file_name)
-        print(instance)
-        print(instance.employees)
-        print(instance.tasks)
+        example_instance = extract_instance_from_file(file_name)
+        print(example_instance)
+        print(example_instance.employees)
+        print(example_instance.tasks)
 
 
 if __name__ == '__main__':
@@ -131,8 +158,8 @@ if __name__ == '__main__':
         file_name = "../" + create_instance_file_path(region_name, version)
         print()
         print("Extraction of " + region_name)
-        instance = extract_instance_from_file(file_name)
-        print(instance)
-        print(instance.employees)
-        print(instance.tasks)
+        example_instance = extract_instance_from_file(file_name)
+        print(example_instance)
+        print(example_instance.employees)
+        print(example_instance.tasks)
     main()
