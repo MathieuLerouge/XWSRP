@@ -4,7 +4,7 @@ import json
 # Local libraries
 from src.explaining.answering.explanation import create_explanation_from_dict
 from src.modeling.solution import Solution
-from src.utils.files import create_inputs_file_path, check_inputs_file_existence
+from src.utils.files import make_inputs_file_relative_path_from_file_name, check_inputs_file_existence
 
 
 def import_single_explanation_from_json_file(file_name_with_extension: str, solution: Solution,
@@ -14,7 +14,7 @@ def import_single_explanation_from_json_file(file_name_with_extension: str, solu
     if not check_inputs_file_existence(file_name_with_extension, input_directory):
         raise FileNotFoundError(f"The given explanation json file {file_name_with_extension} in {input_directory} "
                                 f"directory does not exists")
-    file_path = create_inputs_file_path(file_name_with_extension, input_directory)
+    file_path = make_inputs_file_relative_path_from_file_name(file_name_with_extension, input_directory)
     with open(file_path) as json_file:
         explanation_dictionary = json.load(json_file)
         explanation = create_explanation_from_dict(explanation_dictionary, solution)
@@ -28,7 +28,7 @@ def import_multiple_explanations_from_json_file(file_name_with_extension: str, s
     if not check_inputs_file_existence(file_name_with_extension, input_directory):
         raise FileNotFoundError(f"The given explanation json file {file_name_with_extension} in {input_directory} "
                                 f"directory does not exists")
-    file_path = create_inputs_file_path(file_name_with_extension, input_directory)
+    file_path = make_inputs_file_relative_path_from_file_name(file_name_with_extension, input_directory)
     with open(file_path) as json_file:
         explanations_dictionaries = json.load(json_file)
         # explanations = dict()

@@ -11,11 +11,12 @@ from src.modeling.comeback import ComeBack, COMING_BACK_HOME_STRING
 from src.modeling.departure import Departure, LEAVING_HOME_STRING
 from src.modeling.employee import Employee
 from src.modeling.task import Task
+from src.utils.constants import LINE_BREAK_STRING, INSTANCE_NAME_PREFIX, INSTANCE_NAME_PREFIX_BIS, \
+    INSTANCE_VERSION_SYMBOL, SNAKE_CASE, CAMEL_CASE
 from src.utils.location import Location
 from src.utils.speed import convert_speed_from_to, M_PER_S_STRING, KM_PER_MIN_STRING, KM_PER_H_STRING
 from src.utils.time import convert_time_string_to_nb_minutes, convert_nb_minutes_to_time_string
 from src.utils.timeset import TimeInterval
-from src.utils.constants import LINE_BREAK_STRING
 
 
 # Class Instance
@@ -29,6 +30,7 @@ class Instance:
         self._lunch_break = dict()
         self._hypothetical_activities = dict()
         self._speed = speed
+        self._version = None
 
     def __repr__(self):
         representation = self._name + LINE_BREAK_STRING
@@ -46,8 +48,53 @@ class Instance:
         return self._name
 
     @name.setter
-    def name(self, name):
+    def name(self, name: str):
         self._name = name
+
+    @property
+    def name_case_type(self):
+        if INSTANCE_NAME_PREFIX in self.name:
+            return SNAKE_CASE
+        elif INSTANCE_NAME_PREFIX_BIS in self.name:
+            return CAMEL_CASE
+        else:
+            raise ValueError(f"The case type of the instance name {self.name} is not supported")
+
+    @property
+    def name_case_type_is_snake_case(self):
+        return self.name_case_type == SNAKE_CASE
+
+    @property
+    def name_case_type_is_camel_case(self):
+        return self.name_case_type == CAMEL_CASE
+
+    @property
+    def core_name(self):
+        if self.name_case_type_is_snake_case:
+            return self._name.replace(INSTANCE_NAME_PREFIX, "")
+        elif self.name_case_type_is_camel_case:
+            return self._name.replace(INSTANCE_NAME_PREFIX_BIS, "")
+        else:
+            raise ValueError(f"The case type of the instance name {self.name} is not supported")
+
+    @property
+    def full_name(self):
+        if self.version is None:
+            return self.name
+        else:
+            return self.name + INSTANCE_VERSION_SYMBOL + str(self.version)
+
+    ###########
+    # Version #
+    ###########
+
+    @property
+    def version(self):
+        return self._version
+
+    @version.setter
+    def version(self, version: int):
+        self._version = version
 
     #############
     # Employees #

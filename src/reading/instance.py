@@ -8,7 +8,7 @@ import pandas as pd
 from src.modeling.instance import Instance
 from src.utils.constants import *
 from src.utils.files import create_instance_file_path, identify_meta_data_in_instance_file_path, \
-    get_project_directory_path
+    get_instance_name_in_instance_file_path
 from src.utils.location import Location
 from src.utils.time import convert_time_string_to_nb_minutes
 
@@ -48,13 +48,12 @@ def extract_instance_from_xlsx_file(file_path: str, ignore_employees_unavailabil
     """
 
     # Create an empty instance
+    # TODO update function (case)
+    instance_name = get_instance_name_in_instance_file_path(file_path)
     data = identify_meta_data_in_instance_file_path(file_path)
-    region_name, instance_version = data[CORE_KEY], data['version']
-    if instance_version is None:
-        instance_name = f"{INSTANCE_FILE_NAME_PREFIX}{region_name}"
-    else:
-        instance_name = f"{INSTANCE_FILE_NAME_PREFIX}{region_name}{INSTANCE_VERSION_STRING}{instance_version}"
+    instance_version = data[META_DATA_VERSION_KEY]
     instance = Instance(name=instance_name)
+    instance.version = instance_version
 
     # Extract file's sheets
     instance_data = dict()
@@ -137,29 +136,14 @@ def extract_instance_from_file(file_path: str, ignore_employees_unavailabilities
         raise ValueError("The file must be a JSON or XLSX file")
 
 
-# Main function
-def main():
-    version = 2
-    regions_names = ["Australia", "Austria", "Bordeaux", "Poland", "Spain"]
-    for region_name in regions_names:
-        file_name = "../" + create_instance_file_path(region_name, version)
-        print()
-        print("Extraction of " + region_name)
-        example_instance = extract_instance_from_file(file_name)
-        print(example_instance)
-        print(example_instance.employees)
-        print(example_instance.tasks)
-
-
 if __name__ == '__main__':
-    regions_names = ["Australia", "Austria", "Bordeaux", "Poland", "Spain"]
-    instances_directory = get_project_directory_path() + "/data/instances/instancesV1"
-    for region_name in regions_names:
-        file_name = "../" + create_instance_file_path(region_name, version)
+    example_version = 2
+    example_regions_names = ["Australia", "Austria", "Bordeaux", "Poland", "Spain"]
+    for example_region_name in example_regions_names:
+        example_file_name = create_instance_file_path(example_region_name, example_version, CAMEL_CASE)
         print()
-        print("Extraction of " + region_name)
-        example_instance = extract_instance_from_file(file_name)
+        print("Extraction of " + example_region_name)
+        example_instance = extract_instance_from_file(example_file_name)
         print(example_instance)
         print(example_instance.employees)
         print(example_instance.tasks)
-    main()
