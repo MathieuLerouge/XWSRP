@@ -109,15 +109,17 @@ def run_simulated_annealing(solution: SolutionLS):
         assert _energy_variation > 0
         return math.exp(-_energy_variation/_temperature)
 
-    nb_epochs = 1
-    initial_temperature = 1000
-    cooling_rate = 0.001
+    nb_epochs = 10
+    initial_temperature = 3000
+    cooling_rate = 0.0005
     best_solution = solution
+    print(f"Before optimization, best solution has objective values: "
+          f"{best_solution.total_working_duration, best_solution.total_traveling_duration}")
     for epoch in range(nb_epochs):
         print("Epoch", epoch)
         temperature = initial_temperature
         while temperature > 1:
-            new_solution, success = _apply_random_move(solution.copy())
+            new_solution, success = _apply_random_move(solution.copy(solution.name))
             if success:
                 energy_variation = _compute_energy(new_solution) - _compute_energy(solution)
                 if energy_variation <= 0:
@@ -129,7 +131,11 @@ def run_simulated_annealing(solution: SolutionLS):
                     if random.random() < probability:
                         solution = new_solution
             temperature = temperature * (1 - cooling_rate)
-            # print(f"At temperature {temperature}, solution has energy {_compute_energy(solution)}")
+            # print(f"At temperature {temperature}, solution has energy {_compute_energy(solution)} "
+            #       f"while best solution has energy {_compute_energy(best_solution)}")
+        solution = best_solution
+        print(f"At epoch {epoch}, best solution has objective values: "
+              f"{best_solution.total_working_duration, best_solution.total_traveling_duration}")
     return best_solution
 
 
