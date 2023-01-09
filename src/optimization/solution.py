@@ -1,7 +1,6 @@
 # Local libraries
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.utils.files import SOLUTION_NAME_PREFIX, SOLUTION_NAME_PREFIX_BIS
 
 
 # Global variables
