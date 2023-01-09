@@ -14,7 +14,8 @@ from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
 from src.modeling.constants import *
-from src.utils.constants import LINE_BREAK_STRING
+from src.utils.constants import LINE_BREAK_STRING, SNAKE_CASE, CAMEL_CASE, INSTANCE_VERSION_SYMBOL,\
+    SOLUTION_NAME_PREFIX, SOLUTION_NAME_PREFIX_BIS
 
 # Global variables
 DISPLACEMENT_STRING = ">>"
@@ -28,14 +29,14 @@ ACTIVITY_AFTER_LUNCH_KEY = 'activity_after'
 LUNCH_START_TIME_KEY = 'start_time'
 
 
-# TODO: create a class Performance
+# TODO: create a class Performance?
 # Class Solution
 class Solution:
 
     def __init__(self, instance: Instance, name: str = None, sequences: dict[str, Sequence] = None,
                  tasks_realizations: dict = None, lunch_breaks_realizations: dict = None):
         self._instance = instance
-        self._name = name if name is not None else "Solution" + instance.name
+        self._name = name if name is not None else self._create_name()
         if sequences is None:
             sequences = dict()
             for employee in self._instance.employees:
@@ -78,9 +79,17 @@ class Solution:
                     (self.total_working_duration == other.total_working_duration and
                      self.total_traveling_duration < other.total_traveling_duration))
 
+    ############
+    # Instance #
+    ############
+
     @property
     def instance(self):
         return self._instance
+
+    ########
+    # Name #
+    ########
 
     @property
     def name(self):
@@ -91,84 +100,23 @@ class Solution:
         self._name = name
 
     @property
-    def short_name(self):
-        return self.name.removeprefix("Solution")
+    def core_name(self):
+        return self.instance.core_name
 
     @property
-    def performed_tasks(self):
-        return [task for task in self._instance.tasks if self.get_task_performance_status(task)]
+    def full_name(self):
+        if self.instance.version is None:
+            return self.name
+        else:
+            return self.name + INSTANCE_VERSION_SYMBOL + str(self.instance.version)
 
-    @property
-    def performed_tasks_names(self):
-        return [task.name for task in self._instance.tasks if self.get_task_performance_status(task)]
-
-    @property
-    def not_performed_tasks(self):
-        return [task for task in self._instance.tasks if not self.get_task_performance_status(task)]
-
-    @property
-    def not_performed_tasks_names(self):
-        return [task.name for task in self._instance.tasks if not self.get_task_performance_status(task)]
-
-    @property
-    def nb_performed_tasks(self) -> int:
-        try:
-            return self._KPIs[NB_PERFORMED_TASKS_KEY]
-        except KeyError:
-            raise AttributeError("KPIs are not computed")
-
-    @property
-    def total_working_duration(self) -> int:
-        return self._KPIs[TOTAL_WORKING_DURATION_KEY]
-
-    @property
-    def total_traveling_duration(self) -> int:
-        return self._KPIs[TOTAL_TRAVELING_DURATION_KEY]
-
-    @property
-    def total_traveling_distance(self) -> float:
-        return np.round(self._KPIs[TOTAL_TRAVELING_DISTANCE_KEY], 3)
-
-    @property
-    def total_idle_time(self) -> int:
-        return self._KPIs[TOTAL_IDLE_TIME_KEY]
-
-    @property
-    def has_KPIs(self):
-        return bool(self._KPIs)
-
-    ########
-    # Copy #
-    ########
-
-    def _copy_sequences(self):
-        sequences = dict()
-        for employee_name, sequence in self._sequences.items():
-            sequences[employee_name] = sequence.copy()
-        return sequences
-
-    def _copy_tasks_realizations(self):
-        return copy.deepcopy(self._tasks_realizations)
-
-    def _copy_lunch_breaks_realizations(self):
-        return copy.deepcopy(self._lunch_breaks_realizations)
-
-    def _copy_KPIs(self):
-        return copy.deepcopy(self._KPIs)
-
-    def copy_deprecated(self, copy_name=False):
-        name = self._name if copy_name else self._name + "_copy"
-        solution = Solution(self._instance, name, self._copy_sequences(), self._copy_tasks_realizations(),
-                            self._copy_lunch_breaks_realizations())
-        solution._KPIs = self._copy_KPIs()
-        return solution
-
-    def copy(self, name: str = None):
-        solution_name = self._name + "_copy" if name is None else name
-        solution = Solution(self._instance, solution_name, self._copy_sequences(), self._copy_tasks_realizations(),
-                            self._copy_lunch_breaks_realizations())
-        solution._KPIs = self._copy_KPIs()
-        return solution
+    def _create_name(self):
+        if self.instance.name_case_type_is_snake_case:
+            return SOLUTION_NAME_PREFIX + self.instance.core_name
+        elif self.instance.name_case_type_is_camel_case:
+            return SOLUTION_NAME_PREFIX_BIS + self.instance.core_name
+        else:
+            raise ValueError(f"The name case type is neither {SNAKE_CASE} nor {CAMEL_CASE}")
 
     #############
     # Sequences #
@@ -183,6 +131,33 @@ class Solution:
     ##############
     # Activities #
     ##############
+
+    @property
+    def performed_tasks(self):
+        return [task for task in self._instance.tasks if self.get_task_performance_status(task)]
+
+    @property
+    def performed_tasks_names(self):
+        return [task.name for task in self._instance.tasks if self.get_task_performance_status(task)]
+
+    @property
+    def non_performed_tasks(self):
+        return [task for task in self._instance.tasks if not self.get_task_performance_status(task)]
+
+    @property
+    def non_performed_tasks_names(self):
+        return [task.name for task in self._instance.tasks if not self.get_task_performance_status(task)]
+
+    @property
+    def nb_performed_tasks(self) -> int:
+        try:
+            return self._KPIs[NB_PERFORMED_TASKS_KEY]
+        except KeyError:
+            raise AttributeError("KPIs are not computed")
+
+    @property
+    def nb_non_performed_tasks(self):
+        return self._instance.nb_tasks - self.nb_performed_tasks
 
     def get_task_performance_status(self, task: Task) -> bool:
         return self._tasks_realizations[task.name][TASK_PERFORMANCE_STATUS_KEY]
@@ -292,19 +267,12 @@ class Solution:
             # Create employee's sequence of tasks without unavailabilities
             employees_assigned_tasks[employee.name].sort()
             sequence = Sequence(self._instance, employee)
-            sequence.append(
-                Step(activity=Departure(employee=employee), arrival_time=employee.start_time_LB,
-                     start_time=employee.start_time_LB, end_time=employee.start_time_LB)
-            )
-            for start_time, task_name in employees_assigned_tasks[employee.name]:
+            for index, (start_time, task_name) in enumerate(employees_assigned_tasks[employee.name]):
                 task = self._instance.get_task_by_name(task_name)
-                sequence.append(
-                    Step(activity=task, start_time=start_time, end_time=start_time + task.duration)
-                )
-            sequence.append(
-                Step(activity=ComeBack(employee=employee),
-                     start_time=employee.end_time_UB, end_time=employee.end_time_UB)
-            )
+                sequence.insert(index + 1,
+                                Step(activity=task, start_time=start_time, end_time=start_time + task.duration))
+            sequence[-1] = Step(activity=ComeBack(employee=employee),
+                                start_time=employee.end_time_UB, end_time=employee.end_time_UB)
 
             # Add employee's unavailabilities
             for unavailability in employee.unavailabilities:
@@ -494,6 +462,26 @@ class Solution:
     # KPIs #
     ########
 
+    @property
+    def total_working_duration(self) -> int:
+        return self._KPIs[TOTAL_WORKING_DURATION_KEY]
+
+    @property
+    def total_traveling_duration(self) -> int:
+        return self._KPIs[TOTAL_TRAVELING_DURATION_KEY]
+
+    @property
+    def total_traveling_distance(self) -> float:
+        return np.round(self._KPIs[TOTAL_TRAVELING_DISTANCE_KEY], 3)
+
+    @property
+    def total_idle_time(self) -> int:
+        return self._KPIs[TOTAL_IDLE_TIME_KEY]
+
+    @property
+    def has_KPIs(self):
+        return bool(self._KPIs)
+
     def get_KPI(self, key: str):
         try:
             return self._KPIs[key]
@@ -515,6 +503,39 @@ class Solution:
 
     def compute_traveling_duration(self, step1: Step, step2: Step):
         return self._instance.compute_traveling_duration(step1.activity, step2.activity)
+
+    ########
+    # Copy #
+    ########
+
+    def _copy_sequences(self):
+        sequences = dict()
+        for employee_name, sequence in self._sequences.items():
+            sequences[employee_name] = sequence.copy()
+        return sequences
+
+    def _copy_tasks_realizations(self):
+        return copy.deepcopy(self._tasks_realizations)
+
+    def _copy_lunch_breaks_realizations(self):
+        return copy.deepcopy(self._lunch_breaks_realizations)
+
+    def _copy_KPIs(self):
+        return copy.deepcopy(self._KPIs)
+
+    def copy_deprecated(self, copy_name=False):
+        name = self._name if copy_name else self._name + "_copy"
+        solution = Solution(self._instance, name, self._copy_sequences(), self._copy_tasks_realizations(),
+                            self._copy_lunch_breaks_realizations())
+        solution._KPIs = self._copy_KPIs()
+        return solution
+
+    def copy(self, name: str = None):
+        solution_name = self._name + "_copy" if name is None else name
+        solution = Solution(self._instance, solution_name, self._copy_sequences(), self._copy_tasks_realizations(),
+                            self._copy_lunch_breaks_realizations())
+        solution._KPIs = self._copy_KPIs()
+        return solution
 
     ###################
     # Import / Export #

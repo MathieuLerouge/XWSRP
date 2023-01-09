@@ -2,8 +2,10 @@
 import numpy as np
 
 # Local libraries modules
+from src.modeling.comeback import ComeBack
 from src.modeling.constants import NB_PERFORMED_TASKS_KEY, TOTAL_TRAVELING_DURATION_KEY, TOTAL_WORKING_DURATION_KEY, \
     TOTAL_TRAVELING_DISTANCE_KEY, TOTAL_IDLE_TIME_KEY
+from src.modeling.departure import Departure
 from src.modeling.employee import Employee
 from src.modeling.instance import Instance
 from src.modeling.sequence import Sequence
@@ -16,6 +18,10 @@ class SequenceLS(Sequence):
 
     def __init__(self, instance: Instance, employee: Employee, steps: list[StepLS] = None):
         super().__init__(instance, employee, None)
+        if steps is None:
+            steps = \
+                [StepLS(Departure(employee), employee.start_time_LB, employee.start_time_LB, employee.start_time_LB),
+                 StepLS(ComeBack(employee), employee.start_time_LB, employee.start_time_LB, employee.start_time_LB)]
         self._steps = steps
         self.update_time_slacks()
 
@@ -1178,6 +1184,7 @@ class SequenceLS(Sequence):
 
         # Update KPIs if needed
         if update_KPIs:
+
             # Update tasks realization
             self._nb_realized_tasks += 1
             self._total_working_duration += inserted_step.activity.duration

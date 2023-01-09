@@ -1,14 +1,20 @@
 # Local libraries
 from src.modeling.activity import Activity
-from src.utils.time import convert_nb_minutes_to_time_string
+from src.utils.time import convert_nb_minutes_to_time_string, TWELVE_HOURS_FORMAT
 
 
-# Global variables
+####################
+# Global variables #
+####################
+
 BRACKET_LEFT_STRING = '{'
 BRACKET_RIGHT_STRING = '}'
 
 
-# Class Step
+##############
+# Class Step #
+##############
+
 class Step:
 
     def __init__(self, activity: Activity, arrival_time: int = None, start_time: int = None, end_time: int = None):
@@ -49,9 +55,9 @@ class Step:
     def start_time(self):
         return self._start_time
 
-    def get_start_time(self, as_string=False):
+    def get_start_time(self, as_string=False, hour_format=TWELVE_HOURS_FORMAT):
         if as_string:
-            return convert_nb_minutes_to_time_string(self._start_time)
+            return convert_nb_minutes_to_time_string(self._start_time, hour_format)
         else:
             return self._start_time
 
@@ -59,9 +65,9 @@ class Step:
     def end_time(self):
         return self._end_time
 
-    def get_end_time(self, as_string=False):
+    def get_end_time(self, as_string=False, hour_format=TWELVE_HOURS_FORMAT):
         if as_string:
-            return convert_nb_minutes_to_time_string(self._end_time)
+            return convert_nb_minutes_to_time_string(self._end_time, hour_format)
         else:
             return self._end_time
 

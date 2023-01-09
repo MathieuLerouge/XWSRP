@@ -12,7 +12,8 @@ from src.explaining.questioning.questions_templates_bank import WHY_NOT_INS_1, W
 from src.explaining.writing.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.reading.solution import extract_solution_from_file
 from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH
-from src.utils.files import get_project_directory_path, get_solutions_files_paths, make_absolute_path
+from src.utils.language import LANGUAGE_FRENCH_KEY
+from src.utils.files import get_project_directory_path, get_paths_of_solutions_files_in_given_directory
 
 
 def get_demo_solution_path():
@@ -36,7 +37,7 @@ def get_demo_solution():
 
 def get_default_solution():
     try:
-        solution_file_path = get_solutions_files_paths()[0]
+        solution_file_path = get_paths_of_solutions_files_in_given_directory()[0]
     except IndexError:
         raise FileNotFoundError(f"There are no solutions files found in directory {INPUTS_DIRECTORY_RELATIVE_PATH}")
     ignore_instance_version = True
@@ -55,6 +56,7 @@ def get_default_solution():
 
 def launch_explainer_UI_on_demo_solution():
     explainer = Explainer(get_demo_solution())
+    explainer.set_language(LANGUAGE_FRENCH_KEY)
     explainer.enable_history()
     explainer.enable_scenario_explanations()
     explainer.enable_counterfactual_explanations()

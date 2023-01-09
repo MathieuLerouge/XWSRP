@@ -2,12 +2,15 @@
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.questioning.question import Question, CounterfactualQuestion
-from src.explaining.questioning.questions_templates_bank import *
+from src.explaining.questioning.questions_templates_bank import \
+    (WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
+     WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3)
 from src.explaining.transforming.infeasibility import *
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.localsearch.sequence import SequenceLS
+from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
 # Local libraries under conditions
@@ -88,11 +91,7 @@ if GUROBI_IS_ENABLED:
                     upstream_critical_step_index, downstream_critical_step_index
                 )
         support_sequence_activities_names = [step.activity.name for step in support_sequence]
-        support_sequence_activities_names[0], support_sequence_activities_names[-1] = "Home", "Home"
-        description_of_support_sequence = "["
-        for activity_name in support_sequence_activities_names[:-1]:
-            description_of_support_sequence += activity_name + ", "
-        description_of_support_sequence += support_sequence_activities_names[-1] + "]"
+        description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
         return support_solution, infeasibility, description_of_support_sequence
 
 
@@ -133,12 +132,19 @@ def create_support_solution_and_infeasibility_for_insertion(solution: EditableSo
                 upstream_critical_step_index=upstream_critical_step_index,
                 downstream_critical_step_index=downstream_critical_step_index
             )
-    activity_name = activity.name
     if activity.name == "Start":
-        activity_name = "Home"
-    description_of_applied_transformation = f"inserting {task.name} just after {activity_name} " \
-                                            f"in {employee.name}'s planning"
-    return support_solution, infeasibility, description_of_applied_transformation
+        activity_name_in_english = "Home"
+        activity_name_in_french = "Domicile"
+    else:
+        activity_name_in_english = activity.name
+        activity_name_in_french = activity.name
+    all_descriptions_of_applied_transformation = {
+        LANGUAGE_ENGLISH_KEY:
+            f"inserting {task.name} just after {activity_name_in_english} in {employee.name}'s planning",
+        LANGUAGE_FRENCH_KEY:
+            f"insérant {task.name} juste après {activity_name_in_french} dans le planning de {employee.name}",
+    }
+    return support_solution, infeasibility, all_descriptions_of_applied_transformation
 
 
 def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, activity_name: str):
@@ -187,7 +193,7 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     examination = solution.examine_best_insertion_between_consecutive_activities_among_sets(
-        solution.not_performed_tasks, [employee], False
+        solution.non_performed_tasks, [employee], False
     )
     task = solution.instance.get_task_by_name(examination['task_name'])
     index = examination['step_index_for_insertion']
@@ -229,9 +235,15 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str):
     model.optimize(mute=True)
     support_solution, infeasibility, description_of_support_sequence = \
         create_support_solution_and_infeasibility_for_category_3(solution, employee, task, model)
-    description_of_applied_transformation = f"adding {task.name} in {employee.name}'s planning according to the " \
-                                            f"following route {description_of_support_sequence}"
-    return support_solution, infeasibility, description_of_applied_transformation
+    all_descriptions_of_applied_transformation = {
+        LANGUAGE_ENGLISH_KEY:
+            f"adding {task.name} in {employee.name}'s planning according to the following route "
+            f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
+        LANGUAGE_FRENCH_KEY:
+            f"ajoutant {task.name} dans le planning de {employee.name} selon la route suivante "
+            f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}",
+    }
+    return support_solution, infeasibility, all_descriptions_of_applied_transformation
 
 
 ###################################
@@ -269,9 +281,13 @@ def create_support_solution_and_infeasibility_for_swap(solution: EditableSolutio
                 upstream_critical_step_index=upstream_critical_step_index,
                 downstream_critical_step_index=downstream_critical_step_index
             )
-    description_of_applied_transformation = f"performing {task1.name} in place of {task2.name} " \
-                                            f"in {employee.name}'s planning"
-    return support_solution, infeasibility, description_of_applied_transformation
+    all_descriptions_of_applied_transformation = {
+        LANGUAGE_ENGLISH_KEY:
+            f"performing {task1.name} in place of {task2.name} in {employee.name}'s planning",
+        LANGUAGE_FRENCH_KEY:
+            f"réalisant {task1.name} à la place de {task2.name} dans le planning de {employee.name}"
+    }
+    return support_solution, infeasibility, all_descriptions_of_applied_transformation
 
 
 def apply_swp_1(solution: EditableSolution, employee_name: str, task1_name: str, task2_name: str):
@@ -318,7 +334,7 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
     :return:
     """
     employee = solution.instance.get_employee_by_name(employee_name)
-    examination = solution.examine_swap_tasks_among_sets([employee], solution.not_performed_tasks, False)
+    examination = solution.examine_swap_tasks_among_sets([employee], solution.non_performed_tasks, False)
     entering_task = solution.instance.get_task_by_name(examination['task_name'])
     index = examination['step_index_for_swap']
     leaving_task = solution.get_sequence(employee).get_step(index).activity
@@ -359,9 +375,16 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str):
     support_solution, infeasibility, description_of_support_sequence = \
         create_support_solution_and_infeasibility_for_category_3(solution, employee, task, model)
     leaving_task = model.leaving_task
-    description_of_applied_transformation = f"replacing {leaving_task.name} by {task.name} in {employee.name}'s and" \
-                                            f"applying the following route {description_of_support_sequence}"
-    return support_solution, infeasibility, description_of_applied_transformation
+    all_descriptions_of_applied_transformation = {
+        LANGUAGE_ENGLISH_KEY:
+            f"replacing {leaving_task.name} by {task.name} in {employee.name}'s and applying the following route "
+            f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
+        LANGUAGE_FRENCH_KEY:
+            f"remplaçant {leaving_task.name} par {task.name} dans le planning de {employee.name} "
+            f"et en appliquant la route suivante "
+            f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
+    }
+    return support_solution, infeasibility, all_descriptions_of_applied_transformation
 
 
 #########################################
@@ -450,14 +473,16 @@ if GUROBI_IS_ENABLED:
                 )
         # Create description of applied transformation
         support_sequence_activities_names = [step.activity.name for step in support_sequence]
-        support_sequence_activities_names[0], support_sequence_activities_names[-1] = "Home", "Home"
-        description_of_support_sequence = "["
-        for activity_name in support_sequence_activities_names[:-1]:
-            description_of_support_sequence += activity_name + ", "
-        description_of_support_sequence += support_sequence_activities_names[-1] + "]"
-        description_of_applied_transformation = f"adding {task.name} in {employee.name}'s planning according to the " \
-                                                f"following route {description_of_support_sequence}"
-        return (support_solution, infeasibility, description_of_applied_transformation,
+        description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
+        all_descriptions_of_applied_transformation = {
+            LANGUAGE_ENGLISH_KEY:
+                f"adding {task.name} in {employee.name}'s planning according to the following route "
+                f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
+            LANGUAGE_FRENCH_KEY:
+                f"ajoutant {task.name} dans le planning de {employee.name} selon la route suivante "
+                f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
+        }
+        return (support_solution, infeasibility, all_descriptions_of_applied_transformation,
                 model.support_instance_alterations)
 
 

@@ -8,7 +8,7 @@ from src.drawing.figuresmanager import FiguresManager
 from src.reading.solution import extract_solution_from_file
 from src.utils.constants import LINE_BREAK_STRING, OUTPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.display import create_title_frame
-from src.utils.files import get_solutions_files_paths
+from src.utils.files import get_paths_of_solutions_files_in_given_directory
 from src.writing.common import write_text_to_file
 from src.writing.analysis import write_solution_analysis
 
@@ -22,7 +22,7 @@ def apply_checking_routine(ignore_employees_unavailabilities: bool = False,
                            ignore_solving_method: bool = False, ignore_instance_version: bool = False,
                            save_checking_as_file: bool = True, save_analysis: bool = True,
                            show_figures: bool = True, save_figures: bool = False):
-    solutions_files_names = get_solutions_files_paths()
+    solutions_files_names = get_paths_of_solutions_files_in_given_directory()
     solutions_checking_text = ""
     for solution_filename in solutions_files_names:
         solution = extract_solution_from_file(

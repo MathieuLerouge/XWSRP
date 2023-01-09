@@ -6,6 +6,8 @@ import numpy as np
 
 # Local libraries
 from src.modeling.activity import Activity
+from src.modeling.comeback import ComeBack
+from src.modeling.departure import Departure
 from src.modeling.employee import Employee
 from src.modeling.instance import Instance
 from src.modeling.step import Step
@@ -20,7 +22,8 @@ class Sequence:
         self._instance = instance
         self._employee = employee
         if steps is None:
-            steps = []
+            steps = [Step(Departure(employee), employee.start_time_LB, employee.start_time_LB, employee.start_time_LB),
+                     Step(ComeBack(employee), employee.start_time_LB, employee.start_time_LB, employee.start_time_LB)]
         self._steps = steps
         self._KPIs = dict()
 

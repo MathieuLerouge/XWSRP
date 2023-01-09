@@ -72,6 +72,13 @@ class Location:
         return not self.is_geographic()
 
     def distance_to(self, location):
+        """
+        Compute the distance between two locations
+        NB: the distance is in km
+
+        :param location: the location to which the distance is computed (Location)
+        :return:
+        """
         if self.is_empty():
             raise ValueError("this location is empty")
         elif location is None or location.is_empty():
@@ -112,12 +119,15 @@ def compute_geographic_distance(coordinates1, coordinates2):
     (coordinates[0] is a latitude in radians, coordinates[1] is a longitude in radians)
     :returns: distance in km (float)
     """
-    return EARTH_RADIUS_IN_KM * np.arccos(
-        min(1.0,
-            np.sin(coordinates1[0]) * np.sin(coordinates2[0]) +
-            np.cos(coordinates1[0]) * np.cos(coordinates2[0]) * np.cos(coordinates2[1]-coordinates1[1])
-            )
-    )
+    if np.equal(coordinates1, coordinates2).all():
+        return 0
+    else:
+        return EARTH_RADIUS_IN_KM * np.arccos(
+            min(1.0,
+                np.sin(coordinates1[0]) * np.sin(coordinates2[0]) +
+                np.cos(coordinates1[0]) * np.cos(coordinates2[0]) * np.cos(coordinates2[1]-coordinates1[1])
+                )
+        )
 
 
 def main():

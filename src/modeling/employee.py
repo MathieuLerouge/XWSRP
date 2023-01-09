@@ -6,7 +6,7 @@
 from src.modeling.task import Task
 from src.modeling.unavailability import Unavailability
 from src.utils.location import Location
-from src.utils.time import convert_nb_minutes_to_time_string
+from src.utils.time import convert_nb_minutes_to_time_string, TWELVE_HOURS_FORMAT
 from src.utils.timeset import TimeInterval
 
 
@@ -44,21 +44,21 @@ class Employee:
     def start_time_LB(self):
         return self._start_time_LB
 
-    def get_start_time_LB(self, as_integer: bool = True):
+    def get_start_time_LB(self, as_integer: bool = True, hour_format: str = TWELVE_HOURS_FORMAT):
         if as_integer:
             return self._start_time_LB
         else:
-            return convert_nb_minutes_to_time_string(self._start_time_LB)
+            return convert_nb_minutes_to_time_string(self._start_time_LB, hour_format)
 
     @property
     def end_time_UB(self):
         return self._end_time_UB
 
-    def get_end_time_UB(self, as_integer: bool = True):
+    def get_end_time_UB(self, as_integer: bool = True, hour_format: str = TWELVE_HOURS_FORMAT):
         if as_integer:
             return self._end_time_UB
         else:
-            return convert_nb_minutes_to_time_string(self._end_time_UB)
+            return convert_nb_minutes_to_time_string(self._end_time_UB, hour_format)
 
     @property
     def TW(self):

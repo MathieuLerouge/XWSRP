@@ -6,11 +6,11 @@ from src.explaining.answering.explanation import Explanation
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.modeling.solution import Solution
 from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH
-from src.utils.files import make_absolute_path
+from src.utils.files import make_absolute_path_from_relative_one
 
 
 def define_single_contrastive_explanation_json_file_name(question: ContrastiveQuestion):
-    return f"explanation_{question.solution.short_name}_{question.template.id}{question.fields_values}.json"
+    return f"explanation_{question.solution.core_name}_{question.template.id}{question.fields_values}.json"
 
 
 def export_single_contrastive_explanation_to_json_file(explanation: Explanation,
@@ -18,13 +18,13 @@ def export_single_contrastive_explanation_to_json_file(explanation: Explanation,
     file_name = define_single_contrastive_explanation_json_file_name(explanation.question)
     if outputs_directory_relative_path is None:
         outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
-    file_path = make_absolute_path(f"{outputs_directory_relative_path}/{file_name}")
+    file_path = make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{file_name}")
     with open(file_path, 'w') as file:
         json.dump(explanation.to_dict(), file, sort_keys=True, indent=4)
 
 
 def define_multiple_contrastive_explanations_json_file_name(solution: Solution):
-    return f"explanations_{solution.short_name}.json"
+    return f"explanations_{solution.core_name}.json"
 
 
 def export_multiple_contrastive_explanations_to_json_file(explanations: list[Explanation],
@@ -33,7 +33,7 @@ def export_multiple_contrastive_explanations_to_json_file(explanations: list[Exp
     file_name = define_multiple_contrastive_explanations_json_file_name(solution)
     if outputs_directory_relative_path is None:
         outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
-    file_path = make_absolute_path(f"{outputs_directory_relative_path}/{file_name}")
+    file_path = make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{file_name}")
     explanations_dicts = []
     for explanation in explanations:
         if not explanation.is_contrastive:

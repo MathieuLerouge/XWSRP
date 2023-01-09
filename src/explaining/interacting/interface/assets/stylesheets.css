@@ -67,7 +67,7 @@ p {
 
 button {
   /* display: inline-block; */
-  min-width: 8rem;
+  min-width: 9rem;
   box-sizing: border-box;
   height: 3rem;
   /* background-color: #194572;

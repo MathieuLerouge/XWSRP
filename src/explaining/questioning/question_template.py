@@ -7,6 +7,7 @@ from src.modeling.comeback import COMING_BACK_HOME_STRING
 from src.modeling.departure import LEAVING_HOME_STRING
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
+from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 # Global variable
 TEMPLATE_FIELD_DEFAULT_VALUE = "_"
@@ -17,11 +18,19 @@ RETURN_VALUE = COMING_BACK_HOME_STRING
 # Class QuestionTemplate
 class QuestionTemplate:
 
-    def __init__(self, id: str, text: str, fields_assumptions: list[FieldAssumptions]):
+    def __init__(self, id: str, all_texts: dict[str, str], fields_assumptions: list[FieldAssumptions]):
+        self._language = LANGUAGE_ENGLISH_KEY
+        self._supported_languages = [LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY]
         self._id = id
-        check_text_and_assumptions_consistency(text, fields_assumptions, raise_error=True)
-        self._text = text
         self._nb_fields = len(fields_assumptions)
+        self._fields_assumptions = fields_assumptions
+        self._all_texts = all_texts
+        check_texts_and_assumptions_consistency(all_texts, fields_assumptions, raise_error=True)
+        self._text = self._all_texts[self._language]
+        self._update_fields_information()
+        self._update_text_with_default_fields_values()
+
+    def _update_fields_information(self):
         self._fields_information = []
         field_number = 0
         field_start_index_in_text, field_end_index_in_text = 0, 0
@@ -30,10 +39,12 @@ class QuestionTemplate:
             field_end_index_in_text = self._text.index('}', field_start_index_in_text)
             self._fields_information.append(
                 dict(start_index_in_text=field_start_index_in_text, end_index_in_text=field_end_index_in_text,
-                     key=text[field_start_index_in_text:field_end_index_in_text+1],
-                     assumptions=fields_assumptions[field_number])
+                     key=self._text[field_start_index_in_text:field_end_index_in_text+1],
+                     assumptions=self._fields_assumptions[field_number])
             )
             field_number += 1
+
+    def _update_text_with_default_fields_values(self):
         self._text_with_default_fields_values = self.complete_text_with_fields_values(
             fields_values=[TEMPLATE_FIELD_DEFAULT_VALUE for _ in range(self._nb_fields)]
         )
@@ -54,8 +65,47 @@ class QuestionTemplate:
         return [information['key'] for information in self._fields_information]
 
     @property
+    def all_texts(self):
+        current_language = self._language
+        texts = dict()
+        for language, text in self._all_texts.items():
+            self.set_language(language)
+            texts[language] = self._text
+        self.set_language(current_language)
+        return texts
+
+    @property
     def text(self):
         return self._text_with_default_fields_values
+
+    @property
+    def supported_languages(self):
+        return self._supported_languages
+
+    def set_language(self, language_key: str):
+        if language_key not in self.supported_languages:
+            raise ValueError(f"The language {language_key} is not supported,"
+                             f"supported languages are {self.supported_languages}")
+        self._language = language_key
+        self._text = self._all_texts[self._language]
+        self._update_fields_information()
+        self._update_text_with_default_fields_values()
+
+    @property
+    def language(self):
+        return self._language
+
+    @language.setter
+    def language(self, language_key: str):
+        self.set_language(language_key)
+
+    @property
+    def language_is_english(self):
+        return self._language == LANGUAGE_ENGLISH_KEY
+
+    @property
+    def language_is_french(self):
+        return self._language == LANGUAGE_FRENCH_KEY
 
     def complete_text_with_fields_values(self, fields_values: Union[dict[int, str], list[str]]):
         if isinstance(fields_values, list):
@@ -115,13 +165,14 @@ class QuestionTemplate:
                         employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
                         possible_tasks = solution.get_tasks_performed_by(employee)
             elif field_assumptions.must_refer_to_not_performed_activity:
-                possible_tasks = solution.not_performed_tasks
+                possible_tasks = solution.non_performed_tasks
             if field_assumptions.must_refer_to_activity_not_performed_by_provided_employee:
                 employee_field_index = field_assumptions.field_index_of_employee_not_performing_this_field_activity
                 if employee_field_index in other_fields_values.keys():
                     employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
-                    possible_tasks = [task for task in possible_tasks if (not solution.get_task_performance_status(task) or
-                                                                          solution.get_task_assignee(task) != employee)]
+                    possible_tasks = \
+                        [task for task in possible_tasks if (not solution.get_task_performance_status(task)
+                                                             or solution.get_task_assignee(task) != employee)]
             return [task.name for task in possible_tasks]
         # Case where the field must be an activity name
         elif field_assumptions.must_refer_to_activity:
@@ -135,7 +186,7 @@ class QuestionTemplate:
                         possible_activities_names = \
                             [activity.name for activity in solution.get_sequence(employee).get_contained_activities()]
             elif field_assumptions.must_refer_to_not_performed_activity:
-                possible_activities_names = solution.not_performed_tasks_names
+                possible_activities_names = solution.non_performed_tasks_names
             if field_assumptions.must_refer_to_activity_not_performed_by_provided_employee:
                 employee_field_index = field_assumptions.field_index_of_employee_not_performing_this_field_activity
                 if employee_field_index in other_fields_values.keys():
