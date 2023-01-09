@@ -267,19 +267,12 @@ class Solution:
             # Create employee's sequence of tasks without unavailabilities
             employees_assigned_tasks[employee.name].sort()
             sequence = Sequence(self._instance, employee)
-            sequence.append(
-                Step(activity=Departure(employee=employee), arrival_time=employee.start_time_LB,
-                     start_time=employee.start_time_LB, end_time=employee.start_time_LB)
-            )
-            for start_time, task_name in employees_assigned_tasks[employee.name]:
+            for index, (start_time, task_name) in enumerate(employees_assigned_tasks[employee.name]):
                 task = self._instance.get_task_by_name(task_name)
-                sequence.append(
-                    Step(activity=task, start_time=start_time, end_time=start_time + task.duration)
-                )
-            sequence.append(
-                Step(activity=ComeBack(employee=employee),
-                     start_time=employee.end_time_UB, end_time=employee.end_time_UB)
-            )
+                sequence.insert(index + 1,
+                                Step(activity=task, start_time=start_time, end_time=start_time + task.duration))
+            sequence[-1] = Step(activity=ComeBack(employee=employee),
+                                start_time=employee.end_time_UB, end_time=employee.end_time_UB)
 
             # Add employee's unavailabilities
             for unavailability in employee.unavailabilities:
