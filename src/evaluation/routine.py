@@ -185,6 +185,7 @@ def run_explanations_computation():
 
 def prepare_explainer_UI(solution: Solution):
     explainer = Explainer(solution)
+    explainer.set_language(LANGUAGE_FRENCH_KEY)
     explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_FOR_EVALUATION)
     explainer.disable_history()
     explainer.disable_scenario_explanations()

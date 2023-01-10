@@ -5,10 +5,11 @@ from src.evaluation.routine import get_instance_for_evaluation_in_default_inputs
 from src.optimization.localsearch.solution import SolutionLS
 from src.optimization.localsearch.solving import run_simulated_annealing
 from src.utils.files import get_default_inputs_directory_path, get_default_outputs_directory_path
+from src.utils.language import LANGUAGE_FRENCH_KEY
 from src.writing.solution import write_solution
 
 
-INSTANCE_INDEX = 2
+INSTANCE_INDEX = 3
 
 
 ####################################
