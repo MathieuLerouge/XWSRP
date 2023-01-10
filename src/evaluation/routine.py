@@ -5,6 +5,7 @@
 from os import path
 
 # Local libraries
+from configuration import GUROBI_IS_ENABLED
 from src.checking.feasibility import check_feasibility
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
@@ -12,7 +13,8 @@ from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.writing.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.optimization.IP.WSRPmodel import WSRPIPModel
+if GUROBI_IS_ENABLED:
+    from src.optimization.IP.WSRPmodel import WSRPIPModel
 from src.reading.instance import extract_instance_from_file
 from src.reading.solution import extract_solution_from_file
 from src.utils.files import get_project_directory_path, get_default_inputs_directory_path, \
