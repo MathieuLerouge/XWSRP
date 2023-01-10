@@ -1,6 +1,6 @@
 # Local libraries
 from src.evaluation.routine import get_instance_for_evaluation_in_default_inputs_directory, \
-    compute_solution_for_evaluation_by_ILP_optimization, prepare_explainer_UI, \
+    compute_solution_for_evaluation_by_ILP_optimization, prepare_explainer_UI_for_evaluation, \
     get_solution_for_evaluation_in_default_inputs_directory, launch_explainer_UI_on_evaluation_solution
 from src.optimization.localsearch.solution import SolutionLS
 from src.optimization.localsearch.solving import run_simulated_annealing
@@ -42,7 +42,7 @@ INSTANCE_INDEX = 3
 
 solution = get_solution_for_evaluation_in_default_inputs_directory(INSTANCE_INDEX)
 print(solution)
-explainer = prepare_explainer_UI(solution)
+explainer = prepare_explainer_UI_for_evaluation(solution)
 explainer.launch()
 
 
