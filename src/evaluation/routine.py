@@ -27,7 +27,7 @@ INSTANCES_FOR_EVALUATION_NAMES = \
     ["instance_evaluation_0", "instance_evaluation_1", "instance_evaluation_2", "instance_evaluation_3"]
 SOLUTIONS_FOR_EVALUATION_NAMES = \
     [instance_name.replace("instance", "solution") for instance_name in INSTANCES_FOR_EVALUATION_NAMES]
-ACTIVATED_QUESTIONS_TEMPLATES_FOR_EVALUATION = [WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_SWP_1, WHY_NOT_SWP_2A]
+ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION = [WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_SWP_1, WHY_NOT_SWP_2A]
 
 
 #############################################
@@ -156,21 +156,56 @@ def get_solution_for_evaluation(instance_index: int = None):
     return solution
 
 
+####################################
+# Check of explanations negativity #
+####################################
+
+def check_explanations_negativity(solution: Solution, only_activated_questions_templates_for_evaluation: bool):
+    explainer = Explainer(solution)
+    explainer.disable_history()
+    explainer.disable_scenario_explanations()
+    explainer.disable_counterfactual_explanations()
+    explainer.disable_using_already_computed_contrastive_explanations()
+    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    if only_activated_questions_templates_for_evaluation:
+        questions_templates = \
+            [QUESTIONS_TEMPLATES[question_template_id]
+             for question_template_id in ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION]
+    else:
+        questions_templates = explainer.activated_questions_templates
+    for question_template in questions_templates:
+        print("Computing explanations related to:", question_template.id)
+        all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
+        index = 0
+        for fields_values in all_fields_valid_values:
+            try:
+                index += 1
+                explanation = explainer.get_contrastive_explanation(question_template.id, fields_values)
+                if explanation.is_positive():
+                    print(f"The question {explanation.question.text} leads to a positive explanation")
+                    return False
+                if '3' in explanation.question.template.id and index % 25 == 0:
+                    print(f"Explanation answering to {explanation.question.text} computed")
+            except ValueError as error:
+                print(f"Error `{error}` raised for question {question_template.id} with fields {fields_values}")
+                continue
+    return True
+
+
 ###############################
 # Computation of explanations #
 ###############################
 
 
-def run_explanations_computation():
-    solution = get_solution_for_evaluation()
-    explainer = Explainer(get_solution_for_evaluation())
+def run_explanations_computation(solution: Solution):
+    explainer = Explainer(solution)
     explainer.disable_history()
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
     explainer.disable_using_already_computed_contrastive_explanations()
     explainer.disable_exporting_automatically_single_contrastive_explanations()
     explanations = []
-    for question_template_id in ACTIVATED_QUESTIONS_TEMPLATES_FOR_EVALUATION:
+    for question_template_id in ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION:
         question_template = QUESTIONS_TEMPLATES[question_template_id]
         if question_template in explainer.activated_questions_templates:
             print("Computing explanations related to:", question_template.id)
@@ -200,7 +235,7 @@ def get_explanations_for_evaluation_directory_path():
 def prepare_explainer_UI_for_evaluation(solution: Solution):
     explainer = Explainer(solution)
     explainer.set_language(LANGUAGE_FRENCH_KEY)
-    explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_FOR_EVALUATION)
+    explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION)
     explainer.disable_history()
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
@@ -211,16 +246,6 @@ def prepare_explainer_UI_for_evaluation(solution: Solution):
 
 def prepare_explainer_UI_on_evaluation_solution(instance_index: int = None):
     return prepare_explainer_UI_for_evaluation(get_solution_for_evaluation(instance_index))
-    # explainer = Explainer(get_solution_for_evaluation())
-    # explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_FOR_EVALUATION)
-    # explainer.disable_history()
-    # explainer.disable_scenario_explanations()
-    # explainer.disable_counterfactual_explanations()
-    # explainer.contrastive_explanations_inputs_directory_relative_path = \
-    # get_explanations_for_evaluation_directory_path()
-    # explainer.enable_using_already_computed_contrastive_explanations()
-    # explainer.disable_exporting_automatically_single_contrastive_explanations()
-    # return ExplainerWebGUI(explainer)
 
 
 def launch_explainer_UI_on_evaluation_solution():
