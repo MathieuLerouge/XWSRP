@@ -1,7 +1,8 @@
 # Local libraries
 from src.evaluation.routine import get_instance_for_evaluation_in_default_inputs_directory, \
     compute_solution_for_evaluation_by_ILP_optimization, prepare_explainer_UI_for_evaluation, \
-    get_solution_for_evaluation_in_default_inputs_directory, launch_explainer_UI_on_evaluation_solution
+    get_solution_for_evaluation_in_default_inputs_directory, launch_explainer_UI_on_evaluation_solution, \
+    run_explanations_computation, check_explanations_negativity
 from src.optimization.localsearch.solution import SolutionLS
 from src.optimization.localsearch.solving import run_simulated_annealing
 from src.utils.files import get_default_inputs_directory_path, get_default_outputs_directory_path
@@ -9,7 +10,7 @@ from src.utils.language import LANGUAGE_FRENCH_KEY
 from src.writing.solution import write_solution
 
 
-INSTANCE_INDEX = 3
+INSTANCE_INDEX = 2
 
 
 ####################################
@@ -17,8 +18,8 @@ INSTANCE_INDEX = 3
 ####################################
 
 # instance = get_instance_for_evaluation_in_default_inputs_directory(INSTANCE_INDEX)
-# solution = compute_solution_for_evaluation_by_ILP_optimization(instance, 6*60)
-# print(solution.total_working_duration, solution.total_traveling_duration)
+# solution = compute_solution_for_evaluation_by_ILP_optimization(instance, 45*60)
+# print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
 # write_solution(solution, get_default_inputs_directory_path())
 
 
@@ -36,12 +37,19 @@ INSTANCE_INDEX = 3
 # write_solution(solution, get_default_outputs_directory_path())
 
 
+####################################
+# Checking explanations negativity #
+####################################
+
+# solution = get_solution_for_evaluation_in_default_inputs_directory(INSTANCE_INDEX)
+# check_explanations_negativity(solution, False)
+
+
 #############################
 # Visualisation of solution #
 #############################
 
 solution = get_solution_for_evaluation_in_default_inputs_directory(INSTANCE_INDEX)
-print(solution)
 explainer = prepare_explainer_UI_for_evaluation(solution)
 explainer.launch()
 
@@ -50,7 +58,8 @@ explainer.launch()
 # Computation of explanations #
 ###############################
 
-# run_explanations_computation()
+# solution = get_solution_for_evaluation_in_default_inputs_directory(INSTANCE_INDEX)
+# run_explanations_computation(solution)
 
 
 ###############################
