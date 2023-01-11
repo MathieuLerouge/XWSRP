@@ -49,15 +49,19 @@ class ExplainerWebGUI:
     # Fixed parameters #
     ####################
 
+    # Assets-related parameters
+    _assets_path = str(pathlib.Path(__file__).parent.resolve()) + '/assets'
+
+    # Tab on opening
+    _tab_on_opening = 'instance-description-tab'
+    # _tab_on_opening = 'explainer-tab'
+
     # Questions parameters
     # Note: only the questions which keys are part of the list below can be handled by the UI
     _available_questions_templates_ids = [
         WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
         WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3
     ]
-
-    # Assets-related parameters
-    _assets_path = str(pathlib.Path(__file__).parent.resolve()) + '/assets'
 
     def __init__(self, explainer: Explainer):
 
@@ -302,7 +306,7 @@ class ExplainerWebGUI:
                 id="navigation-left-panel",
                 children=[
                     dcc.Tabs(
-                        id="tabs-list", parent_className='tabs-buttons', vertical=True, value="explainer-tab",
+                        id="tabs-list", parent_className='tabs-buttons', vertical=True, value=self._tab_on_opening,
                         children=activated_tabs
                     )
                 ],

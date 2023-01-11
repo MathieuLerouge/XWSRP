@@ -5,6 +5,7 @@
 from os import path
 
 # Local libraries
+from configuration import GUROBI_IS_ENABLED
 from src.checking.feasibility import check_feasibility
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
@@ -12,7 +13,8 @@ from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.writing.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.optimization.IP.WSRPmodel import WSRPIPModel
+if GUROBI_IS_ENABLED:
+    from src.optimization.IP.WSRPmodel import WSRPIPModel
 from src.reading.instance import extract_instance_from_file
 from src.reading.solution import extract_solution_from_file
 from src.utils.files import get_project_directory_path, get_default_inputs_directory_path, \
@@ -82,9 +84,9 @@ def compute_solution_for_evaluation_by_ILP_optimization(instance: Instance, solv
     return solution
 
 
-####################################
-# Reading solutions for evaluation #
-####################################
+#######################################################
+# Reading solutions for evaluation - Inputs directory #
+#######################################################
 
 
 def get_path_of_solution_for_evaluation_in_default_inputs_directory(instance_index: int):
@@ -117,6 +119,11 @@ def get_solution_for_evaluation_in_default_inputs_directory(instance_index: int)
     return solution
 
 
+###########################################################
+# Reading solutions for evaluation - Evaluation directory #
+###########################################################
+
+
 def get_solutions_for_evaluation_directory_path():
     """
     Returns the path of the directory containing the solutions for evaluation
@@ -126,32 +133,27 @@ def get_solutions_for_evaluation_directory_path():
     return get_project_directory_path() + "/data/evaluation/solutions"
 
 
-def get_solution_for_evaluation_path():
-    return get_solutions_for_evaluation_directory_path() + "/solution_evaluation.txt"
+def get_solution_for_evaluation_path(instance_index: int = None):
+    if instance_index is None:
+        return f"{get_solutions_for_evaluation_directory_path()}/solution_evaluation.txt"
+    else:
+        return f"{get_solutions_for_evaluation_directory_path()}/solution_evaluation_{str(instance_index)}.txt"
 
 
-def get_solution_for_evaluation():
+def get_solution_for_evaluation(instance_index: int = None):
     ignore_instance_version = True
     ignore_solving_method = True
     ignore_employees_unavailabilities = True
     ignore_tasks_unavailabilities = True
     ignore_lunch_breaks = True
     solution = extract_solution_from_file(
-        get_solution_for_evaluation_path(), ignore_employees_unavailabilities, ignore_tasks_unavailabilities,
-        ignore_lunch_breaks, ignore_instance_version, ignore_solving_method
+        get_solution_for_evaluation_path(instance_index), ignore_employees_unavailabilities,
+        ignore_tasks_unavailabilities, ignore_lunch_breaks, ignore_instance_version, ignore_solving_method
     )
-    if not check_feasibility(solution)[0]:
-        raise ValueError(f"The solution {solution.name} is not feasible")
+    feasible, text = check_feasibility(solution)
+    if not feasible:
+        raise ValueError(f"The solution {solution.name} is not feasible: {text}")
     return solution
-
-
-#######################################
-# Reading explanations for evaluation #
-#######################################
-
-
-def get_explanations_for_evaluation_directory_path():
-    return get_project_directory_path() + "/data/evaluation/explanations"
 
 
 ###############################
@@ -178,13 +180,26 @@ def run_explanations_computation():
     export_multiple_contrastive_explanations_to_json_file(explanations)
 
 
+#######################################
+# Reading explanations for evaluation #
+#######################################
+
+
+def get_explanations_for_evaluation_directory_path():
+    return get_project_directory_path() + "/data/evaluation/explanations"
+
+
 #################################
 # User interface for evaluation #
 #################################
 
 
-def prepare_explainer_UI(solution: Solution):
+# TODO: some of the functions below will be deprecated
+
+
+def prepare_explainer_UI_for_evaluation(solution: Solution):
     explainer = Explainer(solution)
+    explainer.set_language(LANGUAGE_FRENCH_KEY)
     explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_FOR_EVALUATION)
     explainer.disable_history()
     explainer.disable_scenario_explanations()
@@ -194,16 +209,18 @@ def prepare_explainer_UI(solution: Solution):
     return ExplainerWebGUI(explainer)
 
 
-def prepare_explainer_UI_on_evaluation_solution():
-    explainer = Explainer(get_solution_for_evaluation())
-    explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_FOR_EVALUATION)
-    explainer.disable_history()
-    explainer.disable_scenario_explanations()
-    explainer.disable_counterfactual_explanations()
-    explainer.contrastive_explanations_inputs_directory_relative_path = get_explanations_for_evaluation_directory_path()
-    explainer.enable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
-    return ExplainerWebGUI(explainer)
+def prepare_explainer_UI_on_evaluation_solution(instance_index: int = None):
+    return prepare_explainer_UI_for_evaluation(get_solution_for_evaluation(instance_index))
+    # explainer = Explainer(get_solution_for_evaluation())
+    # explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_FOR_EVALUATION)
+    # explainer.disable_history()
+    # explainer.disable_scenario_explanations()
+    # explainer.disable_counterfactual_explanations()
+    # explainer.contrastive_explanations_inputs_directory_relative_path = \
+    # get_explanations_for_evaluation_directory_path()
+    # explainer.enable_using_already_computed_contrastive_explanations()
+    # explainer.disable_exporting_automatically_single_contrastive_explanations()
+    # return ExplainerWebGUI(explainer)
 
 
 def launch_explainer_UI_on_evaluation_solution():
