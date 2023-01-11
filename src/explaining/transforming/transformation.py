@@ -192,6 +192,8 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
     :return:
     """
     employee = solution.instance.get_employee_by_name(employee_name)
+    if len(solution.non_performed_tasks) == 0:
+        raise ValueError("There is no non-performed task in the solution.")
     examination = solution.examine_best_insertion_between_consecutive_activities_among_sets(
         solution.non_performed_tasks, [employee], False
     )
@@ -334,6 +336,8 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
     :return:
     """
     employee = solution.instance.get_employee_by_name(employee_name)
+    if len(solution.non_performed_tasks) == 0:
+        raise ValueError("There is no non-performed task in the solution.")
     examination = solution.examine_swap_tasks_among_sets([employee], solution.non_performed_tasks, False)
     entering_task = solution.instance.get_task_by_name(examination['task_name'])
     index = examination['step_index_for_swap']

@@ -218,6 +218,8 @@ class QuestionTemplate:
                         fields_valid_values_with_next_field = fields_valid_values.copy()
                         fields_valid_values_with_next_field[field_number] = next_field_valid_value
                         next_first_fields_valid_values.append(fields_valid_values_with_next_field)
+                if len(next_first_fields_valid_values) == 0:
+                    return []
                 return aux(next_first_fields_valid_values)
         return aux([dict()])
 
