@@ -3,22 +3,11 @@
 
 
 # Local libraries
+from main_configuration import ROUTINE_KEY
 from src.checking.routine import apply_checking_routine
 from src.explaining.routine import apply_explanation_routine
 from src.optimization.routine import apply_optimization_routine
-
-
-# Global variables
-CHECKING_ROUTINE_KEY = 'checking'
-OPTIMIZING_ROUTINE_KEY = 'optimizing'
-EXPLAINING_ROUTINE_KEY = 'explaining'
-EVALUATION_ROUTINE_KEY = 'evaluation'
-
-# Choose which routine to run (Variables to set)
-# ROUTINE_KEY = CHECKING_ROUTINE_KEY
-# ROUTINE_KEY = OPTIMIZING_ROUTINE_KEY
-ROUTINE_KEY = EXPLAINING_ROUTINE_KEY
-# ROUTINE_KEY = EVALUATION_ROUTINE_KEY
+from src.utils.constants import *
 
 
 # Main function
@@ -51,6 +40,9 @@ def main():
     elif ROUTINE_KEY == EXPLAINING_ROUTINE_KEY:
         # Apply the routine
         apply_explanation_routine()
+
+    elif ROUTINE_KEY == EVALUATING_ROUTINE_KEY:
+        print("Go to src/evaluation/processes.py to run the evaluation routine.")
 
     else:
         raise ValueError(f"The routine {ROUTINE_KEY} does not exist")

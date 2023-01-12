@@ -1,8 +1,8 @@
 # Local libraries
-from src.evaluation.constants import ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION
-from src.evaluation.reading import get_solution_for_evaluation
+from src.evaluation.constants import ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION, EVALUATION_EXPERIMENTS_PARAMETERS
+from src.evaluation.prepared_data_extraction import get_solution_for_evaluation
 from src.explaining.interacting.explainer import Explainer
-from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
+from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI, INSTANCE_DESCRIPTION_TAB
 from src.explaining.questioning.questions_templates_bank import LANGUAGE_FRENCH_KEY
 from src.modeling.solution import Solution
 
@@ -12,7 +12,19 @@ from src.modeling.solution import Solution
 #################################
 
 
-def prepare_explainer_UI_for_evaluation(solution: Solution, language: str = LANGUAGE_FRENCH_KEY):
+def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, enable_explanations: bool = True,
+                                                          enable_explanations_representation: bool = True,
+                                                          language: str = LANGUAGE_FRENCH_KEY):
+    """
+    Prepare the explainer GUI for evaluation
+    NB: the solution is assumed to be a solution prepared specifically for evaluation
+
+    :param solution: the solution to explain (Solution)
+    :param enable_explanations: whether to enable explanations (bool)
+    :param enable_explanations_representation: whether to enable explanations representation (bool)
+    :param language: the language to use (str) (default language is French)
+    :return: the explainer GUI (ExplainerWebGUI)
+    """
     explainer = Explainer(solution)
     explainer.set_language(language)
     explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION)
@@ -21,13 +33,37 @@ def prepare_explainer_UI_for_evaluation(solution: Solution, language: str = LANG
     explainer.disable_counterfactual_explanations()
     explainer.disable_using_already_computed_contrastive_explanations()
     explainer.disable_exporting_automatically_single_contrastive_explanations()
-    return ExplainerWebGUI(explainer)
+    explainer_GUI = ExplainerWebGUI(explainer, INSTANCE_DESCRIPTION_TAB, enable_explanations)
+    if not enable_explanations_representation:
+        explainer_GUI.disable_explanations_representation()
+    return explainer_GUI
 
 
-def prepare_explainer_UI_on_evaluation_solution(instance_index: int = 0):
-    return prepare_explainer_UI_for_evaluation(get_solution_for_evaluation(instance_index))
+def prepare_explainer_GUI_for_evaluation_given_experiment_version(version: str):
+    """
+    Prepare the explainer GUI corresponding to the given evaluation experiment version
+    NB: the version is associated with parameters which defines the solution to explain,
+    whether to enable explanations and whether to enable explanations representation
+
+    :param version: the evaluation experiment version (str)
+    :return: the explainer GUI (ExplainerWebGUI)
+    """
+    parameters = EVALUATION_EXPERIMENTS_PARAMETERS[version]
+    solution = get_solution_for_evaluation(parameters['instance_index'])
+    enable_explanations = parameters['enable_explanations']
+    enable_explanations_representation = parameters['enable_explanations_representation']
+    return prepare_explainer_GUI_for_evaluation_given_parameters(solution, enable_explanations,
+                                                                 enable_explanations_representation)
 
 
-def launch_explainer_UI_on_evaluation_solution():
-    explainer_UI = prepare_explainer_UI_on_evaluation_solution()
-    explainer_UI.launch()
+def launch_explainer_GUI_for_evaluation_given_experiment_version(version: str):
+    """
+    Launch the explainer GUI corresponding to the given evaluation experiment version
+    NB: the version is associated with parameters which defines the solution to explain,
+    whether to enable explanations and whether to enable explanations representation
+
+    :param version: the evaluation experiment version (str)
+    :return: None
+    """
+    explainer_GUI = prepare_explainer_GUI_for_evaluation_given_experiment_version(version)
+    explainer_GUI.launch()

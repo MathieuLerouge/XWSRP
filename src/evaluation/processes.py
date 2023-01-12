@@ -2,7 +2,7 @@
 from src.evaluation.constants import *
 from src.evaluation.data_preparation import get_instance_for_evaluation_in_default_inputs_directory, \
     compute_solution_for_evaluation_by_ILP_optimization, get_solution_for_evaluation_in_default_inputs_directory, \
-    check_explanations_negativity, run_explanations_computation
+    check_explanations_negativity, compute_and_export_contrastive_explanations
 from src.evaluation.user_interface_with_prepared_data import \
     prepare_explainer_GUI_for_evaluation_given_experiment_version
 from src.optimization.localsearch.solution import SolutionLS
@@ -25,7 +25,7 @@ EVALUATION_GUI = 'evaluation_GUI'
 
 # Choose instance index
 instance_index = 2
-evaluation_experiment_version = EVALUATION_SOLUTION_2_CATEGORY_3
+evaluation_experiment_version = EVALUATION_SOLUTION_1_CATEGORY_3
 
 # Choose what to do
 process_to_run = EVALUATION_GUI
@@ -72,7 +72,7 @@ if process_to_run == EXPLANATIONS_NEGATIVITY_CHECK:
 
 if process_to_run == EXPLANATIONS_COMPUTATION:
     solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
-    run_explanations_computation(solution)
+    compute_and_export_contrastive_explanations(solution)
 
 
 ########################

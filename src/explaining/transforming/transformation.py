@@ -14,7 +14,7 @@ from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
 # Local libraries under conditions
-from configuration import GUROBI_IS_ENABLED
+from main_configuration import GUROBI_IS_ENABLED
 if GUROBI_IS_ENABLED:
     from src.explaining.transforming.category3.category3 import IPModelForCategory3
     from src.explaining.transforming.category3.insertion3 import IPModelForInsertion3

@@ -11,7 +11,7 @@ from src.optimization.localsearch.sequence import SequenceLS
 from src.optimization.solution import SolutionOpti
 
 # Local libraries under conditions
-from configuration import GUROBI_IS_ENABLED
+from main_configuration import GUROBI_IS_ENABLED
 if GUROBI_IS_ENABLED:
     from src.optimization.IP.sequence.insertingmodel import IPModelForSequenceInserting
     from src.optimization.IP.sequence.prescribingmodel import IPModelForSequencePrescribing

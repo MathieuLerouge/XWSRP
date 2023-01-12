@@ -2,10 +2,12 @@
 # coding: utf-8
 
 
-# Local library
-from src.evaluation.routine import prepare_explainer_UI_on_evaluation_solution
+# Local libraries
+from src.evaluation.configuration import EVALUATION_EXPERIMENT_VERSION
+from src.evaluation.user_interface_with_prepared_data import \
+    prepare_explainer_GUI_for_evaluation_given_experiment_version
 
 
-explainer_UI = prepare_explainer_UI_on_evaluation_solution(instance_index=1)
-# explainer_UI.disable_explanations_representation()
-server = explainer_UI.application.server
+# Define server variable of explainer GUI
+explainer_GUI = prepare_explainer_GUI_for_evaluation_given_experiment_version(EVALUATION_EXPERIMENT_VERSION)
+server = explainer_GUI.application.server

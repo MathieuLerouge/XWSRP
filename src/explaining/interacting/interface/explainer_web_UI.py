@@ -1,5 +1,6 @@
 # Standard libraries
 import pathlib
+import warnings
 
 # Third-party libraries
 import dash
@@ -25,10 +26,16 @@ from src.utils.time import convert_time_string_to_nb_minutes, get_hour_format_as
     convert_nb_minutes_to_time_string
 
 
-####################
-# Global functions #
-####################
+# Commands to remove future warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
+
+# Global variables
+EXPLAINER_TAB = 'explainer-tab'
+INSTANCE_DESCRIPTION_TAB = 'instance-description-tab'
+
+
+# Global functions
 def convert_from_string_to_html(text: str):
     paragraphs = text.split(LINE_BREAK_STRING)
     html_text = []
@@ -52,10 +59,6 @@ class ExplainerWebGUI:
     # Assets-related parameters
     _assets_path = str(pathlib.Path(__file__).parent.resolve()) + '/assets'
 
-    # Tab on opening
-    _tab_on_opening = 'instance-description-tab'
-    # _tab_on_opening = 'explainer-tab'
-
     # Questions parameters
     # Note: only the questions which keys are part of the list below can be handled by the UI
     _available_questions_templates_ids = [
@@ -63,7 +66,7 @@ class ExplainerWebGUI:
         WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3
     ]
 
-    def __init__(self, explainer: Explainer):
+    def __init__(self, explainer: Explainer, tab_on_opening: str = None, enabling_explanations: bool = True):
 
         #######################
         # Variable parameters #
@@ -79,7 +82,15 @@ class ExplainerWebGUI:
 
         # Application
         self._application = dash.Dash(name="XWSRP", assets_folder=self._assets_path, suppress_callback_exceptions=True)
-        self._explanations_representation_are_enabled = True
+        self._explanations_are_enabled = enabling_explanations
+        if not self._explanations_are_enabled:
+            self.disable_explanations_representation()
+            self.disable_history()
+            self.disable_scenario_explanations()
+            self.disable_counterfactual_explanations()
+        else:
+            self._explanations_representation_are_enabled = True
+        self._tab_on_opening = EXPLAINER_TAB if tab_on_opening is None else tab_on_opening
 
         ##########
         # Layout #
@@ -187,16 +198,42 @@ class ExplainerWebGUI:
             )
             return explorer_banner
 
-        @self._application.callback(
-            Output('instance-description-tab', 'disabled'), Output('instances-comparison-tab', 'disabled'),
-            Output('solution-description-tab', 'disabled'), Output('solutions-comparison-tab', 'disabled'),
-            Output('explainer-tab', 'disabled'), Input('template-question-dropdown', 'disabled'),
-        )
-        def _update_tab_button_status(template_question_dropdown_disabled: bool):
-            if template_question_dropdown_disabled:
-                return True, True, True, True, True
-            else:
-                return False, False, False, False, False
+        if self._explainer.history_is_enabled:
+            #
+            @self._application.callback(
+                Output('instance-description-tab', 'disabled'), Output('instances-comparison-tab', 'disabled'),
+                Output('solution-description-tab', 'disabled'), Output('solutions-comparison-tab', 'disabled'),
+                Output('explainer-tab', 'disabled'), Input('template-question-dropdown', 'disabled'),
+            )
+            def _update_tab_button_status(template_question_dropdown_disabled: bool):
+                if template_question_dropdown_disabled:
+                    return True, True, True, True, True
+                else:
+                    return False, False, False, False, False
+            #
+        elif self.explanations_are_enabled:
+            #
+            @self._application.callback(
+                Output('instance-description-tab', 'disabled'), Output('solution-description-tab', 'disabled'),
+                Output('explainer-tab', 'disabled'), Input('template-question-dropdown', 'disabled'),
+            )
+            def _update_tab_button_status(template_question_dropdown_disabled: bool):
+                if template_question_dropdown_disabled:
+                    return True, True, True
+                else:
+                    return False, False, False
+            #
+        else:
+            #
+            @self._application.callback(
+                Output('instance-description-tab', 'disabled'), Output('solution-description-tab', 'disabled'),
+                Input('template-question-dropdown', 'disabled'),
+            )
+            def _update_tab_button_status(template_question_dropdown_disabled: bool):
+                if template_question_dropdown_disabled:
+                    return True, True
+                else:
+                    return False, False
 
         if self._explainer.history_is_enabled:
             #
@@ -300,8 +337,10 @@ class ExplainerWebGUI:
             ]
             if self._explainer.history_is_enabled:
                 activated_tabs = available_tabs
-            else:
+            elif self.explanations_are_enabled:
                 activated_tabs = [available_tabs[0], available_tabs[2], available_tabs[4]]
+            else:
+                activated_tabs = [available_tabs[0], available_tabs[2]]
             navigation = html.Div(
                 id="navigation-left-panel",
                 children=[
@@ -1964,6 +2003,25 @@ class ExplainerWebGUI:
     ###################
     # Functionalities #
     ###################
+
+    @property
+    def explanations_are_enabled(self):
+        return self._explanations_are_enabled
+
+    @property
+    def explanations_are_disabled(self):
+        return not self._explanations_are_enabled
+
+    # NB: cannot enable/disable explanations while GUI is launched
+    # def enable_explanations(self):
+    #     self._explanations_are_enabled = True
+    #
+    # def disable_explanations(self):
+    #     self._explanations_are_enabled = False
+    #     self.disable_explanations_representation()
+    #     self.disable_history()
+    #     self.disable_scenario_explanations()
+    #     self.disable_counterfactual_explanations()
 
     @property
     def history_is_enabled(self):
