@@ -7,10 +7,10 @@ inputs/*
 outputs/*
 !outputs/.gitkeep
 src/checking/inputs/
-src/drawing/inputs/
-src/optimization/inputs/
 src/deprecated/
+src/drawing/inputs/
 src/miscellaneous/
+src/optimization/inputs/
 
 __pycache__/
 .idea/
