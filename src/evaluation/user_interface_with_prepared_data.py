@@ -33,7 +33,13 @@ def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, en
     explainer.disable_counterfactual_explanations()
     explainer.disable_using_already_computed_contrastive_explanations()
     explainer.disable_exporting_automatically_single_contrastive_explanations()
-    explainer_GUI = ExplainerWebGUI(explainer, INSTANCE_DESCRIPTION_TAB, enable_explanations)
+    if enable_explanations:
+        title = "Visualize Plannings Plus"
+        subtitle = "Application web de visualisation et d'explication des données de ComputePlannings"
+    else:
+        title = "Visualize Plannings"
+        subtitle = "Application web de visualisation des données de ComputePlannings"
+    explainer_GUI = ExplainerWebGUI(explainer, title, subtitle, INSTANCE_DESCRIPTION_TAB, enable_explanations)
     if not enable_explanations_representation:
         explainer_GUI.disable_explanations_representation()
     return explainer_GUI

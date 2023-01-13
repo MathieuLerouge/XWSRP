@@ -66,7 +66,8 @@ class ExplainerWebGUI:
         WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3
     ]
 
-    def __init__(self, explainer: Explainer, tab_on_opening: str = None, enabling_explanations: bool = True):
+    def __init__(self, explainer: Explainer, title: str = None, subtitle: str = None,
+                 tab_on_opening: str = None, enabling_explanations: bool = True):
 
         #######################
         # Variable parameters #
@@ -81,6 +82,8 @@ class ExplainerWebGUI:
         self._counterfactual_instance_alterations = None
 
         # Application
+        self._title = title
+        self._subtitle = subtitle
         self._application = dash.Dash(name="XWSRP", assets_folder=self._assets_path, suppress_callback_exceptions=True)
         self._explanations_are_enabled = enabling_explanations
         if not self._explanations_are_enabled:
@@ -128,11 +131,17 @@ class ExplainerWebGUI:
             """
             Build the title banner at the top of the GUI.
             """
+            if title is None:
+                self._title = "XWSRP"
             if self.language_is_english:
-                banner_subtitle = html.H6("Explainer of Workforce Scheduling and Routing Problem solutions")
+                if self._subtitle is None:
+                    self._subtitle = "Explainer of Workforce Scheduling and Routing Problems solutions"
+                banner_subtitle = html.H6(self._subtitle)
             elif self.language_is_french:
-                banner_subtitle = \
-                    html.H6("Outil d'explication des solutions de Problèmes de planification de personnel mobile")
+                if self._subtitle is None:
+                    self._subtitle = \
+                        "Outil d'explication des solutions de problèmes de planification de personnel mobile"
+                banner_subtitle = html.H6(self._subtitle)
             else:
                 raise NotImplementedError(f"Language {self.language} is not supported")
             banner = html.Div(
@@ -140,7 +149,7 @@ class ExplainerWebGUI:
                 children=[
                     html.Div(
                         id="title-banner-text",
-                        children=[html.H5("XWSRP"), html.H6(banner_subtitle)],
+                        children=[html.H5(self._title), html.H6(banner_subtitle)],
                     ),
                     html.Div(
                         id="title-banner-logo",
