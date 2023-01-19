@@ -64,8 +64,8 @@ def create_explanation_from_dict(dictionary, solution: Solution):
     infeasibility = None
     if INFEASIBILITY_KEY in dictionary:
         infeasibility = Infeasibility.from_dict(dictionary[INFEASIBILITY_KEY], solution.instance)
-    all_descriptions_of_applied_trasnformation = dictionary[TRANSFORMATION_KEY]
-    return create_explanation(question, support_solution, infeasibility, all_descriptions_of_applied_trasnformation)
+    all_descriptions_of_applied_transformation = dictionary[TRANSFORMATION_KEY]
+    return create_explanation(question, support_solution, infeasibility, all_descriptions_of_applied_transformation)
 
 
 ###############
@@ -554,7 +554,8 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
 class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 
     def __init__(self, question: Question, support_solution: Solution, infeasibility: SkillInfeasibility,
-                 all_descriptions_of_applied_transformation: dict[str, str] = None, instance_alterations: InstanceChanges = None):
+                 all_descriptions_of_applied_transformation: dict[str, str] = None,
+                 instance_alterations: InstanceChanges = None):
         super().__init__(question, support_solution, infeasibility,
                          all_descriptions_of_applied_transformation, instance_alterations)
 
