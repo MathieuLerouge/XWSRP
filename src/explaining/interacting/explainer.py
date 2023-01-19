@@ -35,19 +35,29 @@ class Explainer:
         self._activated_questions_templates = dict([(id, QUESTIONS_TEMPLATES[id]) for id in QUESTIONS_TEMPLATES.keys()
                                                     if id in self._available_questions_templates_ids])
         self._root_solution = EditableSolution.from_Solution(solution)
+        # History
         self._history_is_enabled = False
         self._history = History(self._root_solution)
         self._current_solution = self._root_solution
+        # Contrastive explanations
         self._contrastive_explanations_inputs_directory_relative_path = INPUTS_DIRECTORY_RELATIVE_PATH
         self._contrastive_explanations_outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
         self._automatically_exporting_single_contrastive_explanations_is_enabled = False
         self._using_already_computed_contrastive_explanations_is_enabled = False
         self._already_computed_contrastive_explanations = dict()
         self._last_contrastive_explanation = None
+        self._nb_contrastive_explanations_asked_by_ids = \
+            dict([(id, 0) for id in self._activated_questions_templates.keys()])
+        # Scenario explanations
         self._scenario_explanations_are_enabled = False
         self._last_scenario_explanation = None
+        self._nb_scenario_explanations_asked_by_ids = \
+            dict([(id, 0) for id in self._activated_questions_templates.keys()])
+        # Counterfactual explanations
         self._counterfactual_explanations_are_enabled = False
         self._last_counterfactual_explanation = None
+        self._nb_counterfactual_explanations_asked_by_ids = \
+            dict([(id, 0) for id in self._activated_questions_templates.keys()])
 
     ############
     # Language #
@@ -130,6 +140,27 @@ class Explainer:
 
     def deactivate_all_questions_templates(self):
         self._activated_questions_templates = dict()
+
+    def _increase_question_asked_count(self, question: Question):
+        if isinstance(question, ContrastiveQuestion):
+            self._nb_contrastive_explanations_asked_by_ids[question.template.id] += 1
+        elif isinstance(question, ScenarioQuestion):
+            self._nb_scenario_explanations_asked_by_ids[question.template.id] += 1
+        elif isinstance(question, CounterfactualQuestion):
+            self._nb_counterfactual_explanations_asked_by_ids[question.template.id] += 1
+        else:
+            raise ValueError(f"Unknown question type: {type(question)}")
+
+    def reset_questions_asked_counts(self):
+        self._nb_contrastive_explanations_asked_by_ids = \
+            dict([(id, 0) for id in self._activated_questions_templates.keys()])
+        self._nb_scenario_explanations_asked_by_ids = \
+            dict([(id, 0) for id in self._activated_questions_templates.keys()])
+        self._nb_counterfactual_explanations_asked_by_ids = \
+            dict([(id, 0) for id in self._activated_questions_templates.keys()])
+
+    def get_contrastive_questions_asked_count(self, question_template_id: str):
+        return self._nb_contrastive_explanations_asked_by_ids[question_template_id]
 
     ###########
     # History #
@@ -333,6 +364,7 @@ class Explainer:
 
     def get_contrastive_explanation(self, question_template_id: str, fields_values: list[str]):
         contrastive_question = self._create_contrastive_question(question_template_id, fields_values)
+        self._increase_question_asked_count(contrastive_question)
         contrastive_explanation = None
         if self.is_using_already_computed_contrastive_explanations:
             if self._check_if_contrastive_explanation_is_in_already_computed_ones(contrastive_question):
@@ -402,6 +434,7 @@ class Explainer:
     def compute_scenario_explanation(self, scenario_instance: EditableInstance):
         if self.scenario_explanations_are_enabled:
             scenario_question = self._create_scenario_question(scenario_instance)
+            self._increase_question_asked_count(scenario_question)
             current_solution = self.current_solution
             scenario_current_solution = current_solution.copy(current_solution.name + "_scenario")
             scenario_current_solution.instance = scenario_instance
@@ -459,14 +492,15 @@ class Explainer:
     def compute_counterfactual_explanation(self, instance_slacks: InstanceChanges = None):
         if self.counterfactual_explanations_are_enabled:
             counterfactual_question = self._create_counterfactual_question(instance_slacks)
+            self._increase_question_asked_count(counterfactual_question)
             current_solution = self.current_solution
             counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
             (counterfactual_support_solution, infeasibility,
              description_of_applied_transformation, instance_alterations) = \
                 apply_induced_transformation_bis(counterfactual_solution, counterfactual_question)
-            counterfactual_explanation = create_explanation(counterfactual_question, counterfactual_support_solution,
-                                                            infeasibility, description_of_applied_transformation,
-                                                            instance_alterations)
+            counterfactual_explanation = \
+                create_explanation(counterfactual_question, counterfactual_support_solution, infeasibility,
+                                   description_of_applied_transformation, instance_alterations)
             self._last_counterfactual_explanation = counterfactual_explanation
             return counterfactual_explanation
         else:
