@@ -77,6 +77,10 @@ class Employee:
         return self._nb_unavailabilities
 
     @property
+    def has_unavailabilities(self):
+        return self._nb_unavailabilities > 0
+
+    @property
     def unavailabilities(self) -> list[Unavailability]:
         return list(self._unavailabilities.values())
 

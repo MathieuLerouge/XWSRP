@@ -27,6 +27,7 @@ class Instance:
         self._employees = dict()
         self._tasks = dict()
         self._has_task_unavailabilities = False
+        self._has_employee_unavailabilities = False
         self._lunch_break = dict()
         self._hypothetical_activities = dict()
         self._speed = speed
@@ -132,6 +133,10 @@ class Instance:
             raise ValueError(f"The given employee {name} is already among the employees of this instance")
         else:
             self._employees[name] = Employee(name, start_time_LB, end_time_UB, location, skill_level)
+
+    @property
+    def has_employee_unavailabilities(self):
+        return self._has_employee_unavailabilities
 
     #########
     # Tasks #
@@ -242,6 +247,9 @@ class Instance:
         for task in self.tasks:
             if task.has_unavailability:
                 self._has_task_unavailabilities = True
+        for employee in self.employees:
+            if employee.has_unavailabilities:
+                self._has_employee_unavailabilities = True
 
     #########
     # Speed #
