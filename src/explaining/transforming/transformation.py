@@ -138,13 +138,13 @@ def create_support_solution_and_infeasibility_for_insertion(solution: EditableSo
     else:
         activity_name_in_english = activity.name
         activity_name_in_french = activity.name
-    all_descriptions_of_applied_transformation = {
+    applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
             f"inserting {task.name} just after {activity_name_in_english} in {employee.name}'s planning",
         LANGUAGE_FRENCH_KEY:
             f"insérant {task.name} juste après {activity_name_in_french} dans le planning de {employee.name}",
     }
-    return support_solution, infeasibility, all_descriptions_of_applied_transformation
+    return support_solution, infeasibility, applying_transformation_text_in_various_languages
 
 
 def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, activity_name: str):
@@ -237,7 +237,7 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str):
     model.optimize(mute=True)
     support_solution, infeasibility, description_of_support_sequence = \
         create_support_solution_and_infeasibility_for_category_3(solution, employee, task, model)
-    all_descriptions_of_applied_transformation = {
+    applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
             f"adding {task.name} in {employee.name}'s planning according to the following route "
             f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
@@ -245,7 +245,7 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str):
             f"ajoutant {task.name} dans le planning de {employee.name} selon la route suivante "
             f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}",
     }
-    return support_solution, infeasibility, all_descriptions_of_applied_transformation
+    return support_solution, infeasibility, applying_transformation_text_in_various_languages
 
 
 ###################################
@@ -283,13 +283,13 @@ def create_support_solution_and_infeasibility_for_swap(solution: EditableSolutio
                 upstream_critical_step_index=upstream_critical_step_index,
                 downstream_critical_step_index=downstream_critical_step_index
             )
-    all_descriptions_of_applied_transformation = {
+    applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
-            f"performing {task1.name} in place of {task2.name} in {employee.name}'s planning",
+            f"replacing {task2.name} from {employee.name}'s planning by {task1.name}",
         LANGUAGE_FRENCH_KEY:
-            f"réalisant {task1.name} à la place de {task2.name} dans le planning de {employee.name}"
+            f"remplaçant {task2.name} du planning de {employee.name} par {task1.name}"
     }
-    return support_solution, infeasibility, all_descriptions_of_applied_transformation
+    return support_solution, infeasibility, applying_transformation_text_in_various_languages
 
 
 def apply_swp_1(solution: EditableSolution, employee_name: str, task1_name: str, task2_name: str):
@@ -379,7 +379,7 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str):
     support_solution, infeasibility, description_of_support_sequence = \
         create_support_solution_and_infeasibility_for_category_3(solution, employee, task, model)
     leaving_task = model.leaving_task
-    all_descriptions_of_applied_transformation = {
+    applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
             f"replacing {leaving_task.name} by {task.name} in {employee.name}'s and applying the following route "
             f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
@@ -388,7 +388,7 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str):
             f"et en appliquant la route suivante "
             f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
     }
-    return support_solution, infeasibility, all_descriptions_of_applied_transformation
+    return support_solution, infeasibility, applying_transformation_text_in_various_languages
 
 
 #########################################
@@ -478,7 +478,7 @@ if GUROBI_IS_ENABLED:
         # Create description of applied transformation
         support_sequence_activities_names = [step.activity.name for step in support_sequence]
         description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
-        all_descriptions_of_applied_transformation = {
+        applying_transformation_text_in_various_languages = {
             LANGUAGE_ENGLISH_KEY:
                 f"adding {task.name} in {employee.name}'s planning according to the following route "
                 f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
@@ -486,7 +486,7 @@ if GUROBI_IS_ENABLED:
                 f"ajoutant {task.name} dans le planning de {employee.name} selon la route suivante "
                 f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
         }
-        return (support_solution, infeasibility, all_descriptions_of_applied_transformation,
+        return (support_solution, infeasibility, applying_transformation_text_in_various_languages,
                 model.support_instance_alterations)
 
 
