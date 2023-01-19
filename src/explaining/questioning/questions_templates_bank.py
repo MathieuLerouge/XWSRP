@@ -24,6 +24,9 @@ WHY_NOT_ORD_EAR_2 = 'WN-Ord-Ear-2'
 WHY_NOT_ORD_2 = 'WN-Ord-2'
 WHY_NOT_ORD_3 = 'WN-Ord-3'
 
+# Categories
+ILP_BASED_COMPUTATION_QUESTIONS_TEMPLATES_IDS = [WHY_NOT_INS_3, WHY_NOT_SWP_3, WHY_NOT_ORD_3]
+
 # Why-not / contrastive questions templates
 QUESTIONS_TEMPLATES_LIST = [
 
