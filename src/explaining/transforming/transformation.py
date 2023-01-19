@@ -395,16 +395,45 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str):
 # Contrastive and Scenario - Reordering #
 #########################################
 
-# TODO
-def create_support_solution_and_infeasibility_for_ordering(solution: EditableSolution, employee:Employee, task: Task,
-                                                           examination: dict):
-    return 0
+def create_support_solution_and_infeasibility_for_ordering(solution: EditableSolution, employee: Employee,
+                                                           task: Task, activity: Activity, examination: dict):
+    transformation_is_feasible = examination['is_feasible']  # Sequence-wise
+    support_solution = solution.copy(solution.name + "_support")
+    infeasibility = None
+    if transformation_is_feasible:
+        support_solution.shift_task_after_activity(task, activity, examination['start_time'])
+    else:
+        if not examination['is_time_feasible']:
+            support_solution.shift_task_after_activity(
+                task, activity, examination['start_time'],
+                examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
+                False, False, (not examination['is_skill_feasible'])
+            )
+            sequence = support_solution.get_sequence(employee)
+            index = sequence.get_step_index_of(task)
+            upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(index - 1)
+            downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(index + 1)
+            infeasibility = TimeInfeasibility(
+                employee, task, examination['is_upstream_feasible'], examination['is_downstream_feasible'],
+                examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
+                upstream_critical_step_index=upstream_critical_step_index,
+                downstream_critical_step_index=downstream_critical_step_index
+            )
+        else:
+            raise ValueError("Infeasibility should only be due to time infeasibility.")
+    all_descriptions_of_applied_transformation = {
+        LANGUAGE_ENGLISH_KEY:
+            f"performing {task.name} just after {activity.name} in {employee.name}'s planning",
+        LANGUAGE_FRENCH_KEY:
+            f"réalisant {task.name} juste après {activity.name} dans le planning de {employee.name}"
+    }
+    return support_solution, infeasibility, all_descriptions_of_applied_transformation
 
 
 # TODO
-def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name: str):
+def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name_1: str, task_name_2: str):
     """
-    Why is the employee {Employee} not performing the task {Task1} in place of the task {Task2}?
+    Why is the employee {Employee} not performing the task {Task1} later in their route, just after the task {Task2}?
 
     :param solution:
     :param employee_name:
@@ -412,7 +441,8 @@ def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name: str)
     :return:
     """
     employee = solution.instance.get_employee_by_name(employee_name)
-    task = solution.instance.get_task_by_name(task_name)
+    task_1 = solution.instance.get_task_by_name(task_name_1)
+    task_2 = solution.instance.get_task_by_name(task_name_2)
     examination = solution.examine_order_later_a_task(employee, task, False)
     return create_support_solution_and_infeasibility_for_ordering(solution, employee, task, examination)
 
