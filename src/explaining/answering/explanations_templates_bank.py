@@ -132,15 +132,16 @@ EXPLANATIONS_TEMPLATES_LIST = [
         all_typical_expressions={
             LANGUAGE_ENGLISH_KEY: dict(
                 the_fact="{Task} is not performed by {Employee} in place of any task of their planning",
-                the_foil="{Task} is performed by {Employee} in place of one task of their planning",
-                having_the_foil="{Task} being performed by {Employee} in place of one task of their planning",
+                the_foil="{Task} is performed by {Employee} in place of one of the tasks of their planning",
+                having_the_foil="{Task} being performed by {Employee} in place of one of the tasks of their planning",
                 neighbors="solutions obtained by replacing a task in {Employee}'s planning with {Task}"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Task} n'est pas réalisée par {Employee} à la place d'une tâche de son planning",
-                the_foil="{Task} est réalisée par {Employee} à la place d'une tâche de son planning",
-                having_the_foil="faire que {Task} soit réalisée par {Employee} à la place d'une tâche de son planning",
-                neighbors="solutions obtenues en remplaçant une tâche dans le planning de {Employee} par {Task}"
+                the_fact="{Task} n'est pas réalisée par {Employee} à la place d'une des tâches de son planning",
+                the_foil="{Task} est réalisée par {Employee} à la place d'une des tâches de son planning",
+                having_the_foil="faire que {Task} soit réalisée par {Employee} "
+                                "à la place d'une des tâches de son planning",
+                neighbors="solutions obtenues en remplaçant une des tâches du planning de {Employee} par {Task} "
             )
         }
     ),
@@ -154,8 +155,8 @@ EXPLANATIONS_TEMPLATES_LIST = [
                 neighbors="solutions obtained by replacing a task in {Employee}'s planning with a non-performed task"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Employee} ne réalise pas une tâche parmi les non-réalisées"
-                         " à la place d'une tâche de son planning",
+                the_fact="{Employee} ne réalise pas une tâche parmi les non-réalisées "
+                         "à la place d'une tâche de son planning",
                 the_foil="{Employee} réalise une tâche parmi les non-réalisées "
                          "à la place d'une tâche de son planning",
                 having_the_foil="faire que {Employee} réalise une tâche parmi les non-réalisées "

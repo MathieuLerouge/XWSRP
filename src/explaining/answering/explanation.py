@@ -38,7 +38,8 @@ def emphasize(text: str, make_bold: bool = False):
 
 
 def create_explanation(question: Question, support_solution: Solution, infeasibility: Infeasibility,
-                       all_descriptions_of_applied_transformation: dict[str, str], instance_alterations: InstanceChanges = None):
+                       all_descriptions_of_applied_transformation: dict[str, str],
+                       instance_alterations: InstanceChanges = None):
     if infeasibility is None:
         if support_solution > question.solution:
             return PositiveExplanation(question, support_solution,
@@ -202,6 +203,54 @@ class Explanation:
             return "all the feasible " + self._neighbors
         elif self.language_is_french:
             return "toutes les " + self._neighbors + " qui sont faisables"
+        else:
+            raise NotImplementedError("Non-supported language")
+
+    @property
+    def _none_of_the_neighbors(self):
+        if self.language_is_english:
+            return "none of the " + self._neighbors
+        elif self.language_is_french:
+            return "aucune des " + self._neighbors
+        else:
+            raise NotImplementedError("Non-supported language")
+
+    @property
+    def _none_of_the_feasible_neighbors(self):
+        if self.language_is_english:
+            return "none of the feasible " + self._neighbors
+        elif self.language_is_french:
+            return "aucune des " + self._neighbors.replace("solutions", "solutions faisables", 1)
+        else:
+            raise NotImplementedError("Non-supported language")
+
+    @property
+    def _activity(self):
+        if self.language_is_english:
+            if self.support_solution.instance.has_employee_unavailabilities:
+                return "activity"
+            else:
+                return "task"
+        elif self.language_is_french:
+            if self.support_solution.instance.has_employee_unavailabilities:
+                return "activité"
+            else:
+                return "tâche"
+        else:
+            raise NotImplementedError("Non-supported language")
+
+    @property
+    def _activities(self):
+        if self.language_is_english:
+            if self.support_solution.instance.has_employee_unavailabilities:
+                return "activities"
+            else:
+                return "tasks"
+        elif self.language_is_french:
+            if self.support_solution.instance.has_employee_unavailabilities:
+                return "activités"
+            else:
+                return "tâches"
         else:
             raise NotImplementedError("Non-supported language")
 
@@ -373,11 +422,13 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
         if self.is_based_on_most_relevant_neighboring_solution:
             if self.is_contrastive:
                 if self.language_is_english:
-                    text += f"The reason for why {self._the_fact} is that {self._all_the_feasible_neighbors} " \
-                            f"are not better than the current solution.{LINE_BREAK_STRING}"
+                    text += f"In the current solution, {self._the_fact} because " \
+                            f"{self._none_of_the_feasible_neighbors} is better than the current solution." \
+                            f"{LINE_BREAK_STRING}"
                 elif self.language_is_french:
-                    text += f"La raison pour laquelle {self._the_fact} est que {self._all_the_feasible_neighbors} " \
-                            f"ne sont pas meilleures que la solution courante.{LINE_BREAK_STRING}"
+                    text += f"Dans la solution courante, {self._the_fact} car " \
+                            f"{self._none_of_the_feasible_neighbors} n'est meilleure que la solution courante." \
+                            f"{LINE_BREAK_STRING}"
             elif self.is_scenario:
                 if self.language_is_english:
                     text += f"Despite the changes in the instance, " \
@@ -407,13 +458,13 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
             else:
                 raise ValueError("The explanation should be contrastive, scenario and counterfactual")
             if self.language_is_english:
-                text += f"Indeed, among {self._all_the_neighbors}, the best feasible solution is obtained " \
-                        f"from the current one by {self.applying_support_solution_transformation}; " \
-                        f"however this new solution is not better than the current one:"
+                text += f"Indeed, among all these solutions, the best feasible one is obtained " \
+                        f"from the current one by {self.applying_support_solution_transformation}. " \
+                        f"However, this new solution is not better than the current one:"
             elif self.language_is_french:
-                text += f"En effet, parmi {self._all_the_neighbors}, la meilleure solution réalisable est obtenue " \
-                        f"à partir de la solution courante en {self.applying_support_solution_transformation}; " \
-                        f"cependant cette nouvelle solution n'est pas meilleure que la solution courante :"
+                text += f"En effet, parmi toutes ces solutions, la meilleure solution faisable est obtenue " \
+                        f"à partir de la solution courante en {self.applying_support_solution_transformation}. " \
+                        f"Cependant, cette nouvelle solution n'est pas meilleure que la solution courante :"
         else:
             if self.is_contrastive:
                 if self.language_is_english:
@@ -513,11 +564,11 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
         text = ""
         if self.is_contrastive:
             if self.language_is_english:
-                text += f"The reason for why {self._the_fact} in the current solution " \
-                        f"is that {employee.name} is not skilled enough.{LINE_BREAK_STRING}"
+                text += f"In the current solution, {self._the_fact} " \
+                        f"because {employee.name} is not skilled enough.{LINE_BREAK_STRING}"
             elif self.language_is_french:
-                text += f"La raison pour laquelle {self._the_fact} dans la solution courante " \
-                        f"est que {employee.name} n'a pas les compétences suffisantes.{LINE_BREAK_STRING}"
+                text += f"Dans la solution courante, {self._the_fact} " \
+                        f"car {employee.name} n'a pas les compétences suffisantes.{LINE_BREAK_STRING}"
         elif self.is_scenario:
             if self.language_is_english:
                 text += f"Despite the changes in the instance, " \
@@ -529,28 +580,29 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
             raise ValueError("The explanation should be contrastive or scenario")
         if self.is_based_on_most_relevant_neighboring_solution:
             if self.language_is_english:
-                text += f"Indeed, {self._all_the_neighbors} are not feasible. For instance, "
-                text += f"consider the new solution obtained from the current one " \
+                text += f"Indeed, {self._none_of_the_neighbors} is feasible. For instance, "\
+                        f"consider the new solution obtained from the current one " \
                         f"by {self.applying_support_solution_transformation}. "
             elif self.language_is_french:
-                text += f"En effet, {self._all_the_neighbors} ne sont pas faisable. Par exemple, "
-                text += f"considérons la solution obtenue à partir de la solution courante " \
+                text += f"En effet, {self._none_of_the_neighbors} n'est faisable. Par exemple, "\
+                        f"considérons la solution obtenue à partir de la solution courante " \
                         f"en {self.applying_support_solution_transformation}. "
         else:
             if self.language_is_english:
-                text += f"Indeed, consider the new solution obtained from the current one " \
-                        f"by {self._applying_the_foil_transformation}. "
+                text += f"Indeed, "
             elif self.language_is_french:
-                text += f"En effet, considérons la solution obtenue à partie de la solution courante " \
-                        f"en {self._applying_the_foil_transformation}. "
+                text += f"En effet, "
         if self.language_is_english:
             text += f"{employee.name} has a skill level of {employee.skill_level} while " \
-                    f"{task.name} has one of {task.skill_level}. " \
-                    f"Therefore, this new solution is infeasible."
+                    f"{task.name} requires a level of at least {task.skill_level}. "
         elif self.language_is_french:
             text += f"{employee.name} a un niveau de compétence de {employee.skill_level} alors que " \
-                    f"{task.name} en a un de {task.skill_level}. " \
-                    f"Ainsi, cette nouvelle solution n'est pas faisable."
+                    f"{task.name} requiert un niveau au moins égal à {task.skill_level}. "
+        if self.is_based_on_most_relevant_neighboring_solution:
+            if self.language_is_english:
+                text += "Therefore, this new solution is infeasible."
+            elif self.language_is_french:
+                text += "Ainsi, cette nouvelle solution n'est pas faisable."
         return text
 
 
@@ -558,7 +610,8 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 class TimeNegativeExplanation(InfeasibleNegativeExplanation):
 
     def __init__(self, question: Question, support_solution: Solution, infeasibility: TimeInfeasibility,
-                 all_descriptions_of_applied_transformation: dict[str, str] = None, instance_alterations: InstanceChanges = None):
+                 all_descriptions_of_applied_transformation: dict[str, str] = None,
+                 instance_alterations: InstanceChanges = None):
         super().__init__(question, support_solution, infeasibility,
                          all_descriptions_of_applied_transformation, instance_alterations)
         self._infeasibility = infeasibility
@@ -594,11 +647,11 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
         text = ""
         if self.is_contrastive:
             if self.language_is_english:
-                text += f"The reason for why {self._the_fact} "
-                text += f"is that time constraints make impossible the opposite.{LINE_BREAK_STRING}"
+                text += f"In the current solution, {self._the_fact} "
+                text += f"because time constraints do not allow it.{LINE_BREAK_STRING}"
             elif self.language_is_french:
-                text += f"La raison pour laquelle {self._the_fact} "
-                text += f"est que les contraintes de temps rendent le contraire impossible.{LINE_BREAK_STRING}"
+                text += f"Dans la solution courante, {self._the_fact} "
+                text += f"car les contraintes de temps ne le permettent pas.{LINE_BREAK_STRING}"
         elif self.is_scenario:
             if self.language_is_english:
                 text += f"Despite the changes in the instance, " \
@@ -610,12 +663,12 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
             raise ValueError("The explanation should be contrastive or scenario")
         if self.is_based_on_most_relevant_neighboring_solution:
             if self.language_is_english:
-                text += f"Indeed, {self._all_the_neighbors} are not feasible. For instance, "
+                text += f"Indeed, {self._none_of_the_neighbors} is feasible. For instance, "
                 text += f"consider the new solution obtained from the current one " \
                         f"by {self.applying_support_solution_transformation}. "
             elif self.language_is_french:
-                text += f"En effet, {self._all_the_neighbors} ne sont pas faisables. Par exemple, "
-                text += f"considérons la solution obtenue à partir de la solution courante " \
+                text += f"En effet, {self._none_of_the_neighbors} n'est faisable. Par exemple, "\
+                        f"considérons la solution obtenue à partir de la solution courante " \
                         f"en {self.applying_support_solution_transformation}. "
         else:
             if self.language_is_english:
@@ -642,9 +695,11 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
                 text += f"En réalisant {task.name} le plus tôt possible après avoir quitté son domicile, "
         elif upstream_critical_step_index == 0:
             if self.language_is_english:
-                text += f"By performing all the activities from home to {task.name} at the earliest possible time, "
+                text += f"By performing all the {self._activities} from home to " \
+                        f"{task.name} at the earliest possible time, "
             elif self.language_is_french:
-                text += f"En réalisant toutes les activités du domicile jusque {task.name} le plus tôt possible, "
+                text += f"En réalisant toutes les {self._activities} du domicile jusque " \
+                        f"{task.name} le plus tôt possible, "
         elif upstream_critical_step_index == step_index - 1:
             activity_before = sequence[step_index - 1].activity
             if self.language_is_english:
@@ -654,11 +709,11 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
         elif upstream_critical_step_index < step_index - 1:
             upstream_critical_activity = sequence[upstream_critical_step_index].activity
             if self.language_is_english:
-                text += f"By performing all the activities from {upstream_critical_activity.name} to {task.name} " \
-                    f"at the earliest possible time, "
+                text += f"By performing all the {self._activities} from {upstream_critical_activity.name} to " \
+                        f"{task.name} at the earliest possible time, "
             elif self.language_is_french:
-                text += f"En réalisant toutes les activités de {upstream_critical_activity.name} à {task.name} " \
-                        f"le plus tôt possible, "
+                text += f"En réalisant toutes les {self._activities} de {upstream_critical_activity.name} à " \
+                        f"{task.name} le plus tôt possible, "
         else:
             raise ValueError(f"There is something wrong with the upstream critical step index which value "
                              f"{upstream_critical_step_index} is larger than the one of the step index {step_index}")
@@ -668,11 +723,11 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
             earliest_end_time = self._earliest_upstream_feasible_start_time_of_conflicting_task + task.duration
             earliest_end_time = convert_nb_minutes_to_time_string(earliest_end_time, hour_format)
             if self.language_is_english:
-                text += f"{employee.name} can end {task.name} at the earliest at {earliest_end_time}, " \
-                        f"while {task.name} must be ended by {task.get_end_time_UB(False, hour_format)}. "
+                text += f"{employee.name} can end {task.name} at the earliest at {earliest_end_time}. " \
+                        f"However, {task.name} must be ended by {task.get_end_time_UB(False, hour_format)}. "
             elif self.language_is_french:
-                text += f"{employee.name} peut terminer {task.name} au plus tôt à {earliest_end_time}, " \
-                        f"alors que {task.name} doit être terminée avant {task.get_end_time_UB(False, hour_format)}. "
+                text += f"{employee.name} peut terminer {task.name} au plus tôt à {earliest_end_time}. " \
+                        f"Cependant, {task.name} doit être terminée avant {task.get_end_time_UB(False, hour_format)}. "
 
         # - Part of the text about time conflict at task with downstream steps (if downstream-infeasible)
         else:
@@ -681,11 +736,11 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
             latest_start_time = self._latest_downstream_feasible_start_time_of_conflicting_task
             latest_start_time = convert_nb_minutes_to_time_string(latest_start_time, hour_format)
             if self.language_is_english:
-                text += f"{employee.name} can start {task.name} at the earliest at {earliest_start_time}, " \
-                        f"while {task.name} must be started at the latest at {latest_start_time} so that "
+                text += f"{employee.name} can start {task.name} at the earliest at {earliest_start_time}. " \
+                        f"However {task.name} must be started at the latest at {latest_start_time} so that "
             elif self.language_is_french:
-                text += f"{employee.name} peut commencer {task.name} au plus tôt à {earliest_start_time}, " \
-                        f"alors que {task.name} doit être commencée au plus tard à {latest_start_time} pour "
+                text += f"{employee.name} peut commencer {task.name} au plus tôt à {earliest_start_time}. " \
+                        f"Cependant {task.name} doit être commencée au plus tard à {latest_start_time} pour "
             downstream_critical_step_index = self._downstream_critical_step_index
             downstream_critical_activity = sequence[downstream_critical_step_index].activity
             if step_index == sequence.nb_steps - 2:
@@ -696,20 +751,21 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
                             f"avant {employee.get_end_time_UB(False, hour_format)}. "
             elif downstream_critical_step_index == sequence.nb_steps - 1:
                 if self.language_is_english:
-                    text += f"{employee.name} can perform all the activities from {task.name} to home " \
-                            f"and be at home by {employee.get_end_time_UB(False, hour_format)}. "
+                    text += f"{employee.name} can perform all the {self._activities} from {task.name} to home " \
+                            f"and be back at home by {employee.get_end_time_UB(False, hour_format)}. "
                 elif self.language_is_french:
-                    text += f"permettre à {employee.name} de réaliser toutes les activités à partir de {task.name} " \
-                            f"et d'être à son domicile avant {employee.get_end_time_UB(False, hour_format)}. "
+                    text += f"permettre à {employee.name} de réaliser toutes les {self._activities} à partir de " \
+                            f"{task.name} et d'être de retour à son domicile avant " \
+                            f"{employee.get_end_time_UB(False, hour_format)}. "
             elif downstream_critical_step_index < sequence.nb_steps - 1:
                 if self.language_is_english:
-                    text += f"{employee.name} can perform all the activities from {task.name} to " \
-                            f"{downstream_critical_activity.name} " \
+                    text += f"{employee.name} can perform all the {self._activities} from {task.name} " \
+                            f"to {downstream_critical_activity.name} " \
                             f"and end {downstream_critical_activity.name} " \
                             f"by {downstream_critical_activity.get_end_time_UB(False, hour_format)}. "
                 elif self.language_is_french:
-                    text += f"permettre à {employee.name} de réaliser toutes les activités de {task.name} jusque " \
-                            f"{downstream_critical_activity.name} " \
+                    text += f"permettre à {employee.name} de réaliser toutes les {self._activities} de {task.name} " \
+                            f"jusque {downstream_critical_activity.name} " \
                             f"et terminer {downstream_critical_activity.name} " \
                             f"avant {downstream_critical_activity.get_end_time_UB(False, hour_format)}. "
             else:
