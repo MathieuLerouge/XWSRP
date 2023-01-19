@@ -14,9 +14,10 @@ from src.explaining.interacting.interface.figures import build_map_figure, build
     build_schedules_figure, build_instance_metrics_figures, build_solution_metrics_figures
 from src.explaining.interacting.interface.panels import build_routes_figure_panel, build_schedules_figure_panel, \
     build_instance_metrics_panel, build_solution_metrics_panel, build_tasks_data_panel, build_panel_banner, \
-    build_employees_data_panel
-from src.explaining.interacting.interface.tables import build_tasks_style_data_conditional, build_tasks_data, \
-    build_employees_style_data_conditional, build_employees_data
+    build_employees_data_panel, build_text_panel
+from src.explaining.interacting.interface.tables import build_tasks_data_conditional_style, build_tasks_data, \
+    build_employees_data_conditional_style, build_employees_data
+from src.explaining.interacting.interface.tools import convert_from_string_to_html
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.interacting.explainer import Explainer
@@ -25,25 +26,13 @@ from src.utils.constants import LINE_BREAK_STRING
 from src.utils.time import convert_time_string_to_nb_minutes, get_hour_format_associated_with_language, \
     convert_nb_minutes_to_time_string
 
-
 # Commands to remove future warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-
 # Global variables
-EXPLAINER_TAB = 'explainer-tab'
+HOME_TAB = 'home-tab'
 INSTANCE_DESCRIPTION_TAB = 'instance-description-tab'
-
-
-# Global functions
-def convert_from_string_to_html(text: str):
-    paragraphs = text.split(LINE_BREAK_STRING)
-    html_text = []
-    for paragraph in paragraphs[:-1]:
-        html_text.append(paragraph)
-        html_text.append(html.Br())
-    html_text.append(paragraphs[-1])
-    return html_text
+EXPLAINER_TAB = 'explainer-tab'
 
 
 #########################
@@ -51,7 +40,6 @@ def convert_from_string_to_html(text: str):
 #########################
 
 class ExplainerWebGUI:
-
     ####################
     # Fixed parameters #
     ####################
@@ -93,7 +81,23 @@ class ExplainerWebGUI:
             self.disable_counterfactual_explanations()
         else:
             self._explanations_representation_are_enabled = True
-        self._tab_on_opening = EXPLAINER_TAB if tab_on_opening is None else tab_on_opening
+        if self.language_is_english:
+            self._home_tab_title = "Home"
+            self._instance_description_tab_title = "Instance description"
+            self._instances_comparison_tab_title = "Instances comparison"
+            self._solution_description_tab_title = "Solution description"
+            self._solutions_comparison_tab_title = "Solutions comparison"
+            self._explainer_tab_title = "Explainer"
+        elif self.language_is_french:
+            self._home_tab_title = "Accueil"
+            self._instance_description_tab_title = "Description de l'instance"
+            self._instances_comparison_tab_title = "Comparaison d'instances"
+            self._solution_description_tab_title = "Description de la solution"
+            self._solutions_comparison_tab_title = "Comparaison de solutions"
+            self._explainer_tab_title = "Explication de la solution"
+        else:
+            raise NotImplementedError("The language is not supported.")
+        self._tab_on_opening = HOME_TAB if tab_on_opening is None else tab_on_opening
 
         ##########
         # Layout #
@@ -210,39 +214,41 @@ class ExplainerWebGUI:
         if self._explainer.history_is_enabled:
             #
             @self._application.callback(
+                Output('home-tab', 'disabled'),
                 Output('instance-description-tab', 'disabled'), Output('instances-comparison-tab', 'disabled'),
                 Output('solution-description-tab', 'disabled'), Output('solutions-comparison-tab', 'disabled'),
                 Output('explainer-tab', 'disabled'), Input('template-question-dropdown', 'disabled'),
             )
             def _update_tab_button_status(template_question_dropdown_disabled: bool):
                 if template_question_dropdown_disabled:
-                    return True, True, True, True, True
+                    return True, True, True, True, True, True
                 else:
-                    return False, False, False, False, False
+                    return False, False, False, False, False, False
             #
         elif self.explanations_are_enabled:
             #
             @self._application.callback(
-                Output('instance-description-tab', 'disabled'), Output('solution-description-tab', 'disabled'),
-                Output('explainer-tab', 'disabled'), Input('template-question-dropdown', 'disabled'),
+                Output('home-tab', 'disabled'), Output('instance-description-tab', 'disabled'),
+                Output('solution-description-tab', 'disabled'), Output('explainer-tab', 'disabled'),
+                Input('template-question-dropdown', 'disabled'),
+            )
+            def _update_tab_button_status(template_question_dropdown_disabled: bool):
+                if template_question_dropdown_disabled:
+                    return True, True, True, True
+                else:
+                    return False, False, False, False
+            #
+        else:
+            #
+            @self._application.callback(
+                Output('home-tab', 'disabled'), Output('instance-description-tab', 'disabled'),
+                Output('solution-description-tab', 'disabled'), Input('template-question-dropdown', 'disabled'),
             )
             def _update_tab_button_status(template_question_dropdown_disabled: bool):
                 if template_question_dropdown_disabled:
                     return True, True, True
                 else:
                     return False, False, False
-            #
-        else:
-            #
-            @self._application.callback(
-                Output('instance-description-tab', 'disabled'), Output('solution-description-tab', 'disabled'),
-                Input('template-question-dropdown', 'disabled'),
-            )
-            def _update_tab_button_status(template_question_dropdown_disabled: bool):
-                if template_question_dropdown_disabled:
-                    return True, True
-                else:
-                    return False, False
 
         if self._explainer.history_is_enabled:
             #
@@ -318,59 +324,50 @@ class ExplainerWebGUI:
             """
             Build the navigation tabs on the left of the GUI.
             """
-            if self.language_is_english:
-                instance_description_tab_title = "Instance description"
-                instances_comparison_tab_title = "Instances comparison"
-                solution_description_tab_title = "Solution description"
-                solutions_comparison_tab_title = "Solutions comparison"
-                explainer_tab_title = "Explainer"
-            elif self.language_is_french:
-                instance_description_tab_title = "Description de l'instance"
-                instances_comparison_tab_title = "Comparaison d'instances"
-                solution_description_tab_title = "Description de la solution"
-                solutions_comparison_tab_title = "Comparaison de solutions"
-                explainer_tab_title = "Outil d'explication"
-            else:
-                raise NotImplementedError(f"Language {self.language} is not supported")
             available_tabs = [
-                dcc.Tab(id="instance-description-tab", className="tab-button", label=instance_description_tab_title,
-                        value="instance-description-tab", selected_className="tab-button--selected"),
-                dcc.Tab(id="instances-comparison-tab", className="tab-button", label=instances_comparison_tab_title,
-                        value="instances-comparison-tab", selected_className="tab-button--selected"),
-                dcc.Tab(id="solution-description-tab", className="tab-button", label=solution_description_tab_title,
-                        value="solution-description-tab", selected_className="tab-button--selected"),
-                dcc.Tab(id="solutions-comparison-tab", className="tab-button", label=solutions_comparison_tab_title,
-                        value="solutions-comparison-tab", selected_className="tab-button--selected"),
-                dcc.Tab(id="explainer-tab", className="tab-button", label=explainer_tab_title,
-                        value="explainer-tab", selected_className="tab-button--selected")
+                dcc.Tab(id=HOME_TAB, className="tab-button",
+                        label=self._home_tab_title, value=HOME_TAB,
+                        selected_className="tab-button--selected"),
+                dcc.Tab(id=INSTANCE_DESCRIPTION_TAB, className="tab-button",
+                        label=self._instance_description_tab_title, value=INSTANCE_DESCRIPTION_TAB,
+                        selected_className="tab-button--selected"),
+                dcc.Tab(id='instances-comparison-tab', className="tab-button",
+                        label=self._instances_comparison_tab_title, value='instances-comparison-tab',
+                        selected_className="tab-button--selected"),
+                dcc.Tab(id="solution-description-tab", className="tab-button",
+                        label=self._solution_description_tab_title, value="solution-description-tab",
+                        selected_className="tab-button--selected"),
+                dcc.Tab(id="solutions-comparison-tab", className="tab-button",
+                        label=self._solutions_comparison_tab_title, value="solutions-comparison-tab",
+                        selected_className="tab-button--selected"),
+                dcc.Tab(id=EXPLAINER_TAB, className="tab-button", label=self._explainer_tab_title,
+                        value=EXPLAINER_TAB, selected_className="tab-button--selected")
             ]
             if self._explainer.history_is_enabled:
                 activated_tabs = available_tabs
             elif self.explanations_are_enabled:
-                activated_tabs = [available_tabs[0], available_tabs[2], available_tabs[4]]
+                activated_tabs = [available_tabs[0], available_tabs[1], available_tabs[3], available_tabs[5]]
             else:
-                activated_tabs = [available_tabs[0], available_tabs[2]]
+                activated_tabs = [available_tabs[0], available_tabs[1], available_tabs[3]]
             navigation = html.Div(
                 id="navigation-left-panel",
-                children=[
-                    dcc.Tabs(
-                        id="tabs-list", parent_className='tabs-buttons', vertical=True, value=self._tab_on_opening,
-                        children=activated_tabs
-                    )
-                ],
+                children=[dcc.Tabs(id="tabs-list", parent_className='tabs-buttons', vertical=True,
+                                   value=self._tab_on_opening, children=activated_tabs)],
             )
             return navigation
 
         def _build_tab_content(tab_value: str):
-            if tab_value == "instance-description-tab":
+            if tab_value == HOME_TAB:
+                return _build_home_tab_content()
+            elif tab_value == INSTANCE_DESCRIPTION_TAB:
                 return _build_instance_description_tab_content()
-            elif tab_value == "instances-comparison-tab":
+            elif tab_value == 'instances-comparison-tab':
                 return _build_instance_comparison_tab_content()
-            elif tab_value == "solution-description-tab":
+            elif tab_value == 'solution-description-tab':
                 return _build_solution_description_tab_content()
-            elif tab_value == "solutions-comparison-tab":
+            elif tab_value == 'solutions-comparison-tab':
                 return _build_solution_comparison_tab_content()
-            elif tab_value == "explainer-tab":
+            elif tab_value == EXPLAINER_TAB:
                 return _build_question_explanation_tab_content()
             else:
                 raise ValueError(f"GUI Error: There is no {tab_value} tab.")
@@ -403,6 +400,84 @@ class ExplainerWebGUI:
                 """
                 return _build_tab_content(tab_value)
 
+        ####################
+        # Home tab content #
+        ####################
+
+        def _build_home_tab_content():
+            """
+            Build the content of the home tab.
+            """
+            if self.language_is_english:
+                # panel_title = f"About {self._title}"
+                panel_title = f"About this tool"
+                panel_text = f"\"{self._title}\" is tool for "
+                if self.explanations_are_enabled:
+                    panel_text += f"consulting, representing and questioning "
+                else:
+                    panel_text += f"consulting and representing "
+                panel_text += f"the input and output data associated with " \
+                              f"a Workforce Scheduling and Routing Problem (WSRP)." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += f"The tab bar located on the left of the interface allows the user to " \
+                              f"navigate to the different functionalities of the tool." \
+                              f"{LINE_BREAK_STRING}"
+                panel_text += f"• The \"{self._instance_description_tab_title}\" tab allows to consult " \
+                              f"the data of the studied instance." \
+                              f"{LINE_BREAK_STRING}"
+                if self.history_is_enabled:
+                    panel_text += f"• The \"{self._instances_comparison_tab_title}\" tab allows to compare " \
+                                  f"the data of two different instances." \
+                                  f"{LINE_BREAK_STRING}"
+                panel_text += f"• The \"{self._solution_description_tab_title}\" tab allows to consult " \
+                              f"the data of the studied solution which has been obtained " \
+                              f"thanks to an optimization process." \
+                              f"{LINE_BREAK_STRING}"
+                if self.history_is_enabled:
+                    panel_text += f"• The \"{self._solutions_comparison_tab_title}\" tab allows to compare " \
+                                  f"the data of two different solutions." \
+                                  f"{LINE_BREAK_STRING}"
+                if self.explanations_are_enabled:
+                    panel_text += f"• The \"{self._explainer_tab_title}\" tab allows to question " \
+                                  f"the content of the studied solution." \
+                                  f"{LINE_BREAK_STRING}"
+            elif self.language_is_french:
+                # panel_title = f"À propos de {self._title}"
+                panel_title = f"À propos de cet outil"
+                panel_text = f"\"{self._title}\" est un outil qui permet de "
+                if self.explanations_are_enabled:
+                    panel_text += f"consulter, représenter et questionner "
+                else:
+                    panel_text += f"consulter et représenter "
+                panel_text += f"les données d'instances et de leurs solutions correspondant associées à " \
+                              f"un problème de planification d'employés mobiles." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += f"La barre d'onglets située à gauche de l'interface permet à l'utilisateur de " \
+                              f"naviguer vers les différentes fonctionnalités de l'outil." \
+                              f"{LINE_BREAK_STRING}"
+                panel_text += f"• L'onglet \"{self._instance_description_tab_title}\" permet de consulter " \
+                              f"les données de l'instance étudiée." \
+                              f"{LINE_BREAK_STRING}"
+                if self.history_is_enabled:
+                    panel_text += f"• L'onglet \"{self._instances_comparison_tab_title}\" permet de comparer " \
+                                  f"les données de deux instances différentes." \
+                                  f"{LINE_BREAK_STRING}"
+                panel_text += f"• L'onglet \"{self._solution_description_tab_title}\" permet de consulter " \
+                              f"les données de la solution étudiée qui a été obtenue " \
+                              f"au moyen d'un processus d'optimisation." \
+                              f"{LINE_BREAK_STRING}"
+                if self.history_is_enabled:
+                    panel_text += f"• L'onglet \"{self._solutions_comparison_tab_title}\" permet de comparer " \
+                                  f"les données de deux solutions différentes." \
+                                  f"{LINE_BREAK_STRING}"
+                if self.explanations_are_enabled:
+                    panel_text += f"• L'onglet \"{self._explainer_tab_title}\" permet de questionner " \
+                                  f"le contenu de la solution étudiée." \
+                                  f"{LINE_BREAK_STRING}"
+            else:
+                raise NotImplementedError(f"Language {self.language} is not supported")
+            return build_text_panel(panel_title, panel_text)
+
         ####################################
         # Instance description tab content #
         ####################################
@@ -413,10 +488,74 @@ class ExplainerWebGUI:
             By default, the instance that is described is the instance of the current solution.
             """
             instance = self.current_instance
+            hour_format = get_hour_format_associated_with_language(self.language)
+            first_employee = self.current_instance.employees[0]
+            min_skill_level = min([employee.skill_level for employee in self.current_instance.employees])
+            max_skill_level = max([employee.skill_level for employee in self.current_instance.employees])
+            first_task = self.current_instance.tasks[0]
             if self.language_is_english:
+                # Panel about content of any instance
+                panel_title = "About the generic content of any instance"
+                panel_text = "Any instance is composed of data about mobile employees and " \
+                             "tasks ordered by customers." \
+                             f"{LINE_BREAK_STRING}"
+                panel_text += f"The tables and maps below describe the data of the {self._current_instance_in_text()}" \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += f"• Each employee has a first name (in the table, e.g. {first_employee.name}), " \
+                              f"working hours (e.g. {str(first_employee.TW.as_string(hour_format))}), " \
+                              f"a skill level described by an integer (e.g. {str(first_employee.skill_level)}, " \
+                              f"with {str(min_skill_level)} corresponding to a junior level and " \
+                              f"{str(max_skill_level)} to a senior level) " \
+                              f"as well as a 'home' corresponding to the employee's location " \
+                              f"at the beginning and the end of the day (represented in the map as a dot)." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += f"• Each customer task has an identifier (in the table, e.g. {first_task.name}), " \
+                              f"availability hours during which the task can be performed by an employee " \
+                              f"(e.g. {str(first_task.TWs.as_string(hour_format))}, " \
+                              f"a minimum skill level to have in order to be able to perform the task " \
+                              f"(e.g. {str(first_task.skill_level)}), " \
+                              f"a duration (e.g. {str(first_task.duration)}min) " \
+                              f"as well as a location (represented in the map as a dot)." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += f"NB: The maps are interactive. " \
+                              f"It is possible to zoom in and out as well as move the map. " \
+                              f"Besides, some information are displayed when the mouse is over a point."
+                # Panels about employees and tasks locations
                 employees_locations_map_title = "Employees' locations"
                 tasks_locations_map_title = "Tasks' locations"
             elif self.language_is_french:
+                # Panel about content of any instance
+                panel_title = "À propos du contenu générique d'une instance"
+                panel_text = "Toute instance est composée de données portant sur les employés mobiles et " \
+                             "sur les tâches commandées par les clients." \
+                             f"{LINE_BREAK_STRING}"
+                panel_text += f"Les tableaux et cartes ci-dessous décrivent les données de l'" \
+                              f"{self._current_instance_in_text()}." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += f"• Chaque employé possède un prénom " \
+                              f"(dans le tableau, par ex. {first_employee.name}), " \
+                              f"des horaires de travail (par ex. {str(first_employee.TW.as_string(hour_format))}), " \
+                              f"un niveau de compétence décrit par un entier " \
+                              f"(par ex. {str(first_employee.skill_level)}, " \
+                              f"sachant que {str(min_skill_level)} correspondant un niveau junior et " \
+                              f"{str(max_skill_level)} à un niveau senior) " \
+                              f"ainsi qu'un 'domicile' correspondant au lieu de début et de fin de journée " \
+                              f"de l'employé (représenté par un point sur la carte)." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += f"• Chaque tâche client possède un identifiant " \
+                              f"(dans le tableau, par ex. {first_task.name}), " \
+                              f"des horaires de disponibilité pendant lesquels elle peut être réalisée par un employé " \
+                              f"(par ex. {str(first_task.TWs.as_string(hour_format))}), " \
+                              f"un niveau de compétence minimum à avoir pour pouvoir réaliser la tâche " \
+                              f"(par ex. {str(first_task.skill_level)}), " \
+                              f"une durée de réalisation (par ex. {str(first_task.duration)}min) " \
+                              f"ainsi qu'un lieu (représenté par un point sur la carte)." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += "NB : Les cartes sont interactives. " \
+                              "Il est possible de zoomer-dézoomer et de déplacer le fond de carte. " \
+                              "Par ailleurs, des informations sont affichées lorsque la souris est placée " \
+                              "au-dessus des points d'intérêts."
+                # Panels about employees and tasks locations
                 employees_locations_map_title = "Domiciles des employés"
                 tasks_locations_map_title = "Lieux des tâches"
             else:
@@ -424,12 +563,9 @@ class ExplainerWebGUI:
             tab_content = html.Div(
                 id="instance-description-tab-content",
                 children=[
-                    build_instance_metrics_panel(instance=self.current_instance, is_current_instance=True,
-                                                 language=self.language),
-                    build_employees_data_panel(instance=self.current_instance, is_current_instance=True,
-                                               language=self.language),
-                    build_tasks_data_panel(instance=self.current_instance, is_current_instance=True, 
-                                           language=self.language),
+                    build_text_panel(panel_title, panel_text, True),
+                    build_employees_data_panel(self.current_instance, True, bottom_margin=True, language=self.language),
+                    build_tasks_data_panel(self.current_instance, True, language=self.language),
                     html.Div(
                         className="representation-panels-side-to-side",
                         children=[
@@ -439,8 +575,8 @@ class ExplainerWebGUI:
                                     build_panel_banner(employees_locations_map_title),
                                     dcc.Graph(
                                         id=f"employees-spatial-representation", className="spatial-representation",
-                                        figure=build_map_figure(instance=instance, mode='employees',
-                                                                language=self.language))
+                                        figure=build_map_figure(instance, mode='employees', language=self.language)
+                                    )
                                 ],
                             ),
                             html.Div(
@@ -449,12 +585,13 @@ class ExplainerWebGUI:
                                     build_panel_banner(tasks_locations_map_title),
                                     dcc.Graph(
                                         id=f"tasks-spatial-representation", className="spatial-representation",
-                                        figure=build_map_figure(instance=instance, mode='tasks',
-                                                                language=self.language))
+                                        figure=build_map_figure(instance, mode='tasks', language=self.language)
+                                    )
                                 ],
                             )
                         ]
-                    )
+                    ),
+                    build_instance_metrics_panel(self.current_instance, True, language=self.language)
                 ]
             )
             return tab_content
@@ -525,30 +662,30 @@ class ExplainerWebGUI:
                     ),
                     html.Div(
                         className="panels-side-to-side",
-                        children=[build_employees_data_panel(instance=self.current_instance, is_current_instance=True,
+                        children=[build_employees_data_panel(self.current_instance, True,
                                                              panel_title_prefix=current_instance_panel_title_prefix,
                                                              language=self.language),
-                                  build_employees_data_panel(instance=other_instance, is_current_instance=False,
+                                  build_employees_data_panel(other_instance, False,
                                                              instance_to_compare_with=self.current_instance,
                                                              panel_title_prefix=other_instance_panel_title_prefix,
                                                              language=self.language)]
                     ),
                     html.Div(
                         className="panels-side-to-side",
-                        children=[build_tasks_data_panel(instance=self.current_instance, is_current_instance=True,
+                        children=[build_tasks_data_panel(self.current_instance, True,
                                                          panel_title_prefix=current_instance_panel_title_prefix,
                                                          language=self.language),
-                                  build_tasks_data_panel(instance=other_instance, is_current_instance=False,
+                                  build_tasks_data_panel(other_instance, False,
                                                          instance_to_compare_with=self.current_instance,
                                                          panel_title_prefix=other_instance_panel_title_prefix,
                                                          language=self.language)]
                     ),
                     html.Div(
                         className="panels-side-to-side",
-                        children=[build_instance_metrics_panel(instance=current_instance, is_current_instance=True,
+                        children=[build_instance_metrics_panel(current_instance, True,
                                                                panel_title_prefix=current_instance_panel_title_prefix,
                                                                horizontal=False, language=self.language),
-                                  build_instance_metrics_panel(instance=other_instance, is_current_instance=False,
+                                  build_instance_metrics_panel(other_instance, False,
                                                                panel_title_prefix=other_instance_panel_title_prefix,
                                                                horizontal=False, language=self.language)]
                     )
@@ -572,9 +709,9 @@ class ExplainerWebGUI:
             current_instance = self.current_instance
             other_instance = self._explainer.get_instance_by_name(other_instance_name)
             employees_data = build_employees_data(other_instance, self.language)
-            employees_style_data_conditional = build_employees_style_data_conditional(employees_data, current_instance)
+            employees_style_data_conditional = build_employees_data_conditional_style(employees_data, current_instance)
             tasks_data = build_tasks_data(other_instance, self.language)
-            tasks_style_data_conditional = build_tasks_style_data_conditional(tasks_data, current_instance)
+            tasks_style_data_conditional = build_tasks_data_conditional_style(tasks_data, current_instance)
             return (employees_data, employees_style_data_conditional, tasks_data, tasks_style_data_conditional,
                     build_instance_metrics_figures(instance=other_instance, reference_instance=current_instance,
                                                    horizontal=False, language=self.language))
@@ -587,9 +724,66 @@ class ExplainerWebGUI:
             """
             Build the tab content about the description of a solution.
             """
+            if self.language_is_english:
+                panel_title = "About the generic content of any solution"
+                panel_text = "A solution is made of sets of routes and of schedules. " \
+                             "Each employee is assigned to a route and a schedule." \
+                             f"{LINE_BREAK_STRING}"
+                panel_text += f"The map and the Gantt chart below show respectively " \
+                              f"the routes and the schedules of the {self._current_solution_in_text()}" \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += "• A route is a chain of moves performed by an employee " \
+                              "(represented in the map as a colored segments). " \
+                              "This chain forms a closed loop, which starts from the employee's home (large dot), " \
+                              "goes through the tasks to be performed (small dots), " \
+                              "and ends back at the employee's home (large dot)." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += "• A schedule is a sequence of time intervals assigned to an employee. " \
+                              "This sequence starts by the employee's departure from home. " \
+                              "It alternates between periods of travel (small bars, of variable width and gray) " \
+                              "and periods of task performance (large bars, of variable width and colored). " \
+                              "The sequence ends with the employee's return to home " \
+                              "(small bar, thin and colored at the end of the sequence)." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += "NB: The direction of the employees' moves could not be represented on the map " \
+                              "but it can be deduced from the Gantt chart. " \
+                              "Moreover, information is displayed on the map and on the Gantt chart " \
+                              "when the mouse is placed over the interesting elements."
+            elif self.language_is_french:
+                panel_title = "À propos du contenu générique d'une solution"
+                panel_text = "Une solution est composée d'ensembles d'itinéraires et d'emplois du temps. " \
+                             "Chaque employé est associé à exactement un itinéraire et un emploi du temps." \
+                             f"{LINE_BREAK_STRING}"
+                panel_text += f"La carte et le diagramme de Gantt ci-dessous décrivent respectivement " \
+                              f"les itinéraires et les emplois du temps des employés " \
+                              f"pour la {self._current_solution_in_text()}." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += "• Un itinéraire est un enchaînement de déplacements réalisés par un employé " \
+                              "(représenté sur la carte par une ligne brisée colorée). " \
+                              "Cet enchaînement forme une boucle qui part du domicile de l'employé (large point), " \
+                              "passe par les tâches réalisées par ce dernier (petits points) " \
+                              "et revient au domicile (large point)." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += "• Un emploi du temps est une séquence d'activités réalisées par un employé. " \
+                              "Cette séquence commence par l'indication du départ de l'employé (représentée dans " \
+                              "le Gantt par une barre de petite hauteur, mince et colorée au début de la séquence). " \
+                              "S'alternent ensuite des périodes de déplacements " \
+                              "(barres de petite hauteur, de largeurs variables et grises) et " \
+                              "des périodes de réalisation de tâches " \
+                              "(barres hautes, de largeurs variables et colorées). " \
+                              "La séquence se termine enfin par l'indication du retour de l'employé " \
+                              "(barre de petite hauteur, mince et colorée à la fin de la séquence)." \
+                              f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                panel_text += "NB : Le sens de déplacement des employés n'a pas pu être représenté sur la carte " \
+                              "mais il est possible de le déduire à partir du diagramme de Gantt. " \
+                              "Par ailleurs, des informations sont affichées sur la carte et sur le diagramme " \
+                              "de Gantt lorsque la souris est placée au-dessus des éléments d'intérêt."
+            else:
+                raise ValueError(f"Language '{self.language}' is not supported.")
             tab_content = html.Div(
                 id="solution-description-tab-content",
                 children=[
+                    build_text_panel(panel_title, panel_text, True),
                     html.Div(
                         className="representation-panels-side-to-side",
                         children=[build_routes_figure_panel(solution=self.current_solution, is_current_solution=True,
@@ -737,6 +931,144 @@ class ExplainerWebGUI:
             Build the tab content about the question-explanation.
             """
 
+            # Some variables involved in various blocks of the tab content
+            if self.language_is_english:
+                contrastive_submit_button_label = "Submit"
+                contrastive_ok_button_text = "Next"
+            elif self.language_is_french:
+                contrastive_submit_button_label = "Soumettre"
+                contrastive_ok_button_text = "Suivant"
+            else:
+                raise ValueError(f"Language '{self.language}' is not supported.")
+
+            #########################
+            # Explainer description #
+            #########################
+
+            def _build_explainer_description_panel():
+                first_question_template = self._questions_templates[self._available_questions_templates_ids[0]]
+                empty_question_text = first_question_template.text
+                relevant_fields_values = dict()
+                for field_number in range(3):
+                    if field_number < first_question_template.nb_fields:
+                        field_valid_value = first_question_template.compute_field_valid_values(
+                            self.current_solution, field_number, relevant_fields_values
+                        )[0]
+                        relevant_fields_values[field_number] = field_valid_value
+                relevant_fields_values_list = list(relevant_fields_values.values())
+                if len(relevant_fields_values_list) == 1:
+                    fields_values_as_text = f"{relevant_fields_values_list[0]}"
+                else:
+                    fields_values_as_text = ", ".join(relevant_fields_values_list)
+                filled_question_text = \
+                    first_question_template.complete_text_with_fields_values(relevant_fields_values)
+                if self.language_is_french:
+                    panel_title = "À propos de l'explication"
+                    panel_text = f"La fonctionnalité d'explication permet de poser des questions à propos de la " \
+                                 f"{self._current_solution_in_text()} et " \
+                                 f"de recevoir en retour des réponses sous forme "
+                    if self.explanations_representation_are_enabled:
+                        panel_text += "de textes et de figures."
+                    else:
+                        panel_text += "de textes."
+                    panel_text += f"{LINE_BREAK_STRING}"
+                    panel_text += f"Sont mis à disposition ci-dessous : " \
+                                  f"une représentation des itinéraires et des emplois du temps de la " \
+                                  f"{self._current_solution_in_text(False)} identique à celle de l'onglet " \
+                                  f"\"{self._solution_description_tab_title}\", " \
+                                  f"un block de formulation de questions et un block de présentation des réponses." \
+                                  f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                    panel_text += f"• En ce qui concerne le block de formulation de questions, " \
+                                  f"afin de formuler une question sur la {self._current_solution_in_text(False)}, " \
+                                  f"un modèle de question doit être sélectionné parmi les " \
+                                  f"{str(self.nb_questions_templates)} disponibles " \
+                                  f"(par ex. \"{empty_question_text}\"). " \
+                                  f"Puis des valeurs doivent être choisies (par ex. {fields_values_as_text}) " \
+                                  f"pour compléter les champs de ce modèle de question. " \
+                                  f"En cliquant sur le bouton \"{contrastive_submit_button_label}\", " \
+                                  f"une réponse à la question complète (\"{filled_question_text}\") est générée." \
+                                  f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                    panel_text += "• En ce qui concerne le block de présentation des réponses, "
+                    if self.explanations_representation_are_enabled:
+                        panel_text += "une réponse est affichée sous forme de texte, éventuellement accompagnée " \
+                                      "de figures pour illustrer le texte. "
+                    else:
+                        panel_text += "une réponse est affichée sous forme de texte. "
+                    panel_text += f"Une fois la réponse lue, cliquer sur le bouton \"{contrastive_ok_button_text}\" " \
+                                  f"permet de réinitialiser les blocks de " \
+                                  f"formulation de questions et de présentation des réponses. " \
+                                  f"Il est alors possible de formuler une nouvelle question." \
+                                  f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                    if self.explanations_representation_are_enabled:
+                        panel_text += "NB : lorsque l'explication traite d'un conflit temporel, " \
+                                      "les figures illustrant le texte explicatif mettent l'accent sur " \
+                                      "les éléments critiques impliqués dans le conflit. " \
+                                      "Généralement, l'emploi du temps problématique est découpé en deux morceaux, " \
+                                      "répartis sur deux lignes et articulés autour d'une tâche critique (en rouge). " \
+                                      "Cette tâche est dupliquée intervient sur les deux lignes afin de " \
+                                      "représenter l'impossibilité de satisfaire les contraintes temporelles " \
+                                      "avant et après la tâche. " \
+                                      "Les bornes temporelles problématiques sont également indiquées " \
+                                      "par de fines lignes rouges. " \
+                                      "Par opposition, les itinéraires et emplois du temps qui ne sont pas concernés " \
+                                      "par l'explication sont atténués. " \
+                                      "Enfin, des informations sont affichées sur la carte et sur le diagramme " \
+                                      "de Gantt lorsque la souris est placée au-dessus des éléments d'intérêt."
+                elif self.language_is_english:
+                    panel_title = "About the explainer"
+                    panel_text = f"The explainer feature allows to ask questions about the " \
+                                 f"{self._current_solution_in_text()} and " \
+                                 f"to receive back answers in the form of "
+                    if self.explanations_representation_are_enabled:
+                        panel_text += "texts and figures."
+                    else:
+                        panel_text += "texts."
+                    panel_text += f"{LINE_BREAK_STRING}"
+                    panel_text += f"The following are made available below: " \
+                                  f"a representation of the routes and schedules of the " \
+                                  f"{self._current_solution_in_text(False)} which is identical to that of the tab " \
+                                  f"\"{self._solution_description_tab_title}\", " \
+                                  f"a question formulation block and an answer presentation block." \
+                                  f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                    panel_text += f"• As for the question formulation block, " \
+                                  f"in order to formulate a question about the " \
+                                  f"{self._current_solution_in_text(False)}, " \
+                                  f"a question template must be selected among the " \
+                                  f"{str(self.nb_questions_templates)} available (e.g. \"{empty_question_text}\"). " \
+                                  f"Then values (e.g. {fields_values_as_text}) " \
+                                  f"must be chosen to complete the fields of this question template. " \
+                                  f"By clicking on the button \"{contrastive_submit_button_label}\" " \
+                                  f"an answer to the completed question (\"{filled_question_text}\") is computed." \
+                                  f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                    panel_text += "• As for the answer presentation block, "
+                    if self.explanations_representation_are_enabled:
+                        panel_text += "an answer is displayed in the form of text, possibly with figures " \
+                                      "to illustrate the text. "
+                    else:
+                        panel_text += "an answer is displayed in the form of text. "
+                    panel_text += f"Once the answer has been read, clicking on the button " \
+                                  f"\"{contrastive_ok_button_text}\" allows to reset the question formulation " \
+                                  f"and answer presentation blocks. " \
+                                  f"It is then possible to formulate a new question." \
+                                  f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                    if self.explanations_representation_are_enabled:
+                        panel_text += "NB: when the explanation deals with a temporal conflict, " \
+                                      "the figures illustrating the explanatory text emphasize " \
+                                      "the critical elements involved in the conflict. " \
+                                      "Generally, the problematic schedule is split into two parts, " \
+                                      "distributed on two lines and articulated around a critical task (in red). " \
+                                      "This task is duplicated on the two lines to represent the impossibility of " \
+                                      "satisfying the temporal constraints before and after the task. " \
+                                      "The problematic temporal boundaries are also indicated " \
+                                      "by thin red lines. " \
+                                      "By contrast, the routes and schedules that are not involved " \
+                                      "in the explanation are attenuated. " \
+                                      "Finally, information is displayed on the map and on the Gantt chart " \
+                                      "when the mouse is placed over the elements of interest."
+                else:
+                    raise ValueError(f"Language '{self.language}' is not supported.")
+                return build_text_panel(panel_title, panel_text, True)
+
             #########################
             # Contrastive / Why-not #
             #########################
@@ -744,24 +1076,32 @@ class ExplainerWebGUI:
             def _build_contrastive_question_block():
                 #
                 if self.language_is_english:
+                    # For representation panels
                     current_solution_prefix = "Current solution - "
-                    question_panel_title = "Why-not question"
+                    # For question panel
+                    contrastive_question_type = \
+                        "" if self.only_contrastive_questions_are_enabled else "'Why not?' "
+                    question_panel_title = "Question" if self.only_contrastive_questions_are_enabled \
+                        else f"{contrastive_question_type}question"
                     template_question_dropdown_placeholder = "Select a question template"
                     input_1_placeholder = "Fill input 1"
                     input_2_placeholder = "Fill input 2"
                     input_3_placeholder = "Fill input 3"
-                    contrastive_question_text_placeholder = "Waiting for the definition of a 'why-not' question..."
-                    submit_button_label = "Submit"
-                elif self.language_is_french:
-                    current_solution_prefix = "Solution courante - "
-                    question_panel_title = "Question de type 'pourquoi-pas'"
-                    template_question_dropdown_placeholder = "Sélectionner un modèle de question"
-                    input_1_placeholder = "Donnée 1"
-                    input_2_placeholder = "Donnée 2"
-                    input_3_placeholder = "Donnée 3"
                     contrastive_question_text_placeholder = \
-                        "En attente qu'une question de type 'pourquoi-pas' soit définie..."
-                    submit_button_label = "Soumettre"
+                        f"Waiting for a {contrastive_question_type}question to be defined..."
+                elif self.language_is_french:
+                    # For representation panels
+                    current_solution_prefix = "Solution courante - "
+                    # For question panel
+                    contrastive_question_type = \
+                        "" if self.only_contrastive_questions_are_enabled else " de type 'Pourquoi pas ?'"
+                    question_panel_title = f"Question{contrastive_question_type}"
+                    template_question_dropdown_placeholder = "Sélectionner un modèle de question"
+                    input_1_placeholder = "Valeur 1"
+                    input_2_placeholder = "Valeur 2"
+                    input_3_placeholder = "Valeur 3"
+                    contrastive_question_text_placeholder = \
+                        f"En attente qu'une question{contrastive_question_type} soit définie..."
                 else:
                     raise ValueError(f"Unsupported language: {self.language}")
 
@@ -772,7 +1112,8 @@ class ExplainerWebGUI:
                     first_line = html.Div(
                         style=dict(display='flex', flexdirection='row'),
                         children=[
-                            dcc.Dropdown(id='template-question-dropdown', className='dropdown', style=dict(flex=1),
+                            dcc.Dropdown(id='template-question-dropdown', className='dropdown',
+                                         style=dict(flex=1), maxHeight=300,
                                          options=[{'label': self._questions_templates[key].text,
                                                    'value': key} for key in self._questions_templates.keys()],
                                          placeholder=template_question_dropdown_placeholder),
@@ -794,7 +1135,7 @@ class ExplainerWebGUI:
                                      style=dict(flex=1, marginRight='1rem'),
                                      children=contrastive_question_text_placeholder),
                             html.Button(id='contrastive-submit-button', className='button',
-                                        children=submit_button_label, disabled=True)
+                                        children=contrastive_submit_button_label, disabled=True)
                         ]
                     )
                     panel = html.Div(
@@ -804,20 +1145,21 @@ class ExplainerWebGUI:
                     )
                     return panel
 
-                block = html.Div(children=[
-                    html.Div(className='representation-panels-side-to-side',
-                             children=[
-                                 build_routes_figure_panel(
-                                     solution=self.current_solution, is_current_solution=True,
-                                     panel_title_prefix=current_solution_prefix, language=self.language
-                                 ),
-                                 build_schedules_figure_panel(
-                                     solution=self.current_solution, is_current_solution=True,
-                                     panel_title_prefix=current_solution_prefix, language=self.language
-                                 )
-                             ]),
-                    _build_contrastive_question_panel()
-                ])
+                block = \
+                    html.Div(children=[
+                        html.Div(className='representation-panels-side-to-side',
+                                 children=[
+                                     build_routes_figure_panel(
+                                         solution=self.current_solution, is_current_solution=True,
+                                         panel_title_prefix=current_solution_prefix, language=self.language
+                                     ),
+                                     build_schedules_figure_panel(
+                                         solution=self.current_solution, is_current_solution=True,
+                                         panel_title_prefix=current_solution_prefix, language=self.language
+                                     )
+                                 ]),
+                        _build_contrastive_question_panel()
+                    ])
                 return block
 
             def _build_contrastive_explanation_block():
@@ -830,20 +1172,27 @@ class ExplainerWebGUI:
                         save_button_text = "Save"
                         what_if_button_text = "What if?"
                         how_to_button_text = "How to?"
+                        contrastive_question_type = \
+                            "" if self.only_contrastive_questions_are_enabled else "'Why not?' "
                         contrastive_explanation_text_placeholder = \
-                            "Waiting for a 'why-not' question to be submitted..."
-                        contrastive_explanation_panel_title = "Why-not explanation"
+                            f"Waiting for a {contrastive_question_type}question to be submitted..."
+                        contrastive_explanation_panel_title = \
+                            "Explanation" if self.only_contrastive_questions_are_enabled \
+                                else f"{contrastive_question_type}explanation"
                     elif self.language_is_french:
                         save_button_text = "Enregistrer"
                         what_if_button_text = "Et si ?"
                         how_to_button_text = "Comment ?"
+                        contrastive_question_type = \
+                            "" if self.only_contrastive_questions_are_enabled else " de type 'Pourquoi pas ?'"
                         contrastive_explanation_text_placeholder = \
-                            "En attente qu'une question de type 'pourquoi-pas' soit soumise..."
-                        contrastive_explanation_panel_title = "Explication de type 'pourquoi-pas'"
+                            f"En attente qu'une question{contrastive_question_type} soit soumise..."
+                        contrastive_explanation_panel_title = f"Explication{contrastive_question_type}"
                     else:
                         raise ValueError(f"Unsupported language: {self.language}")
                     buttons = \
-                        [html.Button(id='contrastive-ok-button', className='button', children="Ok", disabled=True)]
+                        [html.Button(id='contrastive-ok-button', className='button',
+                                     children=contrastive_ok_button_text, disabled=True)]
                     if self._explainer.history_is_enabled:
                         buttons.append(
                             html.Button(id='contrastive-save-button', className='button', style=dict(marginTop='1rem'),
@@ -902,9 +1251,8 @@ class ExplainerWebGUI:
                         raise ValueError(f"Unsupported language: {self.language}")
                     panel = html.Div(
                         id='scenario-editable-employees-data-panel',
-                        children=build_employees_data_panel(instance=self.current_instance, is_current_instance=True,
-                                                            panel_title=panel_title, editable=True,
-                                                            language=self.language)
+                        children=build_employees_data_panel(self.current_instance, True, panel_title=panel_title,
+                                                            editable=True, language=self.language)
                     )
                     return panel
 
@@ -920,8 +1268,8 @@ class ExplainerWebGUI:
                         raise ValueError(f"Unsupported language: {self.language}")
                     panel = html.Div(
                         id='scenario-editable-tasks-data-panel',
-                        children=build_tasks_data_panel(instance=self.current_instance, is_current_instance=True,
-                                                        panel_title=panel_title, editable=True, language=self.language)
+                        children=build_tasks_data_panel(self.current_instance, True, panel_title=panel_title,
+                                                        editable=True, language=self.language)
                     )
                     return panel
 
@@ -1101,7 +1449,16 @@ class ExplainerWebGUI:
                                  ])
                 return block
 
-            blocks = [_build_contrastive_question_block(), _build_contrastive_explanation_block()]
+            ###########
+            # Summary #
+            ###########
+
+            def _build_summary_button():
+                html.Button(id='summary-button', className='button', children="Ok", disabled=False)
+                return html.Div()
+
+            blocks = [_build_explainer_description_panel(),
+                      _build_contrastive_question_block(), _build_contrastive_explanation_block()]
             if self._explainer.scenario_explanations_are_enabled:
                 blocks.append(_build_scenario_block())
             if self._explainer.counterfactual_explanations_are_enabled:
@@ -1223,10 +1580,15 @@ class ExplainerWebGUI:
             # Case where the questions templates dropdown is empty
             if question_template_id is None:
                 if self.language_is_english:
-                    contrastive_question_text_placeholder = "Waiting for the definition of a 'why-not' question..."
-                elif self.language_is_french:
+                    contrastive_question_type = \
+                        "" if self.only_contrastive_questions_are_enabled else "'Why not?' "
                     contrastive_question_text_placeholder = \
-                        "En attente qu'une question de type 'pourquoi-pas' soit définie..."
+                        f"Waiting for a {contrastive_question_type}question to be defined..."
+                elif self.language_is_french:
+                    contrastive_question_type = \
+                        "" if self.only_contrastive_questions_are_enabled else " de type 'Pourquoi pas ?'"
+                    contrastive_question_text_placeholder = \
+                        f"En attente qu'une question{contrastive_question_type} soit définie..."
                 else:
                     raise NotImplementedError(f"Language {self.language} is not supported")
                 return contrastive_question_text_placeholder, 'empty-automated-text'
@@ -1282,19 +1644,14 @@ class ExplainerWebGUI:
                 if self.explanations_representation_are_enabled:
                     explanation_repr_visibility = dict(display='block')
                     if self.language_is_english:
-                        # panel_title_prefix = \
-                        #     f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                        #     f" new solution - "
-                        # panel_title_suffix = f" (for 'why-not' explanation)"
+                        # f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}"
                         panel_title_prefix = \
                             f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                            f" solution involved in 'why-not' explanation - "
+                            f" solution involved in explanation - "
                         panel_title_suffix = ""
                     elif self.language_is_french:
-                        # panel_title_prefix = \
-                        #     f"Nouvelle solution " \
-                        #     f"{'faisable' if explanation.support_solution_is_feasible else 'infaisable'} - "
-                        # panel_title_suffix = f" dans la solution de l'explication pourquoi-pas"
+                        # f"{'faisable' if explanation.support_solution_is_feasible else 'infaisable'} - "
+                        # NB: mentioning feasibility in the title does not fit in the panel header
                         panel_title_prefix = "Solution intervenant dans l'explication - "
                         panel_title_suffix = ""
                     else:
@@ -1320,9 +1677,13 @@ class ExplainerWebGUI:
                 return explanation_text, 'automated-text', explanation_repr_visibility, explanation_repr, None, None
             elif contrastive_ok_button_click == 1:
                 if self.language_is_english:
-                    explanation_text = "Waiting for a 'why-not' question to be submitted..."
+                    contrastive_question_type = \
+                        "" if self.only_contrastive_questions_are_enabled else "'why not?' "
+                    explanation_text = f"Waiting for a {contrastive_question_type}question to be submitted..."
                 elif self.language_is_french:
-                    explanation_text = "En attente qu'une question de type 'pourquoi-pas' soit soumise..."
+                    contrastive_question_type = \
+                        "" if self.only_contrastive_questions_are_enabled else " de type 'Pourquoi pas ?'"
+                    explanation_text = f"En attente qu'une question{contrastive_question_type} soit soumise..."
                 else:
                     raise NotImplementedError(f"Language {self.language} is not supported")
                 return explanation_text, 'empty-automated-text', dict(display='none'), html.Div(), None, None
@@ -1592,14 +1953,14 @@ class ExplainerWebGUI:
                 Input('editable-instance-employees-data-table', 'data')
             )
             def _update_scenario_employees_data_conditional_style(employees_data):
-                return build_employees_style_data_conditional(employees_data, self.current_instance)
+                return build_employees_data_conditional_style(employees_data, self.current_instance)
 
             @self._application.callback(
                 Output('editable-instance-tasks-data-table', 'style_data_conditional'),
                 Input('editable-instance-tasks-data-table', 'data')
             )
             def _update_scenario_tasks_data_style(tasks_data):
-                return build_tasks_style_data_conditional(tasks_data, self.current_instance)
+                return build_tasks_data_conditional_style(tasks_data, self.current_instance)
 
             @self._application.callback(
                 Output('scenario-question-text', 'children'), Output('scenario-question-text', 'className'),
@@ -1768,12 +2129,11 @@ class ExplainerWebGUI:
                         tasks_data_panel_title = "Données relatives aux tâches à éditer"
                     else:
                         raise ValueError(f"Unsupported language: {self.language}")
-                    return (build_employees_data_panel(instance=self.current_instance, is_current_instance=True,
-                                                       panel_title=employees_data_panel_title, editable=True,
-                                                       language=self.language),
-                            build_tasks_data_panel(instance=self.current_instance, is_current_instance=True,
-                                                   panel_title=tasks_data_panel_title, editable=True,
-                                                   language=self.language))
+                    return (build_employees_data_panel(self.current_instance, True,
+                                                       panel_title=employees_data_panel_title,
+                                                       editable=True, language=self.language),
+                            build_tasks_data_panel(self.current_instance, True, panel_title=tasks_data_panel_title,
+                                                   editable=True, language=self.language))
                 else:
                     raise NotImplementedError("There is a problem with scenario ok or reset button #clicks")
 
@@ -2005,9 +2365,47 @@ class ExplainerWebGUI:
     def current_solution(self, solution: Solution):
         self._explainer.current_solution = solution
 
+    def _current_solution_in_text(self, with_name: bool = True):
+        if self.history_is_enabled:
+            if self.language_is_english:
+                text = "current solution"
+            elif self.language_is_french:
+                text = "solution courante"
+            else:
+                raise NotImplementedError(f"Unsupported language: {self.language}")
+            if with_name:
+                text += f" {self._explainer.current_solution.name}"
+            return text
+        else:
+            if self.language_is_english:
+                return "studied solution"
+            elif self.language_is_french:
+                return "solution étudiée"
+            else:
+                raise NotImplementedError(f"Unsupported language: {self.language}")
+
     @property
     def current_instance(self):
         return self._explainer.current_instance
+
+    def _current_instance_in_text(self, with_name: bool = True):
+        if self.history_is_enabled:
+            if self.language_is_english:
+                text = f"current instance"
+            elif self.language_is_french:
+                text = f"instance courante"
+            else:
+                raise NotImplementedError(f"Unsupported language: {self.language}")
+            if with_name:
+                text += f" {self._explainer.current_instance.name}"
+            return text
+        else:
+            if self.language_is_english:
+                return "studied instance"
+            elif self.language_is_french:
+                return "instance étudiée"
+            else:
+                raise NotImplementedError(f"Unsupported language: {self.language}")
 
     ###################
     # Functionalities #
@@ -2031,6 +2429,10 @@ class ExplainerWebGUI:
     #     self.disable_history()
     #     self.disable_scenario_explanations()
     #     self.disable_counterfactual_explanations()
+
+    @property
+    def nb_questions_templates(self):
+        return len(self._questions_templates)
 
     @property
     def history_is_enabled(self):
@@ -2073,6 +2475,11 @@ class ExplainerWebGUI:
 
     def disable_counterfactual_explanations(self):
         self._explainer.disable_counterfactual_explanations()
+
+    @property
+    def only_contrastive_questions_are_enabled(self):
+        return (self._explainer.scenario_explanations_are_disabled and
+                self._explainer.counterfactual_explanations_are_disabled)
 
     @property
     def explanations_representation_are_enabled(self):

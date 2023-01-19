@@ -469,6 +469,7 @@ body {
   cursor: pointer;
 }
 
+#home-tab,
 #instance-description-tab,
 #instances-comparison-tab,
 #solution-description-tab,
@@ -490,6 +491,7 @@ body {
   cursor: pointer;
 }
 
+#home-tab.tab-button--selected,
 #instance-description-tab.tab-button--selected,
 #instances-comparison-tab.tab-button--selected,
 #solution-description-tab.tab-button--selected,

@@ -18,14 +18,19 @@ from src.utils.language import LANGUAGE_ENGLISH_KEY, check_if_language_is_englis
 from src.utils.time import convert_nb_minutes_to_time_string, get_hour_format_associated_with_language
 
 
+# Global variables
+OPACITY_DEGREE = .4
+
+
 def compute_employees_colors(instance: Instance):
     """
     Compute a list of color values that can then be associated respectively to the employees.
     """
     # See https://plotly.com/python/builtin-colorscales/ for various color scales
-    # Interesting color scales: viridis from 0 to .9; agsunset from 0 to .9; sunsetdark from 0 to 1
+    # Interesting color scales: agsunset from 0 to .8; turbo from .1 to .9; sunsetdark from 0 to 1;
+    # rainbow from 0 to .9; viridis from 0 to .9;
     nb_employees = instance.nb_employees
-    return px.colors.sample_colorscale('agsunset', [n / (nb_employees - 1) * .9 for n in range(nb_employees)])
+    return px.colors.sample_colorscale('agsunset', [n/(nb_employees - 1)*(.8 - 0) + 0 for n in range(nb_employees)])
 
 
 def build_map_figure(instance: Instance, solution: Solution = None, infeasibility: Infeasibility = None,
@@ -54,10 +59,14 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
         elif is_performed:
             if check_if_language_is_english(language):
                 return (f"<b>Performing {task_to_describe.name}</b> <br>"
-                        f"Task skill level: {task_to_describe.skill_level}")
+                        f"Task skill level: {task_to_describe.skill_level}<br>"
+                        f"Task duration: {task_to_describe.get_duration(as_integer=False)}<br>"
+                        f"Availability: {task_to_describe.TWs.as_string(hour_format)}")
             elif check_if_language_is_french(language):
                 return (f"<b>Réalisation de {task_to_describe.name}</b> <br>"
-                        f"Niveau de la tâche : {task_to_describe.skill_level}")
+                        f"Niveau de la tâche : {task_to_describe.skill_level}<br>"
+                        f"Durée de la tâche : {task_to_describe.get_duration(as_integer=False)}<br>"
+                        f"Disponibilité : {task_to_describe.TWs.as_string(hour_format)}")
             else:
                 raise ValueError(f"Unknown language: {language}")
         else:
@@ -65,12 +74,12 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                 return (f"<b>{task_to_describe.name} not performed</b><br>"
                         f"Skill level: {task_to_describe.skill_level}<br>"
                         f"Duration: {task_to_describe.get_duration(as_integer=False)}<br>"
-                        f"Availability: {task_to_describe.TWs.as_string(hour_format)}<br>")
+                        f"Availability: {task_to_describe.TWs.as_string(hour_format)}")
             elif check_if_language_is_french(language):
                 return (f"<b>{task_to_describe.name} non-réalisée</b><br>"
                         f"Niveau : {task_to_describe.skill_level}<br>"
                         f"Durée : {task_to_describe.get_duration(as_integer=False)}<br>"
-                        f"Disponibilité : {task_to_describe.TWs.as_string(hour_format)}<br>")
+                        f"Disponibilité : {task_to_describe.TWs.as_string(hour_format)}")
             else:
                 raise ValueError(f"Unknown language: {language}")
 
@@ -170,20 +179,22 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
     else:
         if mode != 'all':
             raise NotImplementedError(f"The mode {mode} is not handled")
-        non_performed_tasks_latitudes, non_performed_tasks_longitudes, non_performed_tasks_descriptions = \
-            [], [], []
+        non_performed_tasks_names, non_performed_tasks_latitudes, non_performed_tasks_longitudes, \
+            non_performed_tasks_descriptions = [], [], [], []
         for task in instance.tasks:
             if not (solution.get_task_performance_status(task)):
+                non_performed_tasks_names.append(task.name)
                 non_performed_tasks_latitudes.append(task.location.get_latitude(radians=False))
                 non_performed_tasks_longitudes.append(task.location.get_longitude(radians=False))
                 non_performed_tasks_descriptions.append(
                     _create_task_description_in_routes_figure(task, is_performed=False)
                 )
         fig.add_trace(go.Scattermapbox(
-            name="None", mode='markers', marker=dict(color='grey', size=9),
-            opacity=1 if infeasibility is None else .5,
+            name="None", mode='markers+text', marker=dict(color='grey', size=9),
+            opacity=(1 if infeasibility is None else OPACITY_DEGREE),
             lat=non_performed_tasks_latitudes, lon=non_performed_tasks_longitudes,
             hoverinfo='text+name', hovertext=non_performed_tasks_descriptions,
+            text=[name + "<br><br> " for name in non_performed_tasks_names],
             showlegend=False
         ))
         for i, employee in enumerate(solution.instance.employees):
@@ -235,7 +246,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                     ))
                 else:
                     fig.add_trace(go.Scattermapbox(
-                        name=employee.name, mode='markers+lines+text', opacity=.5,
+                        name=employee.name, mode='markers+lines+text', opacity=OPACITY_DEGREE,
                         marker=dict(color=colors[i], size=route_steps_marker_sizes),
                         lat=route_steps_latitudes, lon=route_steps_longitudes,
                         hoverinfo='text+name', hovertext=route_steps_descriptions,
@@ -250,8 +261,8 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
         # However, with this style, names do not show up, then it should be used only if the token is an issue.
         # mapbox_style="open-street-map"
         margin={"r": 10, "t": 0, "l": 10, "b": 10},
-        legend=dict(traceorder='normal', orientation='h', xanchor='center', x=0.5, y=1.1,
-                    font=dict(family='Arial', size=10, color=UI_FONT_COLOR)),
+        legend=dict(traceorder='normal', orientation='h', xanchor='center', x=0.5, y=1.15,
+                    font=dict(family='Arial', size=14, color=UI_FONT_COLOR)),
         paper_bgcolor=UI_PANEL_CONTENT_COLOR
     )
     return fig
@@ -325,7 +336,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
         start_step = sequence[0]
         fig.add_trace(go.Bar(
             orientation='h', width=.3, marker=dict(color=colors[i]),
-            opacity=(0.5 if infeasibility is not None else 1),
+            opacity=(OPACITY_DEGREE if infeasibility is not None else 1),
             base=[start_step.start_time - 5], x=[5], y=[employee.name],
             name=employee.name, hoverinfo='text+name',
             hovertext=[create_home_description_in_schedules_figure(
@@ -375,8 +386,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                 steps_durations.append(step.activity.duration)
             fig.add_trace(go.Bar(
                 orientation='h', width=.8, marker=dict(color=colors[i]),
-                base=steps_start_times, x=steps_durations,
-                y=[employee.name for _ in steps_start_times],
+                base=steps_start_times, x=steps_durations, y=[employee.name for _ in steps_start_times],
                 name=employee.name, hoverinfo='text+name', hovertext=steps_hover_texts,
                 text=steps_names, insidetextanchor='middle'
             ))
@@ -427,7 +437,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                 orientation='h', width=.8, marker=dict(color=UI_CONFLICT_TASK_COLOR),
                 base=[conflict_step_latest_start_time], x=[conflict_activity.duration], y=[employee_name_bis],
                 name=employee.name, hoverinfo='text+name', hovertext=[step_hover_text],
-                text=[conflict_activity.name], insidetextanchor='middle',
+                text=[f"{conflict_activity.name}\'"], insidetextanchor='middle',
                 showlegend=False
             ))
             # Step of conflict - Traveling phase
@@ -480,8 +490,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                 orientation='h', width=.8, marker=dict(color=colors[i]),
                 base=steps_start_times, x=steps_durations, y=[employee_name_bis for _ in steps_start_times],
                 name=employee.name, hoverinfo='text+name', hovertext=steps_hover_texts,
-                text=steps_names, insidetextanchor='middle',
-                showlegend=False
+                text=steps_names, insidetextanchor='middle', showlegend=False
             ))
             # Return
             return_step = sequence[-1]
@@ -554,7 +563,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                     raise ValueError(f"Unknown language: {language}")
                 fig.add_trace(go.Bar(
                     orientation='h', width=.3, marker=dict(color='lightgrey'),
-                    opacity=(0.5 if infeasibility is not None else 1),
+                    opacity=(OPACITY_DEGREE if infeasibility is not None else 1),
                     base=[step.end_time], x=[traveling_duration], y=[employee.name], name=employee.name,
                     hoverinfo='text', hovertext=traveling_text, showlegend=False
                 ))
@@ -569,7 +578,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                 steps_durations.append(step.activity.duration)
             fig.add_trace(go.Bar(
                 orientation='h', width=.8, marker=dict(color=colors[i]),
-                opacity=(0.5 if infeasibility is not None else 1),
+                opacity=(OPACITY_DEGREE if infeasibility is not None else 1),
                 base=steps_start_times, x=steps_durations,
                 y=[employee.name for _ in steps_start_times],
                 name=employee.name, hoverinfo='text+name', hovertext=steps_hover_texts,
@@ -578,7 +587,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
             return_step = sequence[-1]
             fig.add_trace(go.Bar(
                 orientation='h', width=.3, marker=dict(color=colors[i]),
-                opacity=(0.5 if infeasibility is not None else 1),
+                opacity=(OPACITY_DEGREE if infeasibility is not None else 1),
                 base=[return_step.start_time], x=[5], y=[employee.name],
                 name=employee.name, hoverinfo='text+name',
                 hovertext=[create_home_description_in_schedules_figure(
@@ -588,12 +597,12 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
     hour_format = get_hour_format_associated_with_language(language)
     fig.update_layout(
         margin={"t": 0, "r": 10, "b": 20, "l": 10},
-        xaxis=dict(automargin=True, tickmode='array', tickvals=[h * 60 for h in range(7, 20)],
+        xaxis=dict(automargin=True, tickmode='array', tickvals=[h * 60 for h in range(4, 22)],
                    ticktext=[convert_nb_minutes_to_time_string(h * 60, hour_format).replace(':00', '')
-                             for h in range(7, 20)]),
+                             for h in range(4, 22)]),
         yaxis=dict(automargin=True, autorange='reversed', visible=False),
-        legend=dict(orientation='h', xanchor='center', x=0.5, y=1.1,
-                    font=dict(family='Arial', size=10, color=UI_FONT_COLOR), traceorder='normal'),
+        legend=dict(orientation='h', xanchor='center', x=0.5, y=1.15,
+                    font=dict(family='Arial', size=14, color=UI_FONT_COLOR), traceorder='normal'),
         paper_bgcolor=UI_PANEL_CONTENT_COLOR, plot_bgcolor='#637485', font=dict(color=UI_FONT_COLOR)
     )
     return fig
