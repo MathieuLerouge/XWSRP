@@ -164,6 +164,32 @@ class QuestionTemplate:
                     if employee_field_index in other_fields_values.keys():
                         employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
                         possible_tasks = solution.get_tasks_performed_by(employee)
+                    else:
+                        raise ValueError(f"The field #{employee_field_index} must be one of the other fields")
+                    if field_assumptions.must_refer_to_task_before_mentioned_task:
+                        mentioned_task_field_index = field_assumptions.field_index_of_mentioned_task
+                        if mentioned_task_field_index in other_fields_values.keys():
+                            mentioned_task = instance.get_task_by_name(other_fields_values[mentioned_task_field_index])
+                            mentioned_task_index = possible_tasks.index(mentioned_task)
+                            possible_tasks = possible_tasks[:mentioned_task_index]
+                            if field_assumptions.must_not_refer_to_first_task:
+                                possible_tasks = possible_tasks[1:]
+                        else:
+                            raise ValueError(f"The field #{mentioned_task_field_index} must be one of the other fields")
+                    elif field_assumptions.must_refer_to_task_after_mentioned_task:
+                        mentioned_task_field_index = field_assumptions.field_index_of_mentioned_task
+                        if mentioned_task_field_index in other_fields_values.keys():
+                            mentioned_task = instance.get_task_by_name(other_fields_values[mentioned_task_field_index])
+                            mentioned_task_index = possible_tasks.index(mentioned_task)
+                            possible_tasks = possible_tasks[mentioned_task_index+1:]
+                            if field_assumptions.must_not_refer_to_last_task:
+                                possible_tasks = possible_tasks[:-1]
+                        else:
+                            raise ValueError(f"The field #{mentioned_task_field_index} must be one of the other fields")
+                    elif field_assumptions.must_not_refer_to_first_task:
+                        possible_tasks = possible_tasks[1:]
+                    elif field_assumptions.must_not_refer_to_last_task:
+                        possible_tasks = possible_tasks[:-1]
             elif field_assumptions.must_refer_to_not_performed_activity:
                 possible_tasks = solution.non_performed_tasks
             if field_assumptions.must_refer_to_activity_not_performed_by_provided_employee:
@@ -298,6 +324,7 @@ class QuestionTemplate:
                                     raise ValueError(f"The task {field_value} of field #{field_number} is "
                                                      f"not performed by the employee {employee_name} "
                                                      f"of field #{employee_field_index} while it must be")
+                            # TODO before and after a mentioned task
                     if field_assumptions.must_refer_to_not_performed_activity:
                         if solution.get_task_performance_status(task):
                             raise ValueError(f"The task {field_value} of field #{field_number} is performed "

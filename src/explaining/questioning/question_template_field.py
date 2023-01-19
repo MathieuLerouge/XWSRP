@@ -18,9 +18,15 @@ NOT_PERFORMED_BY_0 = "<must refer to activity not performed by 0>"
 NOT_PERFORMED_BY_1 = "<must refer to activity not performed by 1>"
 NOT_PERFORMED_BY_2 = "<must refer to activity not performed by 2>"
 NOT_PERFORMED_BY_S = [NOT_PERFORMED_BY_0, NOT_PERFORMED_BY_1, NOT_PERFORMED_BY_2]
+# - First or last activity
+EXCLUDING_FIRST_TASK = "<must refer to a different task than the first one>"
+EXCLUDING_LAST_TASK = "<must refer to a different task than the last one>"
 # - Start and return
 EXCLUDING_START = "<must not refer to start>"
 EXCLUDING_RETURN = "<must not refer to return>"
+# - Order
+BEFORE_1 = "<must refer to activity before 1>"
+AFTER_1 = "<must refer to activity after 2>"
 # Note: if an assumption is added, then FieldAssumptions.__init__() must be updated as well as
 # QuestionTemplate.compute_field_valid_values() and QuestionTemplate.check_fields_values_validity()
 
@@ -39,8 +45,13 @@ class FieldAssumptions:
         self._field_index_of_employee_performing_this_field_activity = None
         self._must_refer_to_activity_not_performed_by_provided_employee = False
         self._field_index_of_employee_not_performing_this_field_activity = None
+        self._must_not_refer_to_first_task = False
+        self._must_not_refer_to_last_task = False
         self._must_not_refer_to_start = False
         self._must_not_refer_to_return = False
+        self._must_refer_to_task_before_mentioned_task = False
+        self._must_refer_to_task_after_mentioned_task = False
+        self._field_index_of_mentioned_task = None
         if EMPLOYEE in assumptions:
             self._set_type_id(EMPLOYEE_TYPE_ID)
             self._must_refer_to_employee = True
@@ -56,7 +67,8 @@ class FieldAssumptions:
             self._must_refer_to_performed_activity = True
         if NOT_PERFORMED in assumptions:
             if self._type_id not in [TASK_TYPE_ID, ACTIVITY_TYPE_ID]:
-                raise ValueError(f"The field cannot satisfy both {PERFORMED} and not {TASK_TYPE_ID, ACTIVITY_TYPE_ID}")
+                raise ValueError(f"The field cannot satisfy both {NOT_PERFORMED} and "
+                                 f"not {TASK_TYPE_ID, ACTIVITY_TYPE_ID}")
             if self._must_refer_to_performed_activity:
                 raise ValueError(f"The field cannot satisfy both {PERFORMED} and {NOT_PERFORMED}")
             self._must_refer_to_not_performed_activity = True
@@ -79,6 +91,16 @@ class FieldAssumptions:
                     raise ValueError(f"The field cannot satisfy both {assumption} and {PERFORMED_BY_S[index]}")
                 self._must_refer_to_activity_not_performed_by_provided_employee = True
                 self._field_index_of_employee_not_performing_this_field_activity = index
+        if EXCLUDING_FIRST_TASK in assumptions:
+            if self._type_id not in [TASK_TYPE_ID, ACTIVITY_TYPE_ID]:
+                raise ValueError(f"The field cannot satisfy both {EXCLUDING_FIRST_TASK} and "
+                                 f"not {TASK_TYPE_ID, ACTIVITY_TYPE_ID}")
+            self._must_not_refer_to_first_task = True
+        if EXCLUDING_LAST_TASK in assumptions:
+            if self._type_id not in [TASK_TYPE_ID, ACTIVITY_TYPE_ID]:
+                raise ValueError(f"The field cannot satisfy both {EXCLUDING_LAST_TASK} and "
+                                 f"not {TASK_TYPE_ID, ACTIVITY_TYPE_ID}")
+            self._must_not_refer_to_last_task = True
         if EXCLUDING_START in assumptions:
             if self._type_id != ACTIVITY_TYPE_ID:
                 raise ValueError(f"The field cannot satisfy both {EXCLUDING_START} and not {ACTIVITY_TYPE_ID}")
@@ -87,6 +109,18 @@ class FieldAssumptions:
             if self._type_id != ACTIVITY_TYPE_ID:
                 raise ValueError(f"The field cannot satisfy both {EXCLUDING_RETURN} and not {ACTIVITY_TYPE_ID}")
             self._must_not_refer_to_return = True
+        if BEFORE_1 in assumptions:
+            if self._type_id != TASK_TYPE_ID:
+                raise ValueError(f"The field cannot satisfy both {BEFORE_1} and not {TASK_TYPE_ID}")
+            self._must_refer_to_task_before_mentioned_task = True
+            self._field_index_of_mentioned_task = 1
+        if AFTER_1 in assumptions:
+            if self._type_id != TASK_TYPE_ID:
+                raise ValueError(f"The field cannot satisfy both {AFTER_1} and not {TASK_TYPE_ID}")
+            if BEFORE_1 in assumptions:
+                raise ValueError(f"The field cannot satisfy both {BEFORE_1} and {AFTER_1}")
+            self._must_refer_to_task_after_mentioned_task = True
+            self._field_index_of_mentioned_task = 1
 
     def _set_type_id(self, type_id: str):
         if self._type_id is not None and self._type_id != type_id:
@@ -134,12 +168,32 @@ class FieldAssumptions:
         return self._field_index_of_employee_not_performing_this_field_activity
 
     @property
+    def must_not_refer_to_first_task(self):
+        return self._must_not_refer_to_first_task
+
+    @property
+    def must_not_refer_to_last_task(self):
+        return self._must_not_refer_to_last_task
+
+    @property
     def must_not_refer_to_start(self):
         return self._must_not_refer_to_start
 
     @property
     def must_not_refer_to_return(self):
         return self._must_not_refer_to_return
+
+    @property
+    def must_refer_to_task_before_mentioned_task(self):
+        return self._must_refer_to_task_before_mentioned_task
+
+    @property
+    def must_refer_to_task_after_mentioned_task(self):
+        return self._must_refer_to_task_after_mentioned_task
+
+    @property
+    def field_index_of_mentioned_task(self):
+        return self._field_index_of_mentioned_task
 
 
 def check_text_and_assumptions_consistency(text: str, fields_assumptions: list[FieldAssumptions], raise_error=False):

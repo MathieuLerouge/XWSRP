@@ -206,11 +206,15 @@ EXPLANATIONS_TEMPLATES_LIST = [
         id=WHY_NOT_ORD_LAT_1,
         all_typical_expressions={
             LANGUAGE_ENGLISH_KEY: dict(
-                the_fact="{Employee} is not performing the task {Task1} later just after the task {Task2}",
+                the_fact="{Employee} is not performing the task {Task1} later, just after the task {Task2}",
+                the_foil="{Employee} is performing the task {Task1} later, just after the task {Task2}",
+                having_the_foil="{Employee} performing the task {Task1} later, just after the task {Task2}",
                 applying_the_foil_transformation="moving {Task1} just after {Task2} in {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Employee} ne réalise pas {Task1} plus tard juste après {Task2}",
+                the_fact="{Employee} ne réalise pas {Task1} plus tard, juste après {Task2}",
+                the_foil="{Employee} réalise {Task1} plus tard, juste après {Task2}",
+                having_the_foil="faire que {Employee} réalise {Task1} later, plus tard, juste après {Task2}",
                 applying_the_foil_transformation="déplaçant {Task1} juste après {Task2} dans le planning de {Employee}"
             )
         }
@@ -219,11 +223,15 @@ EXPLANATIONS_TEMPLATES_LIST = [
         id=WHY_NOT_ORD_EAR_1,
         all_typical_expressions={
             LANGUAGE_ENGLISH_KEY: dict(
-                the_fact="{Employee} is not performing the task {Task1} earlier just before the task {Task2}",
+                the_fact="{Employee} is not performing the task {Task1} earlier, just before the task {Task2}",
+                the_foil="{Employee} is performing the task {Task1} earlier, just before the task {Task2}",
+                having_the_foil="{Employee} performing the task {Task1} earlier, just before the task {Task2}",
                 applying_the_foil_transformation="moving {Task1} just before {Task2} in {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
-                the_fact="{Employee} ne réalise pas {Task} plus tôt juste avant {Task2}",
+                the_fact="{Employee} ne réalise pas {Task1} plus tôt, juste avant {Task2}",
+                the_foil="{Employee} réalise {Task1} plus tôt, juste avant {Task2}",
+                having_the_foil="faire que {Employee} réalise {Task1} plus tôt, juste avant {Task2}",
                 applying_the_foil_transformation="déplaçant {Task1} juste avant {Task2} dans le planning de {Employee}"
             )
         }
@@ -233,10 +241,14 @@ EXPLANATIONS_TEMPLATES_LIST = [
         all_typical_expressions={
             LANGUAGE_ENGLISH_KEY: dict(
                 the_fact="{Employee} is not performing the task {Task} at a later stage in their planning",
+                the_foil="{Employee} is performing the task {Task} at a later stage in their planning",
+                having_the_foil="{Employee} performing the task {Task} at a later stage in their planning",
                 neighbors="solutions obtained by moving {Task} at a later stage in {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
                 the_fact="{Employee} ne réalise pas {Task} plus tard dans son planning",
+                the_foil="{Employee} réalise {Task} plus tard dans son planning",
+                having_the_foil="faire que {Employee} réalise {Task} plus tard dans son planning",
                 neighbors="solutions obtenues en déplaçant {Task} plus tard dans le planning de {Employee}"
             )
         }
@@ -246,10 +258,14 @@ EXPLANATIONS_TEMPLATES_LIST = [
         all_typical_expressions={
             LANGUAGE_ENGLISH_KEY: dict(
                 the_fact="{Employee} is not performing the task {Task} at an earlier stage in their planning",
+                the_foil="{Employee} is performing the task {Task} at an earlier stage in their planning",
+                having_the_foil="{Employee} performing the task {Task} at an earlier stage in their planning",
                 neighbors="solutions obtained by moving {Task} at an earlier stage in {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
                 the_fact="{Employee} ne réalise pas {Task} plus tôt dans son planning",
+                the_foil="{Employee} réalise {Task} plus tôt dans son planning",
+                having_the_foil="faire que {Employee} réalise {Task} plus tôt dans son planning",
                 neighbors="solutions obtenues en déplaçant {Task} plus tôt dans le planning de {Employee}"
             )
         }
@@ -259,10 +275,14 @@ EXPLANATIONS_TEMPLATES_LIST = [
         all_typical_expressions={
             LANGUAGE_ENGLISH_KEY: dict(
                 the_fact="{Employee} is not performing the task {Task} at another stage in their planning",
+                the_foil="{Employee} is performing the task {Task} at another stage in their planning",
+                having_the_foil="{Employee} performing the task {Task} at another stage in their planning",
                 neighbors="solutions obtained by moving {Task} at another stage in {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
                 the_fact="{Employee} ne réalise pas {Task} à un autre moment dans son planning",
+                the_foil="{Employee} réalise {Task} à un autre moment dans son planning",
+                having_the_foil="faire {Employee} réalise {Task} à un autre moment dans son planning",
                 neighbors="solutions obtenues en déplaçant {Task} à un autre moment dans le planning de {Employee}"
             )
         }
@@ -272,10 +292,14 @@ EXPLANATIONS_TEMPLATES_LIST = [
         all_typical_expressions={
             LANGUAGE_ENGLISH_KEY: dict(
                 the_fact="{Employee} is not performing their activities in another order",
+                the_foil="{Employee} is performing their activities in another order",
+                having_the_foil="{Employee} performing their activities in another order",
                 neighbors="solutions obtained by permuting the activities in {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
                 the_fact="{Employee} ne réalise pas les activités de son planning dans un autre ordre",
+                the_foil="{Employee} réalise les activités de son planning dans un autre ordre",
+                having_the_foil="faire que {Employee} réalise les activités de son planning dans un autre ordre",
                 neighbors="solutions obtenues en changeant l'ordre des activités du planning de {Employee}"
             )
         }

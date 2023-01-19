@@ -150,9 +150,8 @@ QUESTIONS_TEMPLATES_LIST = [
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task1} "
                                  "plus tard dans son planning, juste après la tâche {Task2} ?"
         },
-        fields_assumptions=[FieldAssumptions(EMPLOYEE), FieldAssumptions(TASK + PERFORMED_BY_0),
-                            FieldAssumptions(TASK + PERFORMED_BY_0)]
-        # TODO Add assumption DIFFERENT_FROM_0,1,2
+        fields_assumptions=[FieldAssumptions(EMPLOYEE), FieldAssumptions(TASK + PERFORMED_BY_0 + EXCLUDING_LAST_TASK),
+                            FieldAssumptions(TASK + PERFORMED_BY_0 + AFTER_1)]
     ),
     QuestionTemplate(
         id=WHY_NOT_ORD_EAR_1,
@@ -162,9 +161,8 @@ QUESTIONS_TEMPLATES_LIST = [
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task1} "
                                  "plus tôt dans son planning, juste avant la tâche {Task2} ?"
         },
-        fields_assumptions=[FieldAssumptions(EMPLOYEE), FieldAssumptions(TASK + PERFORMED_BY_0),
-                            FieldAssumptions(TASK + PERFORMED_BY_0)]
-        # TODO Add assumption DIFFERENT_FROM_0,1,2
+        fields_assumptions=[FieldAssumptions(EMPLOYEE), FieldAssumptions(TASK + PERFORMED_BY_0 + EXCLUDING_FIRST_TASK),
+                            FieldAssumptions(TASK + PERFORMED_BY_0 + BEFORE_1)]
     ),
     QuestionTemplate(
         id=WHY_NOT_ORD_LAT_2,
@@ -174,7 +172,7 @@ QUESTIONS_TEMPLATES_LIST = [
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
                                  "plus tard dans son planning ?"
         },
-        fields_assumptions=[FieldAssumptions(EMPLOYEE), FieldAssumptions(TASK + PERFORMED_BY_0)]
+        fields_assumptions=[FieldAssumptions(EMPLOYEE), FieldAssumptions(TASK + PERFORMED_BY_0 + EXCLUDING_LAST_TASK)]
     ),
     QuestionTemplate(
         id=WHY_NOT_ORD_EAR_2,
@@ -184,7 +182,7 @@ QUESTIONS_TEMPLATES_LIST = [
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
                                  "plus tôt dans son planning ?"
         },
-        fields_assumptions=[FieldAssumptions(EMPLOYEE), FieldAssumptions(TASK + PERFORMED_BY_0)]
+        fields_assumptions=[FieldAssumptions(EMPLOYEE), FieldAssumptions(TASK + PERFORMED_BY_0 + EXCLUDING_FIRST_TASK)]
     ),
     QuestionTemplate(
         id=WHY_NOT_ORD_2,
