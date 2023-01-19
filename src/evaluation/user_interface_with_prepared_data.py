@@ -1,8 +1,9 @@
 # Local libraries
 from src.evaluation.constants import ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION, EVALUATION_EXPERIMENTS_PARAMETERS
-from src.evaluation.prepared_data_extraction import get_solution_for_evaluation
+from src.evaluation.prepared_data_extraction import get_solution_for_evaluation, \
+    get_explanations_for_evaluation_directory_path
 from src.explaining.interacting.explainer import Explainer
-from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI, INSTANCE_DESCRIPTION_TAB
+from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
 from src.explaining.questioning.questions_templates_bank import LANGUAGE_FRENCH_KEY
 from src.modeling.solution import Solution
 
@@ -31,15 +32,16 @@ def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, en
     explainer.disable_history()
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
-    explainer.disable_using_already_computed_contrastive_explanations()
+    explainer.contrastive_explanations_inputs_directory_relative_path = get_explanations_for_evaluation_directory_path()
+    explainer.enable_using_already_computed_contrastive_explanations()
     explainer.disable_exporting_automatically_single_contrastive_explanations()
     if enable_explanations:
         title = "Visualize Plannings Plus"
-        subtitle = "Application web de visualisation et d'explication des données de ComputePlannings"
+        subtitle = "Outil de visualisation et d'explication des données de ComputePlannings"
     else:
         title = "Visualize Plannings"
-        subtitle = "Application web de visualisation des données de ComputePlannings"
-    explainer_GUI = ExplainerWebGUI(explainer, title, subtitle, INSTANCE_DESCRIPTION_TAB, enable_explanations)
+        subtitle = "Outil de visualisation des données de ComputePlannings"
+    explainer_GUI = ExplainerWebGUI(explainer, title, subtitle, enabling_explanations=enable_explanations)
     if not enable_explanations_representation:
         explainer_GUI.disable_explanations_representation()
     return explainer_GUI

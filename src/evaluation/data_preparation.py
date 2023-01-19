@@ -156,11 +156,18 @@ def check_explanations_negativity(solution: Solution, only_activated_questions_t
 ###############################
 
 
-def compute_and_export_contrastive_explanations(solution: Solution):
+def compute_and_export_contrastive_explanations(solution: Solution,
+                                                only_activated_questions_templates_for_evaluation: bool,
+                                                only_ILP_based_computation: bool = False):
     """
     Computes and exports all contrastive explanations about a solution
+    NB: the explanations are exported in the default outputs directory
 
     :param solution: solution for evaluation which explanations are computed (Solution)
+    :param only_activated_questions_templates_for_evaluation: if True, only activated questions templates for evaluation
+    are considered (bool)
+    :param only_ILP_based_computation: if True, only questions which explanations computation is based on solving
+    an ILP model are considered (bool)
     :return: None
     """
     explainer = Explainer(solution)
@@ -170,11 +177,18 @@ def compute_and_export_contrastive_explanations(solution: Solution):
     explainer.disable_using_already_computed_contrastive_explanations()
     explainer.disable_exporting_automatically_single_contrastive_explanations()
     explanations = []
-    for question_template_id in ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION:
-        question_template = QUESTIONS_TEMPLATES[question_template_id]
-        if question_template in explainer.activated_questions_templates:
-            print("Computing explanations related to:", question_template.id)
-            all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
-            for fields_values in all_fields_valid_values:
-                explanations.append(explainer.get_contrastive_explanation(question_template.id, fields_values))
+    if only_activated_questions_templates_for_evaluation:
+        questions_templates = \
+            [QUESTIONS_TEMPLATES[question_template_id]
+             for question_template_id in ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION]
+    else:
+        questions_templates = explainer.activated_questions_templates
+    for question_template in questions_templates:
+        if (not only_ILP_based_computation or
+                (only_ILP_based_computation and question_template.id in ILP_BASED_COMPUTATION_QUESTIONS_TEMPLATES_IDS)):
+            if question_template in explainer.activated_questions_templates:
+                print("Computing explanations related to:", question_template.id)
+                all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
+                for fields_values in all_fields_valid_values:
+                    explanations.append(explainer.get_contrastive_explanation(question_template.id, fields_values))
     export_multiple_contrastive_explanations_to_json_file(explanations)

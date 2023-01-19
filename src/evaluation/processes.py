@@ -24,62 +24,60 @@ EVALUATION_GUI = 'evaluation_GUI'
 ####################
 
 # Choose instance index
-instance_index = 2
-evaluation_experiment_version = EVALUATION_SOLUTION_1_CATEGORY_3
+instance_index = 0
+evaluation_experiment_version = EVALUATION_SOLUTION_3_CATEGORY_3
 
 # Choose what to do
 process_to_run = EVALUATION_GUI
 
 
-#########################################
-# Solving instance via ILP optimization #
-#########################################
+if __name__ == '__main__':
 
-if process_to_run == ILP_OPTIMIZATION:
-    instance = get_instance_for_evaluation_in_default_inputs_directory(instance_index)
-    solution = compute_solution_for_evaluation_by_ILP_optimization(instance, 45*60)
-    print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
-    write_solution(solution, get_default_inputs_directory_path())
+    #########################################
+    # Solving instance via ILP optimization #
+    #########################################
 
+    if process_to_run == ILP_OPTIMIZATION:
+        instance = get_instance_for_evaluation_in_default_inputs_directory(instance_index)
+        solution = compute_solution_for_evaluation_by_ILP_optimization(instance, 45*60)
+        print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
+        write_solution(solution, get_default_inputs_directory_path())
 
-##################################################
-# Re-optimization of solution via metaheuristics #
-##################################################
+    ##################################################
+    # Re-optimization of solution via metaheuristics #
+    ##################################################
 
-if process_to_run == HEURISTIC_OPTIMIZATION:
-    solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
-    solution.compute_KPIs()
-    print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
-    solution = SolutionLS.from_Solution(solution)
-    solution = run_simulated_annealing(solution)
-    print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
-    solution.name = solution.name + "_reoptimized"
-    write_solution(solution, get_default_outputs_directory_path())
+    if process_to_run == HEURISTIC_OPTIMIZATION:
+        solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
+        solution.compute_KPIs()
+        print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
+        solution = SolutionLS.from_Solution(solution)
+        solution = run_simulated_annealing(solution)
+        print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
+        solution.name = solution.name + "_reoptimized"
+        write_solution(solution, get_default_outputs_directory_path())
 
+    ##########################################################
+    # Checking negativity of all explanations about solution #
+    ##########################################################
 
-##########################################################
-# Checking negativity of all explanations about solution #
-##########################################################
+    if process_to_run == EXPLANATIONS_NEGATIVITY_CHECK:
+        solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
+        check_explanations_negativity(solution, False)
 
-if process_to_run == EXPLANATIONS_NEGATIVITY_CHECK:
-    solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
-    check_explanations_negativity(solution, False)
+    ###############################
+    # Computation of explanations #
+    ###############################
 
+    if process_to_run == EXPLANATIONS_COMPUTATION:
+        solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
+        compute_and_export_contrastive_explanations(solution, False, True)
 
-###############################
-# Computation of explanations #
-###############################
+    ########################
+    # Launch explainer GUI #
+    ########################
 
-if process_to_run == EXPLANATIONS_COMPUTATION:
-    solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
-    compute_and_export_contrastive_explanations(solution)
-
-
-########################
-# Launch explainer GUI #
-########################
-
-if process_to_run == EVALUATION_GUI:
-    solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
-    explainer = prepare_explainer_GUI_for_evaluation_given_experiment_version(evaluation_experiment_version)
-    explainer.launch()
+    if process_to_run == EVALUATION_GUI:
+        solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
+        explainer = prepare_explainer_GUI_for_evaluation_given_experiment_version(evaluation_experiment_version)
+        explainer.launch()
