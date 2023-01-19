@@ -1,0 +1,3529 @@
+[
+    {
+        "infeasibility": {
+            "downstream critical index": 9,
+            "downstream feasible": 0,
+            "early start time": 649,
+            "employee": "Valentin",
+            "late start time": 455,
+            "task": "T1",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T1"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T1",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 649.0
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 665
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 589
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T1 in Valentin's planning according to the following route [Home, T10, T5, T1, T4, T7, T9, T13, T6, Home]",
+            "FR": "ajoutant T1 dans le planning de Valentin selon la route suivante [Domicile, T10, T5, T1, T4, T7, T9, T13, T6, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 9,
+            "downstream feasible": 0,
+            "early start time": 590,
+            "employee": "Valentin",
+            "late start time": 502,
+            "task": "T2",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T2"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T2",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 590.0
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 665
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 589
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T2 in Valentin's planning according to the following route [Home, T10, T5, T2, T4, T7, T9, T13, T6, Home]",
+            "FR": "ajoutant T2 dans le planning de Valentin selon la route suivante [Domicile, T10, T5, T2, T4, T7, T9, T13, T6, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 9,
+            "downstream feasible": 1,
+            "early start time": 1008,
+            "employee": "Valentin",
+            "late start time": 951,
+            "task": "T3",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T3"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T8"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6",
+                    "T3"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 874
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 1008.0
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 940
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 741
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 816
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T3 in Valentin's planning according to the following route [Home, T10, T5, T4, T7, T9, T13, T6, T3, Home]",
+            "FR": "ajoutant T3 dans le planning de Valentin selon la route suivante [Domicile, T10, T5, T4, T7, T9, T13, T6, T3, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 9,
+            "downstream feasible": 1,
+            "early start time": 573,
+            "employee": "Valentin",
+            "late start time": 515,
+            "task": "T8",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T8"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T8",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 665
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 589
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 573.0
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T8 in Valentin's planning according to the following route [Home, T10, T8, T5, T4, T7, T9, T13, T6, Home]",
+            "FR": "ajoutant T8 dans le planning de Valentin selon la route suivante [Domicile, T10, T8, T5, T4, T7, T9, T13, T6, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 9,
+            "downstream feasible": 0,
+            "early start time": 612,
+            "employee": "Valentin",
+            "late start time": 505,
+            "task": "T11",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T11"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T11",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 612.0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 665
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 589
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T11 in Valentin's planning according to the following route [Home, T10, T5, T11, T4, T7, T9, T13, T6, Home]",
+            "FR": "ajoutant T11 dans le planning de Valentin selon la route suivante [Domicile, T10, T5, T11, T4, T7, T9, T13, T6, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 9,
+            "downstream feasible": 0,
+            "early start time": 663,
+            "employee": "Valentin",
+            "late start time": 552,
+            "task": "T12",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T12"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T12",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 663.0
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 665
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T12 in Valentin's planning according to the following route [Home, T10, T5, T12, T4, T7, T9, T13, T6, Home]",
+            "FR": "ajoutant T12 dans le planning de Valentin selon la route suivante [Domicile, T10, T5, T12, T4, T7, T9, T13, T6, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 9,
+            "downstream feasible": 1,
+            "early start time": 654,
+            "employee": "Valentin",
+            "late start time": 601,
+            "task": "T14",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T14"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T14",
+                    "T10",
+                    "T5",
+                    "T6",
+                    "T13"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 722
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 959
+                },
+                "T14": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 654.0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 496
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 811
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 878
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 582
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 646
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T14 in Valentin's planning according to the following route [Home, T4, T7, T9, T14, T10, T5, T6, T13, Home]",
+            "FR": "ajoutant T14 dans le planning de Valentin selon la route suivante [Domicile, T4, T7, T9, T14, T10, T5, T6, T13, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 5,
+            "downstream feasible": 0,
+            "early start time": 585,
+            "employee": "Ambre",
+            "late start time": 468,
+            "task": "T4",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T4"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T4",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 571
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 990
+                },
+                "T4": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 585.0
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T4 in Ambre's planning according to the following route [Home, T2, T4, T1, T12, T8, T3, Home]",
+            "FR": "ajoutant T4 dans le planning de Ambre selon la route suivante [Domicile, T2, T4, T1, T12, T8, T3, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T5",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T5"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T5",
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 571
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 990
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562.0
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T5 in Ambre's planning according to the following route [Home, T5, T2, T1, T12, T8, T3, Home]",
+            "FR": "ajoutant T5 dans le planning de Ambre selon la route suivante [Domicile, T5, T2, T1, T12, T8, T3, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T6",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T6"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3",
+                    "T6"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 699
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 810
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 969
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 1037.0
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 891
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T6 in Ambre's planning according to the following route [Home, T2, T1, T12, T8, T3, T6, Home]",
+            "FR": "ajoutant T6 dans le planning de Ambre selon la route suivante [Domicile, T2, T1, T12, T8, T3, T6, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 7,
+            "downstream feasible": 1,
+            "early start time": 1070,
+            "employee": "Ambre",
+            "late start time": 957,
+            "task": "T7",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 0
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T7"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3",
+                    "T7"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 699
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 810
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 969
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 1070.0
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 891
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T7 in Ambre's planning according to the following route [Home, T2, T1, T12, T8, T3, T7, Home]",
+            "FR": "ajoutant T7 dans le planning de Ambre selon la route suivante [Domicile, T2, T1, T12, T8, T3, T7, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T9",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T9"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3",
+                    "T9"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 699
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 810
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 969
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 891
+                },
+                "T9": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 1057.0
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T9 in Ambre's planning according to the following route [Home, T2, T1, T12, T8, T3, T9, Home]",
+            "FR": "ajoutant T9 dans le planning de Ambre selon la route suivante [Domicile, T2, T1, T12, T8, T3, T9, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 5,
+            "downstream feasible": 1,
+            "early start time": 898,
+            "employee": "Ambre",
+            "late start time": 817,
+            "task": "T10",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 0
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T10"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T10",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 699
+                },
+                "T10": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 898.0
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 810
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T10 in Ambre's planning according to the following route [Home, T2, T1, T12, T10, T8, T3, Home]",
+            "FR": "ajoutant T10 dans le planning de Ambre selon la route suivante [Domicile, T2, T1, T12, T10, T8, T3, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T11",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T11"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T11",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 699
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 798.0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 990
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T11 in Ambre's planning according to the following route [Home, T2, T1, T11, T12, T8, T3, Home]",
+            "FR": "ajoutant T11 dans le planning de Ambre selon la route suivante [Domicile, T2, T1, T11, T12, T8, T3, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 7,
+            "downstream feasible": 1,
+            "early start time": 1053,
+            "employee": "Ambre",
+            "late start time": 997,
+            "task": "T13",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 0
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T13"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3",
+                    "T13"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 699
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 810
+                },
+                "T13": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 1053.0
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 969
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 891
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T13 in Ambre's planning according to the following route [Home, T2, T1, T12, T8, T3, T13, Home]",
+            "FR": "ajoutant T13 dans le planning de Ambre selon la route suivante [Domicile, T2, T1, T12, T8, T3, T13, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T14",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T14"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T14",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 599.0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 571
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T14 in Ambre's planning according to the following route [Home, T2, T14, T1, T12, T8, T3, Home]",
+            "FR": "ajoutant T14 dans le planning de Ambre selon la route suivante [Domicile, T2, T14, T1, T12, T8, T3, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 8,
+            "downstream feasible": 0,
+            "early start time": 573,
+            "employee": "Valentin",
+            "late start time": 455,
+            "task": "T1",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T1"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T1",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 573.0
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 665
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 589
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T10 by T1 in Valentin's and applying the following route [Home, T1, T5, T4, T7, T9, T13, T6, Home]",
+            "FR": "rempla\u00e7ant T10 par T1 dans le planning de Valentin et en appliquant la route suivante [Domicile, T1, T5, T4, T7, T9, T13, T6, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 8,
+            "downstream feasible": 1,
+            "early start time": 558,
+            "employee": "Valentin",
+            "late start time": 547,
+            "task": "T2",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T2"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T5",
+                    "T2",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 558.0
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 665
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 501
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T10 by T2 in Valentin's and applying the following route [Home, T5, T2, T4, T7, T9, T13, T6, Home]",
+            "FR": "rempla\u00e7ant T10 par T2 dans le planning de Valentin et en appliquant la route suivante [Domicile, T5, T2, T4, T7, T9, T13, T6, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T3"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 959
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 875.0
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 663
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 815
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 733
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 516
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 602
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T10 by T3 in Valentin's and applying the following route [Home, T7, T9, T4, T6, T5, T3, T13, Home]",
+            "FR": "rempla\u00e7ant T10 par T3 dans le planning de Valentin et en appliquant la route suivante [Domicile, T7, T9, T4, T6, T5, T3, T13, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T8"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 648
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 572
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 734
+                },
+                "T8": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 498.0
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T10 by T8 in Valentin's and applying the following route [Home, T8, T5, T4, T7, T9, T13, T6, Home]",
+            "FR": "rempla\u00e7ant T10 par T8 dans le planning de Valentin et en appliquant la route suivante [Domicile, T8, T5, T4, T7, T9, T13, T6, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 8,
+            "downstream feasible": 0,
+            "early start time": 612,
+            "employee": "Valentin",
+            "late start time": 581,
+            "task": "T11",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T11"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T11",
+                    "T5",
+                    "T6",
+                    "T7",
+                    "T9",
+                    "T13"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 612.0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 959
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "performed": 0
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 665
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 732
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 901
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T4 by T11 in Valentin's and applying the following route [Home, T10, T11, T5, T6, T7, T9, T13, Home]",
+            "FR": "rempla\u00e7ant T4 par T11 dans le planning de Valentin et en appliquant la route suivante [Domicile, T10, T11, T5, T6, T7, T9, T13, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 8,
+            "downstream feasible": 1,
+            "early start time": 699,
+            "employee": "Valentin",
+            "late start time": 668,
+            "task": "T12",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T12"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T4",
+                    "T10",
+                    "T12",
+                    "T5",
+                    "T6",
+                    "T9",
+                    "T13"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 581
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 699.0
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 959
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 496
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 752
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T7": {
+                    "performed": 0
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 901
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T7 by T12 in Valentin's and applying the following route [Home, T4, T10, T12, T5, T6, T9, T13, Home]",
+            "FR": "rempla\u00e7ant T7 par T12 dans le planning de Valentin et en appliquant la route suivante [Domicile, T4, T10, T12, T5, T6, T9, T13, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Valentin",
+                "T14"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 865
+                },
+                "T14": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 690.0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 600
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 501
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 931
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 732
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 807
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T10 by T14 in Valentin's and applying the following route [Home, T5, T4, T14, T7, T9, T13, T6, Home]",
+            "FR": "rempla\u00e7ant T10 par T14 dans le planning de Valentin et en appliquant la route suivante [Domicile, T5, T4, T14, T7, T9, T13, T6, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T4"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "tasks performances": {
+                "T1": {
+                    "performed": 0
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 963
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 851
+                },
+                "T4": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 680.0
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 773
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T1 by T4 in Ambre's and applying the following route [Home, T2, T4, T8, T3, T12, Home]",
+            "FR": "rempla\u00e7ant T1 par T4 dans le planning de Ambre et en appliquant la route suivante [Domicile, T2, T4, T8, T3, T12, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T5",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T5"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T1",
+                    "T12",
+                    "T5",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 611
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 722
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "performed": 0
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 841.0
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T2 by T5 in Ambre's and applying the following route [Home, T1, T12, T5, T8, T3, Home]",
+            "FR": "rempla\u00e7ant T2 par T5 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T5, T8, T3, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T6",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T6"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T6",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 645
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 756
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "performed": 0
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 990
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 922.0
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 837
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T2 by T6 in Ambre's and applying the following route [Home, T1, T12, T8, T6, T3, Home]",
+            "FR": "rempla\u00e7ant T2 par T6 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T8, T6, T3, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T7"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "tasks performances": {
+                "T1": {
+                    "performed": 0
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 669
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 856
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 957.0
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 778
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T1 by T7 in Ambre's and applying the following route [Home, T2, T12, T8, T3, T7, Home]",
+            "FR": "rempla\u00e7ant T1 par T7 dans le planning de Ambre et en appliquant la route suivante [Domicile, T2, T12, T8, T3, T7, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T9",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T9"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3",
+                    "T9"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 611
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 722
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "performed": 0
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 881
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 803
+                },
+                "T9": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 969.0
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T2 by T9 in Ambre's and applying the following route [Home, T1, T12, T8, T3, T9, Home]",
+            "FR": "rempla\u00e7ant T2 par T9 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T8, T3, T9, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T10"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 611
+                },
+                "T10": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 817.0
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 722
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "performed": 0
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T2 by T10 in Ambre's and applying the following route [Home, T1, T12, T10, T8, T3, Home]",
+            "FR": "rempla\u00e7ant T2 par T10 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T10, T8, T3, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T11",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T11"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T11",
+                    "T1",
+                    "T12",
+                    "T8",
+                    "T3"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 684
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 600.0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 795
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "performed": 0
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 990
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 876
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T2 by T11 in Ambre's and applying the following route [Home, T11, T1, T12, T8, T3, Home]",
+            "FR": "rempla\u00e7ant T2 par T11 dans le planning de Ambre et en appliquant la route suivante [Domicile, T11, T1, T12, T8, T3, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T13"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 611
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 722
+                },
+                "T13": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 965.0
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "performed": 0
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 881
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 803
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T2 by T13 in Ambre's and applying the following route [Home, T1, T12, T8, T3, T13, Home]",
+            "FR": "rempla\u00e7ant T2 par T13 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T8, T3, T13, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "employee": "Ambre",
+            "task": "T14",
+            "type": "skill"
+        },
+        "question": {
+            "fields values": [
+                "Ambre",
+                "T14"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T14",
+                    "T8",
+                    "T3",
+                    "T12"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "performed": 0
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 960
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 704.0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 848
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 770
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T1 by T14 in Ambre's and applying the following route [Home, T2, T14, T8, T3, T12, Home]",
+            "FR": "rempla\u00e7ant T1 par T14 dans le planning de Ambre et en appliquant la route suivante [Domicile, T2, T14, T8, T3, T12, Domicile]"
+        }
+    }
+]
