@@ -669,6 +669,63 @@ class SolutionLS(SolutionOpti):
         # Return whether or not the insertion has given a feasible solution
         return is_feasible
 
+    def shift_task_after_activity(self, task: Task, activity: Activity, start_time: int = None,
+                                  start_time_for_backward: int = None, start_time_for_forward: int = None,
+                                  tighten_times: bool = True, update_KPIs: bool = True,
+                                  ignore_skill_constraint: bool = False):
+        """
+        Move a given task after a given activity in the sequence of the employee who performs these:
+
+        - if the move is known to be feasible, a start time for the moving task shall be provided;
+
+        - if the move is known to be infeasible, a start time for the moving task,
+          as well as two artificial start times for backward and forward computation, shall be provided;
+
+        - if the feasibility of the move is not known, start times inputs shall remain vacant.
+
+        The given moving task must be performed by an employee, otherwise a ValueError is raised.
+        The given activity must be performed by an employee, otherwise a ValueError is raised.
+
+        :param task: the task (Task) to move in the sequence of the employee who performs it
+        :param activity: the activity (Activity) after which the moving task shall be inserted
+        :param start_time: the start time of the moving task
+        :param start_time_for_backward: the artificial start time of the moving task used for the computation of
+          the times of the steps before the moving task; to be used if the move is known to be infeasible
+        :param start_time_for_forward: the artificial start time of the moving task used for the computation of
+          the times of the steps after the moving task; to be used if the move is known to be infeasible
+        :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
+          who realizes the given task after it has been removed in order to minimize idle time
+        :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the shift
+        :param ignore_skill_constraint:
+        :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
+        """
+
+        # Check that the given moving task is performed
+        if not self.get_task_performance_status(task):
+            raise ValueError(f"The given moving task {task.name} is not performed in this solution")
+
+        # Check that the employee assigned to the moving task is also assigned to the given activity
+        employee = self.get_task_assignee(task)
+        if self.get_activity_assignee(activity) != employee:
+            raise ValueError(f"The employee {employee.name} who performs the given moving task {task.name} "
+                             f"is not assigned to the given activity {activity.name}")
+
+        # Check that the start times inputs are consistent
+        if (start_time is None) and ((start_time_for_backward is not None) or (start_time_for_forward is not None)):
+            raise ValueError("The start times for backward and forward can be given as inputs "
+                             "only if a start time is also given")
+
+        # Get the sequence and the step index of the given moving task
+        sequence = self.get_sequence(employee)
+        sequence_former_KPIs = sequence.KPIs
+        step_index = self.get_sequence(employee).get_step_index_of(task)
+
+        # Remove the given moving task from its assigned employee's sequence
+        self.remove_task(task, tighten_times, update_KPIs)
+
+        # TODO to complete
+        raise NotImplementedError
+
     #################
     # Miscellaneous #
     #################
