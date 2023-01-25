@@ -132,67 +132,67 @@ class FieldAssumptions:
         return self._type_id
 
     @property
-    def must_refer_to_employee(self):
+    def this_field_must_refer_to_an_employee(self):
         return self._must_refer_to_employee
 
     @property
-    def must_refer_to_task(self):
+    def this_field_must_refer_to_a_task(self):
         return self._must_refer_to_task
 
     @property
-    def must_refer_to_activity(self):
+    def this_field_must_refer_to_an_activity(self):
         return self._must_refer_to_activity
 
     @property
-    def must_refer_to_not_performed_activity(self):
+    def this_field_must_refer_to_non_performed_activity(self):
         return self._must_refer_to_not_performed_activity
 
     @property
-    def must_refer_to_performed_activity(self):
+    def this_field_must_refer_to_a_performed_activity(self):
         return self._must_refer_to_performed_activity
 
     @property
-    def must_refer_to_activity_performed_by_provided_employee(self):
+    def this_field_must_refer_to_an_activity_performed_by_a_selected_employee(self):
         return self._must_refer_to_activity_performed_by_provided_employee
 
     @property
-    def field_index_of_employee_performing_this_field_activity(self):
+    def field_index_mentioning_employee_performing_activity_of_this_field(self):
         return self._field_index_of_employee_performing_this_field_activity
 
     @property
-    def must_refer_to_activity_not_performed_by_provided_employee(self):
+    def this_field_must_refer_to_activity_not_performed_by_selected_employee(self):
         return self._must_refer_to_activity_not_performed_by_provided_employee
 
     @property
-    def field_index_of_employee_not_performing_this_field_activity(self):
+    def field_index_mentioning_the_employee_not_performing_the_activity_of_this_field(self):
         return self._field_index_of_employee_not_performing_this_field_activity
 
     @property
-    def must_not_refer_to_first_task(self):
+    def this_field_must_not_refer_to_first_task(self):
         return self._must_not_refer_to_first_task
 
     @property
-    def must_not_refer_to_last_task(self):
+    def this_field_must_not_refer_to_last_task(self):
         return self._must_not_refer_to_last_task
 
     @property
-    def must_not_refer_to_start(self):
+    def this_field_must_not_refer_to_start(self):
         return self._must_not_refer_to_start
 
     @property
-    def must_not_refer_to_return(self):
+    def this_field_must_not_refer_to_return(self):
         return self._must_not_refer_to_return
 
     @property
-    def must_refer_to_task_before_mentioned_task(self):
+    def this_field_must_refer_to_any_task_before_task_selected_in_other_field(self):
         return self._must_refer_to_task_before_mentioned_task
 
     @property
-    def must_refer_to_task_after_mentioned_task(self):
+    def this_field_must_refer_to_any_task_after_task_selected_in_other_field(self):
         return self._must_refer_to_task_after_mentioned_task
 
     @property
-    def field_index_of_mentioned_task(self):
+    def field_index_mentioning_other_task(self):
         return self._field_index_of_mentioned_task
 
 

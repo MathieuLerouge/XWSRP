@@ -138,92 +138,110 @@ class QuestionTemplate:
         else:
             return False
 
-    def compute_field_valid_values(self, solution: Solution, field_number: int,
-                                   other_fields_values: dict[int, str] = None):
-        if other_fields_values is not None:
-            for other_field_number in other_fields_values.keys():
-                if other_field_number < 0 or other_field_number > self._nb_fields:
-                    raise ValueError(f"The field #{other_field_number} does not exist")
-                if other_field_number == field_number:
-                    raise ValueError(f"The field #{field_number} cannot be in the other fields values")
+    def compute_field_valid_values(self, solution: Solution, focused_field_index: int,
+                                   other_fields_with_fixed_values: dict[int, str] = None):
+        # Check that the index of the focused field which we want to compute the valid values and
+        # the indices of the other fields are consistent
+        if other_fields_with_fixed_values is not None:
+            for other_field_index in other_fields_with_fixed_values.keys():
+                if other_field_index < 0 or other_field_index > self._nb_fields:
+                    raise ValueError(f"The field #{other_field_index} does not exist, "
+                                     f"so it cannot be a field with a fixed value")
+                if other_field_index == focused_field_index:
+                    raise ValueError(f"The field #{focused_field_index} which we want to compute the valid values "
+                                     f"is also in the list of fields with fixed values")
         else:
-            other_fields_values = dict()
+            other_fields_with_fixed_values = dict()
+        # Compute the valid values
         instance = solution.instance
-        field_assumptions = self._fields_information[field_number]['assumptions']
-        # Case where the field must be an employee name
-        if field_assumptions.must_refer_to_employee:
+        assumptions = self._fields_information[focused_field_index]['assumptions']
+        # Case where the focused field must be an employee name
+        if assumptions.this_field_must_refer_to_an_employee:
             # TODO change return depending on other_fields_values
             return instance.employees_names
-        # Case where the field must be an task name
-        elif field_assumptions.must_refer_to_task:
+        # Case where the focused field must be a task name
+        elif assumptions.this_field_must_refer_to_a_task:
             possible_tasks = instance.tasks
-            if field_assumptions.must_refer_to_performed_activity:
+            if assumptions.this_field_must_refer_to_a_performed_activity:
                 possible_tasks = solution.performed_tasks
-                if field_assumptions.must_refer_to_activity_performed_by_provided_employee:
-                    employee_field_index = field_assumptions.field_index_of_employee_performing_this_field_activity
-                    if employee_field_index in other_fields_values.keys():
-                        employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
+                if assumptions.this_field_must_refer_to_an_activity_performed_by_a_selected_employee:
+                    field_index_of_selected_employee = \
+                        assumptions.field_index_mentioning_employee_performing_activity_of_this_field
+                    if field_index_of_selected_employee in other_fields_with_fixed_values.keys():
+                        employee_name = other_fields_with_fixed_values[field_index_of_selected_employee]
+                        employee = instance.get_employee_by_name(employee_name)
                         possible_tasks = solution.get_tasks_performed_by(employee)
-                    else:
-                        raise ValueError(f"The field #{employee_field_index} must be one of the other fields")
-                    if field_assumptions.must_refer_to_task_before_mentioned_task:
-                        mentioned_task_field_index = field_assumptions.field_index_of_mentioned_task
-                        if mentioned_task_field_index in other_fields_values.keys():
-                            mentioned_task = instance.get_task_by_name(other_fields_values[mentioned_task_field_index])
-                            mentioned_task_index = possible_tasks.index(mentioned_task)
-                            possible_tasks = possible_tasks[:mentioned_task_index]
-                            if field_assumptions.must_not_refer_to_first_task:
-                                possible_tasks = possible_tasks[1:]
-                        else:
-                            raise ValueError(f"The field #{mentioned_task_field_index} must be one of the other fields")
-                    elif field_assumptions.must_refer_to_task_after_mentioned_task:
-                        mentioned_task_field_index = field_assumptions.field_index_of_mentioned_task
-                        if mentioned_task_field_index in other_fields_values.keys():
-                            mentioned_task = instance.get_task_by_name(other_fields_values[mentioned_task_field_index])
-                            mentioned_task_index = possible_tasks.index(mentioned_task)
-                            possible_tasks = possible_tasks[mentioned_task_index+1:]
-                            if field_assumptions.must_not_refer_to_last_task:
-                                possible_tasks = possible_tasks[:-1]
-                        else:
-                            raise ValueError(f"The field #{mentioned_task_field_index} must be one of the other fields")
-                    elif field_assumptions.must_not_refer_to_first_task:
-                        possible_tasks = possible_tasks[1:]
-                    elif field_assumptions.must_not_refer_to_last_task:
-                        possible_tasks = possible_tasks[:-1]
-            elif field_assumptions.must_refer_to_not_performed_activity:
+                        if assumptions.this_field_must_refer_to_any_task_before_task_selected_in_other_field:
+                            field_index_of_selected_other_task = assumptions.field_index_mentioning_other_task
+                            if field_index_of_selected_other_task in other_fields_with_fixed_values.keys():
+                                selected_other_task_name = \
+                                    other_fields_with_fixed_values[field_index_of_selected_other_task]
+                                selected_other_task = instance.get_task_by_name(selected_other_task_name)
+                                mentioned_task_index = possible_tasks.index(selected_other_task)
+                                possible_tasks = possible_tasks[:mentioned_task_index]
+                                if assumptions.this_field_must_not_refer_to_first_task:
+                                    possible_tasks = possible_tasks[1:]
+                            # else, it means that the other field has not yet been selected,
+                            # so we consider all possible tasks of the employee by default
+                        elif assumptions.this_field_must_refer_to_any_task_after_task_selected_in_other_field:
+                            field_index_of_selected_other_task = assumptions.field_index_mentioning_other_task
+                            if field_index_of_selected_other_task in other_fields_with_fixed_values.keys():
+                                selected_other_task_name = \
+                                    other_fields_with_fixed_values[field_index_of_selected_other_task]
+                                selected_other_task = instance.get_task_by_name(selected_other_task_name)
+                                mentioned_task_index = possible_tasks.index(selected_other_task)
+                                possible_tasks = possible_tasks[mentioned_task_index+1:]
+                                if assumptions.this_field_must_not_refer_to_last_task:
+                                    possible_tasks = possible_tasks[:-1]
+                            # else, it means that the other field has not yet been selected,
+                            # so we consider all possible tasks of the employee by default
+                        elif assumptions.this_field_must_not_refer_to_first_task:
+                            possible_tasks = possible_tasks[1:]
+                        elif assumptions.this_field_must_not_refer_to_last_task:
+                            possible_tasks = possible_tasks[:-1]
+                    # else, it means that the employee has not yet been selected,
+                    # so we consider all possible tasks by default
+                    # TODO change return if other_fields_values not None but employee not yet selected
+            elif assumptions.this_field_must_refer_to_non_performed_activity:
                 possible_tasks = solution.non_performed_tasks
-            if field_assumptions.must_refer_to_activity_not_performed_by_provided_employee:
-                employee_field_index = field_assumptions.field_index_of_employee_not_performing_this_field_activity
-                if employee_field_index in other_fields_values.keys():
-                    employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
-                    possible_tasks = \
-                        [task for task in possible_tasks if (not solution.get_task_performance_status(task)
-                                                             or solution.get_task_assignee(task) != employee)]
+            if assumptions.this_field_must_refer_to_activity_not_performed_by_selected_employee:
+                field_index_of_selected_employee = \
+                    assumptions.field_index_mentioning_the_employee_not_performing_the_activity_of_this_field
+                if field_index_of_selected_employee in other_fields_with_fixed_values.keys():
+                    employee_name = other_fields_with_fixed_values[field_index_of_selected_employee]
+                    employee = instance.get_employee_by_name(employee_name)
+                    possible_tasks = [task for task in possible_tasks if
+                                      (not solution.get_task_performance_status(task)
+                                       or solution.get_task_assignee(task) != employee)]
             return [task.name for task in possible_tasks]
-        # Case where the field must be an activity name
-        elif field_assumptions.must_refer_to_activity:
+        # Case where the field must be an activity name (but not a task name)
+        elif assumptions.this_field_must_refer_to_an_activity:
             possible_activities_names = [START_VALUE] + solution.instance.tasks_names + [RETURN_VALUE]
-            if field_assumptions.must_refer_to_performed_activity:
+            if assumptions.this_field_must_refer_to_a_performed_activity:
                 possible_activities_names = [START_VALUE] + solution.performed_tasks_names + [RETURN_VALUE]
-                if field_assumptions.must_refer_to_activity_performed_by_provided_employee:
-                    employee_field_index = field_assumptions.field_index_of_employee_performing_this_field_activity
-                    if employee_field_index in other_fields_values.keys():
-                        employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
+                if assumptions.this_field_must_refer_to_an_activity_performed_by_a_selected_employee:
+                    field_index_of_selected_employee = \
+                        assumptions.field_index_mentioning_employee_performing_activity_of_this_field
+                    if field_index_of_selected_employee in other_fields_with_fixed_values.keys():
+                        employee_name = other_fields_with_fixed_values[field_index_of_selected_employee]
+                        employee = instance.get_employee_by_name(employee_name)
                         possible_activities_names = \
                             [activity.name for activity in solution.get_sequence(employee).get_contained_activities()]
-            elif field_assumptions.must_refer_to_not_performed_activity:
+            elif assumptions.this_field_must_refer_to_non_performed_activity:
                 possible_activities_names = solution.non_performed_tasks_names
-            if field_assumptions.must_refer_to_activity_not_performed_by_provided_employee:
-                employee_field_index = field_assumptions.field_index_of_employee_not_performing_this_field_activity
-                if employee_field_index in other_fields_values.keys():
-                    employee = instance.get_employee_by_name(other_fields_values[employee_field_index])
+            if assumptions.this_field_must_refer_to_activity_not_performed_by_selected_employee:
+                field_index_of_selected_employee = \
+                    assumptions.field_index_mentioning_the_employee_not_performing_the_activity_of_this_field
+                if field_index_of_selected_employee in other_fields_with_fixed_values.keys():
+                    employee_name = other_fields_with_fixed_values[field_index_of_selected_employee]
+                    employee = instance.get_employee_by_name(employee_name)
                     for task in solution.get_tasks_performed_by(employee):
                         if task.name in possible_activities_names:
                             possible_activities_names.remove(task.name)
-            if field_assumptions.must_not_refer_to_start:
+            if assumptions.this_field_must_not_refer_to_start:
                 if START_VALUE in possible_activities_names:
                     possible_activities_names.remove(START_VALUE)
-            if field_assumptions.must_not_refer_to_return:
+            if assumptions.this_field_must_not_refer_to_return:
                 if RETURN_VALUE in possible_activities_names:
                     possible_activities_names.remove(RETURN_VALUE)
             return possible_activities_names
@@ -259,15 +277,15 @@ class QuestionTemplate:
         :return:
         """
         field_assumptions = self._fields_information[field_number]['assumptions']
-        if field_assumptions.must_refer_to_employee:
+        if field_assumptions.this_field_must_refer_to_an_employee:
             if field_value not in instance.employees_names:
                 raise ValueError(f"The value {field_value} of the field #{field_number} "
                                  f"is not the name of an employee of the instance while it must be")
-        elif field_assumptions.must_refer_to_task:
+        elif field_assumptions.this_field_must_refer_to_a_task:
             if field_value not in instance.tasks_names:
                 raise ValueError(f"The value {field_value} of the field #{field_number} "
                                  f"is not the name of a task of the instance while it must be")
-        elif field_assumptions.must_refer_to_activity:
+        elif field_assumptions.this_field_must_refer_to_an_activity:
             if field_value not in (instance.tasks_names + [START_VALUE, RETURN_VALUE]):
                 raise ValueError(f"The value {field_value} of the field #{field_number} "
                                  f"is not the name of an activity of the instance while it must be")
@@ -307,17 +325,17 @@ class QuestionTemplate:
 
                 # Case where the field must refer to a task or
                 # case where the field must refer to an activity and the given value is a task
-                if (field_assumptions.must_refer_to_task or
-                        (field_assumptions.must_refer_to_activity and field_value in instance.tasks_names)):
+                if (field_assumptions.this_field_must_refer_to_a_task or
+                        (field_assumptions.this_field_must_refer_to_an_activity and field_value in instance.tasks_names)):
                     task_name = field_value
                     task = instance.get_task_by_name(task_name)
-                    if field_assumptions.must_refer_to_performed_activity:
+                    if field_assumptions.this_field_must_refer_to_a_performed_activity:
                         if not solution.get_task_performance_status(task):
                             raise ValueError(f"The task {field_value} of field #{field_number} is not performed "
                                              f"while it must be")
-                        if field_assumptions.must_refer_to_activity_performed_by_provided_employee:
+                        if field_assumptions.this_field_must_refer_to_an_activity_performed_by_a_selected_employee:
                             employee_field_index = \
-                                field_assumptions.field_index_of_employee_performing_this_field_activity
+                                field_assumptions.field_index_mentioning_employee_performing_activity_of_this_field
                             if employee_field_index in fields_values.keys():
                                 employee_name = fields_values[employee_field_index]
                                 if employee_name != solution.get_task_assignee(task).name:
@@ -325,14 +343,14 @@ class QuestionTemplate:
                                                      f"not performed by the employee {employee_name} "
                                                      f"of field #{employee_field_index} while it must be")
                             # TODO before and after a mentioned task
-                    if field_assumptions.must_refer_to_not_performed_activity:
+                    if field_assumptions.this_field_must_refer_to_non_performed_activity:
                         if solution.get_task_performance_status(task):
                             raise ValueError(f"The task {field_value} of field #{field_number} is performed "
                                              f"while it must not be")
-                    if (field_assumptions.must_refer_to_activity_not_performed_by_provided_employee and
+                    if (field_assumptions.this_field_must_refer_to_activity_not_performed_by_selected_employee and
                             solution.get_task_performance_status(task)):
                         employee_field_index = \
-                            field_assumptions.field_index_of_employee_not_performing_this_field_activity
+                            field_assumptions.field_index_mentioning_the_employee_not_performing_the_activity_of_this_field
                         if employee_field_index in fields_values.keys():
                             employee_name = fields_values[employee_field_index]
                             if employee_name == solution.get_task_assignee(task).name:
@@ -341,15 +359,15 @@ class QuestionTemplate:
                                                  f"while it must not be")
 
                 # Case where the field must refer to an activity (and is not a task)
-                elif field_assumptions.must_refer_to_activity:
+                elif field_assumptions.this_field_must_refer_to_an_activity:
                     if field_value not in [START_VALUE, RETURN_VALUE]:
                         raise ValueError(f"The activity {field_value} of field #{field_number} is invalid")
-                    if field_assumptions.must_refer_to_not_performed_activity:
+                    if field_assumptions.this_field_must_refer_to_non_performed_activity:
                         raise ValueError(f"The activity {field_value} of field #{field_number} is performed "
                                          f"while it must not be")
-                    if field_value == START_VALUE and field_assumptions.must_not_refer_to_start:
+                    if field_value == START_VALUE and field_assumptions.this_field_must_not_refer_to_start:
                         raise ValueError(f"The activity of field #{field_number} must not be {field_value}")
-                    if field_value == RETURN_VALUE and field_assumptions.must_not_refer_to_return:
+                    if field_value == RETURN_VALUE and field_assumptions.this_field_must_not_refer_to_return:
                         raise ValueError(f"The activity of field #{field_number} must not be {field_value}")
 
             return True
