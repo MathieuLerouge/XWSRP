@@ -51,7 +51,8 @@ class ExplainerWebGUI:
     # Note: only the questions which keys are part of the list below can be handled by the UI
     _available_questions_templates_ids = [
         WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
-        WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3
+        WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3,
+        WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_3
     ]
 
     def __init__(self, explainer: Explainer, title: str = None, subtitle: str = None,
@@ -495,7 +496,7 @@ class ExplainerWebGUI:
             first_task = self.current_instance.tasks[0]
             if self.language_is_english:
                 # Panel about content of any instance
-                panel_title = "About the generic content of any instance"
+                description_panel_title = "About the generic content of any instance"
                 panel_text = "Any instance is composed of data about mobile employees and " \
                              "tasks ordered by customers." \
                              f"{LINE_BREAK_STRING}"
@@ -523,9 +524,11 @@ class ExplainerWebGUI:
                 # Panels about employees and tasks locations
                 employees_locations_map_title = "Employees' locations"
                 tasks_locations_map_title = "Tasks' locations"
+                # Panels about figures
+                metrics_panel_title = "Some key figures about the instance"
             elif self.language_is_french:
                 # Panel about content of any instance
-                panel_title = "À propos du contenu générique d'une instance"
+                description_panel_title = "À propos du contenu générique d'une instance"
                 panel_text = "Toute instance est composée de données portant sur les employés mobiles et " \
                              "sur les tâches commandées par les clients." \
                              f"{LINE_BREAK_STRING}"
@@ -558,12 +561,14 @@ class ExplainerWebGUI:
                 # Panels about employees and tasks locations
                 employees_locations_map_title = "Domiciles des employés"
                 tasks_locations_map_title = "Lieux des tâches"
+                # Panels about figures
+                metrics_panel_title = "Quelques chiffres sur l'instance"
             else:
                 raise NotImplementedError(f"Language {self.language} is not supported")
             tab_content = html.Div(
                 id="instance-description-tab-content",
                 children=[
-                    build_text_panel(panel_title, panel_text, True),
+                    build_text_panel(description_panel_title, panel_text, True),
                     build_employees_data_panel(self.current_instance, True, bottom_margin=True, language=self.language),
                     build_tasks_data_panel(self.current_instance, True, language=self.language),
                     html.Div(
@@ -591,7 +596,8 @@ class ExplainerWebGUI:
                             )
                         ]
                     ),
-                    build_instance_metrics_panel(self.current_instance, True, language=self.language)
+                    build_instance_metrics_panel(self.current_instance, True,
+                                                 panel_title=metrics_panel_title, language=self.language)
                 ]
             )
             return tab_content
@@ -725,7 +731,7 @@ class ExplainerWebGUI:
             Build the tab content about the description of a solution.
             """
             if self.language_is_english:
-                panel_title = "About the generic content of any solution"
+                description_panel_title = "About the generic content of any solution"
                 panel_text = "A solution is made of sets of routes and of schedules. " \
                              "Each employee is assigned to a route and a schedule." \
                              f"{LINE_BREAK_STRING}"
@@ -749,8 +755,9 @@ class ExplainerWebGUI:
                               "but it can be deduced from the Gantt chart. " \
                               "Moreover, information is displayed on the map and on the Gantt chart " \
                               "when the mouse is placed over the interesting elements."
+                metrics_panel_title = "Some key figures about the solution"
             elif self.language_is_french:
-                panel_title = "À propos du contenu générique d'une solution"
+                description_panel_title = "À propos du contenu générique d'une solution"
                 panel_text = "Une solution est composée d'ensembles d'itinéraires et d'emplois du temps. " \
                              "Chaque employé est associé à exactement un itinéraire et un emploi du temps." \
                              f"{LINE_BREAK_STRING}"
@@ -778,12 +785,13 @@ class ExplainerWebGUI:
                               "mais il est possible de le déduire à partir du diagramme de Gantt. " \
                               "Par ailleurs, des informations sont affichées sur la carte et sur le diagramme " \
                               "de Gantt lorsque la souris est placée au-dessus des éléments d'intérêt."
+                metrics_panel_title = "Quelques chiffres sur la solution"
             else:
                 raise ValueError(f"Language '{self.language}' is not supported.")
             tab_content = html.Div(
                 id="solution-description-tab-content",
                 children=[
-                    build_text_panel(panel_title, panel_text, True),
+                    build_text_panel(description_panel_title, panel_text, True),
                     html.Div(
                         className="representation-panels-side-to-side",
                         children=[build_routes_figure_panel(solution=self.current_solution, is_current_solution=True,
@@ -791,8 +799,8 @@ class ExplainerWebGUI:
                                   build_schedules_figure_panel(solution=self.current_solution, is_current_solution=True,
                                                                language=self.language)]
                     ),
-                    build_solution_metrics_panel(solution=self.current_solution, is_current_solution=True,
-                                                 language=self.language)
+                    build_solution_metrics_panel(self.current_solution, True,
+                                                 panel_title=metrics_panel_title, language=self.language)
                 ]
             )
             return tab_content
@@ -1113,7 +1121,7 @@ class ExplainerWebGUI:
                         style=dict(display='flex', flexdirection='row'),
                         children=[
                             dcc.Dropdown(id='template-question-dropdown', className='dropdown',
-                                         style=dict(flex=1), maxHeight=300,
+                                         style=dict(flex=1), # maxHeight=300,
                                          options=[{'label': self._questions_templates[key].text,
                                                    'value': key} for key in self._questions_templates.keys()],
                                          placeholder=template_question_dropdown_placeholder),
@@ -1641,7 +1649,8 @@ class ExplainerWebGUI:
                 infeasibility = None if explanation.support_solution_is_feasible else explanation.infeasibility
                 explanation_text = convert_from_string_to_html(explanation.text)
                 solution = explanation.support_solution
-                if self.explanations_representation_are_enabled:
+                if self.explanations_representation_are_enabled and \
+                        (infeasibility is None or not infeasibility.is_due_to_skill_considerations):
                     explanation_repr_visibility = dict(display='block')
                     if self.language_is_english:
                         # f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}"
