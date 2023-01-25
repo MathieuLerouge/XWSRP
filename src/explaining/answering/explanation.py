@@ -262,36 +262,72 @@ class Explanation:
     def _compute_text(self, with_bold_emphasis: bool = False):
         pass
 
-    def _compare_total_working_duration(self, start_with_cap: bool = False):
+    def _compare_total_working_duration(self, start_with_cap: bool = False, without_new_solution: bool = False):
         if not self.support_solution_is_feasible:
             raise AttributeError("Current and new solutions cannot be compared as new solution is infeasible.")
         current_solution = self._question.solution
         new_solution = self.support_solution
         text = ""
         if self.language_is_english:
-            text += f"{'The' if start_with_cap else 'the'} total working duration of the new solution is " \
-                    f"{new_solution.total_working_duration}min while the one of the current solution is " \
-                    f"{current_solution.total_working_duration}min"
+            if without_new_solution:
+                text += f"{'Its' if start_with_cap else 'its'} total working duration "
+            else:
+                text += f"{'The' if start_with_cap else 'the'} total working duration of the new solution "
+            text += f" is {new_solution.total_working_duration}min, which is "
+            if new_solution.total_working_duration < current_solution.total_working_duration:
+                text += "shorter than "
+            elif new_solution.total_working_duration > current_solution.total_working_duration:
+                text += "longer than "
+            else:
+                text += "equal to "
+            text += f"the one of the current solution {current_solution.total_working_duration}min."
         elif self.language_is_french:
-            text += f"{'La' if start_with_cap else 'la'} durée totale de travail de la nouvelle solution est " \
-                    f"{new_solution.total_working_duration}min tandis que celle de la solution courante est " \
-                    f"{current_solution.total_working_duration}min"
+            if without_new_solution:
+                text += f"{'Sa' if start_with_cap else 'sa'} durée totale de travail "
+            else:
+                text += f"{'La' if start_with_cap else 'la'} durée totale de travail de la nouvelle solution "
+            text += f" est de {new_solution.total_working_duration}min, soit une durée "
+            if new_solution.total_working_duration < current_solution.total_working_duration:
+                text += "inférieure "
+            elif new_solution.total_working_duration > current_solution.total_working_duration:
+                text += "supérieure "
+            else:
+                text += "égale "
+            text += f"à celle de la solution courante qui est de {current_solution.total_working_duration}min"
         return text
 
-    def _compare_total_traveling_duration(self, start_with_cap: bool = False):
+    def _compare_total_traveling_duration(self, start_with_cap: bool = False, without_new_solution: bool = False):
         if not self.support_solution_is_feasible:
             raise AttributeError("Current and new solutions cannot be compared as new solution is infeasible.")
         current_solution = self._question.solution
         new_solution = self.support_solution
         text = ""
         if self.language_is_english:
-            text += f"{'The' if start_with_cap else 'the'} total traveling duration of the new solution is " \
-                    f"{new_solution.total_traveling_duration}min while the one of the current one is " \
-                    f"{current_solution.total_traveling_duration}min"
+            if without_new_solution:
+                text += f"{'Its' if start_with_cap else 'its'} total traveling duration "
+            else:
+                text += f"{'The' if start_with_cap else 'the'} total traveling duration of the new solution "
+            text += f"is {new_solution.total_traveling_duration}min, which is "
+            if new_solution.total_working_duration < current_solution.total_working_duration:
+                text += "shorter than "
+            elif new_solution.total_working_duration > current_solution.total_working_duration:
+                text += "longer than "
+            else:
+                text += "equal to "
+            text += f"the one of the current solution {current_solution.total_traveling_duration}min"
         elif self.language_is_french:
-            text += f"{'La' if start_with_cap else 'la'} durée totale de déplacement de la nouvelle solution est " \
-                    f"{new_solution.total_traveling_duration}min tandis que celle de la solution courante est " \
-                    f"{current_solution.total_traveling_duration}min"
+            if without_new_solution:
+                text += f"{'Sa' if start_with_cap else 'sa'} durée totale de déplacement "
+            else:
+                text += f"{'La' if start_with_cap else 'la'} durée totale de déplacement de la nouvelle solution "
+            text += f" est de {new_solution.total_traveling_duration}min, soit une durée "
+            if new_solution.total_traveling_duration < current_solution.total_traveling_duration:
+                text += "inférieure "
+            elif new_solution.total_traveling_duration > current_solution.total_traveling_duration:
+                text += "supérieure "
+            else:
+                text += "égale "
+            text += f"à celle de la solution courante qui est de {current_solution.total_traveling_duration}min"
         return text
 
     def to_dict(self):
@@ -460,11 +496,11 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
             if self.language_is_english:
                 text += f"Indeed, among all these solutions, the best feasible one is obtained " \
                         f"from the current one by {self.applying_support_solution_transformation}. " \
-                        f"However, this new solution is not better than the current one:"
+                        f"However, this new solution is not better than the current one because "
             elif self.language_is_french:
                 text += f"En effet, parmi toutes ces solutions, la meilleure solution faisable est obtenue " \
                         f"à partir de la solution courante en {self.applying_support_solution_transformation}. " \
-                        f"Cependant, cette nouvelle solution n'est pas meilleure que la solution courante :"
+                        f"Cependant, cette nouvelle solution n'est pas meilleure que la solution courante car "
         else:
             if self.is_contrastive:
                 if self.language_is_english:
@@ -510,9 +546,22 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
                 text += f"la nouvelle solution obtenue à partir de la solution courante en " \
                         f"appliquant {self._applying_the_foil_transformation} " \
                         f"est réalisable mais pas meilleure que la solution courante :"
-        text += f"{LINE_BREAK_STRING}" \
-                f"- {self._compare_total_working_duration()};{LINE_BREAK_STRING}" \
-                f"- {self._compare_total_traveling_duration()}."
+        new_solution = self._support_solution
+        current_solution = self.current_solution
+        if new_solution.total_working_duration < current_solution.total_working_duration:
+            text += f"{self._compare_total_working_duration(False, True)}."
+        elif new_solution.total_working_duration == current_solution.total_working_duration:
+            if self.language_is_english:
+                text.removesuffix(" ")
+            text += f":{LINE_BREAK_STRING}"\
+                    f"- {self._compare_total_working_duration(False, True)},{LINE_BREAK_STRING}"
+            if self.language_is_english:
+                text += f"- but {self._compare_total_working_duration(True, False)}."
+            elif self.language_is_french:
+                text += f"- mais {self._compare_total_working_duration(True, False)}."
+        else:
+            raise ValueError("The new solution should have a total working duration "
+                             "less than or equal to the current one")
         return text
 
 
@@ -579,31 +628,16 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
                         f"{self._having_the_foil} demeure impossible.{LINE_BREAK_STRING}"
         else:
             raise ValueError("The explanation should be contrastive or scenario")
-        if self.is_based_on_most_relevant_neighboring_solution:
-            if self.language_is_english:
-                text += f"Indeed, {self._none_of_the_neighbors} is feasible. For instance, "\
-                        f"consider the new solution obtained from the current one " \
-                        f"by {self.applying_support_solution_transformation}. "
-            elif self.language_is_french:
-                text += f"En effet, {self._none_of_the_neighbors} n'est faisable. Par exemple, "\
-                        f"considérons la solution obtenue à partir de la solution courante " \
-                        f"en {self.applying_support_solution_transformation}. "
-        else:
-            if self.language_is_english:
-                text += f"Indeed, "
-            elif self.language_is_french:
-                text += f"En effet, "
+        if self.language_is_english:
+            text += f"Indeed, "
+        elif self.language_is_french:
+            text += f"En effet, "
         if self.language_is_english:
             text += f"{employee.name} has a skill level of {employee.skill_level} while " \
                     f"{task.name} requires a level of at least {task.skill_level}. "
         elif self.language_is_french:
             text += f"{employee.name} a un niveau de compétence de {employee.skill_level} alors que " \
                     f"{task.name} requiert un niveau au moins égal à {task.skill_level}. "
-        if self.is_based_on_most_relevant_neighboring_solution:
-            if self.language_is_english:
-                text += "Therefore, this new solution is infeasible."
-            elif self.language_is_french:
-                text += "Ainsi, cette nouvelle solution n'est pas faisable."
         return text
 
 
