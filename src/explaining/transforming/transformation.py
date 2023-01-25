@@ -4,7 +4,9 @@ from src.explaining.modeling.solution import EditableSolution
 from src.explaining.questioning.question import Question, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import \
     (WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
-     WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3)
+     WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_1,
+     WHY_NOT_ORD_3)
+from src.explaining.transforming.category3.ordering3 import IPModelForReordering3
 from src.explaining.transforming.infeasibility import *
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
@@ -53,6 +55,12 @@ def apply_induced_transformation(solution: EditableSolution, question: Question)
         return apply_swp_2c(solution, fields_values[0])
     elif question_template_id == WHY_NOT_SWP_3:
         return apply_swp_3(solution, fields_values[0], fields_values[1])
+    elif question_template_id == WHY_NOT_ORD_LAT_1:
+        return apply_ord_1a(solution, fields_values[0], fields_values[1], fields_values[2])
+    elif question_template_id == WHY_NOT_ORD_EAR_1:
+        return apply_ord_1b(solution, fields_values[0], fields_values[1], fields_values[2])
+    elif question_template_id == WHY_NOT_ORD_3:
+        return apply_ord_3(solution, fields_values[0])
     else:
         raise NotImplementedError(f"The transformation induced by the template {question_template_id} is not handled")
 
@@ -80,9 +88,11 @@ if GUROBI_IS_ENABLED:
             if not transformation_is_skill_feasible:
                 infeasibility = SkillInfeasibility(employee, task)
             else:
-                sequence = support_solution.get_sequence(employee)
-                upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(step_index - 1)
-                downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(step_index + 1)
+                support_sequence = support_solution.get_sequence(employee)
+                upstream_critical_step_index = \
+                    support_sequence.find_first_critical_step_index_backward_from(step_index - 1)
+                downstream_critical_step_index = \
+                    support_sequence.find_first_critical_step_index_forward_from(step_index + 1)
                 upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_UB
                 downstream_feasible = latest_start_time_for_downstream >= task.start_time_LB
                 infeasibility = TimeInfeasibility(
@@ -225,10 +235,11 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str):
     """
     Why is the employee {Employee} not performing the task {Task} in addition to their activities?
 
-    :param solution:
-    :param employee_name:
-    :param task_name:
-    :return:
+    :param solution: the solution
+    :param employee_name: the name of the employee
+    :param task_name: the name of the task to be inserted
+    :return: a tuple containing the support solution, the infeasibility (if any) and
+    the text of the transformation to apply in various languages
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
@@ -258,7 +269,7 @@ def create_support_solution_and_infeasibility_for_swap(solution: EditableSolutio
     support_solution = solution.copy(solution.name + "_support")
     infeasibility = None
     if transformation_is_feasible:
-        support_solution.replace_task_by_another(task2, task1, start_time=examination['start_time'])
+        support_solution.replace_task_by_another(task2, task1, examination['start_time'])
     else:
         if not examination['is_time_feasible']:
             support_solution.replace_task_by_another(
@@ -385,7 +396,7 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str):
             f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
         LANGUAGE_FRENCH_KEY:
             f"remplaçant {leaving_task.name} par {task.name} dans le planning de {employee.name} "
-            f"et en appliquant la route suivante "
+            f"et en appliquant l'itinéraire suivant "
             f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
     }
     return support_solution, infeasibility, applying_transformation_text_in_various_languages
@@ -396,55 +407,140 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str):
 #########################################
 
 def create_support_solution_and_infeasibility_for_ordering(solution: EditableSolution, employee: Employee,
-                                                           task: Task, activity: Activity, examination: dict):
-    transformation_is_feasible = examination['is_feasible']  # Sequence-wise
+                                                           moving_task: Task, fixed_task: Task, examination: dict):
+    """
+    Create the support solution and create infeasibility related to reordering (if any)
+    
+    :param solution: solution to be transformed
+    :param employee: employee whose sequence is to be transformed 
+    :param moving_task: task to be moved 
+    :param fixed_task: fixed task
+    :param examination: result of the examination of the transformation
+    :return: a tuple containing the support solution, the infeasibility (if any) and
+    the text of the transformation to apply in various languages 
+    """
+    support_sequence = solution.get_sequence(employee)
+    if support_sequence.get_step_index_of(moving_task) < support_sequence.get_step_index_of(fixed_task):
+        is_moving_task_1_after_task_2 = True
+    else:
+        is_moving_task_1_after_task_2 = False
+    transformation_is_feasible = examination['is_feasible']
     support_solution = solution.copy(solution.name + "_support")
     infeasibility = None
     if transformation_is_feasible:
-        support_solution.shift_task_after_activity(task, activity, examination['start_time'])
+        if is_moving_task_1_after_task_2:
+            support_solution.shift_task_in_sequence_after_activity(moving_task, fixed_task, examination['start_time'])
+        else:
+            support_solution.shift_task_in_sequence_before_activity(moving_task, fixed_task, examination['start_time'])
     else:
         if not examination['is_time_feasible']:
-            support_solution.shift_task_after_activity(
-                task, activity, examination['start_time'],
-                examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
-                False, False, (not examination['is_skill_feasible'])
-            )
-            sequence = support_solution.get_sequence(employee)
-            index = sequence.get_step_index_of(task)
-            upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(index - 1)
-            downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(index + 1)
+            if is_moving_task_1_after_task_2:
+                support_solution.shift_task_in_sequence_after_activity(
+                    moving_task, fixed_task, examination['start_time'],
+                    examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
+                    False, False
+                )
+            else:
+                support_solution.shift_task_in_sequence_before_activity(
+                    moving_task, fixed_task, examination['start_time'],
+                    examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
+                    False, False
+                )
+            support_sequence = support_solution.get_sequence(employee)
+            index = support_sequence.get_step_index_of(moving_task)
+            upstream_critical_step_index = support_sequence.find_first_critical_step_index_backward_from(index - 1)
+            downstream_critical_step_index = support_sequence.find_first_critical_step_index_forward_from(index + 1)
             infeasibility = TimeInfeasibility(
-                employee, task, examination['is_upstream_feasible'], examination['is_downstream_feasible'],
+                employee, moving_task, examination['is_upstream_feasible'], examination['is_downstream_feasible'],
                 examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
                 upstream_critical_step_index=upstream_critical_step_index,
                 downstream_critical_step_index=downstream_critical_step_index
             )
         else:
             raise ValueError("Infeasibility should only be due to time infeasibility.")
-    all_descriptions_of_applied_transformation = {
-        LANGUAGE_ENGLISH_KEY:
-            f"performing {task.name} just after {activity.name} in {employee.name}'s planning",
-        LANGUAGE_FRENCH_KEY:
-            f"réalisant {task.name} juste après {activity.name} dans le planning de {employee.name}"
-    }
-    return support_solution, infeasibility, all_descriptions_of_applied_transformation
+    if is_moving_task_1_after_task_2:
+        applying_transformation_text_in_various_languages = {
+            LANGUAGE_ENGLISH_KEY:
+                f"moving {moving_task.name} just after {fixed_task.name} in {employee.name}'s planning",
+            LANGUAGE_FRENCH_KEY:
+                f"déplaçant {moving_task.name} juste après {fixed_task.name} dans le planning de {employee.name}"
+        }
+    else:
+        applying_transformation_text_in_various_languages = {
+            LANGUAGE_ENGLISH_KEY:
+                f"moving {moving_task.name} just before {fixed_task.name} in {employee.name}'s planning",
+            LANGUAGE_FRENCH_KEY:
+                f"déplaçant {moving_task.name} juste avant {fixed_task.name} dans le planning de {employee.name}"
+        }
+    return support_solution, infeasibility, applying_transformation_text_in_various_languages
 
 
-# TODO
 def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name_1: str, task_name_2: str):
     """
-    Why is the employee {Employee} not performing the task {Task1} later in their route, just after the task {Task2}?
+    Create content for the explanation related to the question (Ord-1a):
+    "Why is the employee {Employee} not performing the task {Task1} later in their route,
+    just after the task {Task2}?"
 
-    :param solution:
-    :param employee_name:
-    :param task_name:
-    :return:
+    :param solution: the solution to be transformed
+    :param employee_name: the name of the employee whose route is to be modified
+    :param task_name_1: the name of the task to be moved i.e. Task1 in the question
+    :param task_name_2: the name of the task after which the task to be moved should be moved
+    :return: a tuple containing the support solution, the infeasibility (if any) and
+    the text of the transformation to apply in various languages
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task_1 = solution.instance.get_task_by_name(task_name_1)
     task_2 = solution.instance.get_task_by_name(task_name_2)
-    examination = solution.examine_order_later_a_task(employee, task, False)
-    return create_support_solution_and_infeasibility_for_ordering(solution, employee, task, examination)
+    examination = solution.examine_moving_after_a_task(employee, task_1, task_2)
+    return create_support_solution_and_infeasibility_for_ordering(solution, employee, task_1, task_2, examination)
+
+
+def apply_ord_1b(solution: EditableSolution, employee_name: str, task_name_1: str, task_name_2: str):
+    """
+    Create content for the explanation related to the question (Ord-1b):
+    "Why is the employee {Employee} not performing the task {Task1} earlier in their route,
+    just before the task {Task2}?"
+
+    :param solution: the solution to be transformed
+    :param employee_name: the name of the employee whose route is to be modified
+    :param task_name_1: the name of the task to be moved
+    :param task_name_2: the name of the task before which the task to be moved should be moved
+    :return: a tuple containing the support solution, the infeasibility (if any) and
+    the text of the transformation to apply in various languages
+    """
+    employee = solution.instance.get_employee_by_name(employee_name)
+    task_1 = solution.instance.get_task_by_name(task_name_1)
+    task_2 = solution.instance.get_task_by_name(task_name_2)
+    examination = solution.examine_moving_before_a_task(employee, task_1, task_2)
+    return create_support_solution_and_infeasibility_for_ordering(solution, employee, task_1, task_2, examination)
+
+
+def apply_ord_3(solution: EditableSolution, employee_name: str):
+    """
+    Create content for the explanation related to the question (Ord-3):
+    "Why is the employee {Employee} not performing the activities of their route in another order?"
+
+    :param solution: the solution to be transformed
+    :param employee_name: the name of the employee whose route should be reordered
+    :return: a tuple containing the support solution, the infeasibility (if any) and
+    the text of the transformation to apply in various languages
+    """
+    employee = solution.instance.get_employee_by_name(employee_name)
+    sequence = solution.get_sequence(employee)
+    model = IPModelForReordering3(sequence)
+    model.optimize(mute=True)
+    pivot_task = model.pivot_task
+    support_solution, infeasibility, description_of_support_sequence = \
+        create_support_solution_and_infeasibility_for_category_3(solution, employee, pivot_task, model)
+    applying_transformation_text_in_various_languages = {
+        LANGUAGE_ENGLISH_KEY:
+            f"reordering {employee.name}'s route into the following route "
+            f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
+        LANGUAGE_FRENCH_KEY:
+            f"réordonner l'itinéraire de {employee.name} en l'itinéraire suivant "
+            f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
+    }
+    return support_solution, infeasibility, applying_transformation_text_in_various_languages
 
 
 ##################

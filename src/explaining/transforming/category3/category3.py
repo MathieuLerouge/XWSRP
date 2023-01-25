@@ -369,33 +369,25 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
         return self.tasks_performances_expressions[task_key].getValue()
 
     def _extract_ordered_steps(self):
-        # TODO remove if it is working
-        # start_times_and_steps = [
-        #     (self.employee.start_time_LB,
-        #      Step(activity=Departure(employee=self.employee), start_time=self.employee.start_time_LB)),
-        #     (self.employee.end_time_UB,
-        #      Step(activity=ComeBack(employee=self.employee), start_time=self.employee.end_time_UB))
-        # ]
-        start_times_and_steps = []
-        for j in self.get_candidate_tasks_keys(including_pivot_task=False):
-            if self._check_task_is_performed_by_key(j):
-                task = self.get_candidate_task_by_key(j)
-                start_time = int(self.vars_T[j].x)
-                start_times_and_steps.append((start_time, Step(activity=task, start_time=start_time)))
-        j = self.get_pivot_task_key()
-        task = self.get_candidate_task_by_key(j)
-        start_time = self.var_T_backward.x
-        start_times_and_steps.append((start_time, Step(activity=task, start_time=start_time)))
-        for j in self.get_unavailabilities_keys():
-            unavailability = self.get_unavailability_by_key(j)
-            start_times_and_steps.append(
-                (unavailability.start_time_LB, Step(activity=unavailability, start_time=unavailability.start_time_LB))
-            )
-        start_times_and_steps.sort()
-        start_times_and_steps = \
-            [(self.employee.start_time_LB,
-              Step(activity=Departure(employee=self.employee), start_time=self.employee.start_time_LB))] + \
-            start_times_and_steps
+        start_times_and_steps = [
+            (self.employee.start_time_LB,
+             Step(activity=Departure(employee=self.employee), start_time=self.employee.start_time_LB))
+        ]
+        j = LEAVING_HOME_KEY
+        while j != COMING_BACK_HOME_KEY:
+            for (k, l) in self.vars_U.keys():
+                if k == j and int(self.vars_U[(k, l)].x) == 1:
+                    j = l
+                    if j == COMING_BACK_HOME_KEY:
+                        break
+                    else:
+                        task = self.get_candidate_task_by_key(j)
+                        if j == self.get_pivot_task_key():
+                            start_time = self.var_T_backward.x
+                        else:
+                            start_time = int(self.vars_T[j].x)
+                        start_times_and_steps.append((start_time, Step(activity=task, start_time=start_time)))
+                        break
         start_times_and_steps.append(
             (self.employee.end_time_UB,
              Step(activity=ComeBack(employee=self.employee), start_time=self.employee.end_time_UB))

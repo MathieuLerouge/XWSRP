@@ -212,8 +212,9 @@ class Sequence:
                 step.arrival_time += self._instance.lunch_break_duration
             step.end_time = step.start_time + step.activity.duration
         if update_coming_back_times:
-            self._steps[-1].start_time = self._steps[-1].arrival_time
-            self._steps[-1].end_time = self._steps[-1].start_time
+            if self._steps[-1].arrival_time <= self.employee.end_time_UB:
+                self._steps[-1].start_time = self._steps[-1].arrival_time
+                self._steps[-1].end_time = self._steps[-1].start_time
 
     def update_times_according_to_earliest_policy(self):
         # TODO to implement

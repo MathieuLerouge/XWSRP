@@ -703,9 +703,9 @@ class SequenceLS(Sequence):
         best_insertion_examination['task_name'] = best_task.name
         return best_insertion_examination
 
-    #########################
-    # Examining - Insertion #
-    #########################
+    ####################
+    # Examining - Swap #
+    ####################
 
     def examine_swap_with_a_task(self, entering_task: Task, leaving_task: Task,
                                  compute_times_only_if_skill_constraints_satisfied: bool = True):
@@ -722,10 +722,9 @@ class SequenceLS(Sequence):
         # Examine time-wise
         sequence_copy = self.copy()
         task_index = sequence_copy.get_step_index_of(leaving_task)
-        sequence_copy.remove_step(task_index, tighten_times=False, update_KPIs=False)
-        examination = sequence_copy.examine_insertion_at(entering_task, task_index,
-                                                         compute_times_only_if_skill_constraints_satisfied)
-        return examination
+        sequence_copy.remove_step(task_index, False, False)
+        return sequence_copy.examine_insertion_at(entering_task, task_index,
+                                                  compute_times_only_if_skill_constraints_satisfied)
 
     def examine_swap_with_any_task(self, task: Task, compute_times_only_if_skill_constraints_satisfied: bool = True):
 
@@ -734,7 +733,7 @@ class SequenceLS(Sequence):
         if compute_times_only_if_skill_constraints_satisfied and not swap_is_skill_feasible:
             return dict(is_feasible=False, is_skill_feasible=False)
 
-        # The assumptions are checked when calling examine_swap_with_a_tas
+        # The assumptions are checked when calling examine_swap_with_a_task
 
         # Initialize variables
         best_swap_is_time_feasible = False
@@ -911,6 +910,98 @@ class SequenceLS(Sequence):
                                 best_task = task
         best_examination['task_name'] = best_task.name
         return best_examination
+
+    #######################
+    # Examining - Reorder #
+    #######################
+
+    def examine_moving_after_a_task(self, moving_task: Task, fixed_task: Task):
+        """
+        Examine the feasibility of moving the given moving task after the fixed task in this sequence;
+        provide a dictionary, describing this examination, with keys:
+        'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible', 'start_time',
+        'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and 'traveling_duration_detour'.
+
+        - If moving is feasible, the value associated to the key 'start_time' is the start time (int)
+          that could be applied to the moving task, when following the earliest policy,
+          whereas the values associated to 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are both None;
+        - If the insertion is infeasible, the values associated to the keys 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are the start times that could be applied to the moving task so that
+          the time consistency of respectively the upstream and the downstream portions of the sequence,
+          while the value associated to the keys 'start_time' is an average of these artificial values.
+
+        Assumptions (only checked in debug):
+
+        - 1. the given moving task must be in the given employee's sequence;
+        - 2. the given fixed task must be in the given employee's sequence;
+        - 3. the given moving task must be before the given fixed task in the given employee's sequence;
+        - 4. the times of the given employee's sequence are consistent.
+
+        :param moving_task: the task to be moved
+        :param fixed_task: the task after which the moving task is to be moved
+        :return: a dictionary, describing the examination, with keys: 'is_feasible', 'is_upstream_feasible',
+        'is_downstream_feasible', 'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream'
+        and 'traveling_duration_detour'
+        """
+        # Check the assumptions
+        assert (moving_task in self.get_contained_tasks(),
+                f"The given moving task {moving_task.name} is not in this sequence")
+        assert (fixed_task in self.get_contained_tasks(),
+                f"The given leaving task {fixed_task.name} is not in this sequence")
+        assert (self.get_step_index_of(moving_task) < self.get_step_index_of(fixed_task),
+                f"The given moving task {moving_task.name} is not before the given fixed task {fixed_task.name} ")
+        assert self.is_time_consistent, "The times are not consistent"
+        # Examine
+        sequence_copy = self.copy()
+        moving_task_index = sequence_copy.get_step_index_of(moving_task)
+        sequence_copy.remove_step(moving_task_index, tighten_times=False, update_KPIs=False)
+        fixed_task_index = sequence_copy.get_step_index_of(fixed_task)
+        return sequence_copy.examine_insertion_at(moving_task, fixed_task_index + 1)
+
+    def examine_moving_before_a_task(self, moving_task: Task, fixed_task: Task):
+        """
+        Examine the feasibility of moving the given moving task before the fixed task in this sequence;
+        provide a dictionary, describing this examination, with keys:
+        'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible', 'start_time',
+        'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and 'traveling_duration_detour'.
+
+        - If moving is feasible, the value associated to the key 'start_time' is the start time (int)
+          that could be applied to the moving task, when following the earliest policy,
+          whereas the values associated to 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are both None;
+        - If the insertion is infeasible, the values associated to the keys 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are the start times that could be applied to the moving task so that
+          the time consistency of respectively the upstream and the downstream portions of the sequence,
+          while the value associated to the keys 'start_time' is an average of these artificial values.
+
+        Assumptions (only checked in debug):
+
+        - 1. the given moving task must be in the given employee's sequence;
+        - 2. the given fixed task must be in the given employee's sequence;
+        - 3. the given moving task must be before the given fixed task in the given employee's sequence;
+        - 4. the times of the given employee's sequence are consistent.
+
+        :param moving_task: the task to be moved
+        :param fixed_task: the task before which the moving task is to be moved
+        :return: a dictionary, describing the examination, with keys: 'is_feasible', 'is_upstream_feasible',
+        'is_downstream_feasible', 'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream'
+        and 'traveling_duration_detour'
+        """
+        # Check the assumptions
+        assert (moving_task in self.get_contained_tasks(),
+                f"The given moving task {moving_task.name} is not in this sequence")
+        assert (fixed_task in self.get_contained_tasks(),
+                f"The given leaving task {fixed_task.name} is not in this sequence")
+        assert (self.get_step_index_of(moving_task) > self.get_step_index_of(fixed_task),
+                f"The given moving task {moving_task.name} is not after the given fixed task {fixed_task.name} ")
+        assert self.is_time_consistent, "The times are not consistent"
+        # Examine
+        sequence_copy = self.copy()
+        moving_task_index = sequence_copy.get_step_index_of(moving_task)
+        sequence_copy.remove_step(moving_task_index, tighten_times=False, update_KPIs=False)
+        fixed_task_index = sequence_copy.get_step_index_of(fixed_task)
+        return sequence_copy.examine_insertion_at(moving_task, fixed_task_index)
 
     ##################
     # Critical steps #

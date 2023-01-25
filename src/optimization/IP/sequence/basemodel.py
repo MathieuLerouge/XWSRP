@@ -154,21 +154,17 @@ class IPModelForSequenceOptimization:
         # Define the total-working-duration expression
         working_duration_expression = grb.LinExpr()
         working_duration_expression.add(
-            grb.quicksum(
-                [self.vars_U[j, k] * self.get_candidate_task_by_key(j).duration
-                 for j in self.get_candidate_tasks_keys()
-                 for k in self.get_activities_keys(including_departure=False) if k != j]
-            )
+            grb.quicksum([self.vars_U[j, k] * self.get_candidate_task_by_key(j).duration
+                          for j in self.get_candidate_tasks_keys()
+                          for k in self.get_activities_keys(including_departure=False) if k != j])
         )
 
         # Define the total-traveling-duration expression
         traveling_duration_expression = grb.LinExpr()
         traveling_duration_expression.add(
-            grb.quicksum(
-                [self.vars_U[indices] *
-                 self.get_traveling_duration(activity_key1=indices[0], activity_key2=indices[1])
-                 for indices in self.vars_U.keys()]
-            )
+            grb.quicksum([self.vars_U[indices] *
+                          self.get_traveling_duration(activity_key1=indices[0], activity_key2=indices[1])
+                          for indices in self.vars_U.keys()])
         )
 
         # Set objective function expression as a weighted sum of the sub-objective functions
@@ -207,11 +203,9 @@ class IPModelForSequenceOptimization:
         # Add constraints about candidate tasks covering
         for j in self.get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
-                grb.quicksum(
-                    [self.vars_U[(j, k)]
-                     for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                     if k != j]
-                ),
+                grb.quicksum([self.vars_U[(j, k)]
+                              for k in self.get_activities_keys(including_departure=False, including_comeback=True)
+                              if k != j]),
                 sense=GRB.LESS_EQUAL, rhs=1,
                 name=f"TaskCoveringConstraint[{j}]"
             )
@@ -219,11 +213,9 @@ class IPModelForSequenceOptimization:
         # Add constraints about unavailabilities covering
         for j in self.get_unavailabilities_keys():
             self._GRB_model.addLConstr(
-                grb.quicksum(
-                    [self.vars_U[(j, k)]
-                     for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                     if k != j]
-                ),
+                grb.quicksum([self.vars_U[(j, k)]
+                              for k in self.get_activities_keys(including_departure=False, including_comeback=True)
+                              if k != j]),
                 sense=GRB.EQUAL, rhs=1,
                 name=f"UnavailabilityCoveringConstraint[{j}]"
             )
@@ -238,20 +230,16 @@ class IPModelForSequenceOptimization:
 
         # Add flow constraint about departure
         self._GRB_model.addLConstr(
-            grb.quicksum(
-                [self.vars_U[(LEAVING_HOME_KEY, k)]
-                 for k in self.get_activities_keys(including_departure=False, including_comeback=True)]
-            ),
+            grb.quicksum([self.vars_U[(LEAVING_HOME_KEY, k)]
+                          for k in self.get_activities_keys(including_departure=False, including_comeback=True)]),
             sense=GRB.EQUAL, rhs=1,
             name=f"FlowConstraint[{LEAVING_HOME_KEY}]"
         )
 
         # Add flow constraint about comeback
         self._GRB_model.addLConstr(
-            grb.quicksum(
-                [self.vars_U[(j, COMING_BACK_HOME_KEY)]
-                 for j in self.get_activities_keys(including_departure=True, including_comeback=False)]
-            ),
+            grb.quicksum([self.vars_U[(j, COMING_BACK_HOME_KEY)]
+                          for j in self.get_activities_keys(including_departure=True, including_comeback=False)]),
             sense=GRB.EQUAL, rhs=1,
             name=f"FlowConstraint[{COMING_BACK_HOME_KEY}]"
         )

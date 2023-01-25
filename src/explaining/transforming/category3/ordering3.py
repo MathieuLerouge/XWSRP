@@ -8,11 +8,12 @@ from src.modeling.sequence import Sequence
 from src.optimization.IP.sequence.basemodel import create_activity_key
 
 
-# Class IPModelForOrd3
-class IPModelForOrd3(IPModelForCategory3):
+# Class IPModelForReordering3
+class IPModelForReordering3(IPModelForCategory3):
 
     def __init__(self, sequence: Sequence):
-        super().__init__(sequence, sequence[1].activity)
+        pivot_task_index = int(len(sequence)/2)
+        super().__init__(sequence, sequence[pivot_task_index].activity)
 
     def _compute_candidate_tasks(self):
         return self._sequence.get_contained_tasks()
@@ -40,8 +41,7 @@ class IPModelForOrd3(IPModelForCategory3):
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]
-                     for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                     if k != j]
+                     for k in self.get_activities_keys(including_departure=False, including_comeback=True) if k != j]
                 ),
                 sense=GRB.EQUAL, rhs=1,
                 name=f"TaskCoveringConstraint[{j}]"

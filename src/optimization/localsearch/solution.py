@@ -170,7 +170,7 @@ class SolutionLS(SolutionOpti):
     def examine_insertion_after(self, entering_task: Task, employee: Employee, activity: Activity,
                                 compute_times_only_if_skill_constraints_satisfied: bool = True):
         """
-        Examine the feasibility of the insertion of the given entering task after the given activity
+        Examine the feasibility of inserting the given entering task after the given activity
         in the employee's sequence; provide a dictionary, describing this examination, with keys:
         'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible',
         'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and
@@ -318,7 +318,8 @@ class SolutionLS(SolutionOpti):
             best_examination = {'employee': None}
             for employee in self._instance.employees:
                 if employee.is_capable_of_performing(task):
-                    examination = self.get_sequence(employee).examine_best_insertion_between_consecutive_activities(task)
+                    examination = \
+                        self.get_sequence(employee).examine_best_insertion_between_consecutive_activities(task)
                     if examination['is_feasible']:
                         if not insertion_is_feasible:
                             insertion_is_feasible = True
@@ -420,6 +421,76 @@ class SolutionLS(SolutionOpti):
         best_swap_examination['employee_name'] = best_employee.name
         return best_swap_examination
 
+    #######################
+    # Examining - Reorder #
+    #######################
+
+    def examine_moving_after_a_task(self, employee: Employee, moving_task: Task, fixed_task: Task):
+        """
+        Examine the feasibility of moving the given moving task after the fixed task in the employee's sequence;
+        provide a dictionary, describing this examination, with keys:
+        'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible', 'start_time',
+        'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and 'traveling_duration_detour'.
+
+        - If moving is feasible, the value associated to the key 'start_time' is the start time (int)
+          that could be applied to the moving task, when following the earliest policy,
+          whereas the values associated to 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are both None;
+        - If the insertion is infeasible, the values associated to the keys 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are the start times that could be applied to the moving task so that
+          the time consistency of respectively the upstream and the downstream portions of the sequence,
+          while the value associated to the keys 'start_time' is an average of these artificial values.
+
+        Assumptions (only checked in debug):
+
+        - 1. the given moving task must be in the given employee's sequence;
+        - 2. the given fixed task must be in the given employee's sequence;
+        - 3. the given moving task must be before the given fixed task in the given employee's sequence;
+        - 4. the times of the given employee's sequence are consistent.
+
+        :param employee: the employee whose sequence transformation is to be examined
+        :param moving_task: the task to be moved
+        :param fixed_task: the task after which the moving task is to be moved
+        :return: a dictionary, describing the examination, with keys: 'is_feasible', 'is_upstream_feasible',
+        'is_downstream_feasible', 'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream'
+        and 'traveling_duration_detour'
+        """
+        sequence = self.get_sequence(employee)
+        return sequence.examine_moving_after_a_task(moving_task, fixed_task)
+
+    def examine_moving_before_a_task(self, employee: Employee, moving_task: Task, fixed_task: Task):
+        """
+        Examine the feasibility of moving the given moving task before the fixed task in the employee's sequence;
+        provide a dictionary, describing this examination, with keys:
+        'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible', 'start_time',
+        'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and 'traveling_duration_detour'.
+
+        - If moving is feasible, the value associated to the key 'start_time' is the start time (int)
+          that could be applied to the moving task, when following the earliest policy,
+          whereas the values associated to 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are both None;
+        - If the insertion is infeasible, the values associated to the keys 'earliest_start_time_for_upstream' and
+          'latest_start_time_for_downstream' are the start times that could be applied to the moving task so that
+          the time consistency of respectively the upstream and the downstream portions of the sequence,
+          while the value associated to the keys 'start_time' is an average of these artificial values.
+
+        Assumptions (only checked in debug):
+
+        - 1. the given moving task must be in the given employee's sequence;
+        - 2. the given fixed task must be in the given employee's sequence;
+        - 3. the given moving task must be before the given fixed task in the given employee's sequence;
+        - 4. the times of the given employee's sequence are consistent.
+
+        :param employee: the employee whose sequence transformation is to be examined
+        :param moving_task: the task to be moved
+        :param fixed_task: the task before which the moving task is to be moved
+        :return: a dictionary, describing the examination, with keys: 'is_feasible', 'is_upstream_feasible',
+        'is_downstream_feasible', 'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream'
+        and 'traveling_duration_detour'
+        """
+        sequence = self.get_sequence(employee)
+        return sequence.examine_moving_before_a_task(moving_task, fixed_task)
+
     ####################################
     # Local change - Private - General #
     ####################################
@@ -479,14 +550,14 @@ class SolutionLS(SolutionOpti):
 
     def remove_task(self, task: Task, tighten_times: bool = True, update_KPIs: bool = True):
         """
-        Remove the given task from the sequence of the employee who realizes it.
+        Remove the given task from the sequence of the employee who performs it.
         This local change is always feasible.
 
         The given task must be realized by an employee, otherwise a ValueError is raised.
 
-        :param task: the task (Task) to remove from the sequence of the employee who realizes it
+        :param task: the task (Task) to remove from the sequence of the employee who performs it
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
-          who realizes the given task after it has been removed in order to minimize idle time
+          who performs the given task after it has been removed in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
         :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
         """
@@ -518,7 +589,7 @@ class SolutionLS(SolutionOpti):
                                    tighten_times: bool = True, update_KPIs: bool = True,
                                    ignore_skill_constraint: bool = False):
         """
-        Insert the given task after the given activity in the sequence of the employee who realizes the former:
+        Insert the given task after the given activity in the sequence of the employee who performs the former:
 
         - if the change is known to be feasible, a start time for the task to insert shall be provided;
 
@@ -531,7 +602,7 @@ class SolutionLS(SolutionOpti):
         The given activity must be realized by an employee, otherwise a ValueError is raised.
         This employee must be capable of realizing the given task to insert, otherwise a ValueError is also raised.
 
-        :param task: the task (Task) to insert in the sequence of the employee who realizes the given activity
+        :param task: the task (Task) to insert in the sequence of the employee who performs the given activity
         :param activity: the activity (Activity) after which the given task is inserted
         :param start_time: the start time of the task to insert
         :param start_time_for_backward: the artificial start time of the task to insert used for the computation of
@@ -539,7 +610,7 @@ class SolutionLS(SolutionOpti):
         :param start_time_for_forward: the artificial start time of the task to insert used for the computation of
           the times of the steps after the task to insert; to be used if the change is known to be infeasible
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
-          who realizes the given task after it has been removed in order to minimize idle time
+          who performs the given task after it has been removed in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
         :param ignore_skill_constraint:
         :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
@@ -558,7 +629,7 @@ class SolutionLS(SolutionOpti):
         employee = self.get_activity_assignee(activity)
         insertion_is_skill_feasible = employee.is_capable_of_performing(task)
         if not ignore_skill_constraint and not insertion_is_skill_feasible:
-            raise ValueError(f"The employee {employee.name} who realizes the given activity {activity.name} "
+            raise ValueError(f"The employee {employee.name} who performs the given activity {activity.name} "
                              f"is not capable of realizing the given task to insert {task.name}")
 
         # If the task to insert is realized, remove it from its assigned employee's sequence
@@ -597,7 +668,7 @@ class SolutionLS(SolutionOpti):
                                 tighten_times: bool = True, update_KPIs: bool = True,
                                 ignore_skill_constraint: bool = False):
         """
-        Change the given leaving task by the replacing task in the sequence of the employee who realizes the former:
+        Change the given leaving task by the replacing task in the sequence of the employee who performs the former:
 
         - if the change is known to be feasible, a start time for the replacing task shall be provided;
 
@@ -609,7 +680,7 @@ class SolutionLS(SolutionOpti):
         The given leaving task must be realized by an employee, otherwise a ValueError is raised.
         This employee must be capable of realizing the given replacing task, otherwise a ValueError is also raised.
 
-        :param leaving_task: the leaving task (Task) to remove from the sequence of the employee who realizes it
+        :param leaving_task: the leaving task (Task) to remove from the sequence of the employee who performs it
         :param replacing_task: the replacing task (Task) to insert in the sequence to replace the leaving task
         :param start_time: the start time of the replacing task
         :param start_time_for_backward: the artificial start time of the replacing task used for the computation of
@@ -617,7 +688,7 @@ class SolutionLS(SolutionOpti):
         :param start_time_for_forward: the artificial start time of the replacing task used for the computation of
           the times of the steps after the replacing task; to be used if the change is known to be infeasible
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
-          who realizes the given task after it has been removed in order to minimize idle time
+          who performs the given task after it has been removed in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
         :param ignore_skill_constraint:
         :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
@@ -630,7 +701,7 @@ class SolutionLS(SolutionOpti):
         # Check that the employee assigned to the leaving task is capable of realizing the replacing task
         employee = self.get_task_assignee(leaving_task)
         if not ignore_skill_constraint and not employee.is_capable_of_performing(replacing_task):
-            raise ValueError(f"The employee {employee.name} who realizes the given leaving task {leaving_task.name} "
+            raise ValueError(f"The employee {employee.name} who performs the given leaving task {leaving_task.name} "
                              f"is not capable of realizing the given replacing task {replacing_task.name}")
 
         # Check that the start times inputs are consistent
@@ -669,12 +740,11 @@ class SolutionLS(SolutionOpti):
         # Return whether or not the insertion has given a feasible solution
         return is_feasible
 
-    def shift_task_after_activity(self, task: Task, activity: Activity, start_time: int = None,
-                                  start_time_for_backward: int = None, start_time_for_forward: int = None,
-                                  tighten_times: bool = True, update_KPIs: bool = True,
-                                  ignore_skill_constraint: bool = False):
+    def shift_task_in_sequence_after_activity(self, task: Task, activity: Activity, start_time: int = None,
+                                              start_time_for_backward: int = None, start_time_for_forward: int = None,
+                                              tighten_times: bool = True, update_KPIs: bool = True):
         """
-        Move a given task after a given activity in the sequence of the employee who performs these:
+        Move a given task after a given activity in the sequence of the employee who performs these task and activity:
 
         - if the move is known to be feasible, a start time for the moving task shall be provided;
 
@@ -684,25 +754,27 @@ class SolutionLS(SolutionOpti):
         - if the feasibility of the move is not known, start times inputs shall remain vacant.
 
         The given moving task must be performed by an employee, otherwise a ValueError is raised.
-        The given activity must be performed by an employee, otherwise a ValueError is raised.
+        The given activity must be performed by the same employee, otherwise a ValueError is raised.
+        The given activity must not be the last activity of the sequence, otherwise a ValueError is raised.
 
         :param task: the task (Task) to move in the sequence of the employee who performs it
         :param activity: the activity (Activity) after which the moving task shall be inserted
-        :param start_time: the start time of the moving task
-        :param start_time_for_backward: the artificial start time of the moving task used for the computation of
-          the times of the steps before the moving task; to be used if the move is known to be infeasible
-        :param start_time_for_forward: the artificial start time of the moving task used for the computation of
-          the times of the steps after the moving task; to be used if the move is known to be infeasible
+        :param start_time: the start time (int) of the moving task
+        :param start_time_for_backward: the artificial start time (int) of the moving task used for computing the times
+          of the steps before the moving task once reinserted; to be used if the move is known to be infeasible
+        :param start_time_for_forward: the artificial start time (int) of the moving task used for computing the times
+          of the steps after the moving task; to be used if the move is known to be infeasible
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
-          who realizes the given task after it has been removed in order to minimize idle time
+          who performs the given task and activity after transformation in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the shift
-        :param ignore_skill_constraint:
         :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
         """
 
-        # Check that the given moving task is performed
+        # Check that the task is performed and that the activity is performed
         if not self.get_task_performance_status(task):
             raise ValueError(f"The given moving task {task.name} is not performed in this solution")
+        if isinstance(activity, Task) and not self.get_task_performance_status(activity):
+            raise ValueError(f"The given activity {activity.name} is not performed in this solution")
 
         # Check that the employee assigned to the moving task is also assigned to the given activity
         employee = self.get_task_assignee(task)
@@ -710,21 +782,83 @@ class SolutionLS(SolutionOpti):
             raise ValueError(f"The employee {employee.name} who performs the given moving task {task.name} "
                              f"is not assigned to the given activity {activity.name}")
 
+        # Check that the activity is not the last activity of the sequence
+        if isinstance(activity, ComeBack):
+            raise ValueError(f"The given activity {activity.name} is the last activity of the sequence")
+
         # Check that the start times inputs are consistent
         if (start_time is None) and ((start_time_for_backward is not None) or (start_time_for_forward is not None)):
             raise ValueError("The start times for backward and forward can be given as inputs "
                              "only if a start time is also given")
 
         # Get the sequence and the step index of the given moving task
-        sequence = self.get_sequence(employee)
-        sequence_former_KPIs = sequence.KPIs
-        step_index = self.get_sequence(employee).get_step_index_of(task)
+        # sequence = self.get_sequence(employee)
+        # sequence_former_KPIs = sequence.KPIs
+        # step_index = self.get_sequence(employee).get_step_index_of(task)
 
         # Remove the given moving task from its assigned employee's sequence
         self.remove_task(task, tighten_times, update_KPIs)
+        is_feasible = self.insert_task_after_activity(task, activity, start_time,
+                                                      start_time_for_backward, start_time_for_forward,
+                                                      tighten_times, update_KPIs)
+        return is_feasible
 
-        # TODO to complete
-        raise NotImplementedError
+    def shift_task_in_sequence_before_activity(self, task: Task, activity: Activity, start_time: int = None,
+                                               start_time_for_backward: int = None, start_time_for_forward: int = None,
+                                               tighten_times: bool = True, update_KPIs: bool = True):
+        """
+        Move a given task before a given activity in the sequence of the employee who performs these task and activity:
+
+        - if the move is known to be feasible, a start time for the moving task shall be provided;
+
+        - if the move is known to be infeasible, a start time for the moving task,
+          as well as two artificial start times for backward and forward computation, shall be provided;
+
+        - if the feasibility of the move is not known, start times inputs shall remain vacant.
+
+        The given moving task must be performed by an employee, otherwise a ValueError is raised.
+        The given activity must be performed by the same employee, otherwise a ValueError is raised.
+        The given activity must not be the first activity of the sequence, otherwise a ValueError is raised.
+
+        :param task: the task (Task) to move in the sequence of the employee who performs it
+        :param activity: the activity (Activity) before which the moving task shall be inserted
+        :param start_time: the start time (int) of the moving task
+        :param start_time_for_backward: the artificial start time (int) of the moving task used for computing the times
+          of the steps before the moving task once reinserted; to be used if the move is known to be infeasible
+        :param start_time_for_forward: the artificial start time (int) of the moving task used for computing the times
+          of the steps after the moving task; to be used if the move is known to be infeasible
+        :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
+          who performs the given task and activity after transformation in order to minimize idle time
+        :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the shift
+        :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
+        """
+
+        # Check assumptions
+        # - Check that the task is performed and that the activity is performed
+        if not self.get_task_performance_status(task):
+            raise ValueError(f"The given moving task {task.name} is not performed in this solution")
+        if isinstance(activity, Task) and not self.get_task_performance_status(activity):
+            raise ValueError(f"The given activity {activity.name} is not performed in this solution")
+        # - Check that the employee assigned to the moving task is also assigned to the given activity
+        employee = self.get_task_assignee(task)
+        if self.get_activity_assignee(activity) != employee:
+            raise ValueError(f"The employee {employee.name} who performs the given moving task {task.name} "
+                             f"is not assigned to the given activity {activity.name}")
+        # - Check that the activity is not the first activity of the sequence
+        if isinstance(activity, ComeBack):
+            raise ValueError(f"The given activity {activity.name} is the last activity of the sequence")
+        # - Check that the start times inputs are consistent
+        if (start_time is None) and ((start_time_for_backward is not None) or (start_time_for_forward is not None)):
+            raise ValueError("The start times for backward and forward can be given as inputs "
+                             "only if a start time is also given")
+
+        # Shift the task in the sequence using the method for shifting after an activity
+        sequence = self.get_sequence(employee)
+        step_index_of_activity_before = sequence.get_step_index_of(activity) - 1
+        activity_before = sequence.get_step(step_index_of_activity_before).activity
+        return self.shift_task_in_sequence_after_activity(task, activity_before, start_time,
+                                                          start_time_for_backward, start_time_for_forward,
+                                                          tighten_times, update_KPIs)
 
     #################
     # Miscellaneous #
