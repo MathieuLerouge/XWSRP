@@ -398,6 +398,9 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
             conflict_activity = conflict_step.activity
             conflict_step_earliest_start_time = max(before_conflict_step.end_time + traveling_duration,
                                                     conflict_activity.start_time_LB)
+            assert (conflict_step_earliest_start_time ==
+                    infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task)
+            conflict_step_earliest_start_time = infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task
             conflict_step_earliest_end_time = conflict_step_earliest_start_time + conflict_activity.duration
             conflict_step_earliest_start_time_as_string = convert_nb_minutes_to_time_string(
                 conflict_step_earliest_start_time, get_hour_format_associated_with_language(language)
@@ -423,6 +426,11 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
             conflict_step_latest_end_time = min(after_conflict_step.start_time - traveling_duration,
                                                 conflict_activity.end_time_UB)
             conflict_step_latest_start_time = conflict_step_latest_end_time - conflict_activity.duration
+            assert (conflict_step_latest_start_time ==
+                    infeasibility.latest_downstream_feasible_start_time_of_conflicting_task)
+            conflict_step_latest_start_time = \
+                infeasibility.latest_downstream_feasible_start_time_of_conflicting_task
+            conflict_step_latest_end_time = conflict_step_latest_start_time + conflict_activity.duration
             conflict_step_latest_start_time_as_string = convert_nb_minutes_to_time_string(
                 conflict_step_latest_start_time, get_hour_format_associated_with_language(language)
             )
@@ -525,10 +533,16 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                 upper_bound_text = f"Yielding <b>upper bound</b><br>" \
                                    f"of <b>{downstream_critical_step.activity.name}</b> availability<br>time window"
             elif check_if_language_is_french(language):
-                lower_bound_text = f"<b>Borne inférieure</b> de la fenêtre <br>" \
-                                   f"de disponibilité de <b>{upstream_critical_step.activity.name}</b> atteinte"
-                upper_bound_text = f"<b>Borne supérieure</b> de la fenêtre <br>" \
-                                   f"de disponibilité de <b>{downstream_critical_step.activity.name}</b> atteinte"
+                lower_bound_text = f"<b>Borne inférieure</b> de la fenêtre <br>"
+                if isinstance(upstream_critical_step.activity, Task):
+                    lower_bound_text += f"de disponibilité de <b>{upstream_critical_step.activity.name}</b> atteinte"
+                else:
+                    lower_bound_text += f"de travail <b>{employee.name}</b> atteinte"
+                upper_bound_text = f"<b>Borne supérieure</b> de la fenêtre <br>"
+                if isinstance(downstream_critical_step.activity, Task):
+                    upper_bound_text += f"de disponibilité de <b>{downstream_critical_step.activity.name}</b> atteinte"
+                else:
+                    upper_bound_text += f"de travail <b>{employee.name}</b> atteinte"
             else:
                 raise ValueError(f"Unknown language: {language}")
             fig.add_trace(go.Bar(
