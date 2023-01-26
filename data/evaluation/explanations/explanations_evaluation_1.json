@@ -35,8 +35,8 @@
                 ],
                 "Valentin": [
                     "T10",
-                    "T5",
                     "T1",
+                    "T5",
                     "T4",
                     "T7",
                     "T9",
@@ -114,8 +114,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T1 in Valentin's planning according to the following route [Home, T10, T5, T1, T4, T7, T9, T13, T6, Home]",
-            "FR": "ajoutant T1 dans le planning de Valentin selon la route suivante [Domicile, T10, T5, T1, T4, T7, T9, T13, T6, Domicile]"
+            "EN": "adding T1 in Valentin's planning according to the following route [Home, T10, T1, T5, T4, T7, T9, T13, T6, Home]",
+            "FR": "ajoutant T1 dans le planning de Valentin selon la route suivante [Domicile, T10, T1, T5, T4, T7, T9, T13, T6, Domicile]"
         }
     },
     {
@@ -154,8 +154,8 @@
                 ],
                 "Valentin": [
                     "T10",
-                    "T5",
                     "T2",
+                    "T5",
                     "T4",
                     "T7",
                     "T9",
@@ -233,8 +233,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T2 in Valentin's planning according to the following route [Home, T10, T5, T2, T4, T7, T9, T13, T6, Home]",
-            "FR": "ajoutant T2 dans le planning de Valentin selon la route suivante [Domicile, T10, T5, T2, T4, T7, T9, T13, T6, Domicile]"
+            "EN": "adding T2 in Valentin's planning according to the following route [Home, T10, T2, T5, T4, T7, T9, T13, T6, Home]",
+            "FR": "ajoutant T2 dans le planning de Valentin selon la route suivante [Domicile, T10, T2, T5, T4, T7, T9, T13, T6, Domicile]"
         }
     },
     {
@@ -512,8 +512,8 @@
                 ],
                 "Valentin": [
                     "T10",
-                    "T5",
                     "T11",
+                    "T5",
                     "T4",
                     "T7",
                     "T9",
@@ -593,8 +593,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T11 in Valentin's planning according to the following route [Home, T10, T5, T11, T4, T7, T9, T13, T6, Home]",
-            "FR": "ajoutant T11 dans le planning de Valentin selon la route suivante [Domicile, T10, T5, T11, T4, T7, T9, T13, T6, Domicile]"
+            "EN": "adding T11 in Valentin's planning according to the following route [Home, T10, T11, T5, T4, T7, T9, T13, T6, Home]",
+            "FR": "ajoutant T11 dans le planning de Valentin selon la route suivante [Domicile, T10, T11, T5, T4, T7, T9, T13, T6, Domicile]"
         }
     },
     {
@@ -754,8 +754,8 @@
                 "Valentin": [
                     "T4",
                     "T7",
-                    "T9",
                     "T14",
+                    "T9",
                     "T10",
                     "T5",
                     "T6",
@@ -834,8 +834,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T14 in Valentin's planning according to the following route [Home, T4, T7, T9, T14, T10, T5, T6, T13, Home]",
-            "FR": "ajoutant T14 dans le planning de Valentin selon la route suivante [Domicile, T4, T7, T9, T14, T10, T5, T6, T13, Domicile]"
+            "EN": "adding T14 in Valentin's planning according to the following route [Home, T4, T7, T14, T9, T10, T5, T6, T13, Home]",
+            "FR": "ajoutant T14 dans le planning de Valentin selon la route suivante [Domicile, T4, T7, T14, T9, T10, T5, T6, T13, Domicile]"
         }
     },
     {
@@ -867,8 +867,8 @@
             "name": "solution_evaluation_1_support",
             "sequences": {
                 "Ambre": [
-                    "T2",
                     "T4",
+                    "T2",
                     "T1",
                     "T12",
                     "T8",
@@ -953,8 +953,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T4 in Ambre's planning according to the following route [Home, T2, T4, T1, T12, T8, T3, Home]",
-            "FR": "ajoutant T4 dans le planning de Ambre selon la route suivante [Domicile, T2, T4, T1, T12, T8, T3, Domicile]"
+            "EN": "adding T4 in Ambre's planning according to the following route [Home, T4, T2, T1, T12, T8, T3, Home]",
+            "FR": "ajoutant T4 dans le planning de Ambre selon la route suivante [Domicile, T4, T2, T1, T12, T8, T3, Domicile]"
         }
     },
     {
@@ -1792,8 +1792,8 @@
             "name": "solution_evaluation_1_support",
             "sequences": {
                 "Ambre": [
-                    "T2",
                     "T14",
+                    "T2",
                     "T1",
                     "T12",
                     "T8",
@@ -1881,8 +1881,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T14 in Ambre's planning according to the following route [Home, T2, T14, T1, T12, T8, T3, Home]",
-            "FR": "ajoutant T14 dans le planning de Ambre selon la route suivante [Domicile, T2, T14, T1, T12, T8, T3, Domicile]"
+            "EN": "adding T14 in Ambre's planning according to the following route [Home, T14, T2, T1, T12, T8, T3, Home]",
+            "FR": "ajoutant T14 dans le planning de Ambre selon la route suivante [Domicile, T14, T2, T1, T12, T8, T3, Domicile]"
         }
     },
     {
@@ -1998,7 +1998,7 @@
         },
         "transformation": {
             "EN": "replacing T10 by T1 in Valentin's and applying the following route [Home, T1, T5, T4, T7, T9, T13, T6, Home]",
-            "FR": "rempla\u00e7ant T10 par T1 dans le planning de Valentin et en appliquant la route suivante [Domicile, T1, T5, T4, T7, T9, T13, T6, Domicile]"
+            "FR": "rempla\u00e7ant T10 par T1 dans le planning de Valentin et en appliquant l'itin\u00e9raire suivant [Domicile, T1, T5, T4, T7, T9, T13, T6, Domicile]"
         }
     },
     {
@@ -2114,7 +2114,7 @@
         },
         "transformation": {
             "EN": "replacing T10 by T2 in Valentin's and applying the following route [Home, T5, T2, T4, T7, T9, T13, T6, Home]",
-            "FR": "rempla\u00e7ant T10 par T2 dans le planning de Valentin et en appliquant la route suivante [Domicile, T5, T2, T4, T7, T9, T13, T6, Domicile]"
+            "FR": "rempla\u00e7ant T10 par T2 dans le planning de Valentin et en appliquant l'itin\u00e9raire suivant [Domicile, T5, T2, T4, T7, T9, T13, T6, Domicile]"
         }
     },
     {
@@ -2202,7 +2202,7 @@
         },
         "transformation": {
             "EN": "replacing T10 by T3 in Valentin's and applying the following route [Home, T7, T9, T4, T6, T5, T3, T13, Home]",
-            "FR": "rempla\u00e7ant T10 par T3 dans le planning de Valentin et en appliquant la route suivante [Domicile, T7, T9, T4, T6, T5, T3, T13, Domicile]"
+            "FR": "rempla\u00e7ant T10 par T3 dans le planning de Valentin et en appliquant l'itin\u00e9raire suivant [Domicile, T7, T9, T4, T6, T5, T3, T13, Domicile]"
         }
     },
     {
@@ -2290,7 +2290,7 @@
         },
         "transformation": {
             "EN": "replacing T10 by T8 in Valentin's and applying the following route [Home, T8, T5, T4, T7, T9, T13, T6, Home]",
-            "FR": "rempla\u00e7ant T10 par T8 dans le planning de Valentin et en appliquant la route suivante [Domicile, T8, T5, T4, T7, T9, T13, T6, Domicile]"
+            "FR": "rempla\u00e7ant T10 par T8 dans le planning de Valentin et en appliquant l'itin\u00e9raire suivant [Domicile, T8, T5, T4, T7, T9, T13, T6, Domicile]"
         }
     },
     {
@@ -2409,7 +2409,7 @@
         },
         "transformation": {
             "EN": "replacing T4 by T11 in Valentin's and applying the following route [Home, T10, T11, T5, T6, T7, T9, T13, Home]",
-            "FR": "rempla\u00e7ant T4 par T11 dans le planning de Valentin et en appliquant la route suivante [Domicile, T10, T11, T5, T6, T7, T9, T13, Domicile]"
+            "FR": "rempla\u00e7ant T4 par T11 dans le planning de Valentin et en appliquant l'itin\u00e9raire suivant [Domicile, T10, T11, T5, T6, T7, T9, T13, Domicile]"
         }
     },
     {
@@ -2525,7 +2525,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T12 in Valentin's and applying the following route [Home, T4, T10, T12, T5, T6, T9, T13, Home]",
-            "FR": "rempla\u00e7ant T7 par T12 dans le planning de Valentin et en appliquant la route suivante [Domicile, T4, T10, T12, T5, T6, T9, T13, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T12 dans le planning de Valentin et en appliquant l'itin\u00e9raire suivant [Domicile, T4, T10, T12, T5, T6, T9, T13, Domicile]"
         }
     },
     {
@@ -2615,7 +2615,7 @@
         },
         "transformation": {
             "EN": "replacing T10 by T14 in Valentin's and applying the following route [Home, T5, T4, T14, T7, T9, T13, T6, Home]",
-            "FR": "rempla\u00e7ant T10 par T14 dans le planning de Valentin et en appliquant la route suivante [Domicile, T5, T4, T14, T7, T9, T13, T6, Domicile]"
+            "FR": "rempla\u00e7ant T10 par T14 dans le planning de Valentin et en appliquant l'itin\u00e9raire suivant [Domicile, T5, T4, T14, T7, T9, T13, T6, Domicile]"
         }
     },
     {
@@ -2703,7 +2703,7 @@
         },
         "transformation": {
             "EN": "replacing T1 by T4 in Ambre's and applying the following route [Home, T2, T4, T8, T3, T12, Home]",
-            "FR": "rempla\u00e7ant T1 par T4 dans le planning de Ambre et en appliquant la route suivante [Domicile, T2, T4, T8, T3, T12, Domicile]"
+            "FR": "rempla\u00e7ant T1 par T4 dans le planning de Ambre et en appliquant l'itin\u00e9raire suivant [Domicile, T2, T4, T8, T3, T12, Domicile]"
         }
     },
     {
@@ -2813,7 +2813,7 @@
         },
         "transformation": {
             "EN": "replacing T2 by T5 in Ambre's and applying the following route [Home, T1, T12, T5, T8, T3, Home]",
-            "FR": "rempla\u00e7ant T2 par T5 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T5, T8, T3, Domicile]"
+            "FR": "rempla\u00e7ant T2 par T5 dans le planning de Ambre et en appliquant l'itin\u00e9raire suivant [Domicile, T1, T12, T5, T8, T3, Domicile]"
         }
     },
     {
@@ -2923,7 +2923,7 @@
         },
         "transformation": {
             "EN": "replacing T2 by T6 in Ambre's and applying the following route [Home, T1, T12, T8, T6, T3, Home]",
-            "FR": "rempla\u00e7ant T2 par T6 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T8, T6, T3, Domicile]"
+            "FR": "rempla\u00e7ant T2 par T6 dans le planning de Ambre et en appliquant l'itin\u00e9raire suivant [Domicile, T1, T12, T8, T6, T3, Domicile]"
         }
     },
     {
@@ -3011,7 +3011,7 @@
         },
         "transformation": {
             "EN": "replacing T1 by T7 in Ambre's and applying the following route [Home, T2, T12, T8, T3, T7, Home]",
-            "FR": "rempla\u00e7ant T1 par T7 dans le planning de Ambre et en appliquant la route suivante [Domicile, T2, T12, T8, T3, T7, Domicile]"
+            "FR": "rempla\u00e7ant T1 par T7 dans le planning de Ambre et en appliquant l'itin\u00e9raire suivant [Domicile, T2, T12, T8, T3, T7, Domicile]"
         }
     },
     {
@@ -3121,7 +3121,7 @@
         },
         "transformation": {
             "EN": "replacing T2 by T9 in Ambre's and applying the following route [Home, T1, T12, T8, T3, T9, Home]",
-            "FR": "rempla\u00e7ant T2 par T9 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T8, T3, T9, Domicile]"
+            "FR": "rempla\u00e7ant T2 par T9 dans le planning de Ambre et en appliquant l'itin\u00e9raire suivant [Domicile, T1, T12, T8, T3, T9, Domicile]"
         }
     },
     {
@@ -3209,7 +3209,7 @@
         },
         "transformation": {
             "EN": "replacing T2 by T10 in Ambre's and applying the following route [Home, T1, T12, T10, T8, T3, Home]",
-            "FR": "rempla\u00e7ant T2 par T10 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T10, T8, T3, Domicile]"
+            "FR": "rempla\u00e7ant T2 par T10 dans le planning de Ambre et en appliquant l'itin\u00e9raire suivant [Domicile, T1, T12, T10, T8, T3, Domicile]"
         }
     },
     {
@@ -3322,7 +3322,7 @@
         },
         "transformation": {
             "EN": "replacing T2 by T11 in Ambre's and applying the following route [Home, T11, T1, T12, T8, T3, Home]",
-            "FR": "rempla\u00e7ant T2 par T11 dans le planning de Ambre et en appliquant la route suivante [Domicile, T11, T1, T12, T8, T3, Domicile]"
+            "FR": "rempla\u00e7ant T2 par T11 dans le planning de Ambre et en appliquant l'itin\u00e9raire suivant [Domicile, T11, T1, T12, T8, T3, Domicile]"
         }
     },
     {
@@ -3410,7 +3410,7 @@
         },
         "transformation": {
             "EN": "replacing T2 by T13 in Ambre's and applying the following route [Home, T1, T12, T8, T3, T13, Home]",
-            "FR": "rempla\u00e7ant T2 par T13 dans le planning de Ambre et en appliquant la route suivante [Domicile, T1, T12, T8, T3, T13, Domicile]"
+            "FR": "rempla\u00e7ant T2 par T13 dans le planning de Ambre et en appliquant l'itin\u00e9raire suivant [Domicile, T1, T12, T8, T3, T13, Domicile]"
         }
     },
     {
@@ -3523,7 +3523,214 @@
         },
         "transformation": {
             "EN": "replacing T1 by T14 in Ambre's and applying the following route [Home, T2, T14, T8, T3, T12, Home]",
-            "FR": "rempla\u00e7ant T1 par T14 dans le planning de Ambre et en appliquant la route suivante [Domicile, T2, T14, T8, T3, T12, Domicile]"
+            "FR": "rempla\u00e7ant T1 par T14 dans le planning de Ambre et en appliquant l'itin\u00e9raire suivant [Domicile, T2, T14, T8, T3, T12, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Valentin"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ord-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 708
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 819
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 959
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 978
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 725
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 819.0
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 900
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 901
+                }
+            }
+        },
+        "transformation": {
+            "EN": "reordering Valentin's route into the following route [Home, T10, T5, T4, T6, T7, T9, T13, Home]",
+            "FR": "r\u00e9ordonnant l'itin\u00e9raire de Valentin en l'itin\u00e9raire suivant [Domicile, T10, T5, T4, T6, T7, T9, T13, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 6,
+            "downstream feasible": 1,
+            "early start time": 1027,
+            "employee": "Ambre",
+            "late start time": 1011,
+            "task": "T12",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Ambre"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_1",
+                "name": "solution_evaluation_1"
+            },
+            "template id": "WN-Ord-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_1",
+            "name": "solution_evaluation_1_support",
+            "sequences": {
+                "Ambre": [
+                    "T2",
+                    "T1",
+                    "T8",
+                    "T3",
+                    "T12"
+                ],
+                "Valentin": [
+                    "T10",
+                    "T5",
+                    "T4",
+                    "T7",
+                    "T9",
+                    "T13",
+                    "T6"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 699
+                },
+                "T10": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 490
+                },
+                "T11": {
+                    "performed": 0
+                },
+                "T12": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 1027.0
+                },
+                "T13": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 884
+                },
+                "T14": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 562
+                },
+                "T3": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 915
+                },
+                "T4": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 655
+                },
+                "T5": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 579
+                },
+                "T6": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 950
+                },
+                "T7": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 751
+                },
+                "T8": {
+                    "employee name": "Ambre",
+                    "performed": 1,
+                    "start time": 837
+                },
+                "T9": {
+                    "employee name": "Valentin",
+                    "performed": 1,
+                    "start time": 826
+                }
+            }
+        },
+        "transformation": {
+            "EN": "reordering Ambre's route into the following route [Home, T2, T1, T8, T3, T12, Home]",
+            "FR": "r\u00e9ordonnant l'itin\u00e9raire de Ambre en l'itin\u00e9raire suivant [Domicile, T2, T1, T8, T3, T12, Domicile]"
         }
     }
 ]

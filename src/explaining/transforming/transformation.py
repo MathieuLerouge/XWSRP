@@ -537,7 +537,7 @@ def apply_ord_3(solution: EditableSolution, employee_name: str):
             f"reordering {employee.name}'s route into the following route "
             f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
         LANGUAGE_FRENCH_KEY:
-            f"réordonner l'itinéraire de {employee.name} en l'itinéraire suivant "
+            f"réordonnant l'itinéraire de {employee.name} en l'itinéraire suivant "
             f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
     }
     return support_solution, infeasibility, applying_transformation_text_in_various_languages

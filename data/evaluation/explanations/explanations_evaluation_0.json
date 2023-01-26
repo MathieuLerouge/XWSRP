@@ -209,9 +209,9 @@
                     "T5",
                     "T14",
                     "T7",
+                    "T3",
                     "T2",
                     "T12",
-                    "T3",
                     "T17",
                     "T20",
                     "T26",
@@ -357,8 +357,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T3 in Juan's planning according to the following route [Home, T5, T14, T7, T2, T12, T3, T17, T20, T26, T25, Home]",
-            "FR": "ajoutant T3 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T2, T12, T3, T17, T20, T26, T25, Domicile]"
+            "EN": "adding T3 in Juan's planning according to the following route [Home, T5, T14, T7, T3, T2, T12, T17, T20, T26, T25, Home]",
+            "FR": "ajoutant T3 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T3, T2, T12, T17, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -393,8 +393,8 @@
                     "T5",
                     "T14",
                     "T7",
-                    "T2",
                     "T4",
+                    "T2",
                     "T12",
                     "T17",
                     "T20",
@@ -541,8 +541,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T4 in Juan's planning according to the following route [Home, T5, T14, T7, T2, T4, T12, T17, T20, T25, T26, Home]",
-            "FR": "ajoutant T4 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T2, T4, T12, T17, T20, T25, T26, Domicile]"
+            "EN": "adding T4 in Juan's planning according to the following route [Home, T5, T14, T7, T4, T2, T12, T17, T20, T25, T26, Home]",
+            "FR": "ajoutant T4 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T4, T2, T12, T17, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -571,8 +571,8 @@
                     "T5",
                     "T14",
                     "T7",
-                    "T2",
                     "T6",
+                    "T2",
                     "T12",
                     "T17",
                     "T20",
@@ -716,8 +716,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T6 in Juan's planning according to the following route [Home, T5, T14, T7, T2, T6, T12, T17, T20, T25, T26, Home]",
-            "FR": "ajoutant T6 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T2, T6, T12, T17, T20, T25, T26, Domicile]"
+            "EN": "adding T6 in Juan's planning according to the following route [Home, T5, T14, T7, T6, T2, T12, T17, T20, T25, T26, Home]",
+            "FR": "ajoutant T6 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T6, T2, T12, T17, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -1114,9 +1114,9 @@
                     "T5",
                     "T14",
                     "T7",
+                    "T10",
                     "T2",
                     "T12",
-                    "T10",
                     "T17",
                     "T20",
                     "T26",
@@ -1262,8 +1262,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T10 in Juan's planning according to the following route [Home, T5, T14, T7, T2, T12, T10, T17, T20, T26, T25, Home]",
-            "FR": "ajoutant T10 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T2, T12, T10, T17, T20, T26, T25, Domicile]"
+            "EN": "adding T10 in Juan's planning according to the following route [Home, T5, T14, T7, T10, T2, T12, T17, T20, T26, T25, Home]",
+            "FR": "ajoutant T10 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T10, T2, T12, T17, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -1648,8 +1648,8 @@
                     "T12",
                     "T2",
                     "T7",
-                    "T14",
                     "T15",
+                    "T14",
                     "T5",
                     "T17",
                     "T20",
@@ -1793,8 +1793,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T15 in Juan's planning according to the following route [Home, T12, T2, T7, T14, T15, T5, T17, T20, T26, T25, Home]",
-            "FR": "ajoutant T15 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T14, T15, T5, T17, T20, T26, T25, Domicile]"
+            "EN": "adding T15 in Juan's planning according to the following route [Home, T12, T2, T7, T15, T14, T5, T17, T20, T26, T25, Home]",
+            "FR": "ajoutant T15 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T15, T14, T5, T17, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -1829,8 +1829,8 @@
                     "T12",
                     "T2",
                     "T7",
-                    "T14",
                     "T16",
+                    "T14",
                     "T5",
                     "T17",
                     "T20",
@@ -1977,8 +1977,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T16 in Juan's planning according to the following route [Home, T12, T2, T7, T14, T16, T5, T17, T20, T26, T25, Home]",
-            "FR": "ajoutant T16 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T14, T16, T5, T17, T20, T26, T25, Domicile]"
+            "EN": "adding T16 in Juan's planning according to the following route [Home, T12, T2, T7, T16, T14, T5, T17, T20, T26, T25, Home]",
+            "FR": "ajoutant T16 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T16, T14, T5, T17, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -3646,8 +3646,8 @@
                 "Maria": [
                     "T24",
                     "T13",
-                    "T6",
                     "T3",
+                    "T6",
                     "T15",
                     "T11"
                 ],
@@ -3784,8 +3784,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T3 in Maria's planning according to the following route [Home, T24, T13, T6, T3, T15, T11, Home]",
-            "FR": "ajoutant T3 dans le planning de Maria selon la route suivante [Domicile, T24, T13, T6, T3, T15, T11, Domicile]"
+            "EN": "adding T3 in Maria's planning according to the following route [Home, T24, T13, T3, T6, T15, T11, Home]",
+            "FR": "ajoutant T3 dans le planning de Maria selon la route suivante [Domicile, T24, T13, T3, T6, T15, T11, Domicile]"
         }
     },
     {
@@ -4739,8 +4739,8 @@
                     "T24",
                     "T13",
                     "T6",
-                    "T15",
                     "T10",
+                    "T15",
                     "T11"
                 ],
                 "Nicolas": [
@@ -4876,8 +4876,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T10 in Maria's planning according to the following route [Home, T24, T13, T6, T15, T10, T11, Home]",
-            "FR": "ajoutant T10 dans le planning de Maria selon la route suivante [Domicile, T24, T13, T6, T15, T10, T11, Domicile]"
+            "EN": "adding T10 in Maria's planning according to the following route [Home, T24, T13, T6, T10, T15, T11, Home]",
+            "FR": "ajoutant T10 dans le planning de Maria selon la route suivante [Domicile, T24, T13, T6, T10, T15, T11, Domicile]"
         }
     },
     {
@@ -5285,8 +5285,8 @@
                     "T24",
                     "T13",
                     "T6",
-                    "T15",
                     "T16",
+                    "T15",
                     "T11"
                 ],
                 "Nicolas": [
@@ -5422,8 +5422,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T16 in Maria's planning according to the following route [Home, T24, T13, T6, T15, T16, T11, Home]",
-            "FR": "ajoutant T16 dans le planning de Maria selon la route suivante [Domicile, T24, T13, T6, T15, T16, T11, Domicile]"
+            "EN": "adding T16 in Maria's planning according to the following route [Home, T24, T13, T6, T16, T15, T11, Home]",
+            "FR": "ajoutant T16 dans le planning de Maria selon la route suivante [Domicile, T24, T13, T6, T16, T15, T11, Domicile]"
         }
     },
     {
@@ -7641,8 +7641,8 @@
                 "Nicolas": [
                     "T23",
                     "T22",
-                    "T8",
                     "T3",
+                    "T8",
                     "T9",
                     "T27"
                 ]
@@ -7772,8 +7772,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T3 in Nicolas's planning according to the following route [Home, T23, T22, T8, T3, T9, T27, Home]",
-            "FR": "ajoutant T3 dans le planning de Nicolas selon la route suivante [Domicile, T23, T22, T8, T3, T9, T27, Domicile]"
+            "EN": "adding T3 in Nicolas's planning according to the following route [Home, T23, T22, T3, T8, T9, T27, Home]",
+            "FR": "ajoutant T3 dans le planning de Nicolas selon la route suivante [Domicile, T23, T22, T3, T8, T9, T27, Domicile]"
         }
     },
     {
@@ -11259,7 +11259,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T1 in Juan's and applying the following route [Home, T12, T2, T14, T5, T17, T20, T26, T25, T1, Home]",
-            "FR": "rempla\u00e7ant T7 par T1 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T14, T5, T17, T20, T26, T25, T1, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T1 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T14, T5, T17, T20, T26, T25, T1, Domicile]"
         }
     },
     {
@@ -11440,7 +11440,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T3 in Juan's and applying the following route [Home, T12, T2, T3, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T3 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T3, T14, T5, T17, T20, T25, T26, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T3 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T3, T14, T5, T17, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -11621,7 +11621,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T4 in Juan's and applying the following route [Home, T12, T2, T4, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T4 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T4, T14, T5, T17, T20, T26, T25, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T4 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T4, T14, T5, T17, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -11793,7 +11793,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T6 in Juan's and applying the following route [Home, T12, T2, T6, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T6 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T6, T14, T5, T17, T20, T26, T25, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T6 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T6, T14, T5, T17, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -11971,7 +11971,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T8 in Juan's and applying the following route [Home, T12, T2, T8, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T8 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T8, T14, T5, T17, T20, T25, T26, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T8 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T8, T14, T5, T17, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -12112,7 +12112,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T9 in Juan's and applying the following route [Home, T20, T17, T5, T14, T2, T12, T9, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T9 dans le planning de Juan et en appliquant la route suivante [Domicile, T20, T17, T5, T14, T2, T12, T9, T26, T25, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T9 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T20, T17, T5, T14, T2, T12, T9, T26, T25, Domicile]"
         }
     },
     {
@@ -12293,7 +12293,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T10 in Juan's and applying the following route [Home, T12, T2, T10, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T10 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T10, T14, T5, T17, T20, T26, T25, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T10 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T10, T14, T5, T17, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -12465,7 +12465,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T11 in Juan's and applying the following route [Home, T12, T2, T14, T5, T17, T20, T26, T25, T11, Home]",
-            "FR": "rempla\u00e7ant T7 par T11 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T14, T5, T17, T20, T26, T25, T11, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T11 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T14, T5, T17, T20, T26, T25, T11, Domicile]"
         }
     },
     {
@@ -12606,7 +12606,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T13 in Juan's and applying the following route [Home, T12, T2, T13, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T13 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T13, T14, T5, T17, T20, T25, T26, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T13 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T13, T14, T5, T17, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -12778,7 +12778,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T15 in Juan's and applying the following route [Home, T12, T2, T15, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T15 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T15, T14, T5, T17, T20, T26, T25, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T15 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T15, T14, T5, T17, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -12959,7 +12959,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T16 in Juan's and applying the following route [Home, T12, T2, T16, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T16 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T16, T14, T5, T17, T20, T25, T26, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T16 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T16, T14, T5, T17, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -13102,7 +13102,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T18 in Juan's and applying the following route [Home, T5, T17, T20, T25, T26, T14, T2, T18, T12, Home]",
-            "FR": "rempla\u00e7ant T7 par T18 dans le planning de Juan et en appliquant la route suivante [Domicile, T5, T17, T20, T25, T26, T14, T2, T18, T12, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T18 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T5, T17, T20, T25, T26, T14, T2, T18, T12, Domicile]"
         }
     },
     {
@@ -13277,7 +13277,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T19 in Juan's and applying the following route [Home, T12, T2, T14, T5, T17, T20, T19, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T19 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T14, T5, T17, T20, T19, T26, T25, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T19 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T14, T5, T17, T20, T19, T26, T25, Domicile]"
         }
     },
     {
@@ -13452,7 +13452,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T21 in Juan's and applying the following route [Home, T12, T2, T21, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T21 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T21, T14, T5, T17, T20, T26, T25, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T21 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T21, T14, T5, T17, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -13593,7 +13593,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T22 in Juan's and applying the following route [Home, T12, T2, T14, T5, T17, T20, T22, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T22 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T14, T5, T17, T20, T22, T26, T25, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T22 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T14, T5, T17, T20, T22, T26, T25, Domicile]"
         }
     },
     {
@@ -13734,7 +13734,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T23 in Juan's and applying the following route [Home, T17, T20, T23, T25, T26, T5, T14, T2, T12, Home]",
-            "FR": "rempla\u00e7ant T7 par T23 dans le planning de Juan et en appliquant la route suivante [Domicile, T17, T20, T23, T25, T26, T5, T14, T2, T12, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T23 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T17, T20, T23, T25, T26, T5, T14, T2, T12, Domicile]"
         }
     },
     {
@@ -13906,7 +13906,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T24 in Juan's and applying the following route [Home, T12, T24, T2, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T24 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T24, T2, T14, T5, T17, T20, T25, T26, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T24 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T24, T2, T14, T5, T17, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -14047,7 +14047,7 @@
         },
         "transformation": {
             "EN": "replacing T7 by T27 in Juan's and applying the following route [Home, T12, T2, T14, T5, T17, T20, T27, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T27 dans le planning de Juan et en appliquant la route suivante [Domicile, T12, T2, T14, T5, T17, T20, T27, T25, T26, Domicile]"
+            "FR": "rempla\u00e7ant T7 par T27 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T14, T5, T17, T20, T27, T25, T26, Domicile]"
         }
     },
     {
@@ -14228,7 +14228,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T1 in Maria's and applying the following route [Home, T24, T13, T6, T11, T1, Home]",
-            "FR": "rempla\u00e7ant T15 par T1 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T11, T1, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T1 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T11, T1, Domicile]"
         }
     },
     {
@@ -14369,7 +14369,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T2 in Maria's and applying the following route [Home, T24, T13, T6, T2, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T2 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T2, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T2 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T2, T11, Domicile]"
         }
     },
     {
@@ -14512,7 +14512,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T3 in Maria's and applying the following route [Home, T24, T13, T3, T6, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T3 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T3, T6, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T3 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T3, T6, T11, Domicile]"
         }
     },
     {
@@ -14655,7 +14655,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T4 in Maria's and applying the following route [Home, T24, T4, T13, T6, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T4 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T4, T13, T6, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T4 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T4, T13, T6, T11, Domicile]"
         }
     },
     {
@@ -14796,7 +14796,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T5 in Maria's and applying the following route [Home, T24, T13, T6, T5, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T5 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T5, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T5 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T5, T11, Domicile]"
         }
     },
     {
@@ -14937,7 +14937,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T7 in Maria's and applying the following route [Home, T7, T24, T13, T6, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T7 dans le planning de Maria et en appliquant la route suivante [Domicile, T7, T24, T13, T6, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T7 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T7, T24, T13, T6, T11, Domicile]"
         }
     },
     {
@@ -15078,7 +15078,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T8 in Maria's and applying the following route [Home, T24, T13, T6, T8, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T8 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T8, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T8 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T8, T11, Domicile]"
         }
     },
     {
@@ -15219,7 +15219,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T9 in Maria's and applying the following route [Home, T24, T13, T6, T11, T9, Home]",
-            "FR": "rempla\u00e7ant T15 par T9 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T11, T9, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T9 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T11, T9, Domicile]"
         }
     },
     {
@@ -15362,7 +15362,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T10 in Maria's and applying the following route [Home, T24, T13, T6, T10, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T10 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T10, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T10 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T10, T11, Domicile]"
         }
     },
     {
@@ -15503,7 +15503,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T12 in Maria's and applying the following route [Home, T12, T24, T13, T6, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T12 dans le planning de Maria et en appliquant la route suivante [Domicile, T12, T24, T13, T6, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T12 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T24, T13, T6, T11, Domicile]"
         }
     },
     {
@@ -15644,7 +15644,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T14 in Maria's and applying the following route [Home, T24, T13, T6, T14, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T14 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T14, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T14 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T14, T11, Domicile]"
         }
     },
     {
@@ -15787,7 +15787,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T16 in Maria's and applying the following route [Home, T24, T13, T16, T6, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T16 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T16, T6, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T16 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T16, T6, T11, Domicile]"
         }
     },
     {
@@ -15928,7 +15928,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T17 in Maria's and applying the following route [Home, T24, T13, T6, T17, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T17 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T17, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T17 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T17, T11, Domicile]"
         }
     },
     {
@@ -16109,7 +16109,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T18 in Maria's and applying the following route [Home, T24, T13, T6, T11, T18, Home]",
-            "FR": "rempla\u00e7ant T15 par T18 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T11, T18, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T18 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T11, T18, Domicile]"
         }
     },
     {
@@ -16252,7 +16252,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T19 in Maria's and applying the following route [Home, T24, T13, T6, T19, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T19 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T19, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T19 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T19, T11, Domicile]"
         }
     },
     {
@@ -16393,7 +16393,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T20 in Maria's and applying the following route [Home, T24, T13, T6, T20, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T20 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T20, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T20 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T20, T11, Domicile]"
         }
     },
     {
@@ -16536,7 +16536,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T21 in Maria's and applying the following route [Home, T24, T13, T21, T6, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T21 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T21, T6, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T21 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T21, T6, T11, Domicile]"
         }
     },
     {
@@ -16677,7 +16677,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T22 in Maria's and applying the following route [Home, T24, T13, T6, T22, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T22 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T22, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T22 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T22, T11, Domicile]"
         }
     },
     {
@@ -16855,7 +16855,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T23 in Maria's and applying the following route [Home, T23, T24, T13, T6, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T23 dans le planning de Maria et en appliquant la route suivante [Domicile, T23, T24, T13, T6, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T23 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T24, T13, T6, T11, Domicile]"
         }
     },
     {
@@ -16996,7 +16996,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T25 in Maria's and applying the following route [Home, T24, T13, T6, T25, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T25 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T25, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T25 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T25, T11, Domicile]"
         }
     },
     {
@@ -17137,7 +17137,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T26 in Maria's and applying the following route [Home, T24, T13, T6, T26, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T26 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T26, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T26 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T26, T11, Domicile]"
         }
     },
     {
@@ -17278,7 +17278,7 @@
         },
         "transformation": {
             "EN": "replacing T15 by T27 in Maria's and applying the following route [Home, T24, T13, T6, T27, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T27 dans le planning de Maria et en appliquant la route suivante [Domicile, T24, T13, T6, T27, T11, Domicile]"
+            "FR": "rempla\u00e7ant T15 par T27 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T27, T11, Domicile]"
         }
     },
     {
@@ -17453,7 +17453,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T1 in Nicolas's and applying the following route [Home, T23, T27, T22, T9, T1, Home]",
-            "FR": "rempla\u00e7ant T8 par T1 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T9, T1, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T1 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T9, T1, Domicile]"
         }
     },
     {
@@ -17625,7 +17625,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T2 in Nicolas's and applying the following route [Home, T23, T27, T22, T2, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T2 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T2, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T2 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T2, T9, Domicile]"
         }
     },
     {
@@ -17800,7 +17800,7 @@
         },
         "transformation": {
             "EN": "replacing T9 by T3 in Nicolas's and applying the following route [Home, T23, T3, T8, T22, T27, Home]",
-            "FR": "rempla\u00e7ant T9 par T3 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T3, T8, T22, T27, Domicile]"
+            "FR": "rempla\u00e7ant T9 par T3 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T3, T8, T22, T27, Domicile]"
         }
     },
     {
@@ -17975,7 +17975,7 @@
         },
         "transformation": {
             "EN": "replacing T22 by T4 in Nicolas's and applying the following route [Home, T23, T4, T8, T9, T27, Home]",
-            "FR": "rempla\u00e7ant T22 par T4 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T4, T8, T9, T27, Domicile]"
+            "FR": "rempla\u00e7ant T22 par T4 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T4, T8, T9, T27, Domicile]"
         }
     },
     {
@@ -18147,7 +18147,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T5 in Nicolas's and applying the following route [Home, T23, T27, T22, T5, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T5 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T5, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T5 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T5, T9, Domicile]"
         }
     },
     {
@@ -18319,7 +18319,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T6 in Nicolas's and applying the following route [Home, T23, T27, T22, T6, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T6 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T6, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T6 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T6, T9, Domicile]"
         }
     },
     {
@@ -18491,7 +18491,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T7 in Nicolas's and applying the following route [Home, T23, T27, T7, T22, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T7 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T7, T22, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T7 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T7, T22, T9, Domicile]"
         }
     },
     {
@@ -18666,7 +18666,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T10 in Nicolas's and applying the following route [Home, T23, T27, T22, T10, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T10 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T10, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T10 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T10, T9, Domicile]"
         }
     },
     {
@@ -18838,7 +18838,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T11 in Nicolas's and applying the following route [Home, T23, T27, T22, T9, T11, Home]",
-            "FR": "rempla\u00e7ant T8 par T11 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T9, T11, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T11 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T9, T11, Domicile]"
         }
     },
     {
@@ -19010,7 +19010,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T12 in Nicolas's and applying the following route [Home, T23, T27, T22, T12, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T12 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T12, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T12 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T12, T9, Domicile]"
         }
     },
     {
@@ -19182,7 +19182,7 @@
         },
         "transformation": {
             "EN": "replacing T22 by T13 in Nicolas's and applying the following route [Home, T23, T27, T13, T8, T9, Home]",
-            "FR": "rempla\u00e7ant T22 par T13 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T13, T8, T9, Domicile]"
+            "FR": "rempla\u00e7ant T22 par T13 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T13, T8, T9, Domicile]"
         }
     },
     {
@@ -19354,7 +19354,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T14 in Nicolas's and applying the following route [Home, T23, T27, T22, T14, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T14 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T14, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T14 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T14, T9, Domicile]"
         }
     },
     {
@@ -19526,7 +19526,7 @@
         },
         "transformation": {
             "EN": "replacing T22 by T15 in Nicolas's and applying the following route [Home, T23, T27, T8, T15, T9, Home]",
-            "FR": "rempla\u00e7ant T22 par T15 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T8, T15, T9, Domicile]"
+            "FR": "rempla\u00e7ant T22 par T15 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T8, T15, T9, Domicile]"
         }
     },
     {
@@ -19701,7 +19701,7 @@
         },
         "transformation": {
             "EN": "replacing T22 by T16 in Nicolas's and applying the following route [Home, T23, T16, T8, T9, T27, Home]",
-            "FR": "rempla\u00e7ant T22 par T16 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T16, T8, T9, T27, Domicile]"
+            "FR": "rempla\u00e7ant T22 par T16 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T16, T8, T9, T27, Domicile]"
         }
     },
     {
@@ -19873,7 +19873,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T17 in Nicolas's and applying the following route [Home, T23, T27, T22, T17, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T17 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T17, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T17 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T17, T9, Domicile]"
         }
     },
     {
@@ -20048,7 +20048,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T18 in Nicolas's and applying the following route [Home, T23, T27, T22, T9, T18, Home]",
-            "FR": "rempla\u00e7ant T8 par T18 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T9, T18, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T18 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T9, T18, Domicile]"
         }
     },
     {
@@ -20223,7 +20223,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T19 in Nicolas's and applying the following route [Home, T23, T27, T22, T9, T19, Home]",
-            "FR": "rempla\u00e7ant T8 par T19 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T9, T19, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T19 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T9, T19, Domicile]"
         }
     },
     {
@@ -20395,7 +20395,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T20 in Nicolas's and applying the following route [Home, T23, T27, T22, T20, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T20 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T20, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T20 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T20, T9, Domicile]"
         }
     },
     {
@@ -20570,7 +20570,7 @@
         },
         "transformation": {
             "EN": "replacing T22 by T21 in Nicolas's and applying the following route [Home, T23, T27, T21, T8, T9, Home]",
-            "FR": "rempla\u00e7ant T22 par T21 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T21, T8, T9, Domicile]"
+            "FR": "rempla\u00e7ant T22 par T21 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T21, T8, T9, Domicile]"
         }
     },
     {
@@ -20742,7 +20742,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T24 in Nicolas's and applying the following route [Home, T23, T24, T22, T27, T9, Home]",
-            "FR": "rempla\u00e7ant T8 par T24 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T24, T22, T27, T9, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T24 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T24, T22, T27, T9, Domicile]"
         }
     },
     {
@@ -20883,7 +20883,7 @@
         },
         "transformation": {
             "EN": "replacing T8 by T25 in Nicolas's and applying the following route [Home, T23, T27, T22, T9, T25, Home]",
-            "FR": "rempla\u00e7ant T8 par T25 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T9, T25, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T25 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T9, T25, Domicile]"
         }
     },
     {
@@ -21055,7 +21055,471 @@
         },
         "transformation": {
             "EN": "replacing T8 by T26 in Nicolas's and applying the following route [Home, T23, T27, T22, T9, T26, Home]",
-            "FR": "rempla\u00e7ant T8 par T26 dans le planning de Nicolas et en appliquant la route suivante [Domicile, T23, T27, T22, T9, T26, Domicile]"
+            "FR": "rempla\u00e7ant T8 par T26 dans le planning de Nicolas et en appliquant l'itin\u00e9raire suivant [Domicile, T23, T27, T22, T9, T26, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Juan"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_0",
+                "name": "solution_evaluation_0"
+            },
+            "template id": "WN-Ord-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_0",
+            "name": "solution_evaluation_0_support",
+            "tasks performances": {
+                "T1": {
+                    "performed": 0
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 962
+                },
+                "T12": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 539.0
+                },
+                "T13": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 586
+                },
+                "T14": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 748
+                },
+                "T15": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 735
+                },
+                "T16": {
+                    "performed": 0
+                },
+                "T17": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 879
+                },
+                "T18": {
+                    "performed": 0
+                },
+                "T19": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 587
+                },
+                "T20": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 925
+                },
+                "T21": {
+                    "performed": 0
+                },
+                "T22": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 607
+                },
+                "T23": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 496
+                },
+                "T24": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 480
+                },
+                "T25": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 990
+                },
+                "T26": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 1035
+                },
+                "T27": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 553
+                },
+                "T3": {
+                    "performed": 0
+                },
+                "T4": {
+                    "performed": 0
+                },
+                "T5": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 797
+                },
+                "T6": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 641
+                },
+                "T7": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 669
+                },
+                "T8": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 758
+                },
+                "T9": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 900
+                }
+            }
+        },
+        "transformation": {
+            "EN": "reordering Juan's route into the following route [Home, T12, T2, T7, T14, T5, T17, T20, T25, T26, Home]",
+            "FR": "r\u00e9ordonnant l'itin\u00e9raire de Juan en l'itin\u00e9raire suivant [Domicile, T12, T2, T7, T14, T5, T17, T20, T25, T26, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 6,
+            "downstream feasible": 1,
+            "early start time": 677,
+            "employee": "Maria",
+            "late start time": 656,
+            "task": "T6",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Maria"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_0",
+                "name": "solution_evaluation_0"
+            },
+            "template id": "WN-Ord-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_0",
+            "name": "solution_evaluation_0_support",
+            "sequences": {
+                "Juan": [
+                    "T17",
+                    "T7",
+                    "T14",
+                    "T2",
+                    "T12",
+                    "T5",
+                    "T20",
+                    "T25",
+                    "T26"
+                ],
+                "Maria": [
+                    "T13",
+                    "T24",
+                    "T6",
+                    "T15",
+                    "T11"
+                ],
+                "Nicolas": [
+                    "T23",
+                    "T27",
+                    "T22",
+                    "T8",
+                    "T9"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "performed": 0
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 962
+                },
+                "T12": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 792
+                },
+                "T13": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 495
+                },
+                "T14": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 693
+                },
+                "T15": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 750
+                },
+                "T16": {
+                    "performed": 0
+                },
+                "T17": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 531
+                },
+                "T18": {
+                    "performed": 0
+                },
+                "T19": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 744
+                },
+                "T20": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 910
+                },
+                "T21": {
+                    "performed": 0
+                },
+                "T22": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 607
+                },
+                "T23": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 496
+                },
+                "T24": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 541
+                },
+                "T25": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 975
+                },
+                "T26": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 1035
+                },
+                "T27": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 553
+                },
+                "T3": {
+                    "performed": 0
+                },
+                "T4": {
+                    "performed": 0
+                },
+                "T5": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 847
+                },
+                "T6": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 677.0
+                },
+                "T7": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 614
+                },
+                "T8": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 758
+                },
+                "T9": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 900
+                }
+            }
+        },
+        "transformation": {
+            "EN": "reordering Maria's route into the following route [Home, T13, T24, T6, T15, T11, Home]",
+            "FR": "r\u00e9ordonnant l'itin\u00e9raire de Maria en l'itin\u00e9raire suivant [Domicile, T13, T24, T6, T15, T11, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Nicolas"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_0",
+                "name": "solution_evaluation_0"
+            },
+            "template id": "WN-Ord-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_0",
+            "name": "solution_evaluation_0_support",
+            "tasks performances": {
+                "T1": {
+                    "performed": 0
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 962
+                },
+                "T12": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 792
+                },
+                "T13": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 586
+                },
+                "T14": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 693
+                },
+                "T15": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 735
+                },
+                "T16": {
+                    "performed": 0
+                },
+                "T17": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 531
+                },
+                "T18": {
+                    "performed": 0
+                },
+                "T19": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 744
+                },
+                "T20": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 910
+                },
+                "T21": {
+                    "performed": 0
+                },
+                "T22": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 630.0
+                },
+                "T23": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 550
+                },
+                "T24": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 480
+                },
+                "T25": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 975
+                },
+                "T26": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 1035
+                },
+                "T27": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 497
+                },
+                "T3": {
+                    "performed": 0
+                },
+                "T4": {
+                    "performed": 0
+                },
+                "T5": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 847
+                },
+                "T6": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 641
+                },
+                "T7": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 614
+                },
+                "T8": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 780
+                },
+                "T9": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 922
+                }
+            }
+        },
+        "transformation": {
+            "EN": "reordering Nicolas's route into the following route [Home, T27, T23, T22, T8, T9, Home]",
+            "FR": "r\u00e9ordonnant l'itin\u00e9raire de Nicolas en l'itin\u00e9raire suivant [Domicile, T27, T23, T22, T8, T9, Domicile]"
         }
     }
 ]
