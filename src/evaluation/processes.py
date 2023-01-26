@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     if process_to_run == EXPLANATIONS_NEGATIVITY_CHECK:
         solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
-        check_explanations_negativity(solution, False)
+        check_explanations_negativity(solution, False, True)
 
     ###############################
     # Computation of explanations #

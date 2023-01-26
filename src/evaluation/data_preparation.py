@@ -6,6 +6,7 @@ from main_configuration import GUROBI_IS_ENABLED
 from src.checking.feasibility import check_feasibility
 from src.evaluation.constants import INSTANCES_FOR_EVALUATION_NAMES, SOLUTIONS_FOR_EVALUATION_NAMES, \
     ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION
+from src.evaluation.prepared_data_extraction import get_explanations_for_evaluation_directory_path
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.writing.explanation import export_multiple_contrastive_explanations_to_json_file
@@ -111,20 +112,27 @@ def get_solution_for_evaluation_in_default_inputs_directory(instance_index: int)
 # Check of explanations negativity #
 ####################################
 
-def check_explanations_negativity(solution: Solution, only_activated_questions_templates_for_evaluation: bool):
+def check_explanations_negativity(solution: Solution, only_activated_questions_templates_for_evaluation: bool,
+                                  use_already_computed_explanations: bool = False):
     """
     Checks that the explanations about a solution are all negative
 
     :param solution: solution for evaluation which explanations are checked (Solution)
     :param only_activated_questions_templates_for_evaluation: if True, only activated questions templates for evaluation
     are considered (bool)
+    :param use_already_computed_explanations: if True, use already computed explanations to check negativity
     :return:
     """
     explainer = Explainer(solution)
     explainer.disable_history()
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
-    explainer.disable_using_already_computed_contrastive_explanations()
+    if use_already_computed_explanations:
+        explainer.contrastive_explanations_inputs_directory_relative_path = \
+            get_explanations_for_evaluation_directory_path()
+        explainer.enable_using_already_computed_contrastive_explanations()
+    else:
+        explainer.disable_using_already_computed_contrastive_explanations()
     explainer.disable_exporting_automatically_single_contrastive_explanations()
     if only_activated_questions_templates_for_evaluation:
         questions_templates = \
@@ -141,7 +149,7 @@ def check_explanations_negativity(solution: Solution, only_activated_questions_t
                 index += 1
                 explanation = explainer.get_contrastive_explanation(question_template.id, fields_values)
                 if explanation.is_positive():
-                    print(f"The question {explanation.question.text} leads to a positive explanation")
+                    print(f"/!\ the question \"{explanation.question.text}\" leads to a positive explanation")
                     return False
                 if '3' in explanation.question.template.id and index % 25 == 0:
                     print(f"Now checking explanation answering to {explanation.question.text} computed")
