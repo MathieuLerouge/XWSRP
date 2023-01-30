@@ -2,6 +2,7 @@
 from src.checking.feasibility import check_feasibility
 from src.evaluation.constants import INSTANCES_FOR_EVALUATION_NAMES
 from src.explaining.writing.explanation import define_multiple_contrastive_explanations_json_file_name
+from src.optimization.localsearch.solution import SolutionLS
 from src.reading.solution import extract_solution_from_file
 from src.utils.files import get_project_directory_path
 
@@ -47,6 +48,8 @@ def get_solution_for_evaluation(instance_index: int = 0):
     feasible, text = check_feasibility(solution)
     if not feasible:
         raise ValueError(f"The solution {solution.name} is not feasible: {text}")
+    solution = SolutionLS.from_Solution(solution)
+    solution.tighten_times()
     return solution
 
 

@@ -12,6 +12,8 @@ from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.writing.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
+from src.optimization.localsearch.solution import SolutionLS
+
 if GUROBI_IS_ENABLED:
     from src.optimization.IP.WSRPmodel import WSRPIPModel
 from src.reading.instance import extract_instance_from_file
@@ -70,6 +72,7 @@ def compute_solution_for_evaluation_by_ILP_optimization(instance: Instance, solv
     if not check_feasibility(solution)[0]:
         raise ValueError(f"The solution {solution.name} is not feasible")
     solution.compute_KPIs()
+    solution.tighten_times()
     return solution
 
 
@@ -105,6 +108,8 @@ def get_solution_for_evaluation_in_default_inputs_directory(instance_index: int)
     feasible, text = check_feasibility(solution)
     if not feasible:
         raise ValueError(f"The solution {solution.name} is not feasible: {text}")
+    solution = SolutionLS.from_Solution(solution)
+    solution.tighten_times()
     return solution
 
 
