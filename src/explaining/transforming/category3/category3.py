@@ -153,6 +153,7 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
         self._add_time_window_constraints()
         self._add_sequence_times_constraints()
         self._add_split_time_constraint()
+        self._add_no_sub_loops_around_pivot_task_constraints()
         # No skill constraints
         self._GRB_model.update()
 
@@ -359,6 +360,20 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
             sense=GRB.GREATER_EQUAL, rhs=0,
             name=f"TimeSplit[{self.get_pivot_task_key()}]"
         )
+        self._GRB_model.update()
+
+    ###########################
+    # Constraints - Sub-loops #
+    ###########################
+
+    def _add_no_sub_loops_around_pivot_task_constraints(self):
+        j = self.get_pivot_task_key()
+        for k in self.get_candidate_tasks_keys(including_pivot_task=False):
+            self._GRB_model.addLConstr(
+                self.vars_U[(j, k)] + self.vars_U[(k, j)],
+                sense=GRB.LESS_EQUAL, rhs=1,
+                name=f"NoSubLoops[{k}]"
+            )
         self._GRB_model.update()
 
     ############
