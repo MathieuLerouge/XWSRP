@@ -414,9 +414,9 @@ class ExplainerWebGUI:
                 panel_title = f"About this tool"
                 panel_text = f"\"{self._title}\" is tool for "
                 if self.explanations_are_enabled:
-                    panel_text += f"consulting, representing and questioning "
+                    panel_text += f"consulting and questioning "
                 else:
-                    panel_text += f"consulting and representing "
+                    panel_text += f"consulting "
                 panel_text += f"the input and output data associated with " \
                               f"a Workforce Scheduling and Routing Problem (WSRP)." \
                               f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
@@ -447,10 +447,10 @@ class ExplainerWebGUI:
                 panel_title = f"À propos de cet outil"
                 panel_text = f"\"{self._title}\" est un outil qui permet de "
                 if self.explanations_are_enabled:
-                    panel_text += f"consulter, représenter et questionner "
+                    panel_text += f"consulter et questionner "
                 else:
-                    panel_text += f"consulter et représenter "
-                panel_text += f"les données d'instances et de leurs solutions correspondant associées à " \
+                    panel_text += f"consulter "
+                panel_text += f"les données d'entrées (instances) et de sorties (solutions) associées à " \
                               f"un problème de planification d'employés mobiles." \
                               f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                 panel_text += f"La barre d'onglets située à gauche de l'interface permet à l'utilisateur de " \
