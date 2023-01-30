@@ -450,7 +450,7 @@ class ExplainerWebGUI:
                     panel_text += f"consulter et questionner "
                 else:
                     panel_text += f"consulter "
-                panel_text += f"les données d'entrées (instances) et de sorties (solutions) associées à " \
+                panel_text += f"les données d'entrée (instances) et de sortie (solutions) associées à " \
                               f"un problème de planification d'employés mobiles." \
                               f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                 panel_text += f"La barre d'onglets située à gauche de l'interface permet à l'utilisateur de " \
