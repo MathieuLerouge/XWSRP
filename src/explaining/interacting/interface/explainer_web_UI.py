@@ -799,7 +799,7 @@ class ExplainerWebGUI:
                                   build_schedules_figure_panel(solution=self.current_solution, is_current_solution=True,
                                                                language=self.language)]
                     ),
-                    build_solution_metrics_panel(self.current_solution, True,
+                    build_solution_metrics_panel(self.current_solution, True, with_description=True,
                                                  panel_title=metrics_panel_title, language=self.language)
                 ]
             )
@@ -898,10 +898,10 @@ class ExplainerWebGUI:
                     html.Div(
                         className="panels-side-to-side",
                         children=[
-                            build_solution_metrics_panel(solution=current_solution, is_current_solution=True,
+                            build_solution_metrics_panel(current_solution, True,
                                                          panel_title_prefix=current_solution_panel_title_prefix,
                                                          horizontal=False, language=self.language),
-                            build_solution_metrics_panel(solution=other_solution, is_current_solution=False,
+                            build_solution_metrics_panel(other_solution, False,
                                                          panel_title_prefix=other_solution_panel_title_prefix,
                                                          horizontal=False, language=self.language)
                         ]

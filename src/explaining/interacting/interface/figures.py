@@ -675,7 +675,8 @@ def build_instance_metrics_figures(instance: Instance, reference_instance: Insta
 
 
 def build_solution_metrics_figures(solution, reference_solution=None, horizontal=True, 
-                                   language: str = LANGUAGE_ENGLISH_KEY):
+                                   language: str = LANGUAGE_ENGLISH_KEY,
+                                   display_nb_performed_tasks: bool = False):
     """
     Build a figure with metrics about the solution.
     """
@@ -693,15 +694,20 @@ def build_solution_metrics_figures(solution, reference_solution=None, horizontal
     else:
         raise ValueError(f"Unknown language: {language}")
     fig = go.Figure()
-    fig.add_trace(go.Indicator(
-        title=dict(text=nb_performed_tasks_indicator_title, font=dict(color=UI_FONT_COLOR)),
-        mode=f"gauge+number{'+delta' if comparison_to_reference else ''}",
-        gauge=dict(axis=dict(range=[0, instance.nb_tasks], tickcolor=UI_LINE_COLOR),
-                   bordercolor=UI_LINE_COLOR),
-        number=dict(font=dict(color=UI_FONT_COLOR)),
-        value=solution.nb_performed_tasks, delta=dict(reference=reference_solution.nb_performed_tasks),
-        domain={'row': 0, 'column': 0})
-    )
+    nb_rows = 1 if (horizontal or not display_nb_performed_tasks) else 2
+    nb_columns = 3 if (horizontal and display_nb_performed_tasks) else 2
+    indicator_index = 0
+    if display_nb_performed_tasks:
+        fig.add_trace(go.Indicator(
+            title=dict(text=nb_performed_tasks_indicator_title, font=dict(color=UI_FONT_COLOR)),
+            mode=f"gauge+number{'+delta' if comparison_to_reference else ''}",
+            gauge=dict(axis=dict(range=[0, instance.nb_tasks], tickcolor=UI_LINE_COLOR),
+                       bordercolor=UI_LINE_COLOR),
+            number=dict(font=dict(color=UI_FONT_COLOR)),
+            value=solution.nb_performed_tasks, delta=dict(reference=reference_solution.nb_performed_tasks),
+            domain={'row': indicator_index//nb_columns, 'column': indicator_index%nb_columns})
+        )
+        indicator_index += 1
     fig.add_trace(go.Indicator(
         title=dict(text=nb_working_time_indicator_title, font=dict(color=UI_FONT_COLOR)),
         mode=f"gauge+number{'+delta' if comparison_to_reference else ''}",
@@ -709,8 +715,9 @@ def build_solution_metrics_figures(solution, reference_solution=None, horizontal
                              tickcolor=UI_LINE_COLOR), bordercolor=UI_LINE_COLOR),
         number=dict(font=dict(color=UI_FONT_COLOR), suffix='min'),
         value=solution.total_working_duration, delta=dict(reference=reference_solution.total_working_duration),
-        domain={'row': 0, 'column': 1})
+        domain={'row': indicator_index//nb_columns, 'column': indicator_index%nb_columns})
     )
+    indicator_index += 1
     fig.add_trace(go.Indicator(
         title=dict(text=nb_total_traveling_time_indicator_title, font=dict(color=UI_FONT_COLOR)),
         mode=f"gauge+number{'+delta' if comparison_to_reference else ''}",
@@ -720,10 +727,10 @@ def build_solution_metrics_figures(solution, reference_solution=None, horizontal
         value=solution.total_traveling_duration,
         delta=dict(reference=reference_solution.total_traveling_duration,
                    increasing=dict(color='red'), decreasing=dict(color='green')),
-        domain={'row': 0 if horizontal else 1, 'column': 2 if horizontal else 0})
+        domain={'row': indicator_index//nb_columns, 'column': indicator_index%nb_columns})
     )
     fig.update_layout(
-        grid={'rows': 1 if horizontal else 2, 'columns': 3 if horizontal else 2, 'pattern': 'independent'},
+        grid={'rows': nb_rows, 'columns': nb_columns, 'pattern': 'independent'},
         paper_bgcolor=UI_PANEL_CONTENT_COLOR, font={'color': UI_FONT_COLOR}
     )
     return fig
