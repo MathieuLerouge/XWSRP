@@ -78,6 +78,5 @@ if __name__ == '__main__':
     ########################
 
     if process_to_run == EVALUATION_GUI:
-        solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
         explainer = prepare_explainer_GUI_for_evaluation_given_experiment_version(evaluation_experiment_version)
         explainer.launch()
