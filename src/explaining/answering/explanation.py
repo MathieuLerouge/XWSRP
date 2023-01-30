@@ -407,7 +407,7 @@ class PositiveExplanation(Explanation):
                         f"a new feasible solution can be found that is better than the current one:"
             elif self.language_is_french:
                 text += f"parmi {self._all_the_neighbors}, " \
-                        f"une nouvelle solution réalisable peut être trouvée " \
+                        f"une nouvelle solution faisable peut être trouvée " \
                         f"qui est meilleure que la solution courante :"
         else:
             if self.language_is_english:
@@ -415,7 +415,7 @@ class PositiveExplanation(Explanation):
                         f"we obtain a new feasible solution that is better than the current one:"
             elif self.language_is_french:
                 text += f"en {self._applying_the_foil_transformation} dans la solution courante, " \
-                        f"on obtient une nouvelle solution réalisable qui est meilleure que la solution courante :"
+                        f"on obtient une nouvelle solution faisable qui est meilleure que la solution courante :"
         text += f"{LINE_BREAK_STRING}" \
                 f"- {self._compare_total_working_duration()};{LINE_BREAK_STRING}" \
                 f"- {self._compare_total_traveling_duration()}."
@@ -552,13 +552,22 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
             text += f"{self._compare_total_working_duration(False, True)}."
         elif new_solution.total_working_duration == current_solution.total_working_duration:
             if self.language_is_english:
-                text.removesuffix(" ")
-            text += f":{LINE_BREAK_STRING}"\
-                    f"- {self._compare_total_working_duration(False, True)},{LINE_BREAK_STRING}"
-            if self.language_is_english:
-                text += f"- but {self._compare_total_working_duration(True, False)}."
+                too_str = "too"
+                text = text.removesuffix(" ")
             elif self.language_is_french:
-                text += f"- mais {self._compare_total_working_duration(True, False)}."
+                too_str = "également"
+            else:
+                raise NotImplementedError
+            text += f":{LINE_BREAK_STRING}"\
+                    f"- {self._compare_total_working_duration(False, True)} {too_str};"
+            if self.language_is_french:
+                text = text.removesuffix(";")
+                text += " ;"
+            text += f"{LINE_BREAK_STRING}"
+            if self.language_is_english:
+                text += f"- but {self._compare_total_traveling_duration(False, True)}."
+            elif self.language_is_french:
+                text += f"- mais {self._compare_total_traveling_duration(False, True)}."
         else:
             raise ValueError("The new solution should have a total working duration "
                              "less than or equal to the current one")
