@@ -398,7 +398,7 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
                     else:
                         task = self.get_candidate_task_by_key(j)
                         if j == self.get_pivot_task_key():
-                            start_time = self.var_T_backward.x
+                            start_time = int(self.var_T_backward.x)
                         else:
                             start_time = int(self.vars_T[j].x)
                         start_times_and_steps.append((start_time, Step(activity=task, start_time=start_time)))
