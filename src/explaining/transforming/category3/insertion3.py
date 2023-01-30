@@ -21,9 +21,7 @@ class IPModelForInsertion3(IPModelForCategory3):
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]
-                     for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                     if k != j]
+                     for k in self.get_activities_keys(including_departure=False, including_comeback=True) if k != j]
                 ),
-                sense=GRB.EQUAL, rhs=1,
-                name=f"TaskCoveringConstraint[{j}]"
+                sense=GRB.EQUAL, rhs=1, name=f"TaskCoveringConstraint[{j}]"
             )
