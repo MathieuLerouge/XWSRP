@@ -6,7 +6,6 @@ from src.explaining.questioning.questions_templates_bank import \
     (WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
      WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_1,
      WHY_NOT_ORD_3)
-from src.explaining.transforming.category3.ordering3 import IPModelForReordering3
 from src.explaining.transforming.infeasibility import *
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
@@ -21,6 +20,7 @@ if GUROBI_IS_ENABLED:
     from src.explaining.transforming.category3.category3 import IPModelForCategory3
     from src.explaining.transforming.category3.insertion3 import IPModelForInsertion3
     from src.explaining.transforming.category3.swap3 import IPModelForSwap3
+    from src.explaining.transforming.category3.ordering3 import IPModelForReordering3
     from src.explaining.transforming.integerprogramming.insertion import IPModelForInsertionAlteringInput
     from src.explaining.transforming.integerprogramming.insertion1 import IPModelForIns1
     from src.explaining.transforming.integerprogramming.insertion2 import IPModelForIns2a
