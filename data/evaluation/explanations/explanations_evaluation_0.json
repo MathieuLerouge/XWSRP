@@ -22,12 +22,12 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
+                    "T17",
                     "T7",
                     "T14",
+                    "T2",
+                    "T12",
                     "T5",
-                    "T17",
                     "T20",
                     "T25",
                     "T26",
@@ -52,7 +52,7 @@
                 "T1": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1078.0
+                    "start time": 1087
                 },
                 "T10": {
                     "performed": 0
@@ -65,7 +65,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 792
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -75,7 +75,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 748
+                    "start time": 693
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -88,7 +88,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 855
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -99,12 +99,12 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 744
                 },
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 901
+                    "start time": 910
                 },
                 "T21": {
                     "performed": 0
@@ -127,12 +127,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 966
+                    "start time": 975
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1011
+                    "start time": 1020
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -148,7 +148,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 797
+                    "start time": 847
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -158,7 +158,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -173,17 +173,17 @@
             }
         },
         "transformation": {
-            "EN": "adding T1 in Juan's planning according to the following route [Home, T12, T2, T7, T14, T5, T17, T20, T25, T26, T1, Home]",
-            "FR": "ajoutant T1 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T14, T5, T17, T20, T25, T26, T1, Domicile]"
+            "EN": "adding T1 in Juan's planning according to the following route [Home, T17, T7, T14, T2, T12, T5, T20, T25, T26, T1, Home]",
+            "FR": "ajoutant T1 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T14, T2, T12, T5, T20, T25, T26, T1, Domicile]"
         }
     },
     {
         "infeasibility": {
             "downstream critical index": 10,
             "downstream feasible": 1,
-            "early start time": 826,
+            "early start time": 778,
             "employee": "Juan",
-            "late start time": 610,
+            "late start time": 554,
             "task": "T3",
             "type": "time",
             "upstream critical index": 0,
@@ -206,13 +206,197 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T5",
-                    "T14",
+                    "T17",
                     "T7",
                     "T3",
                     "T2",
                     "T12",
+                    "T14",
+                    "T5",
+                    "T20",
+                    "T25",
+                    "T26"
+                ],
+                "Maria": [
+                    "T24",
+                    "T13",
+                    "T6",
+                    "T15",
+                    "T11"
+                ],
+                "Nicolas": [
+                    "T23",
+                    "T27",
+                    "T22",
+                    "T8",
+                    "T9"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "performed": 0
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 962
+                },
+                "T12": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 757
+                },
+                "T13": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 586
+                },
+                "T14": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 813
+                },
+                "T15": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 735
+                },
+                "T16": {
+                    "performed": 0
+                },
+                "T17": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 531
+                },
+                "T18": {
+                    "performed": 0
+                },
+                "T19": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 709
+                },
+                "T20": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 925
+                },
+                "T21": {
+                    "performed": 0
+                },
+                "T22": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 607
+                },
+                "T23": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 496
+                },
+                "T24": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 480
+                },
+                "T25": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 990
+                },
+                "T26": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 1035
+                },
+                "T27": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 553
+                },
+                "T3": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 778
+                },
+                "T4": {
+                    "performed": 0
+                },
+                "T5": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 862
+                },
+                "T6": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 641
+                },
+                "T7": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 614
+                },
+                "T8": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 758
+                },
+                "T9": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 900
+                }
+            }
+        },
+        "transformation": {
+            "EN": "adding T3 in Juan's planning according to the following route [Home, T17, T7, T3, T2, T12, T14, T5, T20, T25, T26, Home]",
+            "FR": "ajoutant T3 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T3, T2, T12, T14, T5, T20, T25, T26, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 10,
+            "downstream feasible": 1,
+            "early start time": 718,
+            "employee": "Juan",
+            "late start time": 616,
+            "task": "T4",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 0
+        },
+        "question": {
+            "fields values": [
+                "Juan",
+                "T4"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_0",
+                "name": "solution_evaluation_0"
+            },
+            "template id": "WN-Ins-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_0",
+            "name": "solution_evaluation_0_support",
+            "sequences": {
+                "Juan": [
                     "T17",
+                    "T7",
+                    "T4",
+                    "T12",
+                    "T2",
+                    "T14",
+                    "T5",
                     "T20",
                     "T26",
                     "T25"
@@ -247,7 +431,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 813
+                    "start time": 714
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -257,7 +441,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 588
+                    "start time": 813
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -270,7 +454,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -281,7 +465,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 765
+                    "start time": 762
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -322,17 +506,17 @@
                     "start time": 553
                 },
                 "T3": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 826.0
+                    "performed": 0
                 },
                 "T4": {
-                    "performed": 0
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 718
                 },
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 534
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -342,7 +526,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 662
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -357,192 +541,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T3 in Juan's planning according to the following route [Home, T5, T14, T7, T3, T2, T12, T17, T20, T26, T25, Home]",
-            "FR": "ajoutant T3 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T3, T2, T12, T17, T20, T26, T25, Domicile]"
-        }
-    },
-    {
-        "infeasibility": {
-            "downstream critical index": 10,
-            "downstream feasible": 1,
-            "early start time": 766,
-            "employee": "Juan",
-            "late start time": 672,
-            "task": "T4",
-            "type": "time",
-            "upstream critical index": 0,
-            "upstream feasible": 0
-        },
-        "question": {
-            "fields values": [
-                "Juan",
-                "T4"
-            ],
-            "solution": {
-                "instance name": "instance_evaluation_0",
-                "name": "solution_evaluation_0"
-            },
-            "template id": "WN-Ins-3",
-            "type": "contrastive"
-        },
-        "support solution": {
-            "instance name": "instance_evaluation_0",
-            "name": "solution_evaluation_0_support",
-            "sequences": {
-                "Juan": [
-                    "T5",
-                    "T14",
-                    "T7",
-                    "T4",
-                    "T2",
-                    "T12",
-                    "T17",
-                    "T20",
-                    "T25",
-                    "T26"
-                ],
-                "Maria": [
-                    "T24",
-                    "T13",
-                    "T6",
-                    "T15",
-                    "T11"
-                ],
-                "Nicolas": [
-                    "T23",
-                    "T27",
-                    "T22",
-                    "T8",
-                    "T9"
-                ]
-            },
-            "tasks performances": {
-                "T1": {
-                    "performed": 0
-                },
-                "T10": {
-                    "performed": 0
-                },
-                "T11": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 962
-                },
-                "T12": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 813
-                },
-                "T13": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 586
-                },
-                "T14": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 588
-                },
-                "T15": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 735
-                },
-                "T16": {
-                    "performed": 0
-                },
-                "T17": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 879
-                },
-                "T18": {
-                    "performed": 0
-                },
-                "T19": {
-                    "performed": 0
-                },
-                "T2": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 765
-                },
-                "T20": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 925
-                },
-                "T21": {
-                    "performed": 0
-                },
-                "T22": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 607
-                },
-                "T23": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 496
-                },
-                "T24": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 480
-                },
-                "T25": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 990
-                },
-                "T26": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 1035
-                },
-                "T27": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 553
-                },
-                "T3": {
-                    "performed": 0
-                },
-                "T4": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 766.0
-                },
-                "T5": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 534
-                },
-                "T6": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 641
-                },
-                "T7": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 662
-                },
-                "T8": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 758
-                },
-                "T9": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 900
-                }
-            }
-        },
-        "transformation": {
-            "EN": "adding T4 in Juan's planning according to the following route [Home, T5, T14, T7, T4, T2, T12, T17, T20, T25, T26, Home]",
-            "FR": "ajoutant T4 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T4, T2, T12, T17, T20, T25, T26, Domicile]"
+            "EN": "adding T4 in Juan's planning according to the following route [Home, T17, T7, T4, T12, T2, T14, T5, T20, T26, T25, Home]",
+            "FR": "ajoutant T4 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T4, T12, T2, T14, T5, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -568,16 +568,16 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T5",
-                    "T14",
+                    "T17",
                     "T7",
                     "T6",
                     "T2",
                     "T12",
-                    "T17",
+                    "T14",
+                    "T5",
                     "T20",
-                    "T25",
-                    "T26"
+                    "T26",
+                    "T25"
                 ],
                 "Maria": [
                     "T24",
@@ -608,7 +608,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 813
+                    "start time": 757
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -618,7 +618,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 588
+                    "start time": 813
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -631,7 +631,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -642,7 +642,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 765
+                    "start time": 709
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -670,12 +670,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -691,17 +691,17 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 534
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 782.0
+                    "start time": 734
                 },
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 662
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -716,17 +716,17 @@
             }
         },
         "transformation": {
-            "EN": "adding T6 in Juan's planning according to the following route [Home, T5, T14, T7, T6, T2, T12, T17, T20, T25, T26, Home]",
-            "FR": "ajoutant T6 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T6, T2, T12, T17, T20, T25, T26, Domicile]"
+            "EN": "adding T6 in Juan's planning according to the following route [Home, T17, T7, T6, T2, T12, T14, T5, T20, T26, T25, Home]",
+            "FR": "ajoutant T6 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T6, T2, T12, T14, T5, T20, T26, T25, Domicile]"
         }
     },
     {
         "infeasibility": {
             "downstream critical index": 10,
             "downstream feasible": 1,
-            "early start time": 767,
+            "early start time": 712,
             "employee": "Juan",
-            "late start time": 647,
+            "late start time": 583,
             "task": "T8",
             "type": "time",
             "upstream critical index": 0,
@@ -749,13 +749,13 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
+                    "T17",
                     "T7",
                     "T8",
                     "T14",
+                    "T2",
+                    "T12",
                     "T5",
-                    "T17",
                     "T20",
                     "T25",
                     "T26"
@@ -789,7 +789,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 807
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -799,7 +799,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 708
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -812,7 +812,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -823,7 +823,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 759
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -872,7 +872,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -882,12 +882,12 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 767.0
+                    "start time": 712
                 },
                 "T9": {
                     "employee name": "Nicolas",
@@ -897,8 +897,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T8 in Juan's planning according to the following route [Home, T12, T2, T7, T8, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "ajoutant T8 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T8, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "adding T8 in Juan's planning according to the following route [Home, T17, T7, T8, T14, T2, T12, T5, T20, T25, T26, Home]",
+            "FR": "ajoutant T8 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T8, T14, T2, T12, T5, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -970,7 +970,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 845
+                    "start time": 843
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -1004,7 +1004,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 797
+                    "start time": 795
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -1073,7 +1073,7 @@
                 "T9": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 900.0
+                    "start time": 900
                 }
             }
         },
@@ -1086,9 +1086,9 @@
         "infeasibility": {
             "downstream critical index": 10,
             "downstream feasible": 0,
-            "early start time": 820,
+            "early start time": 772,
             "employee": "Juan",
-            "late start time": 619,
+            "late start time": 563,
             "task": "T10",
             "type": "time",
             "upstream critical index": 0,
@@ -1111,13 +1111,13 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T5",
-                    "T14",
+                    "T17",
                     "T7",
                     "T10",
                     "T2",
                     "T12",
-                    "T17",
+                    "T14",
+                    "T5",
                     "T20",
                     "T26",
                     "T25"
@@ -1144,7 +1144,7 @@
                 "T10": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 820.0
+                    "start time": 772
                 },
                 "T11": {
                     "employee name": "Maria",
@@ -1154,7 +1154,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 813
+                    "start time": 757
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -1164,7 +1164,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 588
+                    "start time": 813
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -1177,7 +1177,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -1188,7 +1188,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 765
+                    "start time": 709
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -1237,7 +1237,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 534
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -1247,7 +1247,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 662
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -1262,8 +1262,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T10 in Juan's planning according to the following route [Home, T5, T14, T7, T10, T2, T12, T17, T20, T26, T25, Home]",
-            "FR": "ajoutant T10 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T10, T2, T12, T17, T20, T26, T25, Domicile]"
+            "EN": "adding T10 in Juan's planning according to the following route [Home, T17, T7, T10, T2, T12, T14, T5, T20, T26, T25, Home]",
+            "FR": "ajoutant T10 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T10, T2, T12, T14, T5, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -1289,16 +1289,16 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
+                    "T20",
+                    "T17",
                     "T7",
                     "T14",
+                    "T2",
+                    "T12",
                     "T5",
-                    "T17",
-                    "T20",
-                    "T25",
+                    "T11",
                     "T26",
-                    "T11"
+                    "T25"
                 ],
                 "Maria": [
                     "T24",
@@ -1324,12 +1324,12 @@
                 "T11": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1074.0
+                    "start time": 969
                 },
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 843
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -1339,7 +1339,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 748
+                    "start time": 744
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -1352,7 +1352,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 855
+                    "start time": 582
                 },
                 "T18": {
                     "performed": 0
@@ -1363,12 +1363,12 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 795
                 },
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 901
+                    "start time": 531
                 },
                 "T21": {
                     "performed": 0
@@ -1391,12 +1391,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 966
+                    "start time": 1035
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1011
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -1412,7 +1412,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 797
+                    "start time": 898
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -1422,7 +1422,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 665
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -1437,21 +1437,21 @@
             }
         },
         "transformation": {
-            "EN": "adding T11 in Juan's planning according to the following route [Home, T12, T2, T7, T14, T5, T17, T20, T25, T26, T11, Home]",
-            "FR": "ajoutant T11 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T14, T5, T17, T20, T25, T26, T11, Domicile]"
+            "EN": "adding T11 in Juan's planning according to the following route [Home, T20, T17, T7, T14, T2, T12, T5, T11, T26, T25, Home]",
+            "FR": "ajoutant T11 dans le planning de Juan selon la route suivante [Domicile, T20, T17, T7, T14, T2, T12, T5, T11, T26, T25, Domicile]"
         }
     },
     {
         "infeasibility": {
             "downstream critical index": 10,
             "downstream feasible": 1,
-            "early start time": 747,
+            "early start time": 699,
             "employee": "Juan",
-            "late start time": 699,
+            "late start time": 643,
             "task": "T13",
             "type": "time",
             "upstream critical index": 0,
-            "upstream feasible": 0
+            "upstream feasible": 1
         },
         "question": {
             "fields values": [
@@ -1470,16 +1470,16 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T5",
-                    "T14",
+                    "T17",
                     "T7",
                     "T13",
                     "T2",
                     "T12",
-                    "T17",
+                    "T14",
+                    "T5",
                     "T20",
-                    "T25",
-                    "T26"
+                    "T26",
+                    "T25"
                 ],
                 "Maria": [
                     "T24",
@@ -1510,17 +1510,17 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 813
+                    "start time": 757
                 },
                 "T13": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 747.0
+                    "start time": 699
                 },
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 588
+                    "start time": 813
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -1533,7 +1533,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -1544,7 +1544,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 765
+                    "start time": 709
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -1572,12 +1572,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -1593,7 +1593,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 534
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -1603,7 +1603,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 662
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -1618,8 +1618,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T13 in Juan's planning according to the following route [Home, T5, T14, T7, T13, T2, T12, T17, T20, T25, T26, Home]",
-            "FR": "ajoutant T13 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T13, T2, T12, T17, T20, T25, T26, Domicile]"
+            "EN": "adding T13 in Juan's planning according to the following route [Home, T17, T7, T13, T2, T12, T14, T5, T20, T26, T25, Home]",
+            "FR": "ajoutant T13 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T13, T2, T12, T14, T5, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -1645,13 +1645,13 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
+                    "T17",
                     "T7",
                     "T15",
                     "T14",
+                    "T2",
+                    "T12",
                     "T5",
-                    "T17",
                     "T20",
                     "T26",
                     "T25"
@@ -1685,7 +1685,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 807
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -1695,12 +1695,12 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 708
                 },
                 "T15": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 780.0
+                    "start time": 725
                 },
                 "T16": {
                     "performed": 0
@@ -1708,7 +1708,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -1719,7 +1719,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 759
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -1768,7 +1768,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -1778,7 +1778,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -1793,17 +1793,17 @@
             }
         },
         "transformation": {
-            "EN": "adding T15 in Juan's planning according to the following route [Home, T12, T2, T7, T15, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "ajoutant T15 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T15, T14, T5, T17, T20, T26, T25, Domicile]"
+            "EN": "adding T15 in Juan's planning according to the following route [Home, T17, T7, T15, T14, T2, T12, T5, T20, T26, T25, Home]",
+            "FR": "ajoutant T15 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T15, T14, T2, T12, T5, T20, T26, T25, Domicile]"
         }
     },
     {
         "infeasibility": {
             "downstream critical index": 10,
             "downstream feasible": 1,
-            "early start time": 807,
+            "early start time": 752,
             "employee": "Juan",
-            "late start time": 640,
+            "late start time": 576,
             "task": "T16",
             "type": "time",
             "upstream critical index": 0,
@@ -1826,16 +1826,16 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
+                    "T17",
                     "T7",
                     "T16",
                     "T14",
+                    "T2",
+                    "T12",
                     "T5",
-                    "T17",
                     "T20",
-                    "T26",
-                    "T25"
+                    "T25",
+                    "T26"
                 ],
                 "Maria": [
                     "T24",
@@ -1867,7 +1867,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 807
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -1877,7 +1877,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 708
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -1887,12 +1887,12 @@
                 "T16": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 807.0
+                    "start time": 752
                 },
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -1903,7 +1903,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 759
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -1931,12 +1931,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -1952,7 +1952,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -1962,7 +1962,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -1977,8 +1977,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T16 in Juan's planning according to the following route [Home, T12, T2, T7, T16, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "ajoutant T16 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T16, T14, T5, T17, T20, T26, T25, Domicile]"
+            "EN": "adding T16 in Juan's planning according to the following route [Home, T17, T7, T16, T14, T2, T12, T5, T20, T25, T26, Home]",
+            "FR": "ajoutant T16 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T16, T14, T2, T12, T5, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -2079,7 +2079,7 @@
                 "T18": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 961.0
+                    "start time": 961
                 },
                 "T19": {
                     "performed": 0
@@ -2188,15 +2188,15 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
+                    "T17",
                     "T7",
                     "T14",
+                    "T2",
+                    "T12",
                     "T5",
-                    "T17",
                     "T20",
-                    "T26",
                     "T25",
+                    "T26",
                     "T19"
                 ],
                 "Maria": [
@@ -2229,7 +2229,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 792
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -2239,7 +2239,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 748
+                    "start time": 693
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -2252,7 +2252,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 855
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -2260,17 +2260,17 @@
                 "T19": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1069.0
+                    "start time": 1078
                 },
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 744
                 },
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 901
+                    "start time": 910
                 },
                 "T21": {
                     "performed": 0
@@ -2293,12 +2293,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1011
+                    "start time": 975
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 966
+                    "start time": 1020
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -2314,7 +2314,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 797
+                    "start time": 847
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -2324,7 +2324,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -2339,8 +2339,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T19 in Juan's planning according to the following route [Home, T12, T2, T7, T14, T5, T17, T20, T26, T25, T19, Home]",
-            "FR": "ajoutant T19 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T14, T5, T17, T20, T26, T25, T19, Domicile]"
+            "EN": "adding T19 in Juan's planning according to the following route [Home, T17, T7, T14, T2, T12, T5, T20, T25, T26, T19, Home]",
+            "FR": "ajoutant T19 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T14, T2, T12, T5, T20, T25, T26, T19, Domicile]"
         }
     },
     {
@@ -2366,16 +2366,16 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
+                    "T17",
                     "T7",
                     "T21",
                     "T14",
+                    "T2",
+                    "T12",
                     "T5",
-                    "T17",
                     "T20",
-                    "T25",
-                    "T26"
+                    "T26",
+                    "T25"
                 ],
                 "Maria": [
                     "T24",
@@ -2407,7 +2407,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 807
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -2417,7 +2417,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 708
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -2430,7 +2430,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -2441,7 +2441,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 759
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -2451,7 +2451,7 @@
                 "T21": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 740.0
+                    "start time": 685
                 },
                 "T22": {
                     "employee name": "Nicolas",
@@ -2471,12 +2471,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -2492,7 +2492,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -2502,7 +2502,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -2517,17 +2517,17 @@
             }
         },
         "transformation": {
-            "EN": "adding T21 in Juan's planning according to the following route [Home, T12, T2, T7, T21, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "ajoutant T21 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T21, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "adding T21 in Juan's planning according to the following route [Home, T17, T7, T21, T14, T2, T12, T5, T20, T26, T25, Home]",
+            "FR": "ajoutant T21 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T21, T14, T2, T12, T5, T20, T26, T25, Domicile]"
         }
     },
     {
         "infeasibility": {
-            "downstream critical index": 10,
+            "downstream critical index": 4,
             "downstream feasible": 1,
-            "early start time": 981,
+            "early start time": 657,
             "employee": "Juan",
-            "late start time": 908,
+            "late start time": 575,
             "task": "T22",
             "type": "time",
             "upstream critical index": 0,
@@ -2550,14 +2550,14 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
-                    "T7",
-                    "T14",
-                    "T5",
                     "T17",
                     "T20",
                     "T22",
+                    "T7",
+                    "T14",
+                    "T2",
+                    "T12",
+                    "T5",
                     "T26",
                     "T25"
                 ],
@@ -2590,7 +2590,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 856
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -2600,7 +2600,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 748
+                    "start time": 754
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -2613,7 +2613,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 855
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -2624,12 +2624,12 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 808
                 },
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 901
+                    "start time": 577
                 },
                 "T21": {
                     "performed": 0
@@ -2637,7 +2637,7 @@
                 "T22": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 981.0
+                    "start time": 657
                 },
                 "T23": {
                     "employee name": "Nicolas",
@@ -2673,7 +2673,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 797
+                    "start time": 911
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -2683,7 +2683,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 675
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -2698,17 +2698,17 @@
             }
         },
         "transformation": {
-            "EN": "adding T22 in Juan's planning according to the following route [Home, T12, T2, T7, T14, T5, T17, T20, T22, T26, T25, Home]",
-            "FR": "ajoutant T22 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T14, T5, T17, T20, T22, T26, T25, Domicile]"
+            "EN": "adding T22 in Juan's planning according to the following route [Home, T17, T20, T22, T7, T14, T2, T12, T5, T26, T25, Home]",
+            "FR": "ajoutant T22 dans le planning de Juan selon la route suivante [Domicile, T17, T20, T22, T7, T14, T2, T12, T5, T26, T25, Domicile]"
         }
     },
     {
         "infeasibility": {
-            "downstream critical index": 10,
+            "downstream critical index": 4,
             "downstream feasible": 0,
             "early start time": 544,
             "employee": "Juan",
-            "late start time": 468,
+            "late start time": 465,
             "task": "T23",
             "type": "time",
             "upstream critical index": 0,
@@ -2733,12 +2733,12 @@
                 "Juan": [
                     "T23",
                     "T20",
+                    "T17",
                     "T7",
                     "T14",
                     "T2",
                     "T12",
                     "T5",
-                    "T17",
                     "T25",
                     "T26"
                 ],
@@ -2771,7 +2771,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 813
+                    "start time": 856
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -2781,7 +2781,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 714
+                    "start time": 757
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -2794,7 +2794,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 926
+                    "start time": 592
                 },
                 "T18": {
                     "performed": 0
@@ -2805,12 +2805,12 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 765
+                    "start time": 808
                 },
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 544
+                    "start time": 541
                 },
                 "T21": {
                     "performed": 0
@@ -2823,7 +2823,7 @@
                 "T23": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 544.0
+                    "start time": 544
                 },
                 "T24": {
                     "employee name": "Maria",
@@ -2854,7 +2854,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 868
+                    "start time": 911
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -2864,7 +2864,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 635
+                    "start time": 675
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -2879,8 +2879,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T23 in Juan's planning according to the following route [Home, T23, T20, T7, T14, T2, T12, T5, T17, T25, T26, Home]",
-            "FR": "ajoutant T23 dans le planning de Juan selon la route suivante [Domicile, T23, T20, T7, T14, T2, T12, T5, T17, T25, T26, Domicile]"
+            "EN": "adding T23 in Juan's planning according to the following route [Home, T23, T20, T17, T7, T14, T2, T12, T5, T25, T26, Home]",
+            "FR": "ajoutant T23 dans le planning de Juan selon la route suivante [Domicile, T23, T20, T17, T7, T14, T2, T12, T5, T25, T26, Domicile]"
         }
     },
     {
@@ -2906,13 +2906,13 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T5",
-                    "T14",
+                    "T17",
                     "T7",
                     "T24",
-                    "T2",
                     "T12",
-                    "T17",
+                    "T2",
+                    "T14",
+                    "T5",
                     "T20",
                     "T25",
                     "T26"
@@ -2946,7 +2946,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 813
+                    "start time": 714
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -2956,7 +2956,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 588
+                    "start time": 813
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -2969,7 +2969,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -2980,7 +2980,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 765
+                    "start time": 762
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -3003,7 +3003,7 @@
                 "T24": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 762.0
+                    "start time": 714
                 },
                 "T25": {
                     "employee name": "Juan",
@@ -3029,7 +3029,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 534
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -3039,7 +3039,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 662
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -3054,15 +3054,15 @@
             }
         },
         "transformation": {
-            "EN": "adding T24 in Juan's planning according to the following route [Home, T5, T14, T7, T24, T2, T12, T17, T20, T25, T26, Home]",
-            "FR": "ajoutant T24 dans le planning de Juan selon la route suivante [Domicile, T5, T14, T7, T24, T2, T12, T17, T20, T25, T26, Domicile]"
+            "EN": "adding T24 in Juan's planning according to the following route [Home, T17, T7, T24, T12, T2, T14, T5, T20, T25, T26, Home]",
+            "FR": "ajoutant T24 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T24, T12, T2, T14, T5, T20, T25, T26, Domicile]"
         }
     },
     {
         "infeasibility": {
             "downstream critical index": 11,
             "downstream feasible": 1,
-            "early start time": 1074,
+            "early start time": 1083,
             "employee": "Juan",
             "late start time": 1045,
             "task": "T27",
@@ -3087,15 +3087,15 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
+                    "T17",
                     "T7",
                     "T14",
+                    "T2",
+                    "T12",
                     "T5",
-                    "T17",
                     "T20",
-                    "T26",
                     "T25",
+                    "T26",
                     "T27"
                 ],
                 "Maria": [
@@ -3127,7 +3127,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 792
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -3137,7 +3137,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 748
+                    "start time": 693
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -3150,7 +3150,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 855
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -3161,12 +3161,12 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 744
                 },
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 901
+                    "start time": 910
                 },
                 "T21": {
                     "performed": 0
@@ -3189,17 +3189,17 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1011
+                    "start time": 975
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 966
+                    "start time": 1020
                 },
                 "T27": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1074.0
+                    "start time": 1083
                 },
                 "T3": {
                     "performed": 0
@@ -3210,7 +3210,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 797
+                    "start time": 847
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -3220,7 +3220,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -3235,8 +3235,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T27 in Juan's planning according to the following route [Home, T12, T2, T7, T14, T5, T17, T20, T26, T25, T27, Home]",
-            "FR": "ajoutant T27 dans le planning de Juan selon la route suivante [Domicile, T12, T2, T7, T14, T5, T17, T20, T26, T25, T27, Domicile]"
+            "EN": "adding T27 in Juan's planning according to the following route [Home, T17, T7, T14, T2, T12, T5, T20, T25, T26, T27, Home]",
+            "FR": "ajoutant T27 dans le planning de Juan selon la route suivante [Domicile, T17, T7, T14, T2, T12, T5, T20, T25, T26, T27, Domicile]"
         }
     },
     {
@@ -3298,7 +3298,7 @@
                 "T1": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 940.0
+                    "start time": 940
                 },
                 "T10": {
                     "performed": 0
@@ -3526,7 +3526,7 @@
                 "T2": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 914.0
+                    "start time": 914
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -3751,7 +3751,7 @@
                 "T3": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 682.0
+                    "start time": 682
                 },
                 "T4": {
                     "performed": 0
@@ -3938,7 +3938,7 @@
                 "T4": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 574.0
+                    "start time": 574
                 },
                 "T5": {
                     "employee name": "Juan",
@@ -4124,7 +4124,7 @@
                 "T5": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 922.0
+                    "start time": 922
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -4315,7 +4315,7 @@
                 "T7": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 480.0
+                    "start time": 480
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -4501,7 +4501,7 @@
                 "T8": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 844.0
+                    "start time": 844
                 },
                 "T9": {
                     "employee name": "Nicolas",
@@ -4687,7 +4687,7 @@
                 "T9": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 924.0
+                    "start time": 924
                 }
             }
         },
@@ -4758,7 +4758,7 @@
                 "T10": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 759.0
+                    "start time": 759
                 },
                 "T11": {
                     "employee name": "Maria",
@@ -4949,7 +4949,7 @@
                 "T12": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 921.0
+                    "start time": 921
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -5140,7 +5140,7 @@
                 "T14": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 913.0
+                    "start time": 913
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -5332,7 +5332,7 @@
                 "T16": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 755.0
+                    "start time": 755
                 },
                 "T17": {
                     "employee name": "Juan",
@@ -5429,10 +5429,10 @@
     {
         "infeasibility": {
             "downstream critical index": 7,
-            "downstream feasible": 1,
-            "early start time": 929,
+            "downstream feasible": 0,
+            "early start time": 480,
             "employee": "Maria",
-            "late start time": 900,
+            "late start time": 392,
             "task": "T17",
             "type": "time",
             "upstream critical index": 0,
@@ -5465,11 +5465,11 @@
                     "T26"
                 ],
                 "Maria": [
+                    "T17",
                     "T24",
                     "T13",
                     "T6",
                     "T15",
-                    "T17",
                     "T11"
                 ],
                 "Nicolas": [
@@ -5500,7 +5500,7 @@
                 "T13": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 586
+                    "start time": 601
                 },
                 "T14": {
                     "employee name": "Juan",
@@ -5510,7 +5510,7 @@
                 "T15": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 735
+                    "start time": 750
                 },
                 "T16": {
                     "performed": 0
@@ -5518,7 +5518,7 @@
                 "T17": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 929.0
+                    "start time": 480
                 },
                 "T18": {
                     "performed": 0
@@ -5552,7 +5552,7 @@
                 "T24": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 480
+                    "start time": 495
                 },
                 "T25": {
                     "employee name": "Juan",
@@ -5583,7 +5583,7 @@
                 "T6": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 641
+                    "start time": 656
                 },
                 "T7": {
                     "employee name": "Juan",
@@ -5603,8 +5603,8 @@
             }
         },
         "transformation": {
-            "EN": "adding T17 in Maria's planning according to the following route [Home, T24, T13, T6, T15, T17, T11, Home]",
-            "FR": "ajoutant T17 dans le planning de Maria selon la route suivante [Domicile, T24, T13, T6, T15, T17, T11, Domicile]"
+            "EN": "adding T17 in Maria's planning according to the following route [Home, T17, T24, T13, T6, T15, T11, Home]",
+            "FR": "ajoutant T17 dans le planning de Maria selon la route suivante [Domicile, T17, T24, T13, T6, T15, T11, Domicile]"
         }
     },
     {
@@ -5705,7 +5705,7 @@
                 "T18": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 960.0
+                    "start time": 960
                 },
                 "T19": {
                     "performed": 0
@@ -5892,7 +5892,7 @@
                 "T19": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 958.0
+                    "start time": 958
                 },
                 "T2": {
                     "employee name": "Juan",
@@ -6083,7 +6083,7 @@
                 "T20": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 933.0
+                    "start time": 933
                 },
                 "T21": {
                     "performed": 0
@@ -6270,7 +6270,7 @@
                 "T21": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 646.0
+                    "start time": 646
                 },
                 "T22": {
                     "employee name": "Nicolas",
@@ -6456,7 +6456,7 @@
                 "T22": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 945.0
+                    "start time": 945
                 },
                 "T23": {
                     "employee name": "Nicolas",
@@ -6642,7 +6642,7 @@
                 "T23": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 480.0
+                    "start time": 480
                 },
                 "T24": {
                     "employee name": "Maria",
@@ -6833,7 +6833,7 @@
                 "T25": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 952.0
+                    "start time": 952
                 },
                 "T26": {
                     "employee name": "Juan",
@@ -7019,7 +7019,7 @@
                 "T26": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 952.0
+                    "start time": 952
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -7205,7 +7205,7 @@
                 "T27": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 957.0
+                    "start time": 957
                 },
                 "T3": {
                     "performed": 0
@@ -7298,7 +7298,7 @@
                 "T1": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 966.0
+                    "start time": 966
                 },
                 "T10": {
                     "performed": 0
@@ -7520,7 +7520,7 @@
                 "T2": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 935.0
+                    "start time": 935
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -7739,7 +7739,7 @@
                 "T3": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 794.0
+                    "start time": 794
                 },
                 "T4": {
                     "performed": 0
@@ -7920,7 +7920,7 @@
                 "T4": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 729.0
+                    "start time": 729
                 },
                 "T5": {
                     "employee name": "Juan",
@@ -8100,7 +8100,7 @@
                 "T5": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 999.0
+                    "start time": 999
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -8280,7 +8280,7 @@
                 "T6": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 839.0
+                    "start time": 839
                 },
                 "T7": {
                     "employee name": "Juan",
@@ -8460,7 +8460,7 @@
                 "T7": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 676.0
+                    "start time": 676
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -8535,7 +8535,7 @@
                 "T10": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 881.0
+                    "start time": 881
                 },
                 "T11": {
                     "employee name": "Maria",
@@ -8715,7 +8715,7 @@
                 "T11": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 1016.0
+                    "start time": 1016
                 },
                 "T12": {
                     "employee name": "Juan",
@@ -8895,7 +8895,7 @@
                 "T12": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 945.0
+                    "start time": 945
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -9075,7 +9075,7 @@
                 "T13": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 714.0
+                    "start time": 714
                 },
                 "T14": {
                     "employee name": "Juan",
@@ -9255,7 +9255,7 @@
                 "T14": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 882.0
+                    "start time": 882
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -9435,7 +9435,7 @@
                 "T15": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 821.0
+                    "start time": 821
                 },
                 "T16": {
                     "performed": 0
@@ -9616,7 +9616,7 @@
                 "T16": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 766.0
+                    "start time": 766
                 },
                 "T17": {
                     "employee name": "Juan",
@@ -9753,9 +9753,9 @@
                     "T23",
                     "T27",
                     "T22",
+                    "T17",
                     "T8",
-                    "T9",
-                    "T17"
+                    "T9"
                 ]
             },
             "tasks performances": {
@@ -9796,7 +9796,7 @@
                 "T17": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 1014.0
+                    "start time": 692
                 },
                 "T18": {
                     "performed": 0
@@ -9871,18 +9871,18 @@
                 "T8": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 802
+                    "start time": 826
                 },
                 "T9": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 944
+                    "start time": 968
                 }
             }
         },
         "transformation": {
-            "EN": "adding T17 in Nicolas's planning according to the following route [Home, T23, T27, T22, T8, T9, T17, Home]",
-            "FR": "ajoutant T17 dans le planning de Nicolas selon la route suivante [Domicile, T23, T27, T22, T8, T9, T17, Domicile]"
+            "EN": "adding T17 in Nicolas's planning according to the following route [Home, T23, T27, T22, T17, T8, T9, Home]",
+            "FR": "ajoutant T17 dans le planning de Nicolas selon la route suivante [Domicile, T23, T27, T22, T17, T8, T9, Domicile]"
         }
     },
     {
@@ -9977,7 +9977,7 @@
                 "T18": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 981.0
+                    "start time": 981
                 },
                 "T19": {
                     "performed": 0
@@ -10158,7 +10158,7 @@
                 "T19": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 1038.0
+                    "start time": 1038
                 },
                 "T2": {
                     "employee name": "Juan",
@@ -10343,7 +10343,7 @@
                 "T20": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 1013.0
+                    "start time": 1013
                 },
                 "T21": {
                     "performed": 0
@@ -10524,7 +10524,7 @@
                 "T21": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 693.0
+                    "start time": 693
                 },
                 "T22": {
                     "employee name": "Nicolas",
@@ -10714,7 +10714,7 @@
                 "T24": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 718.0
+                    "start time": 718
                 },
                 "T25": {
                     "employee name": "Juan",
@@ -10862,7 +10862,7 @@
                 "T25": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 985.0
+                    "start time": 985
                 },
                 "T26": {
                     "employee name": "Juan",
@@ -11042,7 +11042,7 @@
                 "T26": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 1032.0
+                    "start time": 1032
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -11139,7 +11139,7 @@
                 "T1": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1014.0
+                    "start time": 1014
                 },
                 "T10": {
                     "performed": 0
@@ -11152,7 +11152,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 585
+                    "start time": 539
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -11162,7 +11162,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 684
+                    "start time": 638
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -11175,7 +11175,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 791
+                    "start time": 745
                 },
                 "T18": {
                     "performed": 0
@@ -11186,7 +11186,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 633
+                    "start time": 587
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -11235,7 +11235,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 733
+                    "start time": 687
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -11266,9 +11266,9 @@
         "infeasibility": {
             "downstream critical index": 9,
             "downstream feasible": 1,
-            "early start time": 752,
+            "early start time": 760,
             "employee": "Juan",
-            "late start time": 613,
+            "late start time": 604,
             "task": "T3",
             "type": "time",
             "upstream critical index": 0,
@@ -11291,12 +11291,12 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
-                    "T3",
-                    "T14",
-                    "T5",
                     "T17",
+                    "T14",
+                    "T3",
+                    "T2",
+                    "T12",
+                    "T5",
                     "T20",
                     "T25",
                     "T26"
@@ -11331,7 +11331,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 807
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -11341,7 +11341,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 591
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -11354,7 +11354,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -11365,7 +11365,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 759
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -11408,7 +11408,7 @@
                 "T3": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 752.0
+                    "start time": 760
                 },
                 "T4": {
                     "performed": 0
@@ -11416,7 +11416,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -11439,21 +11439,21 @@
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T3 in Juan's and applying the following route [Home, T12, T2, T3, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T3 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T3, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "replacing T7 by T3 in Juan's and applying the following route [Home, T17, T14, T3, T2, T12, T5, T20, T25, T26, Home]",
+            "FR": "rempla\u00e7ant T7 par T3 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T17, T14, T3, T2, T12, T5, T20, T25, T26, Domicile]"
         }
     },
     {
         "infeasibility": {
             "downstream critical index": 9,
             "downstream feasible": 1,
-            "early start time": 680,
+            "early start time": 689,
             "employee": "Juan",
-            "late start time": 674,
+            "late start time": 666,
             "task": "T4",
             "type": "time",
             "upstream critical index": 0,
-            "upstream feasible": 1
+            "upstream feasible": 0
         },
         "question": {
             "fields values": [
@@ -11472,15 +11472,15 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
-                    "T4",
-                    "T14",
-                    "T5",
                     "T17",
+                    "T14",
+                    "T4",
+                    "T2",
+                    "T12",
+                    "T5",
                     "T20",
-                    "T25",
-                    "T26"
+                    "T26",
+                    "T25"
                 ],
                 "Maria": [
                     "T24",
@@ -11512,7 +11512,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 807
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -11522,7 +11522,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 591
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -11535,7 +11535,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -11546,7 +11546,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 759
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -11574,12 +11574,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -11592,12 +11592,12 @@
                 "T4": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 680.0
+                    "start time": 689
                 },
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -11620,8 +11620,8 @@
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T4 in Juan's and applying the following route [Home, T12, T2, T4, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T4 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T4, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "replacing T7 by T4 in Juan's and applying the following route [Home, T17, T14, T4, T2, T12, T5, T20, T26, T25, Home]",
+            "FR": "rempla\u00e7ant T7 par T4 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T17, T14, T4, T2, T12, T5, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -11647,13 +11647,13 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
-                    "T6",
-                    "T14",
-                    "T5",
-                    "T17",
                     "T20",
+                    "T17",
+                    "T5",
+                    "T14",
+                    "T6",
+                    "T2",
+                    "T12",
                     "T26",
                     "T25"
                 ],
@@ -11686,326 +11686,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
-                },
-                "T13": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 586
-                },
-                "T14": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 772
-                },
-                "T15": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 735
-                },
-                "T16": {
-                    "performed": 0
-                },
-                "T17": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 879
-                },
-                "T18": {
-                    "performed": 0
-                },
-                "T19": {
-                    "performed": 0
-                },
-                "T2": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 587
-                },
-                "T20": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 925
-                },
-                "T21": {
-                    "performed": 0
-                },
-                "T22": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 607
-                },
-                "T23": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 496
-                },
-                "T24": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 480
-                },
-                "T25": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 1035
-                },
-                "T26": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 990
-                },
-                "T27": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 553
-                },
-                "T3": {
-                    "performed": 0
-                },
-                "T4": {
-                    "performed": 0
-                },
-                "T5": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 821
-                },
-                "T6": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 716.0
-                },
-                "T7": {
-                    "performed": 0
-                },
-                "T8": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 758
-                },
-                "T9": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 900
-                }
-            }
-        },
-        "transformation": {
-            "EN": "replacing T7 by T6 in Juan's and applying the following route [Home, T12, T2, T6, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T6 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T6, T14, T5, T17, T20, T26, T25, Domicile]"
-        }
-    },
-    {
-        "infeasibility": {
-            "downstream critical index": 9,
-            "downstream feasible": 1,
-            "early start time": 710,
-            "employee": "Juan",
-            "late start time": 647,
-            "task": "T8",
-            "type": "time",
-            "upstream critical index": 0,
-            "upstream feasible": 1
-        },
-        "question": {
-            "fields values": [
-                "Juan",
-                "T8"
-            ],
-            "solution": {
-                "instance name": "instance_evaluation_0",
-                "name": "solution_evaluation_0"
-            },
-            "template id": "WN-Swp-3",
-            "type": "contrastive"
-        },
-        "support solution": {
-            "instance name": "instance_evaluation_0",
-            "name": "solution_evaluation_0_support",
-            "sequences": {
-                "Juan": [
-                    "T12",
-                    "T2",
-                    "T8",
-                    "T14",
-                    "T5",
-                    "T17",
-                    "T20",
-                    "T26",
-                    "T25"
-                ],
-                "Maria": [
-                    "T24",
-                    "T13",
-                    "T6",
-                    "T15",
-                    "T11"
-                ],
-                "Nicolas": [
-                    "T23",
-                    "T27",
-                    "T22",
-                    "T9"
-                ]
-            },
-            "tasks performances": {
-                "T1": {
-                    "performed": 0
-                },
-                "T10": {
-                    "performed": 0
-                },
-                "T11": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 962
-                },
-                "T12": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 539
-                },
-                "T13": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 586
-                },
-                "T14": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 772
-                },
-                "T15": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 735
-                },
-                "T16": {
-                    "performed": 0
-                },
-                "T17": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 879
-                },
-                "T18": {
-                    "performed": 0
-                },
-                "T19": {
-                    "performed": 0
-                },
-                "T2": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 587
-                },
-                "T20": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 925
-                },
-                "T21": {
-                    "performed": 0
-                },
-                "T22": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 607
-                },
-                "T23": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 496
-                },
-                "T24": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 480
-                },
-                "T25": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 1035
-                },
-                "T26": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 990
-                },
-                "T27": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 553
-                },
-                "T3": {
-                    "performed": 0
-                },
-                "T4": {
-                    "performed": 0
-                },
-                "T5": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 821
-                },
-                "T6": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 641
-                },
-                "T7": {
-                    "performed": 0
-                },
-                "T8": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 710.0
-                },
-                "T9": {
-                    "employee name": "Nicolas",
-                    "performed": 1,
-                    "start time": 900
-                }
-            }
-        },
-        "transformation": {
-            "EN": "replacing T7 by T8 in Juan's and applying the following route [Home, T12, T2, T8, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T8 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T8, T14, T5, T17, T20, T26, T25, Domicile]"
-        }
-    },
-    {
-        "question": {
-            "fields values": [
-                "Juan",
-                "T9"
-            ],
-            "solution": {
-                "instance name": "instance_evaluation_0",
-                "name": "solution_evaluation_0"
-            },
-            "template id": "WN-Swp-3",
-            "type": "contrastive"
-        },
-        "support solution": {
-            "instance name": "instance_evaluation_0",
-            "name": "solution_evaluation_0_support",
-            "tasks performances": {
-                "T1": {
-                    "performed": 0
-                },
-                "T10": {
-                    "performed": 0
-                },
-                "T11": {
-                    "employee name": "Maria",
-                    "performed": 1,
-                    "start time": 962
-                },
-                "T12": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 793
+                    "start time": 906
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -12039,7 +11720,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 745
+                    "start time": 858
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -12072,7 +11753,7 @@
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 985
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -12091,9 +11772,9 @@
                     "start time": 635
                 },
                 "T6": {
-                    "employee name": "Maria",
+                    "employee name": "Juan",
                     "performed": 1,
-                    "start time": 641
+                    "start time": 819
                 },
                 "T7": {
                     "performed": 0
@@ -12104,25 +11785,25 @@
                     "start time": 758
                 },
                 "T9": {
-                    "employee name": "Juan",
+                    "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 900.0
+                    "start time": 900
                 }
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T9 in Juan's and applying the following route [Home, T20, T17, T5, T14, T2, T12, T9, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T9 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T20, T17, T5, T14, T2, T12, T9, T26, T25, Domicile]"
+            "EN": "replacing T7 by T6 in Juan's and applying the following route [Home, T20, T17, T5, T14, T6, T2, T12, T26, T25, Home]",
+            "FR": "rempla\u00e7ant T7 par T6 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T20, T17, T5, T14, T6, T2, T12, T26, T25, Domicile]"
         }
     },
     {
         "infeasibility": {
             "downstream critical index": 9,
-            "downstream feasible": 0,
-            "early start time": 743,
+            "downstream feasible": 1,
+            "early start time": 712,
             "employee": "Juan",
-            "late start time": 621,
-            "task": "T10",
+            "late start time": 634,
+            "task": "T8",
             "type": "time",
             "upstream critical index": 0,
             "upstream feasible": 1
@@ -12130,7 +11811,7 @@
         "question": {
             "fields values": [
                 "Juan",
-                "T10"
+                "T8"
             ],
             "solution": {
                 "instance name": "instance_evaluation_0",
@@ -12144,12 +11825,12 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
+                    "T17",
+                    "T7",
+                    "T8",
                     "T2",
-                    "T10",
                     "T14",
                     "T5",
-                    "T17",
                     "T20",
                     "T25",
                     "T26"
@@ -12165,7 +11846,6 @@
                     "T23",
                     "T27",
                     "T22",
-                    "T8",
                     "T9"
                 ]
             },
@@ -12174,9 +11854,7 @@
                     "performed": 0
                 },
                 "T10": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 743.0
+                    "performed": 0
                 },
                 "T11": {
                     "employee name": "Maria",
@@ -12184,9 +11862,7 @@
                     "start time": 962
                 },
                 "T12": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 539
+                    "performed": 0
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -12196,7 +11872,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 813
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -12209,7 +11885,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -12220,7 +11896,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 762
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -12269,7 +11945,331 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 862
+                },
+                "T6": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 641
+                },
+                "T7": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 614
+                },
+                "T8": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 712
+                },
+                "T9": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 900
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T12 by T8 in Juan's and applying the following route [Home, T17, T7, T8, T2, T14, T5, T20, T25, T26, Home]",
+            "FR": "rempla\u00e7ant T12 par T8 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T17, T7, T8, T2, T14, T5, T20, T25, T26, Domicile]"
+        }
+    },
+    {
+        "question": {
+            "fields values": [
+                "Juan",
+                "T9"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_0",
+                "name": "solution_evaluation_0"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_0",
+            "name": "solution_evaluation_0_support",
+            "tasks performances": {
+                "T1": {
+                    "performed": 0
+                },
+                "T10": {
+                    "performed": 0
+                },
+                "T11": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 962
+                },
+                "T12": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 845
+                },
+                "T13": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 586
+                },
+                "T14": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 746
+                },
+                "T15": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 735
+                },
+                "T16": {
+                    "performed": 0
+                },
+                "T17": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 582
+                },
+                "T18": {
+                    "performed": 0
+                },
+                "T19": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 797
+                },
+                "T20": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 531
+                },
+                "T21": {
+                    "performed": 0
+                },
+                "T22": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 607
+                },
+                "T23": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 496
+                },
+                "T24": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 480
+                },
+                "T25": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 985
+                },
+                "T26": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 1030
+                },
+                "T27": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 553
+                },
+                "T3": {
+                    "performed": 0
+                },
+                "T4": {
+                    "performed": 0
+                },
+                "T5": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 692
+                },
+                "T6": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 641
+                },
+                "T7": {
+                    "performed": 0
+                },
+                "T8": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 758
+                },
+                "T9": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 900
+                }
+            }
+        },
+        "transformation": {
+            "EN": "replacing T7 by T9 in Juan's and applying the following route [Home, T20, T17, T5, T14, T2, T12, T9, T25, T26, Home]",
+            "FR": "rempla\u00e7ant T7 par T9 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T20, T17, T5, T14, T2, T12, T9, T25, T26, Domicile]"
+        }
+    },
+    {
+        "infeasibility": {
+            "downstream critical index": 9,
+            "downstream feasible": 0,
+            "early start time": 850,
+            "employee": "Juan",
+            "late start time": 712,
+            "task": "T10",
+            "type": "time",
+            "upstream critical index": 0,
+            "upstream feasible": 1
+        },
+        "question": {
+            "fields values": [
+                "Juan",
+                "T10"
+            ],
+            "solution": {
+                "instance name": "instance_evaluation_0",
+                "name": "solution_evaluation_0"
+            },
+            "template id": "WN-Swp-3",
+            "type": "contrastive"
+        },
+        "support solution": {
+            "instance name": "instance_evaluation_0",
+            "name": "solution_evaluation_0_support",
+            "sequences": {
+                "Juan": [
+                    "T20",
+                    "T17",
+                    "T5",
+                    "T14",
+                    "T10",
+                    "T2",
+                    "T12",
+                    "T26",
+                    "T25"
+                ],
+                "Maria": [
+                    "T24",
+                    "T13",
+                    "T6",
+                    "T15",
+                    "T11"
+                ],
+                "Nicolas": [
+                    "T23",
+                    "T27",
+                    "T22",
+                    "T8",
+                    "T9"
+                ]
+            },
+            "tasks performances": {
+                "T1": {
+                    "performed": 0
+                },
+                "T10": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 850
+                },
+                "T11": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 962
+                },
+                "T12": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 906
+                },
+                "T13": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 586
+                },
+                "T14": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 689
+                },
+                "T15": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 735
+                },
+                "T16": {
+                    "performed": 0
+                },
+                "T17": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 582
+                },
+                "T18": {
+                    "performed": 0
+                },
+                "T19": {
+                    "performed": 0
+                },
+                "T2": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 858
+                },
+                "T20": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 531
+                },
+                "T21": {
+                    "performed": 0
+                },
+                "T22": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 607
+                },
+                "T23": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 496
+                },
+                "T24": {
+                    "employee name": "Maria",
+                    "performed": 1,
+                    "start time": 480
+                },
+                "T25": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 1035
+                },
+                "T26": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 990
+                },
+                "T27": {
+                    "employee name": "Nicolas",
+                    "performed": 1,
+                    "start time": 553
+                },
+                "T3": {
+                    "performed": 0
+                },
+                "T4": {
+                    "performed": 0
+                },
+                "T5": {
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 635
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -12292,8 +12292,8 @@
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T10 in Juan's and applying the following route [Home, T12, T2, T10, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T10 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T10, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "replacing T7 by T10 in Juan's and applying the following route [Home, T20, T17, T5, T14, T10, T2, T12, T26, T25, Home]",
+            "FR": "rempla\u00e7ant T7 par T10 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T20, T17, T5, T14, T10, T2, T12, T26, T25, Domicile]"
         }
     },
     {
@@ -12353,7 +12353,7 @@
                 "T11": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035.0
+                    "start time": 1035
                 },
                 "T12": {
                     "employee name": "Juan",
@@ -12381,7 +12381,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 745
+                    "start time": 800
                 },
                 "T18": {
                     "performed": 0
@@ -12397,7 +12397,7 @@
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 791
+                    "start time": 862
                 },
                 "T21": {
                     "performed": 0
@@ -12420,12 +12420,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 856
+                    "start time": 927
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 901
+                    "start time": 972
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -12441,7 +12441,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 687
+                    "start time": 742
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -12499,17 +12499,17 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 796
                 },
                 "T13": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 679.0
+                    "start time": 682
                 },
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 745
+                    "start time": 591
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -12522,7 +12522,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 852
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -12533,12 +12533,12 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 748
                 },
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 925
+                    "start time": 914
                 },
                 "T21": {
                     "performed": 0
@@ -12561,12 +12561,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 979
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 1024
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -12582,7 +12582,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 794
+                    "start time": 851
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -12605,8 +12605,8 @@
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T13 in Juan's and applying the following route [Home, T12, T2, T13, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T13 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T13, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "replacing T7 by T13 in Juan's and applying the following route [Home, T17, T14, T13, T2, T12, T5, T20, T25, T26, Home]",
+            "FR": "rempla\u00e7ant T7 par T13 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T17, T14, T13, T2, T12, T5, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -12632,15 +12632,15 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
-                    "T15",
-                    "T14",
-                    "T5",
-                    "T17",
                     "T20",
-                    "T25",
-                    "T26"
+                    "T17",
+                    "T5",
+                    "T14",
+                    "T15",
+                    "T2",
+                    "T12",
+                    "T26",
+                    "T25"
                 ],
                 "Maria": [
                     "T24",
@@ -12671,7 +12671,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 906
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -12681,12 +12681,12 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 689
                 },
                 "T15": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 720.0
+                    "start time": 817
                 },
                 "T16": {
                     "performed": 0
@@ -12694,7 +12694,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 582
                 },
                 "T18": {
                     "performed": 0
@@ -12705,12 +12705,12 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 858
                 },
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 925
+                    "start time": 531
                 },
                 "T21": {
                     "performed": 0
@@ -12733,12 +12733,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -12754,7 +12754,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 635
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -12777,17 +12777,17 @@
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T15 in Juan's and applying the following route [Home, T12, T2, T15, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T15 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T15, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "replacing T7 by T15 in Juan's and applying the following route [Home, T20, T17, T5, T14, T15, T2, T12, T26, T25, Home]",
+            "FR": "rempla\u00e7ant T7 par T15 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T20, T17, T5, T14, T15, T2, T12, T26, T25, Domicile]"
         }
     },
     {
         "infeasibility": {
             "downstream critical index": 9,
             "downstream feasible": 1,
-            "early start time": 746,
+            "early start time": 804,
             "employee": "Juan",
-            "late start time": 640,
+            "late start time": 681,
             "task": "T16",
             "type": "time",
             "upstream critical index": 0,
@@ -12810,15 +12810,15 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
+                    "T17",
                     "T12",
                     "T2",
                     "T16",
                     "T14",
                     "T5",
-                    "T17",
                     "T20",
-                    "T26",
-                    "T25"
+                    "T25",
+                    "T26"
                 ],
                 "Maria": [
                     "T24",
@@ -12850,7 +12850,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 597
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -12860,7 +12860,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 813
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -12870,12 +12870,12 @@
                 "T16": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 746.0
+                    "start time": 804
                 },
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -12886,7 +12886,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 645
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -12914,12 +12914,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -12935,7 +12935,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -12958,8 +12958,8 @@
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T16 in Juan's and applying the following route [Home, T12, T2, T16, T14, T5, T17, T20, T26, T25, Home]",
-            "FR": "rempla\u00e7ant T7 par T16 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T16, T14, T5, T17, T20, T26, T25, Domicile]"
+            "EN": "replacing T7 by T16 in Juan's and applying the following route [Home, T17, T12, T2, T16, T14, T5, T20, T25, T26, Home]",
+            "FR": "rempla\u00e7ant T7 par T16 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T17, T12, T2, T16, T14, T5, T20, T25, T26, Domicile]"
         }
     },
     {
@@ -13016,12 +13016,12 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 592
+                    "start time": 630
                 },
                 "T18": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 984.0
+                    "start time": 984
                 },
                 "T19": {
                     "performed": 0
@@ -13034,7 +13034,7 @@
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 638
+                    "start time": 676
                 },
                 "T21": {
                     "performed": 0
@@ -13057,12 +13057,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 735
+                    "start time": 741
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 780
+                    "start time": 786
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -13168,7 +13168,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 576
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -13178,7 +13178,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 638
+                    "start time": 675
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -13191,7 +13191,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 829
+                    "start time": 782
                 },
                 "T18": {
                     "performed": 0
@@ -13199,17 +13199,17 @@
                 "T19": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 947.0
+                    "start time": 900
                 },
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 624
                 },
                 "T20": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 875
+                    "start time": 828
                 },
                 "T21": {
                     "performed": 0
@@ -13237,7 +13237,7 @@
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 943
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -13253,7 +13253,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 771
+                    "start time": 724
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -13303,13 +13303,13 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
-                    "T12",
-                    "T2",
+                    "T17",
+                    "T7",
                     "T21",
                     "T14",
+                    "T2",
+                    "T12",
                     "T5",
-                    "T17",
-                    "T20",
                     "T25",
                     "T26"
                 ],
@@ -13343,7 +13343,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 856
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -13353,7 +13353,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 757
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -13366,7 +13366,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -13377,17 +13377,15 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 808
                 },
                 "T20": {
-                    "employee name": "Juan",
-                    "performed": 1,
-                    "start time": 925
+                    "performed": 0
                 },
                 "T21": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 693.0
+                    "start time": 685
                 },
                 "T22": {
                     "employee name": "Nicolas",
@@ -13428,7 +13426,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 911
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -13436,7 +13434,9 @@
                     "start time": 641
                 },
                 "T7": {
-                    "performed": 0
+                    "employee name": "Juan",
+                    "performed": 1,
+                    "start time": 614
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -13451,8 +13451,8 @@
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T21 in Juan's and applying the following route [Home, T12, T2, T21, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T21 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T21, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "replacing T20 by T21 in Juan's and applying the following route [Home, T17, T7, T21, T14, T2, T12, T5, T25, T26, Home]",
+            "FR": "rempla\u00e7ant T20 par T21 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T17, T7, T21, T14, T2, T12, T5, T25, T26, Domicile]"
         }
     },
     {
@@ -13509,7 +13509,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 745
+                    "start time": 782
                 },
                 "T18": {
                     "performed": 0
@@ -13533,7 +13533,7 @@
                 "T22": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 908.0
+                    "start time": 908
                 },
                 "T23": {
                     "employee name": "Nicolas",
@@ -13569,7 +13569,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 687
+                    "start time": 724
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -13679,7 +13679,7 @@
                 "T23": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 680.0
+                    "start time": 680
                 },
                 "T24": {
                     "employee name": "Maria",
@@ -13760,15 +13760,15 @@
             "name": "solution_evaluation_0_support",
             "sequences": {
                 "Juan": [
+                    "T17",
                     "T12",
-                    "T2",
                     "T24",
+                    "T2",
                     "T14",
                     "T5",
-                    "T17",
                     "T20",
-                    "T25",
-                    "T26"
+                    "T26",
+                    "T25"
                 ],
                 "Maria": [
                     "T13",
@@ -13799,7 +13799,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539
+                    "start time": 597
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -13809,7 +13809,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 772
+                    "start time": 813
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -13822,7 +13822,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 531
                 },
                 "T18": {
                     "performed": 0
@@ -13833,7 +13833,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 762
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -13856,17 +13856,17 @@
                 "T24": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 664.0
+                    "start time": 678
                 },
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -13882,7 +13882,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 821
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -13905,8 +13905,8 @@
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T24 in Juan's and applying the following route [Home, T12, T2, T24, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T24 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T24, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "replacing T7 by T24 in Juan's and applying the following route [Home, T17, T12, T24, T2, T14, T5, T20, T26, T25, Home]",
+            "FR": "rempla\u00e7ant T7 par T24 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T17, T12, T24, T2, T14, T5, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -13950,7 +13950,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 638
+                    "start time": 693
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -13963,7 +13963,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 823
+                    "start time": 800
                 },
                 "T18": {
                     "performed": 0
@@ -14002,17 +14002,17 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 942.0
+                    "start time": 942
                 },
                 "T3": {
                     "performed": 0
@@ -14023,7 +14023,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 765
+                    "start time": 742
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -14046,8 +14046,8 @@
             }
         },
         "transformation": {
-            "EN": "replacing T7 by T27 in Juan's and applying the following route [Home, T12, T2, T14, T5, T17, T20, T27, T25, T26, Home]",
-            "FR": "rempla\u00e7ant T7 par T27 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T14, T5, T17, T20, T27, T25, T26, Domicile]"
+            "EN": "replacing T7 by T27 in Juan's and applying the following route [Home, T12, T2, T14, T5, T17, T20, T27, T26, T25, Home]",
+            "FR": "rempla\u00e7ant T7 par T27 dans le planning de Juan et en appliquant l'itin\u00e9raire suivant [Domicile, T12, T2, T14, T5, T17, T20, T27, T26, T25, Domicile]"
         }
     },
     {
@@ -14108,7 +14108,7 @@
                 "T1": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 930.0
+                    "start time": 930
                 },
                 "T10": {
                     "performed": 0
@@ -14294,7 +14294,7 @@
                 "T2": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 805.0
+                    "start time": 805
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -14478,7 +14478,7 @@
                 "T3": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 687.0
+                    "start time": 687
                 },
                 "T4": {
                     "performed": 0
@@ -14624,7 +14624,7 @@
                 "T4": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 574.0
+                    "start time": 574
                 },
                 "T5": {
                     "employee name": "Juan",
@@ -14770,7 +14770,7 @@
                 "T5": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 816.0
+                    "start time": 816
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -14921,7 +14921,7 @@
                 "T7": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 480.0
+                    "start time": 480
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -15067,7 +15067,7 @@
                 "T8": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 789.0
+                    "start time": 789
                 },
                 "T9": {
                     "employee name": "Nicolas",
@@ -15213,7 +15213,7 @@
                 "T9": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 963.0
+                    "start time": 963
                 }
             }
         },
@@ -15245,7 +15245,7 @@
                 "T10": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 759.0
+                    "start time": 759
                 },
                 "T11": {
                     "employee name": "Maria",
@@ -15396,7 +15396,7 @@
                 "T12": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 480.0
+                    "start time": 480
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -15547,7 +15547,7 @@
                 "T14": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 806.0
+                    "start time": 806
                 },
                 "T15": {
                     "performed": 0
@@ -15696,7 +15696,7 @@
                 "T16": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 671.0
+                    "start time": 671
                 },
                 "T17": {
                     "employee name": "Juan",
@@ -15826,7 +15826,7 @@
                 "T13": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 586
+                    "start time": 705
                 },
                 "T14": {
                     "employee name": "Juan",
@@ -15842,7 +15842,7 @@
                 "T17": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 900.0
+                    "start time": 496
                 },
                 "T18": {
                     "performed": 0
@@ -15876,7 +15876,7 @@
                 "T24": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 480
+                    "start time": 599
                 },
                 "T25": {
                     "employee name": "Juan",
@@ -15907,7 +15907,7 @@
                 "T6": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 641
+                    "start time": 763
                 },
                 "T7": {
                     "employee name": "Juan",
@@ -15927,8 +15927,8 @@
             }
         },
         "transformation": {
-            "EN": "replacing T15 by T17 in Maria's and applying the following route [Home, T24, T13, T6, T17, T11, Home]",
-            "FR": "rempla\u00e7ant T15 par T17 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T24, T13, T6, T17, T11, Domicile]"
+            "EN": "replacing T15 by T17 in Maria's and applying the following route [Home, T17, T24, T13, T6, T11, Home]",
+            "FR": "rempla\u00e7ant T15 par T17 dans le planning de Maria et en appliquant l'itin\u00e9raire suivant [Domicile, T17, T24, T13, T6, T11, Domicile]"
         }
     },
     {
@@ -16026,7 +16026,7 @@
                 "T18": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 960.0
+                    "start time": 960
                 },
                 "T19": {
                     "performed": 0
@@ -16172,7 +16172,7 @@
                 "T19": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 902.0
+                    "start time": 902
                 },
                 "T2": {
                     "employee name": "Juan",
@@ -16323,7 +16323,7 @@
                 "T20": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 895.0
+                    "start time": 895
                 },
                 "T21": {
                     "performed": 0
@@ -16469,7 +16469,7 @@
                 "T21": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 666.0
+                    "start time": 666
                 },
                 "T22": {
                     "employee name": "Nicolas",
@@ -16615,7 +16615,7 @@
                 "T22": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 845.0
+                    "start time": 845
                 },
                 "T23": {
                     "employee name": "Nicolas",
@@ -16798,7 +16798,7 @@
                 "T23": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 480.0
+                    "start time": 480
                 },
                 "T24": {
                     "employee name": "Maria",
@@ -16949,7 +16949,7 @@
                 "T25": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 880.0
+                    "start time": 880
                 },
                 "T26": {
                     "employee name": "Juan",
@@ -17095,7 +17095,7 @@
                 "T26": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 899.0
+                    "start time": 899
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -17241,7 +17241,7 @@
                 "T27": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 854.0
+                    "start time": 854
                 },
                 "T3": {
                     "performed": 0
@@ -17333,7 +17333,7 @@
                 "T1": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 966.0
+                    "start time": 966
                 },
                 "T10": {
                     "performed": 0
@@ -17552,7 +17552,7 @@
                 "T2": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 935.0
+                    "start time": 935
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -17768,7 +17768,7 @@
                 "T3": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 724.0
+                    "start time": 724
                 },
                 "T4": {
                     "performed": 0
@@ -17944,7 +17944,7 @@
                 "T4": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 680.0
+                    "start time": 680
                 },
                 "T5": {
                     "employee name": "Juan",
@@ -18123,7 +18123,7 @@
                 "T5": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 920.0
+                    "start time": 920
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -18300,7 +18300,7 @@
                 "T6": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 823.0
+                    "start time": 823
                 },
                 "T7": {
                     "employee name": "Juan",
@@ -18477,7 +18477,7 @@
                 "T7": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 650.0
+                    "start time": 650
                 },
                 "T8": {
                     "performed": 0
@@ -18549,7 +18549,7 @@
                 "T10": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 819.0
+                    "start time": 819
                 },
                 "T11": {
                     "employee name": "Maria",
@@ -18726,7 +18726,7 @@
                 "T11": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 969.0
+                    "start time": 969
                 },
                 "T12": {
                     "employee name": "Juan",
@@ -18903,7 +18903,7 @@
                 "T12": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 939.0
+                    "start time": 939
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -19080,7 +19080,7 @@
                 "T13": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 683.0
+                    "start time": 683
                 },
                 "T14": {
                     "employee name": "Juan",
@@ -19257,7 +19257,7 @@
                 "T14": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 925.0
+                    "start time": 925
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -19434,7 +19434,7 @@
                 "T15": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 789.0
+                    "start time": 789
                 },
                 "T16": {
                     "performed": 0
@@ -19612,7 +19612,7 @@
                 "T16": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 707.0
+                    "start time": 707
                 },
                 "T17": {
                     "employee name": "Juan",
@@ -19789,7 +19789,7 @@
                 "T17": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 692.0
+                    "start time": 692
                 },
                 "T18": {
                     "performed": 0
@@ -19867,7 +19867,7 @@
                 "T9": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 994
+                    "start time": 900
                 }
             }
         },
@@ -19967,7 +19967,7 @@
                 "T18": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 981.0
+                    "start time": 981
                 },
                 "T19": {
                     "performed": 0
@@ -20145,7 +20145,7 @@
                 "T19": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 1038.0
+                    "start time": 1038
                 },
                 "T2": {
                     "employee name": "Juan",
@@ -20327,7 +20327,7 @@
                 "T20": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 904.0
+                    "start time": 904
                 },
                 "T21": {
                     "performed": 0
@@ -20505,7 +20505,7 @@
                 "T21": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 690.0
+                    "start time": 690
                 },
                 "T22": {
                     "performed": 0
@@ -20692,7 +20692,7 @@
                 "T24": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 637.0
+                    "start time": 637
                 },
                 "T25": {
                     "employee name": "Juan",
@@ -20838,7 +20838,7 @@
                 "T25": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 1000.0
+                    "start time": 1000
                 },
                 "T26": {
                     "employee name": "Juan",
@@ -21015,7 +21015,7 @@
                 "T26": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 985.0
+                    "start time": 985
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -21088,7 +21088,7 @@
                 "T12": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 539.0
+                    "start time": 807
                 },
                 "T13": {
                     "employee name": "Maria",
@@ -21098,7 +21098,7 @@
                 "T14": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 748
+                    "start time": 708
                 },
                 "T15": {
                     "employee name": "Maria",
@@ -21111,7 +21111,7 @@
                 "T17": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 879
+                    "start time": 546
                 },
                 "T18": {
                     "performed": 0
@@ -21122,7 +21122,7 @@
                 "T2": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 587
+                    "start time": 759
                 },
                 "T20": {
                     "employee name": "Juan",
@@ -21150,12 +21150,12 @@
                 "T25": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 990
+                    "start time": 1035
                 },
                 "T26": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 1035
+                    "start time": 990
                 },
                 "T27": {
                     "employee name": "Nicolas",
@@ -21171,7 +21171,7 @@
                 "T5": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 797
+                    "start time": 862
                 },
                 "T6": {
                     "employee name": "Maria",
@@ -21181,7 +21181,7 @@
                 "T7": {
                     "employee name": "Juan",
                     "performed": 1,
-                    "start time": 669
+                    "start time": 629
                 },
                 "T8": {
                     "employee name": "Nicolas",
@@ -21196,8 +21196,8 @@
             }
         },
         "transformation": {
-            "EN": "reordering Juan's route into the following route [Home, T12, T2, T7, T14, T5, T17, T20, T25, T26, Home]",
-            "FR": "r\u00e9ordonnant l'itin\u00e9raire de Juan en l'itin\u00e9raire suivant [Domicile, T12, T2, T7, T14, T5, T17, T20, T25, T26, Domicile]"
+            "EN": "reordering Juan's route into the following route [Home, T17, T7, T14, T2, T12, T5, T20, T26, T25, Home]",
+            "FR": "r\u00e9ordonnant l'itin\u00e9raire de Juan en l'itin\u00e9raire suivant [Domicile, T17, T7, T14, T2, T12, T5, T20, T26, T25, Domicile]"
         }
     },
     {
@@ -21356,7 +21356,7 @@
                 "T6": {
                     "employee name": "Maria",
                     "performed": 1,
-                    "start time": 677.0
+                    "start time": 677
                 },
                 "T7": {
                     "employee name": "Juan",
@@ -21457,7 +21457,7 @@
                 "T22": {
                     "employee name": "Nicolas",
                     "performed": 1,
-                    "start time": 630.0
+                    "start time": 630
                 },
                 "T23": {
                     "employee name": "Nicolas",
