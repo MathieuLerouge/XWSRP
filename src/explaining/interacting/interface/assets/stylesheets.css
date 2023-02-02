@@ -118,7 +118,8 @@ button[disabled]{
 #template-question-dropdown .Select,
 #template-input-1 .Select,
 #template-input-2 .Select,
-#template-input-3 .Select {
+#template-input-3 .Select,
+#contrastive-statistics-template-question-dropdown .Select {
   border-radius: 4px;
   display: grid;
   align-items: center;
@@ -140,7 +141,8 @@ button[disabled]{
 #template-question-dropdown .Select-control,
 #template-input-1 .Select-control,
 #template-input-2 .Select-control,
-#template-input-3 .Select-control {
+#template-input-3 .Select-control,
+#contrastive-statistics-template-question-dropdown .Select-control {
   background-color: #353535;
   background-image: linear-gradient(to top, #252525, #353535 33%);
   border: 1px solid #4B5460;
@@ -154,7 +156,8 @@ button[disabled]{
 #template-question-dropdown .Select-control:hover,
 #template-input-1 .Select-control:hover,
 #template-input-2 .Select-control:hover,
-#template-input-3 .Select-control:hover {
+#template-input-3 .Select-control:hover,
+#contrastive-statistics-template-question-dropdown .Select-control:hover {
   border-color: #316499;
 }
 
@@ -165,7 +168,8 @@ button[disabled]{
 #template-question-dropdown .Select-placeholder,
 #template-input-1 .Select-placeholder,
 #template-input-2 .Select-placeholder,
-#template-input-3 .Select-placeholder {
+#template-input-3 .Select-placeholder,
+#contrastive-statistics-template-question-dropdown .Select-placeholder {
   color: grey;
   font-style: italic;
   cursor: pointer;
@@ -178,7 +182,8 @@ button[disabled]{
 #template-question-dropdown .Select-control > span,
 #template-input-1 .Select-control > span,
 #template-input-2 .Select-control > span,
-#template-input-3 .Select-control > span {
+#template-input-3 .Select-control > span,
+#contrastive-statistics-template-question-dropdown .Select-control > span {
   background: #194572;
   background-image: linear-gradient(to top, #252525, #194572 33%);
 }
@@ -194,7 +199,8 @@ button[disabled]{
 #template-question-dropdown .Select.is-focused > .Select-control,
 #template-input-1 .Select.is-focused > .Select-control,
 #template-input-2 .Select.is-focused > .Select-control,
-#template-input-3 .Select.is-focused > .Select-control {
+#template-input-3 .Select.is-focused > .Select-control,
+#contrastive-statistics-template-question-dropdown .Select.is-focused > .Select-control {
   background-color: #353535;
   border-color: #316499;
   color: #f3f5f4;
@@ -207,7 +213,8 @@ button[disabled]{
 #template-question-dropdown .Select.is-focused > .Select-control > span,
 #template-input-1 .Select.is-focused > .Select-control > span,
 #template-input-2 .Select.is-focused > .Select-control > span,
-#template-input-3 .Select.is-focused > .Select-control > span {
+#template-input-3 .Select.is-focused > .Select-control > span,
+#contrastive-statistics-template-question-dropdown .Select.is-focused > .Select-control > span {
   background-color: #194572;
   background-image: none;
 }
@@ -222,7 +229,8 @@ button[disabled]{
 #template-question-dropdown .Select-menu-outer,
 #template-input-1 .Select-menu-outer,
 #template-input-2 .Select-menu-outer,
-#template-input-3 .Select-menu-outer {
+#template-input-3 .Select-menu-outer,
+#contrastive-statistics-template-question-dropdown .Select-menu-outer {
   background-color: #353535;
   border-color: #316499;
 }
@@ -234,7 +242,8 @@ button[disabled]{
 #template-question-dropdown .Select.is-focused:not(.is-open) > .Select-control,
 #template-input-1 .Select.is-focused:not(.is-open) > .Select-control,
 #template-input-2 .Select.is-focused:not(.is-open) > .Select-control,
-#template-input-3 .Select.is-focused:not(.is-open) > .Select-control {
+#template-input-3 .Select.is-focused:not(.is-open) > .Select-control,
+#contrastive-statistics-template-question-dropdown .Select.is-focused:not(.is-open) > .Select-control {
   border-color: #316499;
 }
 
@@ -254,7 +263,8 @@ button[disabled]{
 #template-question-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
 #template-input-1 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
 #template-input-2 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
-#template-input-3 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label {
+#template-input-3 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
+#contrastive-statistics-template-question-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label {
   color: #f3f5f4;
 }
 
@@ -269,7 +279,8 @@ button[disabled]{
 #template-question-dropdown .Select.is-disabled .Select-control,
 #template-input-1 .Select.is-disabled .Select-control,
 #template-input-2 .Select.is-disabled .Select-control,
-#template-input-3 .Select.is-disabled .Select-control {
+#template-input-3 .Select.is-disabled .Select-control,
+#contrastive-statistics-template-question-dropdown .Select.is-disabled .Select-control {
   background-color: #252525;
   background-image: none;
   cursor: not-allowed;
@@ -282,7 +293,8 @@ button[disabled]{
 #template-question-dropdown .Select.is-disabled .Select-control:hover,
 #template-input-1 .Select.is-disabled .Select-control:hover,
 #template-input-2 .Select.is-disabled .Select-control:hover,
-#template-input-3 .Select.is-disabled .Select-control:hover {
+#template-input-3 .Select.is-disabled .Select-control:hover,
+#contrastive-statistics-template-question-dropdown .Select.is-disabled .Select-control:hover {
   border-color: #4B5460;
   cursor: not-allowed;
 }
@@ -294,7 +306,8 @@ button[disabled]{
 #template-question-dropdown .Select.is-disabled .Select-control > span,
 #template-input-1 .Select.is-disabled .Select-control > span,
 #template-input-2 .Select.is-disabled .Select-control > span,
-#template-input-3 .Select.is-disabled .Select-control > span {
+#template-input-3 .Select.is-disabled .Select-control > span,
+#contrastive-statistics-template-question-dropdown .Select.is-disabled .Select-control > span {
   background-color: #194572;
   background-image: none;
 }
@@ -306,7 +319,8 @@ button[disabled]{
 #template-question-dropdown .Select.is-disabled .Select-placeholder,
 #template-input-1 .Select.is-disabled .Select-placeholder,
 #template-input-2 .Select.is-disabled .Select-placeholder,
-#template-input-3 .Select.is-disabled .Select-placeholder {
+#template-input-3 .Select.is-disabled .Select-placeholder,
+#contrastive-statistics-template-question-dropdown .Select.is-disabled .Select-placeholder {
   cursor: not-allowed;
 }
 

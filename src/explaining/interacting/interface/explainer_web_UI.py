@@ -1235,9 +1235,59 @@ class ExplainerWebGUI:
                     )
                     return panel
 
+                def _build_contrastive_statistics_panel():
+                    """
+                    Build the panel providing the statistics about contrastive explanations.
+                    """
+                    #
+                    if self.language_is_english:
+                        contrastive_question_type = \
+                            "" if self.only_contrastive_questions_are_enabled else "'Why not?' "
+                        statistics_panel_title = f"Statistics about submitted {contrastive_question_type}questions"
+                        template_question_dropdown_placeholder = "Select a question template"
+                        label_contrastive_statistics_text = "Number of questions based on such template asked: "
+                        contrastive_statistics_text_placeholder = \
+                            f"Waiting for a {contrastive_question_type}question template to be selected..."
+                    elif self.language_is_french:
+                        contrastive_question_type = \
+                            "" if self.only_contrastive_questions_are_enabled else " de type 'Pourquoi pas ?'"
+                        statistics_panel_title = f"Statistiques sur les questions{contrastive_question_type} soumises"
+                        template_question_dropdown_placeholder = "Sélectionner un modèle de question"
+                        label_contrastive_statistics_text = "Nombre de questions soumises basées sur ce modèle : "
+                        contrastive_statistics_text_placeholder = \
+                            f"En attente qu'un modèle de question{contrastive_question_type} soit sélectionné..."
+                    else:
+                        raise ValueError(f"Unsupported language: {self.language}")
+                    first_line = html.Div(
+                        style=dict(display='flex', flexdirection='row'),
+                        children=[
+                            dcc.Dropdown(id='contrastive-statistics-template-question-dropdown', className='dropdown',
+                                         style=dict(flex=1),
+                                         options=[{'label': self._questions_templates[key].text,
+                                                   'value': key} for key in self._questions_templates.keys()],
+                                         placeholder=template_question_dropdown_placeholder),
+                        ]
+                    )
+                    second_line = html.Div(
+                        style=dict(paddingTop='1rem', display='flex', flexdirection='row'),
+                        children=[
+                            html.Div(className='text', style=dict(padding='.4rem 1rem'),
+                                     children=label_contrastive_statistics_text),
+                            html.Div(id='contrastive-statistics-text', className='empty-automated-text',
+                                     style=dict(flex=1),
+                                     children=contrastive_statistics_text_placeholder)
+                        ]
+                    )
+                    panel = html.Div(
+                        id="contrastive-statistics-panel", className='panel-with-bottom-margin',
+                        children=[build_panel_banner(statistics_panel_title),
+                                  html.Div(className='panel-content', children=[first_line, second_line])]
+                    )
+                    return panel
+
                 block = html.Div(children=[
                     html.Div(id='contrastive-explanation-representation-envelope', style=dict(display='none')),
-                    _build_contrastive_explanation_panel()
+                    _build_contrastive_explanation_panel(), _build_contrastive_statistics_panel()
                 ])
                 return block
 
@@ -1832,6 +1882,32 @@ class ExplainerWebGUI:
                     return None
                 else:
                     raise NotImplementedError("There is a problem with the scenario ok button #clicks")
+
+        @self._application.callback(
+            Output('contrastive-statistics-text', 'children'), Output('contrastive-statistics-text', 'className'),
+            Input('contrastive-statistics-template-question-dropdown', 'value'),
+            Input('contrastive-explanation-text', 'className')
+        )
+        def _update_contrastive_question_text(question_template_id: str, contrastive_explanation_text_style: str):
+            # Case where the questions templates dropdown is empty
+            if question_template_id is None:
+                if self.language_is_english:
+                    contrastive_question_type = \
+                        "" if self.only_contrastive_questions_are_enabled else "'Why not?' "
+                    contrastive_question_text_placeholder = \
+                        f"Waiting for a {contrastive_question_type}question to be selected..."
+                elif self.language_is_french:
+                    contrastive_question_type = \
+                        "" if self.only_contrastive_questions_are_enabled else " de type 'Pourquoi pas ?'"
+                    contrastive_question_text_placeholder = \
+                        f"En attente qu'un modèle de question{contrastive_question_type} soit sélectionné..."
+                else:
+                    raise NotImplementedError(f"Language {self.language} is not supported")
+                return contrastive_question_text_placeholder, 'empty-automated-text'
+            # Case where the questions templates dropdown is non-empty
+            else:
+                statistics_text = str(self._explainer.get_contrastive_questions_asked_count(question_template_id))
+                return statistics_text, 'automated-text'
 
         ################################################
         # Explainer tab content - Call back - Scenario #
