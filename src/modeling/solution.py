@@ -431,22 +431,13 @@ class Solution:
     def compute_sequences_based_on_ordered_tasks(self, ordered_tasks: dict[str, list[str]]):
         for employee_name in ordered_tasks:
             employee = self.instance.get_employee_by_name(employee_name)
-            sequence = Sequence(self._instance, employee)
-            sequence.append(
-                Step(activity=Departure(employee=employee), arrival_time=employee.start_time_LB,
-                     start_time=employee.start_time_LB, end_time=employee.start_time_LB)
-            )
+            steps = [Step(Departure(employee), employee.start_time_LB, employee.start_time_LB, employee.start_time_LB)]
             for task_name in ordered_tasks[employee_name]:
                 task = self._instance.get_task_by_name(task_name)
                 start_time = self.get_task_start_time(task)
-                sequence.append(
-                    Step(activity=task, start_time=start_time, end_time=start_time + task.duration)
-                )
-            sequence.append(
-                Step(activity=ComeBack(employee=employee),
-                     start_time=employee.end_time_UB, end_time=employee.end_time_UB)
-            )
-            self._sequences[employee_name] = sequence
+                steps.append(Step(task, start_time=start_time, end_time=start_time + task.duration))
+            steps.append(Step(ComeBack(employee), start_time=employee.end_time_UB, end_time=employee.end_time_UB))
+            self._sequences[employee_name] = Sequence(self._instance, employee, steps)
         self._compute_departure_and_comeback_times()
         self._compute_steps_arrival_times()
 

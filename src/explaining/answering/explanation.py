@@ -64,6 +64,26 @@ def create_explanation_from_dict(dictionary, solution: Solution):
     infeasibility = None
     if INFEASIBILITY_KEY in dictionary:
         infeasibility = Infeasibility.from_dict(dictionary[INFEASIBILITY_KEY], solution.instance)
+    if isinstance(infeasibility, TimeInfeasibility):
+        employee, task = infeasibility.conflicting_employee, infeasibility.conflicting_task
+        sequence = support_solution.get_sequence(employee)
+        index = sequence.get_step_index_of(task)
+        if index == 1:
+            departure_step = sequence[0]
+            traveling_time_from_departure = \
+                solution.instance.compute_traveling_duration(departure_step.activity, task)
+            departure_time = \
+                infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task - traveling_time_from_departure
+            departure_step.arrival_time, departure_step.start_time, departure_step.end_time = \
+                departure_time, departure_time, departure_time
+        if index == sequence.nb_steps - 2:
+            return_step = sequence[-1]
+            traveling_time_to_return = \
+                solution.instance.compute_traveling_duration(task, return_step.activity)
+            return_time = infeasibility.latest_downstream_feasible_start_time_of_conflicting_task + \
+                task.duration + traveling_time_to_return
+            return_step.arrival_time, return_step.start_time, return_step.end_time = \
+                return_time, return_time, return_time
     all_descriptions_of_applied_transformation = dictionary[TRANSFORMATION_KEY]
     return create_explanation(question, support_solution, infeasibility, all_descriptions_of_applied_transformation)
 
