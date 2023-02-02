@@ -199,16 +199,18 @@ def build_solution_metrics_panel(solution: Solution = None, is_current_solution:
                            f"the better the solution is. " \
                            f"{LINE_BREAK_STRING}"
     elif check_if_language_is_french(language):
-        description_text = f"Nous comparons les solutions entre elles sur la base de deux objectifs. " \
+        description_text = f"La qualité d'une solution est mesurée sur la base de deux critères, " \
+                           f"la durée totale de travail des employés et la durée totale de leurs déplacements, " \
+                           f"sachant que le premier critère est considéré comme prioritaire sur le second. " \
+                           f"Autrement dit :" \
                            f"{LINE_BREAK_STRING}" \
-                           f"• D'abord, " \
-                           f"nous considérons que plus la durée totale de travail des employés est grande, " \
-                           f"meilleure est la solution. " \
+                           f"• Si une solution a une durée totale de travail supérieure à " \
+                           f"celle d'une autre solution, " \
+                           f"quelle que soit les durées totales de déplacement des deux solutions, " \
+                           f"la première est meilleure que la seconde. " \
                            f"{LINE_BREAK_STRING}" \
-                           f"• Puis, " \
-                           f"si plusieurs solutions ont les mêmes durées totales de travail des employés, " \
-                           f"alors plus la durée totale de déplacement des employés est petite, " \
-                           f"meilleure est la solution. " \
+                           f"• Si deux solutions ont la même durée totale de travail, " \
+                           f"alors la solution ayant la durée totale de déplacement la plus courte est la meilleure." \
                            f"{LINE_BREAK_STRING}"
     else:
         raise ValueError(f"Unknown language: {language}")

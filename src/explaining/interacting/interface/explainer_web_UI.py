@@ -785,7 +785,7 @@ class ExplainerWebGUI:
                               "mais il est possible de le déduire à partir du diagramme de Gantt. " \
                               "Par ailleurs, des informations sont affichées sur la carte et sur le diagramme " \
                               "de Gantt lorsque la souris est placée au-dessus des éléments d'intérêt."
-                metrics_panel_title = "Quelques chiffres sur la solution"
+                metrics_panel_title = "Qualité de la solution"
             else:
                 raise ValueError(f"Language '{self.language}' is not supported.")
             tab_content = html.Div(
