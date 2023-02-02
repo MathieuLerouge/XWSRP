@@ -110,6 +110,8 @@ class Sequence:
         return self._steps[index_start:index_end] if index_end is not None else self._steps[index_start:]
 
     def append(self, step: Step):
+        if len(self._steps) > 0 and isinstance(self._steps[-1].activity, ComeBack):
+            raise PermissionError("No step can be added after a return")
         self._steps.append(step)
 
     def insert(self, index: int, step: Step):
