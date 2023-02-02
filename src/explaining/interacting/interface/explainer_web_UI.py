@@ -984,7 +984,8 @@ class ExplainerWebGUI:
                                   f"une représentation des itinéraires et des emplois du temps de la " \
                                   f"{self._current_solution_in_text(False)} identique à celle de l'onglet " \
                                   f"\"{self._solution_description_tab_title}\", " \
-                                  f"un block de formulation de questions et un block de présentation des réponses." \
+                                  f"un block de formulation de questions, un de présentation des réponses et " \
+                                  f"un de statistiques sur les questions posées." \
                                   f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                     panel_text += f"• En ce qui concerne le block de formulation de questions, " \
                                   f"afin de formuler une question sur la {self._current_solution_in_text(False)}, " \
@@ -1006,6 +1007,10 @@ class ExplainerWebGUI:
                                   f"permet de réinitialiser les blocks de " \
                                   f"formulation de questions et de présentation des réponses. " \
                                   f"Il est alors possible de formuler une nouvelle question." \
+                                  f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                    panel_text += f"• Enfin, le block de statistiques permet de consuler " \
+                                  f"combien de questions de chaque type ont été posées " \
+                                  f"depuis le début de l'utilisation de l'outil." \
                                   f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                     if self.explanations_representation_are_enabled:
                         panel_text += "NB : lorsque l'explication traite d'un conflit temporel, " \
