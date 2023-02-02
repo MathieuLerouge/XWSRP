@@ -48,7 +48,7 @@
                 "T1": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 649.0
+                    "start time": 649
                 },
                 "T10": {
                     "employee name": "Valentin",
@@ -193,7 +193,7 @@
                 "T2": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 590.0
+                    "start time": 590
                 },
                 "T3": {
                     "employee name": "Ambre",
@@ -317,7 +317,7 @@
                 "T3": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 1008.0
+                    "start time": 1008
                 },
                 "T4": {
                     "employee name": "Valentin",
@@ -461,7 +461,7 @@
                 "T8": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 573.0
+                    "start time": 573
                 },
                 "T9": {
                     "employee name": "Valentin",
@@ -535,7 +535,7 @@
                 "T11": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 612.0
+                    "start time": 612
                 },
                 "T12": {
                     "employee name": "Ambre",
@@ -659,7 +659,7 @@
                 "T12": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 663.0
+                    "start time": 663
                 },
                 "T13": {
                     "employee name": "Valentin",
@@ -789,7 +789,7 @@
                 "T14": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 654.0
+                    "start time": 654
                 },
                 "T2": {
                     "employee name": "Ambre",
@@ -923,7 +923,7 @@
                 "T4": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 585.0
+                    "start time": 585
                 },
                 "T5": {
                     "employee name": "Valentin",
@@ -1041,7 +1041,7 @@
                 "T5": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 562.0
+                    "start time": 562
                 },
                 "T6": {
                     "employee name": "Valentin",
@@ -1159,7 +1159,7 @@
                 "T6": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 1037.0
+                    "start time": 1037
                 },
                 "T7": {
                     "employee name": "Valentin",
@@ -1283,7 +1283,7 @@
                 "T7": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 1070.0
+                    "start time": 1070
                 },
                 "T8": {
                     "employee name": "Ambre",
@@ -1406,7 +1406,7 @@
                 "T9": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 1057.0
+                    "start time": 1057
                 }
             }
         },
@@ -1469,7 +1469,7 @@
                 "T10": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 898.0
+                    "start time": 898
                 },
                 "T11": {
                     "performed": 0
@@ -1588,7 +1588,7 @@
                 "T11": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 798.0
+                    "start time": 798
                 },
                 "T12": {
                     "employee name": "Ambre",
@@ -1717,7 +1717,7 @@
                 "T13": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 1053.0
+                    "start time": 1053
                 },
                 "T14": {
                     "performed": 0
@@ -1836,7 +1836,7 @@
                 "T14": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 599.0
+                    "start time": 599
                 },
                 "T2": {
                     "employee name": "Ambre",
@@ -1933,7 +1933,7 @@
                 "T1": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 573.0
+                    "start time": 573
                 },
                 "T10": {
                     "performed": 0
@@ -2073,7 +2073,7 @@
                 "T2": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 558.0
+                    "start time": 558
                 },
                 "T3": {
                     "employee name": "Ambre",
@@ -2166,7 +2166,7 @@
                 "T3": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 875.0
+                    "start time": 875
                 },
                 "T4": {
                     "employee name": "Valentin",
@@ -2279,7 +2279,7 @@
                 "T8": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 498.0
+                    "start time": 498
                 },
                 "T9": {
                     "employee name": "Valentin",
@@ -2352,7 +2352,7 @@
                 "T11": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 612.0
+                    "start time": 612
                 },
                 "T12": {
                     "employee name": "Ambre",
@@ -2473,7 +2473,7 @@
                 "T12": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 699.0
+                    "start time": 699
                 },
                 "T13": {
                     "employee name": "Valentin",
@@ -2569,7 +2569,7 @@
                 "T14": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 667.0
+                    "start time": 667
                 },
                 "T2": {
                     "employee name": "Ambre",
@@ -2672,7 +2672,7 @@
                 "T4": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 680.0
+                    "start time": 680
                 },
                 "T5": {
                     "employee name": "Valentin",
@@ -2787,7 +2787,7 @@
                 "T5": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 806.0
+                    "start time": 806
                 },
                 "T6": {
                     "employee name": "Valentin",
@@ -2902,7 +2902,7 @@
                 "T6": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 983.0
+                    "start time": 983
                 },
                 "T7": {
                     "employee name": "Valentin",
@@ -2995,7 +2995,7 @@
                 "T7": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 957.0
+                    "start time": 957
                 },
                 "T8": {
                     "employee name": "Ambre",
@@ -3115,7 +3115,7 @@
                 "T9": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 969.0
+                    "start time": 969
                 }
             }
         },
@@ -3149,7 +3149,7 @@
                 "T10": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 817.0
+                    "start time": 817
                 },
                 "T11": {
                     "performed": 0
@@ -3265,7 +3265,7 @@
                 "T11": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 600.0
+                    "start time": 600
                 },
                 "T12": {
                     "employee name": "Ambre",
@@ -3363,7 +3363,7 @@
                 "T13": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 965.0
+                    "start time": 965
                 },
                 "T14": {
                     "performed": 0
@@ -3477,7 +3477,7 @@
                 "T14": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 704.0
+                    "start time": 704
                 },
                 "T2": {
                     "employee name": "Ambre",
@@ -3596,7 +3596,7 @@
                 "T7": {
                     "employee name": "Valentin",
                     "performed": 1,
-                    "start time": 819.0
+                    "start time": 819
                 },
                 "T8": {
                     "employee name": "Ambre",
@@ -3676,7 +3676,7 @@
                 "T12": {
                     "employee name": "Ambre",
                     "performed": 1,
-                    "start time": 1027.0
+                    "start time": 1027
                 },
                 "T13": {
                     "employee name": "Valentin",

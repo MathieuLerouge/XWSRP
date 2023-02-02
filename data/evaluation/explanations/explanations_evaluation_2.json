@@ -129,7 +129,7 @@
                 "T2": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1078.0
+                    "start time": 1078
                 },
                 "T20": {
                     "employee name": "Alexander",
@@ -432,7 +432,7 @@
                 "T3": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 959.0
+                    "start time": 959
                 },
                 "T30": {
                     "employee name": "Alexander",
@@ -714,7 +714,7 @@
                 "T5": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 809.0
+                    "start time": 809
                 },
                 "T6": {
                     "employee name": "Alexander",
@@ -961,7 +961,7 @@
                 "T6": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1009.0
+                    "start time": 1009
                 },
                 "T7": {
                     "employee name": "Ellen",
@@ -1224,7 +1224,7 @@
                 "T9": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 763.0
+                    "start time": 763
                 }
             }
         },
@@ -1313,7 +1313,7 @@
                 "T10": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 905.0
+                    "start time": 905
                 },
                 "T11": {
                     "employee name": "Adam",
@@ -1566,7 +1566,7 @@
                 "T11": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 978.0
+                    "start time": 978
                 },
                 "T12": {
                     "employee name": "Alexander",
@@ -1819,7 +1819,7 @@
                 "T12": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1085.0
+                    "start time": 1085
                 },
                 "T13": {
                     "employee name": "Fabian",
@@ -2072,7 +2072,7 @@
                 "T13": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 812.0
+                    "start time": 812
                 },
                 "T14": {
                     "employee name": "Carlotta",
@@ -2325,7 +2325,7 @@
                 "T14": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 515.0
+                    "start time": 515
                 },
                 "T15": {
                     "employee name": "Ellen",
@@ -2583,7 +2583,7 @@
                 "T16": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 538.0
+                    "start time": 538
                 },
                 "T17": {
                     "employee name": "Ellen",
@@ -2841,7 +2841,7 @@
                 "T18": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 969.0
+                    "start time": 969
                 },
                 "T19": {
                     "employee name": "Alexander",
@@ -3094,7 +3094,7 @@
                 "T19": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1042.0
+                    "start time": 1042
                 },
                 "T2": {
                     "employee name": "Alexander",
@@ -3297,7 +3297,7 @@
                 "T20": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1022.0
+                    "start time": 1022
                 },
                 "T21": {
                     "employee name": "Fabian",
@@ -3550,7 +3550,7 @@
                 "T21": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 919.0
+                    "start time": 919
                 },
                 "T22": {
                     "employee name": "Ellen",
@@ -3808,7 +3808,7 @@
                 "T23": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1045.0
+                    "start time": 1045
                 },
                 "T24": {
                     "employee name": "Adam",
@@ -4061,7 +4061,7 @@
                 "T24": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 760.0
+                    "start time": 760
                 },
                 "T25": {
                     "employee name": "Carlotta",
@@ -4314,7 +4314,7 @@
                 "T25": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 527.0
+                    "start time": 527
                 },
                 "T26": {
                     "employee name": "Adam",
@@ -4567,7 +4567,7 @@
                 "T26": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 925.0
+                    "start time": 925
                 },
                 "T27": {
                     "employee name": "Ellen",
@@ -4819,7 +4819,7 @@
                 "T28": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 560.0
+                    "start time": 560
                 },
                 "T29": {
                     "employee name": "Fabian",
@@ -5072,7 +5072,7 @@
                 "T29": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 741.0
+                    "start time": 741
                 },
                 "T3": {
                     "employee name": "Fabian",
@@ -5330,7 +5330,7 @@
                 "T30": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 508.0
+                    "start time": 508
                 },
                 "T31": {
                     "employee name": "Alexander",
@@ -5583,7 +5583,7 @@
                 "T31": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1005.0
+                    "start time": 1005
                 },
                 "T32": {
                     "employee name": "Fabian",
@@ -5836,7 +5836,7 @@
                 "T32": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 965.0
+                    "start time": 965
                 },
                 "T33": {
                     "performed": 0
@@ -6090,7 +6090,7 @@
                 "T33": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1026.0
+                    "start time": 1026
                 },
                 "T34": {
                     "performed": 0
@@ -6338,7 +6338,7 @@
                 "T34": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 977.0
+                    "start time": 977
                 },
                 "T35": {
                     "performed": 0
@@ -6592,7 +6592,7 @@
                 "T35": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 896.0
+                    "start time": 896
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -6706,7 +6706,7 @@
                 "T1": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 611.0
+                    "start time": 611
                 },
                 "T10": {
                     "employee name": "Adam",
@@ -7064,7 +7064,7 @@
                 "T3": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 726.0
+                    "start time": 726
                 },
                 "T30": {
                     "employee name": "Alexander",
@@ -7341,7 +7341,7 @@
                 "T4": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1051.0
+                    "start time": 1051
                 },
                 "T5": {
                     "employee name": "Carlotta",
@@ -7594,7 +7594,7 @@
                 "T5": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 854.0
+                    "start time": 854
                 },
                 "T6": {
                     "employee name": "Alexander",
@@ -7852,7 +7852,7 @@
                 "T7": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 610.0
+                    "start time": 610
                 },
                 "T8": {
                     "employee name": "Ellen",
@@ -8105,7 +8105,7 @@
                 "T8": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 626.0
+                    "start time": 626
                 },
                 "T9": {
                     "employee name": "Adam",
@@ -8358,7 +8358,7 @@
                 "T9": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 774.0
+                    "start time": 774
                 }
             }
         },
@@ -8447,7 +8447,7 @@
                 "T10": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 776.0
+                    "start time": 776
                 },
                 "T11": {
                     "employee name": "Adam",
@@ -8700,7 +8700,7 @@
                 "T11": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1146.0
+                    "start time": 1146
                 },
                 "T12": {
                     "employee name": "Alexander",
@@ -8958,7 +8958,7 @@
                 "T13": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 810.0
+                    "start time": 810
                 },
                 "T14": {
                     "employee name": "Carlotta",
@@ -9211,7 +9211,7 @@
                 "T14": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 699.0
+                    "start time": 699
                 },
                 "T15": {
                     "employee name": "Ellen",
@@ -9464,7 +9464,7 @@
                 "T15": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 750.0
+                    "start time": 750
                 },
                 "T16": {
                     "employee name": "Carlotta",
@@ -9717,7 +9717,7 @@
                 "T16": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1022.0
+                    "start time": 1022
                 },
                 "T17": {
                     "employee name": "Ellen",
@@ -9970,7 +9970,7 @@
                 "T17": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 750.0
+                    "start time": 750
                 },
                 "T18": {
                     "employee name": "Adam",
@@ -10223,7 +10223,7 @@
                 "T18": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 900.0
+                    "start time": 900
                 },
                 "T19": {
                     "employee name": "Alexander",
@@ -10491,7 +10491,7 @@
                 "T21": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 748.0
+                    "start time": 748
                 },
                 "T22": {
                     "employee name": "Ellen",
@@ -10744,7 +10744,7 @@
                 "T22": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1085.0
+                    "start time": 1085
                 },
                 "T23": {
                     "employee name": "Carlotta",
@@ -10997,7 +10997,7 @@
                 "T23": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1037.0
+                    "start time": 1037
                 },
                 "T24": {
                     "employee name": "Adam",
@@ -11250,7 +11250,7 @@
                 "T24": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 768.0
+                    "start time": 768
                 },
                 "T25": {
                     "employee name": "Carlotta",
@@ -11503,7 +11503,7 @@
                 "T25": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 689.0
+                    "start time": 689
                 },
                 "T26": {
                     "employee name": "Adam",
@@ -11756,7 +11756,7 @@
                 "T26": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 739.0
+                    "start time": 739
                 },
                 "T27": {
                     "employee name": "Ellen",
@@ -12009,7 +12009,7 @@
                 "T27": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 630.0
+                    "start time": 630
                 },
                 "T28": {
                     "employee name": "Alexander",
@@ -12267,7 +12267,7 @@
                 "T29": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 736.0
+                    "start time": 736
                 },
                 "T3": {
                     "employee name": "Fabian",
@@ -12535,7 +12535,7 @@
                 "T32": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 815.0
+                    "start time": 815
                 },
                 "T33": {
                     "performed": 0
@@ -12789,7 +12789,7 @@
                 "T33": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 860.0
+                    "start time": 860
                 },
                 "T34": {
                     "performed": 0
@@ -13043,7 +13043,7 @@
                 "T34": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 912.0
+                    "start time": 912
                 },
                 "T35": {
                     "performed": 0
@@ -13297,7 +13297,7 @@
                 "T35": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1083.0
+                    "start time": 1083
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -13411,7 +13411,7 @@
                 "T1": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 774.0
+                    "start time": 774
                 },
                 "T10": {
                     "employee name": "Adam",
@@ -13714,7 +13714,7 @@
                 "T2": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 880.0
+                    "start time": 880
                 },
                 "T20": {
                     "employee name": "Alexander",
@@ -14017,7 +14017,7 @@
                 "T3": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 775.0
+                    "start time": 775
                 },
                 "T30": {
                     "employee name": "Alexander",
@@ -14294,7 +14294,7 @@
                 "T4": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 840.0
+                    "start time": 840
                 },
                 "T5": {
                     "employee name": "Carlotta",
@@ -14547,7 +14547,7 @@
                 "T5": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 848.0
+                    "start time": 848
                 },
                 "T6": {
                     "employee name": "Alexander",
@@ -14794,7 +14794,7 @@
                 "T6": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 810.0
+                    "start time": 810
                 },
                 "T7": {
                     "employee name": "Ellen",
@@ -15047,7 +15047,7 @@
                 "T7": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 821.0
+                    "start time": 821
                 },
                 "T8": {
                     "employee name": "Ellen",
@@ -15300,7 +15300,7 @@
                 "T8": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 804.0
+                    "start time": 804
                 },
                 "T9": {
                     "employee name": "Adam",
@@ -15404,7 +15404,7 @@
                 "T12": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 895.0
+                    "start time": 895
                 },
                 "T13": {
                     "employee name": "Fabian",
@@ -15657,7 +15657,7 @@
                 "T13": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 546.0
+                    "start time": 546
                 },
                 "T14": {
                     "employee name": "Carlotta",
@@ -15910,7 +15910,7 @@
                 "T14": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 838.0
+                    "start time": 838
                 },
                 "T15": {
                     "employee name": "Ellen",
@@ -16163,7 +16163,7 @@
                 "T15": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 749.0
+                    "start time": 749
                 },
                 "T16": {
                     "employee name": "Carlotta",
@@ -16416,7 +16416,7 @@
                 "T16": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 901.0
+                    "start time": 901
                 },
                 "T17": {
                     "employee name": "Ellen",
@@ -16669,7 +16669,7 @@
                 "T17": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 774.0
+                    "start time": 774
                 },
                 "T18": {
                     "employee name": "Adam",
@@ -16927,7 +16927,7 @@
                 "T19": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 863.0
+                    "start time": 863
                 },
                 "T2": {
                     "employee name": "Alexander",
@@ -17185,7 +17185,7 @@
                 "T20": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 824.0
+                    "start time": 824
                 },
                 "T21": {
                     "employee name": "Fabian",
@@ -17438,7 +17438,7 @@
                 "T21": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 759.0
+                    "start time": 759
                 },
                 "T22": {
                     "employee name": "Ellen",
@@ -17691,7 +17691,7 @@
                 "T22": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 1115.0
+                    "start time": 1115
                 },
                 "T23": {
                     "employee name": "Carlotta",
@@ -17944,7 +17944,7 @@
                 "T23": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 875.0
+                    "start time": 875
                 },
                 "T24": {
                     "employee name": "Adam",
@@ -18202,7 +18202,7 @@
                 "T25": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 900.0
+                    "start time": 900
                 },
                 "T26": {
                     "employee name": "Adam",
@@ -18460,7 +18460,7 @@
                 "T27": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 799.0
+                    "start time": 799
                 },
                 "T28": {
                     "employee name": "Alexander",
@@ -18707,7 +18707,7 @@
                 "T28": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 909.0
+                    "start time": 909
                 },
                 "T29": {
                     "employee name": "Fabian",
@@ -18960,7 +18960,7 @@
                 "T29": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 761.0
+                    "start time": 761
                 },
                 "T3": {
                     "employee name": "Fabian",
@@ -19218,7 +19218,7 @@
                 "T30": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 820.0
+                    "start time": 820
                 },
                 "T31": {
                     "employee name": "Alexander",
@@ -19471,7 +19471,7 @@
                 "T31": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 864.0
+                    "start time": 864
                 },
                 "T32": {
                     "employee name": "Fabian",
@@ -19724,7 +19724,7 @@
                 "T32": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 1036.0
+                    "start time": 1036
                 },
                 "T33": {
                     "performed": 0
@@ -19978,7 +19978,7 @@
                 "T33": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 865.0
+                    "start time": 865
                 },
                 "T34": {
                     "performed": 0
@@ -20226,7 +20226,7 @@
                 "T34": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 927.0
+                    "start time": 927
                 },
                 "T35": {
                     "performed": 0
@@ -20480,7 +20480,7 @@
                 "T35": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 869.0
+                    "start time": 869
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -20594,7 +20594,7 @@
                 "T1": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 799.0
+                    "start time": 799
                 },
                 "T10": {
                     "employee name": "Adam",
@@ -20897,7 +20897,7 @@
                 "T2": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 932.0
+                    "start time": 932
                 },
                 "T20": {
                     "employee name": "Alexander",
@@ -21229,7 +21229,7 @@
                 "T4": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 876.0
+                    "start time": 876
                 },
                 "T5": {
                     "employee name": "Carlotta",
@@ -21482,7 +21482,7 @@
                 "T5": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 789.0
+                    "start time": 789
                 },
                 "T6": {
                     "employee name": "Alexander",
@@ -21729,7 +21729,7 @@
                 "T6": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 789.0
+                    "start time": 789
                 },
                 "T7": {
                     "employee name": "Ellen",
@@ -21976,7 +21976,7 @@
                 "T7": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 760.0
+                    "start time": 760
                 },
                 "T8": {
                     "employee name": "Ellen",
@@ -22229,7 +22229,7 @@
                 "T8": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 801.0
+                    "start time": 801
                 },
                 "T9": {
                     "employee name": "Adam",
@@ -22476,7 +22476,7 @@
                 "T9": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 606.0
+                    "start time": 606
                 }
             }
         },
@@ -22510,7 +22510,7 @@
                 "T10": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 894.0
+                    "start time": 894
                 },
                 "T11": {
                     "employee name": "Adam",
@@ -22757,7 +22757,7 @@
                 "T11": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 911.0
+                    "start time": 911
                 },
                 "T12": {
                     "employee name": "Alexander",
@@ -23004,7 +23004,7 @@
                 "T12": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 832.0
+                    "start time": 832
                 },
                 "T13": {
                     "employee name": "Fabian",
@@ -23262,7 +23262,7 @@
                 "T14": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 770.0
+                    "start time": 770
                 },
                 "T15": {
                     "employee name": "Ellen",
@@ -23509,7 +23509,7 @@
                 "T15": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 794.0
+                    "start time": 794
                 },
                 "T16": {
                     "employee name": "Carlotta",
@@ -23762,7 +23762,7 @@
                 "T16": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 833.0
+                    "start time": 833
                 },
                 "T17": {
                     "employee name": "Ellen",
@@ -24015,7 +24015,7 @@
                 "T17": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 805.0
+                    "start time": 805
                 },
                 "T18": {
                     "employee name": "Adam",
@@ -24268,7 +24268,7 @@
                 "T18": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 892.0
+                    "start time": 892
                 },
                 "T19": {
                     "employee name": "Alexander",
@@ -24515,7 +24515,7 @@
                 "T19": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 796.0
+                    "start time": 796
                 },
                 "T2": {
                     "employee name": "Alexander",
@@ -24767,7 +24767,7 @@
                 "T20": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 800.0
+                    "start time": 800
                 },
                 "T21": {
                     "employee name": "Fabian",
@@ -25025,7 +25025,7 @@
                 "T22": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 900.0
+                    "start time": 900
                 },
                 "T23": {
                     "employee name": "Carlotta",
@@ -25278,7 +25278,7 @@
                 "T23": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 806.0
+                    "start time": 806
                 },
                 "T24": {
                     "employee name": "Adam",
@@ -25525,7 +25525,7 @@
                 "T24": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 602.0
+                    "start time": 602
                 },
                 "T25": {
                     "employee name": "Carlotta",
@@ -25778,7 +25778,7 @@
                 "T25": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 789.0
+                    "start time": 789
                 },
                 "T26": {
                     "employee name": "Adam",
@@ -26025,7 +26025,7 @@
                 "T26": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 755.0
+                    "start time": 755
                 },
                 "T27": {
                     "employee name": "Ellen",
@@ -26272,7 +26272,7 @@
                 "T27": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 800.0
+                    "start time": 800
                 },
                 "T28": {
                     "employee name": "Alexander",
@@ -26519,7 +26519,7 @@
                 "T28": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 800.0
+                    "start time": 800
                 },
                 "T29": {
                     "employee name": "Fabian",
@@ -26782,7 +26782,7 @@
                 "T30": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 756.0
+                    "start time": 756
                 },
                 "T31": {
                     "employee name": "Alexander",
@@ -27029,7 +27029,7 @@
                 "T31": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 799.0
+                    "start time": 799
                 },
                 "T32": {
                     "employee name": "Fabian",
@@ -27288,7 +27288,7 @@
                 "T33": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 914.0
+                    "start time": 914
                 },
                 "T34": {
                     "performed": 0
@@ -27536,7 +27536,7 @@
                 "T34": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 902.0
+                    "start time": 902
                 },
                 "T35": {
                     "performed": 0
@@ -27790,7 +27790,7 @@
                 "T35": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 907.0
+                    "start time": 907
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -27904,7 +27904,7 @@
                 "T1": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1080.0
+                    "start time": 1080
                 },
                 "T10": {
                     "employee name": "Adam",
@@ -28207,7 +28207,7 @@
                 "T2": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1037.0
+                    "start time": 1037
                 },
                 "T20": {
                     "employee name": "Alexander",
@@ -28510,7 +28510,7 @@
                 "T3": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1059.0
+                    "start time": 1059
                 },
                 "T30": {
                     "employee name": "Alexander",
@@ -28787,7 +28787,7 @@
                 "T4": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1061.0
+                    "start time": 1061
                 },
                 "T5": {
                     "employee name": "Carlotta",
@@ -29039,7 +29039,7 @@
                 "T6": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1025.0
+                    "start time": 1025
                 },
                 "T7": {
                     "employee name": "Ellen",
@@ -29286,7 +29286,7 @@
                 "T7": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 727.0
+                    "start time": 727
                 },
                 "T8": {
                     "employee name": "Ellen",
@@ -29539,7 +29539,7 @@
                 "T8": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1047.0
+                    "start time": 1047
                 },
                 "T9": {
                     "employee name": "Adam",
@@ -29786,7 +29786,7 @@
                 "T9": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 734.0
+                    "start time": 734
                 }
             }
         },
@@ -29875,7 +29875,7 @@
                 "T10": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 730.0
+                    "start time": 730
                 },
                 "T11": {
                     "employee name": "Adam",
@@ -30122,7 +30122,7 @@
                 "T11": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1139.0
+                    "start time": 1139
                 },
                 "T12": {
                     "employee name": "Alexander",
@@ -30369,7 +30369,7 @@
                 "T12": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 676.0
+                    "start time": 676
                 },
                 "T13": {
                     "employee name": "Fabian",
@@ -30622,7 +30622,7 @@
                 "T13": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 703.0
+                    "start time": 703
                 },
                 "T14": {
                     "employee name": "Carlotta",
@@ -30874,7 +30874,7 @@
                 "T15": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 738.0
+                    "start time": 738
                 },
                 "T16": {
                     "employee name": "Carlotta",
@@ -31132,7 +31132,7 @@
                 "T17": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 752.0
+                    "start time": 752
                 },
                 "T18": {
                     "employee name": "Adam",
@@ -31385,7 +31385,7 @@
                 "T18": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 652.0
+                    "start time": 652
                 },
                 "T19": {
                     "employee name": "Alexander",
@@ -31632,7 +31632,7 @@
                 "T19": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1011.0
+                    "start time": 1011
                 },
                 "T2": {
                     "employee name": "Alexander",
@@ -31884,7 +31884,7 @@
                 "T20": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 901.0
+                    "start time": 901
                 },
                 "T21": {
                     "employee name": "Fabian",
@@ -32137,7 +32137,7 @@
                 "T21": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1081.0
+                    "start time": 1081
                 },
                 "T22": {
                     "employee name": "Ellen",
@@ -32390,7 +32390,7 @@
                 "T22": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1036.0
+                    "start time": 1036
                 },
                 "T23": {
                     "employee name": "Carlotta",
@@ -32642,7 +32642,7 @@
                 "T24": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 725.0
+                    "start time": 725
                 },
                 "T25": {
                     "employee name": "Carlotta",
@@ -32894,7 +32894,7 @@
                 "T26": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1069.0
+                    "start time": 1069
                 },
                 "T27": {
                     "employee name": "Ellen",
@@ -33141,7 +33141,7 @@
                 "T27": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 743.0
+                    "start time": 743
                 },
                 "T28": {
                     "employee name": "Alexander",
@@ -33388,7 +33388,7 @@
                 "T28": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 830.0
+                    "start time": 830
                 },
                 "T29": {
                     "employee name": "Fabian",
@@ -33641,7 +33641,7 @@
                 "T29": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 688.0
+                    "start time": 688
                 },
                 "T3": {
                     "employee name": "Fabian",
@@ -33899,7 +33899,7 @@
                 "T30": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 718.0
+                    "start time": 718
                 },
                 "T31": {
                     "employee name": "Alexander",
@@ -34146,7 +34146,7 @@
                 "T31": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 675.0
+                    "start time": 675
                 },
                 "T32": {
                     "employee name": "Fabian",
@@ -34399,7 +34399,7 @@
                 "T32": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 720.0
+                    "start time": 720
                 },
                 "T33": {
                     "performed": 0
@@ -34653,7 +34653,7 @@
                 "T33": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1068.0
+                    "start time": 1068
                 },
                 "T34": {
                     "performed": 0
@@ -34901,7 +34901,7 @@
                 "T34": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 563.0
+                    "start time": 563
                 },
                 "T35": {
                     "performed": 0
@@ -35155,7 +35155,7 @@
                 "T35": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1078.0
+                    "start time": 1078
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -35321,7 +35321,7 @@
                 "T2": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1013.0
+                    "start time": 1013
                 },
                 "T20": {
                     "employee name": "Alexander",
@@ -35567,7 +35567,7 @@
                 "T3": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 932.0
+                    "start time": 932
                 },
                 "T30": {
                     "employee name": "Alexander",
@@ -35846,7 +35846,7 @@
                 "T5": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 746.0
+                    "start time": 746
                 },
                 "T6": {
                     "employee name": "Alexander",
@@ -36090,7 +36090,7 @@
                 "T6": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1009.0
+                    "start time": 1009
                 },
                 "T7": {
                     "employee name": "Ellen",
@@ -36350,7 +36350,7 @@
                 "T9": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 690.0
+                    "start time": 690
                 }
             }
         },
@@ -36438,7 +36438,7 @@
                 "T10": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 858.0
+                    "start time": 858
                 },
                 "T11": {
                     "employee name": "Adam",
@@ -36688,7 +36688,7 @@
                 "T11": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 931.0
+                    "start time": 931
                 },
                 "T12": {
                     "employee name": "Alexander",
@@ -36938,7 +36938,7 @@
                 "T12": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 576.0
+                    "start time": 576
                 },
                 "T13": {
                     "employee name": "Fabian",
@@ -37188,7 +37188,7 @@
                 "T13": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 739.0
+                    "start time": 739
                 },
                 "T14": {
                     "employee name": "Carlotta",
@@ -37384,7 +37384,7 @@
                 "T14": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 515.0
+                    "start time": 515
                 },
                 "T15": {
                     "employee name": "Ellen",
@@ -37583,7 +37583,7 @@
                 "T16": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 538.0
+                    "start time": 538
                 },
                 "T17": {
                     "employee name": "Ellen",
@@ -37838,7 +37838,7 @@
                 "T18": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 956.0
+                    "start time": 956
                 },
                 "T19": {
                     "employee name": "Alexander",
@@ -38034,7 +38034,7 @@
                 "T19": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 977.0
+                    "start time": 977
                 },
                 "T2": {
                     "employee name": "Alexander",
@@ -38237,7 +38237,7 @@
                 "T20": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 1022.0
+                    "start time": 1022
                 },
                 "T21": {
                     "employee name": "Fabian",
@@ -38485,7 +38485,7 @@
                 "T21": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 866.0
+                    "start time": 866
                 },
                 "T22": {
                     "employee name": "Ellen",
@@ -38740,7 +38740,7 @@
                 "T23": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 980.0
+                    "start time": 980
                 },
                 "T24": {
                     "employee name": "Adam",
@@ -38992,7 +38992,7 @@
                 "T24": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 687.0
+                    "start time": 687
                 },
                 "T25": {
                     "employee name": "Carlotta",
@@ -39186,7 +39186,7 @@
                 "T25": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 527.0
+                    "start time": 527
                 },
                 "T26": {
                     "employee name": "Adam",
@@ -39382,7 +39382,7 @@
                 "T26": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 929.0
+                    "start time": 929
                 },
                 "T27": {
                     "employee name": "Ellen",
@@ -39631,7 +39631,7 @@
                 "T28": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 560.0
+                    "start time": 560
                 },
                 "T29": {
                     "employee name": "Fabian",
@@ -39883,7 +39883,7 @@
                 "T29": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 673.0
+                    "start time": 673
                 },
                 "T3": {
                     "employee name": "Fabian",
@@ -40082,7 +40082,7 @@
                 "T30": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 564.0
+                    "start time": 564
                 },
                 "T31": {
                     "employee name": "Alexander",
@@ -40332,7 +40332,7 @@
                 "T31": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 554.0
+                    "start time": 554
                 },
                 "T32": {
                     "employee name": "Fabian",
@@ -40582,7 +40582,7 @@
                 "T32": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 918.0
+                    "start time": 918
                 },
                 "T33": {
                     "performed": 0
@@ -40833,7 +40833,7 @@
                 "T33": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 960.0
+                    "start time": 960
                 },
                 "T34": {
                     "performed": 0
@@ -41078,7 +41078,7 @@
                 "T34": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 927.0
+                    "start time": 927
                 },
                 "T35": {
                     "performed": 0
@@ -41274,7 +41274,7 @@
                 "T35": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 840.0
+                    "start time": 840
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -41387,7 +41387,7 @@
                 "T1": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 735.0
+                    "start time": 735
                 },
                 "T10": {
                     "employee name": "Adam",
@@ -41740,7 +41740,7 @@
                 "T3": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 726.0
+                    "start time": 726
                 },
                 "T30": {
                     "employee name": "Alexander",
@@ -42014,7 +42014,7 @@
                 "T4": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 976.0
+                    "start time": 976
                 },
                 "T5": {
                     "employee name": "Carlotta",
@@ -42264,7 +42264,7 @@
                 "T5": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 771.0
+                    "start time": 771
                 },
                 "T6": {
                     "employee name": "Alexander",
@@ -42465,7 +42465,7 @@
                 "T7": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 604.0
+                    "start time": 604
                 },
                 "T8": {
                     "employee name": "Ellen",
@@ -42715,7 +42715,7 @@
                 "T8": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 664.0
+                    "start time": 664
                 },
                 "T9": {
                     "employee name": "Adam",
@@ -42965,7 +42965,7 @@
                 "T9": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 774.0
+                    "start time": 774
                 }
             }
         },
@@ -43053,7 +43053,7 @@
                 "T10": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 776.0
+                    "start time": 776
                 },
                 "T11": {
                     "employee name": "Adam",
@@ -43303,7 +43303,7 @@
                 "T11": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1071.0
+                    "start time": 1071
                 },
                 "T12": {
                     "employee name": "Alexander",
@@ -43558,7 +43558,7 @@
                 "T13": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 810.0
+                    "start time": 810
                 },
                 "T14": {
                     "employee name": "Carlotta",
@@ -43754,7 +43754,7 @@
                 "T14": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 699.0
+                    "start time": 699
                 },
                 "T15": {
                     "employee name": "Ellen",
@@ -44004,7 +44004,7 @@
                 "T15": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 750.0
+                    "start time": 750
                 },
                 "T16": {
                     "employee name": "Carlotta",
@@ -44200,7 +44200,7 @@
                 "T16": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 684.0
+                    "start time": 684
                 },
                 "T17": {
                     "employee name": "Ellen",
@@ -44450,7 +44450,7 @@
                 "T17": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 750.0
+                    "start time": 750
                 },
                 "T18": {
                     "employee name": "Adam",
@@ -44700,7 +44700,7 @@
                 "T18": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1035.0
+                    "start time": 1035
                 },
                 "T19": {
                     "employee name": "Alexander",
@@ -44965,7 +44965,7 @@
                 "T21": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 748.0
+                    "start time": 748
                 },
                 "T22": {
                     "employee name": "Ellen",
@@ -45159,7 +45159,7 @@
                 "T22": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 980.0
+                    "start time": 980
                 },
                 "T23": {
                     "employee name": "Carlotta",
@@ -45411,7 +45411,7 @@
                 "T23": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 712.0
+                    "start time": 712
                 },
                 "T24": {
                     "employee name": "Adam",
@@ -45661,7 +45661,7 @@
                 "T24": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 733.0
+                    "start time": 733
                 },
                 "T25": {
                     "employee name": "Carlotta",
@@ -45857,7 +45857,7 @@
                 "T25": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 663.0
+                    "start time": 663
                 },
                 "T26": {
                     "employee name": "Adam",
@@ -46107,7 +46107,7 @@
                 "T26": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 739.0
+                    "start time": 739
                 },
                 "T27": {
                     "employee name": "Ellen",
@@ -46357,7 +46357,7 @@
                 "T27": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 669.0
+                    "start time": 669
                 },
                 "T28": {
                     "performed": 0
@@ -46610,7 +46610,7 @@
                 "T29": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 701.0
+                    "start time": 701
                 },
                 "T3": {
                     "employee name": "Fabian",
@@ -46875,7 +46875,7 @@
                 "T32": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 815.0
+                    "start time": 815
                 },
                 "T33": {
                     "performed": 0
@@ -47126,7 +47126,7 @@
                 "T33": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 983.0
+                    "start time": 983
                 },
                 "T34": {
                     "performed": 0
@@ -47377,7 +47377,7 @@
                 "T34": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1045.0
+                    "start time": 1045
                 },
                 "T35": {
                     "performed": 0
@@ -47628,7 +47628,7 @@
                 "T35": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 1008.0
+                    "start time": 1008
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -47687,7 +47687,7 @@
                 "T1": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 774.0
+                    "start time": 774
                 },
                 "T10": {
                     "employee name": "Adam",
@@ -47985,7 +47985,7 @@
                 "T2": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 880.0
+                    "start time": 880
                 },
                 "T20": {
                     "employee name": "Alexander",
@@ -48231,7 +48231,7 @@
                 "T3": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 783.0
+                    "start time": 783
                 },
                 "T30": {
                     "employee name": "Alexander",
@@ -48451,7 +48451,7 @@
                 "T4": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 1009.0
+                    "start time": 1009
                 },
                 "T5": {
                     "employee name": "Carlotta",
@@ -48703,7 +48703,7 @@
                 "T5": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 776.0
+                    "start time": 776
                 },
                 "T6": {
                     "employee name": "Alexander",
@@ -48945,7 +48945,7 @@
                 "T6": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 810.0
+                    "start time": 810
                 },
                 "T7": {
                     "employee name": "Ellen",
@@ -49195,7 +49195,7 @@
                 "T7": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 771.0
+                    "start time": 771
                 },
                 "T8": {
                     "employee name": "Ellen",
@@ -49445,7 +49445,7 @@
                 "T8": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 804.0
+                    "start time": 804
                 },
                 "T9": {
                     "employee name": "Adam",
@@ -49546,7 +49546,7 @@
                 "T12": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 895.0
+                    "start time": 895
                 },
                 "T13": {
                     "employee name": "Fabian",
@@ -49798,7 +49798,7 @@
                 "T13": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 636.0
+                    "start time": 636
                 },
                 "T14": {
                     "employee name": "Carlotta",
@@ -50046,7 +50046,7 @@
                 "T14": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 838.0
+                    "start time": 838
                 },
                 "T15": {
                     "employee name": "Ellen",
@@ -50242,7 +50242,7 @@
                 "T15": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 749.0
+                    "start time": 749
                 },
                 "T16": {
                     "employee name": "Carlotta",
@@ -50492,7 +50492,7 @@
                 "T16": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 901.0
+                    "start time": 901
                 },
                 "T17": {
                     "employee name": "Ellen",
@@ -50688,7 +50688,7 @@
                 "T17": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 774.0
+                    "start time": 774
                 },
                 "T18": {
                     "employee name": "Adam",
@@ -50943,7 +50943,7 @@
                 "T19": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 863.0
+                    "start time": 863
                 },
                 "T2": {
                     "employee name": "Alexander",
@@ -51198,7 +51198,7 @@
                 "T20": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 824.0
+                    "start time": 824
                 },
                 "T21": {
                     "employee name": "Fabian",
@@ -51394,7 +51394,7 @@
                 "T21": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 759.0
+                    "start time": 759
                 },
                 "T22": {
                     "employee name": "Ellen",
@@ -51644,7 +51644,7 @@
                 "T22": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 995.0
+                    "start time": 995
                 },
                 "T23": {
                     "employee name": "Carlotta",
@@ -51894,7 +51894,7 @@
                 "T23": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 875.0
+                    "start time": 875
                 },
                 "T24": {
                     "employee name": "Adam",
@@ -52149,7 +52149,7 @@
                 "T25": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 858.0
+                    "start time": 858
                 },
                 "T26": {
                     "employee name": "Adam",
@@ -52404,7 +52404,7 @@
                 "T27": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 748.0
+                    "start time": 748
                 },
                 "T28": {
                     "employee name": "Alexander",
@@ -52648,7 +52648,7 @@
                 "T28": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 909.0
+                    "start time": 909
                 },
                 "T29": {
                     "employee name": "Fabian",
@@ -52900,7 +52900,7 @@
                 "T29": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 624.0
+                    "start time": 624
                 },
                 "T3": {
                     "employee name": "Fabian",
@@ -53153,7 +53153,7 @@
                 "T30": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 772.0
+                    "start time": 772
                 },
                 "T31": {
                     "employee name": "Alexander",
@@ -53403,7 +53403,7 @@
                 "T31": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 864.0
+                    "start time": 864
                 },
                 "T32": {
                     "employee name": "Fabian",
@@ -53599,7 +53599,7 @@
                 "T32": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 964.0
+                    "start time": 964
                 },
                 "T33": {
                     "performed": 0
@@ -53795,7 +53795,7 @@
                 "T33": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 865.0
+                    "start time": 865
                 },
                 "T34": {
                     "performed": 0
@@ -54040,7 +54040,7 @@
                 "T34": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 978.0
+                    "start time": 978
                 },
                 "T35": {
                     "performed": 0
@@ -54291,7 +54291,7 @@
                 "T35": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 1008.0
+                    "start time": 1008
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -54350,7 +54350,7 @@
                 "T1": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 840.0
+                    "start time": 840
                 },
                 "T10": {
                     "employee name": "Adam",
@@ -54650,7 +54650,7 @@
                 "T2": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 840.0
+                    "start time": 840
                 },
                 "T20": {
                     "employee name": "Alexander",
@@ -54923,7 +54923,7 @@
                 "T4": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 840.0
+                    "start time": 840
                 },
                 "T5": {
                     "employee name": "Carlotta",
@@ -55119,7 +55119,7 @@
                 "T5": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 654.0
+                    "start time": 654
                 },
                 "T6": {
                     "employee name": "Alexander",
@@ -55363,7 +55363,7 @@
                 "T6": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 823.0
+                    "start time": 823
                 },
                 "T7": {
                     "employee name": "Ellen",
@@ -55607,7 +55607,7 @@
                 "T7": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 684.0
+                    "start time": 684
                 },
                 "T8": {
                     "employee name": "Ellen",
@@ -55803,7 +55803,7 @@
                 "T8": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 818.0
+                    "start time": 818
                 },
                 "T9": {
                     "employee name": "Adam",
@@ -56047,7 +56047,7 @@
                 "T9": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 606.0
+                    "start time": 606
                 }
             }
         },
@@ -56081,7 +56081,7 @@
                 "T10": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 691.0
+                    "start time": 691
                 },
                 "T11": {
                     "employee name": "Adam",
@@ -56325,7 +56325,7 @@
                 "T11": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 914.0
+                    "start time": 914
                 },
                 "T12": {
                     "employee name": "Alexander",
@@ -56569,7 +56569,7 @@
                 "T12": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 832.0
+                    "start time": 832
                 },
                 "T13": {
                     "employee name": "Fabian",
@@ -56824,7 +56824,7 @@
                 "T14": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 770.0
+                    "start time": 770
                 },
                 "T15": {
                     "employee name": "Ellen",
@@ -57068,7 +57068,7 @@
                 "T15": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 794.0
+                    "start time": 794
                 },
                 "T16": {
                     "employee name": "Carlotta",
@@ -57318,7 +57318,7 @@
                 "T16": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 833.0
+                    "start time": 833
                 },
                 "T17": {
                     "employee name": "Ellen",
@@ -57514,7 +57514,7 @@
                 "T17": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 805.0
+                    "start time": 805
                 },
                 "T18": {
                     "employee name": "Adam",
@@ -57710,7 +57710,7 @@
                 "T18": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 887.0
+                    "start time": 887
                 },
                 "T19": {
                     "employee name": "Alexander",
@@ -57954,7 +57954,7 @@
                 "T19": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 796.0
+                    "start time": 796
                 },
                 "T2": {
                     "employee name": "Alexander",
@@ -58203,7 +58203,7 @@
                 "T20": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 800.0
+                    "start time": 800
                 },
                 "T21": {
                     "performed": 0
@@ -58458,7 +58458,7 @@
                 "T22": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 900.0
+                    "start time": 900
                 },
                 "T23": {
                     "employee name": "Carlotta",
@@ -58706,7 +58706,7 @@
                 "T23": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 806.0
+                    "start time": 806
                 },
                 "T24": {
                     "employee name": "Adam",
@@ -58952,7 +58952,7 @@
                 "T24": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 602.0
+                    "start time": 602
                 },
                 "T25": {
                     "employee name": "Carlotta",
@@ -59202,7 +59202,7 @@
                 "T25": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 713.0
+                    "start time": 713
                 },
                 "T26": {
                     "employee name": "Adam",
@@ -59444,7 +59444,7 @@
                 "T26": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 891.0
+                    "start time": 891
                 },
                 "T27": {
                     "employee name": "Ellen",
@@ -59690,7 +59690,7 @@
                 "T27": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 673.0
+                    "start time": 673
                 },
                 "T28": {
                     "employee name": "Alexander",
@@ -59932,7 +59932,7 @@
                 "T28": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 842.0
+                    "start time": 842
                 },
                 "T29": {
                     "employee name": "Fabian",
@@ -60192,7 +60192,7 @@
                 "T30": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 681.0
+                    "start time": 681
                 },
                 "T31": {
                     "employee name": "Alexander",
@@ -60436,7 +60436,7 @@
                 "T31": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 826.0
+                    "start time": 826
                 },
                 "T32": {
                     "employee name": "Fabian",
@@ -60637,7 +60637,7 @@
                 "T33": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 867.0
+                    "start time": 867
                 },
                 "T34": {
                     "performed": 0
@@ -60882,7 +60882,7 @@
                 "T34": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 892.0
+                    "start time": 892
                 },
                 "T35": {
                     "performed": 0
@@ -61078,7 +61078,7 @@
                 "T35": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 845.0
+                    "start time": 845
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -61137,7 +61137,7 @@
                 "T1": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 576.0
+                    "start time": 576
                 },
                 "T10": {
                     "employee name": "Adam",
@@ -61383,7 +61383,7 @@
                 "T2": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 947.0
+                    "start time": 947
                 },
                 "T20": {
                     "employee name": "Alexander",
@@ -61627,7 +61627,7 @@
                 "T3": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 970.0
+                    "start time": 970
                 },
                 "T30": {
                     "employee name": "Alexander",
@@ -61847,7 +61847,7 @@
                 "T4": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 952.0
+                    "start time": 952
                 },
                 "T5": {
                     "employee name": "Carlotta",
@@ -62096,7 +62096,7 @@
                 "T6": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 983.0
+                    "start time": 983
                 },
                 "T7": {
                     "employee name": "Ellen",
@@ -62340,7 +62340,7 @@
                 "T7": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 545.0
+                    "start time": 545
                 },
                 "T8": {
                     "employee name": "Ellen",
@@ -62536,7 +62536,7 @@
                 "T8": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 938.0
+                    "start time": 938
                 },
                 "T9": {
                     "employee name": "Adam",
@@ -62780,7 +62780,7 @@
                 "T9": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 587.0
+                    "start time": 587
                 }
             }
         },
@@ -62814,7 +62814,7 @@
                 "T10": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 934.0
+                    "start time": 934
                 },
                 "T11": {
                     "employee name": "Adam",
@@ -63058,7 +63058,7 @@
                 "T11": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 950.0
+                    "start time": 950
                 },
                 "T12": {
                     "employee name": "Alexander",
@@ -63302,7 +63302,7 @@
                 "T12": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 956.0
+                    "start time": 956
                 },
                 "T13": {
                     "employee name": "Fabian",
@@ -63552,7 +63552,7 @@
                 "T13": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 592.0
+                    "start time": 592
                 },
                 "T14": {
                     "employee name": "Carlotta",
@@ -63801,7 +63801,7 @@
                 "T15": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 798.0
+                    "start time": 798
                 },
                 "T16": {
                     "employee name": "Carlotta",
@@ -64002,7 +64002,7 @@
                 "T17": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 920.0
+                    "start time": 920
                 },
                 "T18": {
                     "employee name": "Adam",
@@ -64198,7 +64198,7 @@
                 "T18": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 948.0
+                    "start time": 948
                 },
                 "T19": {
                     "employee name": "Alexander",
@@ -64442,7 +64442,7 @@
                 "T19": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1011.0
+                    "start time": 1011
                 },
                 "T2": {
                     "employee name": "Alexander",
@@ -64691,7 +64691,7 @@
                 "T20": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 901.0
+                    "start time": 901
                 },
                 "T21": {
                     "employee name": "Fabian",
@@ -64887,7 +64887,7 @@
                 "T21": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 944.0
+                    "start time": 944
                 },
                 "T22": {
                     "employee name": "Ellen",
@@ -65083,7 +65083,7 @@
                 "T22": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 942.0
+                    "start time": 942
                 },
                 "T23": {
                     "performed": 0
@@ -65332,7 +65332,7 @@
                 "T24": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 578.0
+                    "start time": 578
                 },
                 "T25": {
                     "employee name": "Carlotta",
@@ -65579,7 +65579,7 @@
                 "T26": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 1002.0
+                    "start time": 1002
                 },
                 "T27": {
                     "employee name": "Ellen",
@@ -65825,7 +65825,7 @@
                 "T27": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 577.0
+                    "start time": 577
                 },
                 "T28": {
                     "employee name": "Alexander",
@@ -66067,7 +66067,7 @@
                 "T28": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 985.0
+                    "start time": 985
                 },
                 "T29": {
                     "employee name": "Fabian",
@@ -66265,7 +66265,7 @@
                 "T29": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 530.0
+                    "start time": 530
                 },
                 "T3": {
                     "employee name": "Fabian",
@@ -66466,7 +66466,7 @@
                 "T30": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 594.0
+                    "start time": 594
                 },
                 "T31": {
                     "employee name": "Alexander",
@@ -66708,7 +66708,7 @@
                 "T31": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 854.0
+                    "start time": 854
                 },
                 "T32": {
                     "employee name": "Fabian",
@@ -66960,7 +66960,7 @@
                 "T32": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 955.0
+                    "start time": 955
                 },
                 "T33": {
                     "performed": 0
@@ -67154,7 +67154,7 @@
                 "T33": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 977.0
+                    "start time": 977
                 },
                 "T34": {
                     "performed": 0
@@ -67401,7 +67401,7 @@
                 "T34": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 937.0
+                    "start time": 937
                 },
                 "T35": {
                     "performed": 0
@@ -67597,7 +67597,7 @@
                 "T35": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 953.0
+                    "start time": 953
                 },
                 "T4": {
                     "employee name": "Ellen",
@@ -67693,7 +67693,7 @@
                 "T17": {
                     "employee name": "Ellen",
                     "performed": 1,
-                    "start time": 771.0
+                    "start time": 771
                 },
                 "T18": {
                     "employee name": "Adam",
@@ -67965,7 +67965,7 @@
                 "T31": {
                     "employee name": "Alexander",
                     "performed": 1,
-                    "start time": 776.0
+                    "start time": 776
                 },
                 "T32": {
                     "employee name": "Fabian",
@@ -68127,7 +68127,7 @@
                 "T26": {
                     "employee name": "Adam",
                     "performed": 1,
-                    "start time": 771.0
+                    "start time": 771
                 },
                 "T27": {
                     "employee name": "Ellen",
@@ -68339,7 +68339,7 @@
                 "T3": {
                     "employee name": "Fabian",
                     "performed": 1,
-                    "start time": 823.0
+                    "start time": 823
                 },
                 "T30": {
                     "employee name": "Alexander",
@@ -68456,7 +68456,7 @@
                 "T16": {
                     "employee name": "Carlotta",
                     "performed": 1,
-                    "start time": 777.0
+                    "start time": 777
                 },
                 "T17": {
                     "employee name": "Ellen",
