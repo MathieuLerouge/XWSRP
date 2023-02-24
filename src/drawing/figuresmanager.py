@@ -1,5 +1,4 @@
 # Third party libraries
-import matplotlib
 from matplotlib import pyplot as plt
 
 # Local libraries
@@ -9,22 +8,34 @@ from src.drawing.routes import create_routes_figure
 from src.drawing.schedules import create_schedules_figure
 from src.modeling.solution import Solution
 from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH
-
-# Set up
-matplotlib.use('Qt5Agg')
+from src.utils.files import make_absolute_path_from_relative_one
 
 
-# Global variables
-# FIGURES_PARAMETERS = dict()
-# FIGURES_PARAMETERS[ROUTES_FIGURE_KEY] = dict()
-# FIGURES_PARAMETERS[KPIS_FIGURE_KEY] = {'dpi': 60}
+###########
+# Figures #
+###########
 
 
 def create_figure_id(solution: Solution, figure_key: str):
+    """
+    Create a figure id from the solution name and the figure key.
+
+    :param solution: solution (Solution)
+    :param figure_key: figure key (str)
+    :return: figure id (str)
+    """
     return solution.name + figure_key
 
 
 def create_figure(solution: Solution, figure_key: str, for_UI: bool = False):
+    """
+    Create a figure from the solution and the figure key.
+
+    :param solution: solution (Solution)
+    :param figure_key: figure key (str)
+    :param for_UI: if True, the figure is created for the UI (bool)
+    :return: figure (Figure)
+    """
     figure_id = create_figure_id(solution, figure_key)
     if figure_key == ROUTES_FIGURE_KEY:
         return create_routes_figure(solution, figure_id, for_UI=for_UI)
@@ -36,13 +47,27 @@ def create_figure(solution: Solution, figure_key: str, for_UI: bool = False):
         raise ValueError(f"Wrong figure key {figure_key} for figure")
 
 
-def create_figure_filename(solution: Solution, figure_key: str, output_directory: str = None):
-    if output_directory is None:
-        output_directory = OUTPUTS_DIRECTORY_RELATIVE_PATH
-    return output_directory + "/" + solution.name + figure_key + ".png"
+def create_figure_file_path(solution: Solution, figure_key: str, outputs_directory_relative_path: str = None):
+    """
+    Create a figure file path from the solution name and the figure key.
+    If no outputs directory relative path is provided,
+    the default one is used the path of the default outputs directory.
+
+    :param solution: solution (Solution)
+    :param figure_key: figure key (str)
+    :param outputs_directory_relative_path: outputs directory relative path (str)
+    :return: figure file path (str)
+    """
+    if outputs_directory_relative_path is None:
+        outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
+    return make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{solution.name}{figure_key}.png")
 
 
-# Class FiguresManagers
+##################
+# FiguresManager #
+##################
+
+
 class FiguresManager:
 
     def __init__(self, solution: Solution = None, solutions: list[Solution] = None):
@@ -185,7 +210,7 @@ class FiguresManager:
 
     def save_figure_as_file(self, solution: Solution, figure_key: str, output_directory: str = None):
         plt.figure(self.get_solution_figure(solution, figure_key, False, False))
-        plt.savefig(create_figure_filename(solution, figure_key, output_directory), dpi=FIGURE_DPI_FOR_SAVING)
+        plt.savefig(create_figure_file_path(solution, figure_key, output_directory), dpi=FIGURE_DPI_FOR_SAVING)
 
     def save_figures(self, solution: Solution = None, output_directory: str = None):
         if solution is None:

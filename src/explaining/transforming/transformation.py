@@ -2,10 +2,7 @@
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.questioning.question import Question, CounterfactualQuestion
-from src.explaining.questioning.questions_templates_bank import \
-    (WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
-     WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_1,
-     WHY_NOT_ORD_3)
+from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.transforming.infeasibility import *
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
@@ -14,7 +11,7 @@ from src.optimization.localsearch.sequence import SequenceLS
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
-# Local libraries under conditions
+# Local libraries if Gurobi enabled
 from main_configuration import GUROBI_IS_ENABLED
 if GUROBI_IS_ENABLED:
     from src.explaining.transforming.category3.category3 import IPModelForCategory3

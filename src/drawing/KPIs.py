@@ -15,6 +15,14 @@ KPIS_FIGURE_DPI_FOR_UI = 60
 
 # Create bar chart
 def create_bar_chart_figure(solutions: list, figure_id: str = None, for_UI: bool = False) -> Figure:
+    """
+    Create a bar chart figure with the KPIs of the solutions.
+
+    :param solutions: list of solutions to compare (Solution)
+    :param figure_id: id of the figure (str)
+    :param for_UI: if True, the figure is created for the UI (bool)
+    :return: figure (Figure)
+    """
 
     # Create a new figure if needed
     if figure_id is None:

@@ -1,7 +1,9 @@
 # Local libraries
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-
+from src.utils.constants import SOLUTION_NAME_PREFIX, SOLUTION_NAME_PREFIX_BIS, SOLUTION_SOLVING_METHOD_SYMBOL_BIS, \
+    SNAKE_CASE, CAMEL_CASE
+from src.utils.files import remove_solving_method_from_solution_file_name
 
 # Global variables
 SOLVING_METHOD_ID_KEY = 'solving_method_id'
@@ -11,14 +13,21 @@ OPTIMALITY_GAP_KEY = 'optimality_gap'
 OBJECTIVE_VALUE_KEY = 'objective_value'
 
 
-# Class SolutionOpti
+######################
+# Class SolutionOpti #
+######################
+
 class SolutionOpti(Solution):
 
-    def __init__(self, solving_method_id: str, instance: Instance, name: str = None, sequences: dict = None,
-                 tasks_realizations: dict = None, lunch_breaks_realizations: dict = None):
-        super().__init__(instance, name, sequences, tasks_realizations, lunch_breaks_realizations)
+    def __init__(self, instance: Instance, name: str = None, sequences: dict = None, tasks_performances: dict = None,
+                 lunch_breaks_performances: dict = None, solving_method_id: str = 'NA'):
         self._optimization_data = dict()
         self._optimization_data[SOLVING_METHOD_ID_KEY] = solving_method_id
+        self._optimization_data[SOLVING_METHOD_PARAMS_KEY] = None
+        self._optimization_data[SOLVING_TIME_KEY] = None
+        self._optimization_data[OPTIMALITY_GAP_KEY] = None
+        self._optimization_data[OBJECTIVE_VALUE_KEY] = None
+        super().__init__(instance, name, sequences, tasks_performances, lunch_breaks_performances)
 
     ############################################
     # Conversion from Solution to SolutionOpti #
@@ -26,8 +35,7 @@ class SolutionOpti(Solution):
 
     @classmethod
     def from_Solution(cls, solution: Solution):
-        solving_method_id = "NA"
-        solution_for_optimization = cls(solving_method_id, solution.instance, solution.name, solution._copy_sequences(),
+        solution_for_optimization = cls(solution.instance, solution.name, solution._copy_sequences(),
                                         solution._copy_tasks_realizations(), solution._copy_lunch_breaks_realizations())
         solution_for_optimization._KPIs = solution._copy_KPIs()
         return solution_for_optimization
@@ -36,17 +44,23 @@ class SolutionOpti(Solution):
     # Name #
     ########
 
+    def _create_name(self):
+        if self.instance.name_case_type_is_snake_case:
+            return f"{SOLUTION_NAME_PREFIX}{self.instance.core_name}_" \
+                   f"{SOLUTION_SOLVING_METHOD_SYMBOL_BIS}_{self.solving_method_id}"
+        elif self.instance.name_case_type_is_camel_case:
+            return f"{SOLUTION_NAME_PREFIX_BIS}{self.instance.core_name_with_version}" \
+                   f"{SOLUTION_SOLVING_METHOD_SYMBOL_BIS}{self.solving_method_id}"
+        else:
+            raise ValueError(f"The instance name case type must be either {SNAKE_CASE} or {CAMEL_CASE}")
+
     @property
-    def full_name(self):
-        full_name = super().full_name
-        if self._optimization_data[SOLVING_METHOD_ID_KEY] is not None:
-            if self.instance.name_case_type_is_snake_case():
-                full_name += "_by_" + self._optimization_data[SOLVING_METHOD_ID_KEY]
-            elif self.instance.name_case_type_is_camel_case():
-                full_name += "By" + self._optimization_data[SOLVING_METHOD_ID_KEY]
-            else:
-                raise ValueError(f"Unknown case type {self.instance.name_case_type}")
-        return full_name
+    def name_with_solving_method(self):
+        return self.name
+
+    @property
+    def name_without_solving_method(self):
+        return remove_solving_method_from_solution_file_name(self.name)
 
     ##################
     # Solving method #

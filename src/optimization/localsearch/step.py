@@ -4,7 +4,10 @@ from src.modeling.step import Step, BRACKET_LEFT_STRING, BRACKET_RIGHT_STRING
 from src.utils.time import convert_nb_minutes_to_time_string
 
 
-# Class StepLS
+################
+# Class StepLS #
+################
+
 class StepLS(Step):
 
     def __init__(self, activity: Activity, arrival_time: int = None, start_time: int = None, end_time: int = None,

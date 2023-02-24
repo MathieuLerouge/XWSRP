@@ -40,6 +40,7 @@ EXPLAINER_TAB = 'explainer-tab'
 #########################
 
 class ExplainerWebGUI:
+
     ####################
     # Fixed parameters #
     ####################
@@ -67,6 +68,7 @@ class ExplainerWebGUI:
         self._questions_templates = dict([(question_template.id, QUESTIONS_TEMPLATES[question_template.id])
                                           for question_template in self._explainer.activated_questions_templates
                                           if question_template.id in self._available_questions_templates_ids])
+        self._available_questions_templates_ids = list(self._questions_templates.keys())
         self._scenario_instance_alterations = InstanceChanges()
         self._counterfactual_instance_alterations = None
 
@@ -75,8 +77,10 @@ class ExplainerWebGUI:
         self._subtitle = subtitle
         self._application = dash.Dash(name="XWSRP", assets_folder=self._assets_path, suppress_callback_exceptions=True)
         self._explanations_are_enabled = enabling_explanations
+        self._tab_description_panels_are_enabled = False
+        self._contrastive_statistics_are_enabled = False
         if not self._explanations_are_enabled:
-            self.disable_explanations_representation()
+            self._explanations_representation_are_enabled = False
             self.disable_history()
             self.disable_scenario_explanations()
             self.disable_counterfactual_explanations()
@@ -88,7 +92,7 @@ class ExplainerWebGUI:
             self._instances_comparison_tab_title = "Instances comparison"
             self._solution_description_tab_title = "Solution description"
             self._solutions_comparison_tab_title = "Solutions comparison"
-            self._explainer_tab_title = "Explainer"
+            self._explainer_tab_title = "Solution explanation"
         elif self.language_is_french:
             self._home_tab_title = "Accueil"
             self._instance_description_tab_title = "Description de l'instance"
@@ -412,7 +416,7 @@ class ExplainerWebGUI:
             if self.language_is_english:
                 # panel_title = f"About {self._title}"
                 panel_title = f"About this tool"
-                panel_text = f"\"{self._title}\" is tool for "
+                panel_text = f"\"{self._title}\" is a tool for "
                 if self.explanations_are_enabled:
                     panel_text += f"consulting and questioning "
                 else:
@@ -420,7 +424,7 @@ class ExplainerWebGUI:
                 panel_text += f"the input and output data associated with " \
                               f"a Workforce Scheduling and Routing Problem (WSRP)." \
                               f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
-                panel_text += f"The tab bar located on the left of the interface allows the user to " \
+                panel_text += f"The tabs bar located on the left of the interface allows the user to " \
                               f"navigate to the different functionalities of the tool." \
                               f"{LINE_BREAK_STRING}"
                 panel_text += f"• The \"{self._instance_description_tab_title}\" tab allows to consult " \
@@ -547,8 +551,8 @@ class ExplainerWebGUI:
                               f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                 panel_text += f"• Chaque tâche client possède un identifiant " \
                               f"(dans le tableau, par ex. {first_task.name}), " \
-                              f"des horaires de disponibilité pendant lesquels elle peut être réalisée par un employé " \
-                              f"(par ex. {str(first_task.TWs.as_string(hour_format))}), " \
+                              f"des horaires de disponibilité pendant lesquels elle peut être réalisée par " \
+                              f"un employé (par ex. {str(first_task.TWs.as_string(hour_format))}), " \
                               f"un niveau de compétence minimum à avoir pour pouvoir réaliser la tâche " \
                               f"(par ex. {str(first_task.skill_level)}), " \
                               f"une durée de réalisation (par ex. {str(first_task.duration)}min) " \
@@ -568,7 +572,8 @@ class ExplainerWebGUI:
             tab_content = html.Div(
                 id="instance-description-tab-content",
                 children=[
-                    build_text_panel(description_panel_title, panel_text, True),
+                    (build_text_panel(description_panel_title, panel_text, True)
+                     if self.tab_description_panels_are_enabled else None),
                     build_employees_data_panel(self.current_instance, True, bottom_margin=True, language=self.language),
                     build_tasks_data_panel(self.current_instance, True, language=self.language),
                     html.Div(
@@ -791,7 +796,8 @@ class ExplainerWebGUI:
             tab_content = html.Div(
                 id="solution-description-tab-content",
                 children=[
-                    build_text_panel(description_panel_title, panel_text, True),
+                    (build_text_panel(description_panel_title, panel_text, True)
+                     if self.tab_description_panels_are_enabled else None),
                     html.Div(
                         className="representation-panels-side-to-side",
                         children=[build_routes_figure_panel(solution=self.current_solution, is_current_solution=True,
@@ -983,10 +989,13 @@ class ExplainerWebGUI:
                     panel_text += f"Sont mis à disposition ci-dessous : " \
                                   f"une représentation des itinéraires et des emplois du temps de la " \
                                   f"{self._current_solution_in_text(False)} identique à celle de l'onglet " \
-                                  f"\"{self._solution_description_tab_title}\", " \
-                                  f"un block de formulation de questions, un de présentation des réponses et " \
-                                  f"un de statistiques sur les questions posées." \
-                                  f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                                  f"\"{self._solution_description_tab_title}\", "
+                    if self.contrastive_statistics_are_enabled:
+                        panel_text += f"un block de formulation de questions, un de présentation des réponses et " \
+                                      f"un de statistiques sur les questions posées."
+                    else:
+                        panel_text += f"un block de formulation de questions et un de présentation des réponses."
+                    panel_text += f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                     panel_text += f"• En ce qui concerne le block de formulation de questions, " \
                                   f"afin de formuler une question sur la {self._current_solution_in_text(False)}, " \
                                   f"un modèle de question doit être sélectionné parmi les " \
@@ -1008,10 +1017,11 @@ class ExplainerWebGUI:
                                   f"formulation de questions et de présentation des réponses. " \
                                   f"Il est alors possible de formuler une nouvelle question." \
                                   f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
-                    panel_text += f"• Enfin, le block de statistiques permet de consuler " \
-                                  f"combien de questions de chaque type ont été posées " \
-                                  f"depuis le début de l'utilisation de l'outil." \
-                                  f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                    if self.contrastive_statistics_are_enabled:
+                        panel_text += f"• Enfin, le block de statistiques permet de consuler " \
+                                      f"combien de questions de chaque type ont été posées " \
+                                      f"depuis le début de l'utilisation de l'outil." \
+                                      f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                     if self.explanations_representation_are_enabled:
                         panel_text += "NB : lorsque l'explication traite d'un conflit temporel, " \
                                       "les figures illustrant le texte explicatif mettent l'accent sur " \
@@ -1064,6 +1074,11 @@ class ExplainerWebGUI:
                                   f"and answer presentation blocks. " \
                                   f"It is then possible to formulate a new question." \
                                   f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
+                    if self.contrastive_statistics_are_enabled:
+                        panel_text += f"• Finally, the statistics block allows to consult " \
+                                      f"how many questions of each type have been asked " \
+                                      f"since the beginning of the use of the tool." \
+                                      f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                     if self.explanations_representation_are_enabled:
                         panel_text += "NB: when the explanation deals with a temporal conflict, " \
                                       "the figures illustrating the explanatory text emphasize " \
@@ -1126,7 +1141,7 @@ class ExplainerWebGUI:
                         style=dict(display='flex', flexdirection='row'),
                         children=[
                             dcc.Dropdown(id='template-question-dropdown', className='dropdown',
-                                         style=dict(flex=1), # maxHeight=300,
+                                         style=dict(flex=1),
                                          options=[{'label': self._questions_templates[key].text,
                                                    'value': key} for key in self._questions_templates.keys()],
                                          placeholder=template_question_dropdown_placeholder),
@@ -1190,8 +1205,8 @@ class ExplainerWebGUI:
                         contrastive_explanation_text_placeholder = \
                             f"Waiting for a {contrastive_question_type}question to be submitted..."
                         contrastive_explanation_panel_title = \
-                            "Explanation" if self.only_contrastive_questions_are_enabled \
-                                else f"{contrastive_question_type}explanation"
+                            ("Explanation" if self.only_contrastive_questions_are_enabled
+                             else f"{contrastive_question_type}explanation")
                     elif self.language_is_french:
                         save_button_text = "Enregistrer"
                         what_if_button_text = "Et si ?"
@@ -1290,11 +1305,11 @@ class ExplainerWebGUI:
                     )
                     return panel
 
-                block = html.Div(children=[
+                return html.Div(children=[
                     html.Div(id='contrastive-explanation-representation-envelope', style=dict(display='none')),
-                    _build_contrastive_explanation_panel(), _build_contrastive_statistics_panel()
+                    _build_contrastive_explanation_panel(),
+                    _build_contrastive_statistics_panel() if self.contrastive_statistics_are_enabled else None
                 ])
-                return block
 
             ######################
             # Scenario / What-if #
@@ -1307,7 +1322,7 @@ class ExplainerWebGUI:
                     Build the panel allowing the end-user to edit the employees data for 'what-if' questions.
                     """
                     if self.language_is_english:
-                        panel_title = "Editable employees data for 'what-if' question"
+                        panel_title = "Editable employees data for 'What if?' question"
                     elif self.language_is_french:
                         panel_title = "Données relatives aux employés à éditer"
                     else:
@@ -1324,7 +1339,7 @@ class ExplainerWebGUI:
                     Build the panel allowing the end-user to edit the tasks data for 'what-if' questions.
                     """
                     if self.language_is_english:
-                        panel_title = "Editable tasks data for 'what-if' question"
+                        panel_title = "Editable tasks data for 'What if?' question"
                     elif self.language_is_french:
                         panel_title = "Données relatives aux tâches à éditer"
                     else:
@@ -1341,15 +1356,15 @@ class ExplainerWebGUI:
                     Build the panel allowing the end-user to submit 'what-if' questions.
                     """
                     if self.language_is_english:
-                        scenario_question_panel_title = "What-if question"
-                        scenario_question_text_placeholder = "Waiting for the definition of a 'what-if' question..."
+                        scenario_question_panel_title = "'What if?' question"
+                        scenario_question_text_placeholder = "Waiting for the definition of a 'What if?' question..."
                         submit_button_label = "Submit"
                         reset_button_label = "Reset"
                         cancel_button_label = "Return"
                     elif self.language_is_french:
-                        scenario_question_panel_title = "Question de type 'et-si'"
+                        scenario_question_panel_title = "Question de type 'Et si ?'"
                         scenario_question_text_placeholder = \
-                            "En attente qu'une question de type 'et-si' soit définie..."
+                            "En attente qu'une question de type 'Et si ?' soit définie..."
                         submit_button_label = "Soumettre"
                         reset_button_label = "Réinit."
                         cancel_button_label = "Retour"
@@ -1387,13 +1402,13 @@ class ExplainerWebGUI:
                     Build the panel providing to the end-user what-if explanations.
                     """
                     if self.language_is_english:
-                        scenario_explanation_panel_title = "What-if explanation"
-                        scenario_explanation_text_placeholder = "Waiting for a 'what-if' question to be submitted..."
+                        scenario_explanation_panel_title = "'What if?' explanation"
+                        scenario_explanation_text_placeholder = "Waiting for a 'What if?' question to be submitted..."
                         save_button_text = "Save"
                     elif self.language_is_french:
-                        scenario_explanation_panel_title = "Explication de type 'et-si'"
+                        scenario_explanation_panel_title = "Explication de type 'Et si ?'"
                         scenario_explanation_text_placeholder = \
-                            "En attente qu'une question de type 'et-si' soit soumise..."
+                            "En attente qu'une question de type 'Et si ?' soit soumise..."
                         save_button_text = "Enregistrer"
                     else:
                         raise ValueError(f"Unsupported language: {self.language}")
@@ -1464,14 +1479,14 @@ class ExplainerWebGUI:
                     Build the panel providing to the end-user 'how-to' explanations.
                     """
                     if self.language_is_english:
-                        counterfactual_explanation_panel_title = "How-to explanation"
+                        counterfactual_explanation_panel_title = "'How to? explanation"
                         counterfactual_explanation_text_placeholder = \
-                            "Waiting for a 'how-to' question to be submitted..."
+                            "Waiting for a 'How to?' question to be submitted..."
                         save_button_text = "Save"
                     elif self.language_is_french:
                         counterfactual_explanation_panel_title = "Explication de type 'comment-faire'"
                         counterfactual_explanation_text_placeholder = \
-                            "En attente qu'une question de type 'comment-faire' soit soumise..."
+                            "En attente qu'une question de type 'Comment faire pour?' soit soumise..."
                         save_button_text = "Enregistrer"
                     else:
                         raise ValueError(f"Unsupported language: {self.language}")
@@ -1512,15 +1527,7 @@ class ExplainerWebGUI:
                                  ])
                 return block
 
-            ###########
-            # Summary #
-            ###########
-
-            def _build_summary_button():
-                html.Button(id='summary-button', className='button', children="Ok", disabled=False)
-                return html.Div()
-
-            blocks = [_build_explainer_description_panel(),
+            blocks = [(_build_explainer_description_panel() if self.tab_description_panels_are_enabled else None),
                       _build_contrastive_question_block(), _build_contrastive_explanation_block()]
             if self._explainer.scenario_explanations_are_enabled:
                 blocks.append(_build_scenario_block())
@@ -1872,10 +1879,15 @@ class ExplainerWebGUI:
                 if contrastive_ok_button_disabled:
                     return True
                 else:
-                    if self._explainer.last_contrastive_explanation.support_solution_is_feasible:
+                    contrastive_explanation = self._explainer.last_contrastive_explanation
+                    if contrastive_explanation.support_solution_is_feasible:
                         return True
                     else:
-                        return False
+                        if (contrastive_explanation.question.template.id in
+                                self._explainer.activated_counterfactual_questions_templates_ids):
+                            return False
+                        else:
+                            return True
 
             @self._application.callback(
                 Output('how-to-button', 'n_clicks'), Input('counterfactual-ok-button', 'n_clicks')
@@ -1893,7 +1905,7 @@ class ExplainerWebGUI:
             Input('contrastive-statistics-template-question-dropdown', 'value'),
             Input('contrastive-explanation-text', 'className')
         )
-        def _update_contrastive_question_text(question_template_id: str, contrastive_explanation_text_style: str):
+        def _update_contrastive_statistics_text(question_template_id: str, contrastive_explanation_text_style: str):
             # Case where the questions templates dropdown is empty
             if question_template_id is None:
                 if self.language_is_english:
@@ -2154,9 +2166,9 @@ class ExplainerWebGUI:
                 elif scenario_ok_button_click is not None:
                     if scenario_submit_click >= 1:
                         if self.language_is_english:
-                            explanation_text = "Waiting for a 'what-if' question to be submitted..."
+                            explanation_text = "Waiting for a 'What if?' question to be submitted..."
                         elif self.language_is_french:
-                            explanation_text = "En attente qu'une question de type 'what-if' soit soumise..."
+                            explanation_text = "En attente qu'une question de type 'Et si ?' soit soumise..."
                         else:
                             raise NotImplementedError(f"Language {self.language} is not supported")
                         return explanation_text, 'empty-automated-text', dict(display='none'), html.Div()
@@ -2172,7 +2184,7 @@ class ExplainerWebGUI:
                     if self.language_is_english:
                         panel_title_prefix = \
                             f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}" \
-                            f" solution involved in 'what-if' explanation - "
+                            f" solution involved in 'What if?' explanation - "
                         panel_title_suffix = ""
                     elif self.language_is_french:
                         panel_title_prefix = "Solution intervenant dans l'explication - "
@@ -2212,8 +2224,8 @@ class ExplainerWebGUI:
                     raise PreventUpdate
                 elif scenario_reset_button_click == 1:
                     if self.language_is_english:
-                        employees_data_panel_title = "Editable employees data for 'what-if' question"
-                        tasks_data_panel_title = "Editable tasks data for 'what-if' question"
+                        employees_data_panel_title = "Editable employees data for 'What if?' question"
+                        tasks_data_panel_title = "Editable tasks data for 'What if?' question"
                     elif self.language_is_french:
                         employees_data_panel_title = "Données relatives aux employés à éditer"
                         tasks_data_panel_title = "Données relatives aux tâches à éditer"
@@ -2316,9 +2328,9 @@ class ExplainerWebGUI:
                     raise PreventUpdate
                 elif counterfactual_ok_button_click is not None:
                     if self.language_is_english:
-                        explanation_text = "Waiting for a 'how-to' question to be submitted..."
+                        explanation_text = "Waiting for a 'How to?' question to be submitted..."
                     elif self.language_is_french:
-                        explanation_text = "En attente d'une question de type 'comment-faire'..."
+                        explanation_text = "En attente d'une question de type 'Comment faire pour ?'..."
                     else:
                         raise ValueError(f"Unsupported language: {self.language}")
                     return explanation_text, 'empty-automated-text', dict(display='none'), html.Div()
@@ -2327,7 +2339,7 @@ class ExplainerWebGUI:
                     explanation_text = convert_from_string_to_html(explanation.text)
                     explanation_repr_visibility = dict(display='block')
                     if self.language_is_english:
-                        panel_title_prefix = "Solution involved in 'how-to' explication - "
+                        panel_title_prefix = "Solution involved in 'How to?' explanation - "
                         panel_title_suffix = ""
                     elif self.language_is_french:
                         panel_title_prefix = "Solution intervenant dans l'explication - "
@@ -2425,7 +2437,7 @@ class ExplainerWebGUI:
         """
         Launch the web Graphic User Interface of the explainer.
         """
-        self._application.run_server(debug=True)
+        self._application.run_server(debug=False)
 
     #################
     # Configuration #
@@ -2502,6 +2514,20 @@ class ExplainerWebGUI:
     ###################
 
     @property
+    def tab_description_panels_are_enabled(self):
+        return self._tab_description_panels_are_enabled
+
+    @property
+    def tab_description_panels_are_disabled(self):
+        return not self._tab_description_panels_are_enabled
+
+    def enable_tab_description_panels(self):
+        self._tab_description_panels_are_enabled = True
+
+    def disable_tab_description_panels(self):
+        self._tab_description_panels_are_enabled = False
+
+    @property
     def explanations_are_enabled(self):
         return self._explanations_are_enabled
 
@@ -2510,9 +2536,10 @@ class ExplainerWebGUI:
         return not self._explanations_are_enabled
 
     # NB: cannot enable/disable explanations while GUI is launched
+
     # def enable_explanations(self):
     #     self._explanations_are_enabled = True
-    #
+
     # def disable_explanations(self):
     #     self._explanations_are_enabled = False
     #     self.disable_explanations_representation()
@@ -2523,6 +2550,20 @@ class ExplainerWebGUI:
     @property
     def nb_questions_templates(self):
         return len(self._questions_templates)
+
+    @property
+    def contrastive_statistics_are_enabled(self):
+        return self._contrastive_statistics_are_enabled
+
+    @property
+    def contrastive_statistics_are_disabled(self):
+        return not self._contrastive_statistics_are_enabled
+
+    def enable_contrastive_statistics(self):
+        self._contrastive_statistics_are_enabled = True
+
+    def disable_contrastive_statistics(self):
+        self._contrastive_statistics_are_enabled = False
 
     @property
     def history_is_enabled(self):

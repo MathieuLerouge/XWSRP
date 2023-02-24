@@ -1,5 +1,4 @@
 # Third-party libraries
-from dash import dcc
 import numpy as np
 import plotly.express as px
 import plotly.graph_objs as go
@@ -705,7 +704,7 @@ def build_solution_metrics_figures(solution, reference_solution=None, horizontal
                        bordercolor=UI_LINE_COLOR),
             number=dict(font=dict(color=UI_FONT_COLOR)),
             value=solution.nb_performed_tasks, delta=dict(reference=reference_solution.nb_performed_tasks),
-            domain={'row': indicator_index//nb_columns, 'column': indicator_index%nb_columns})
+            domain={'row': indicator_index//nb_columns, 'column': indicator_index % nb_columns})
         )
         indicator_index += 1
     fig.add_trace(go.Indicator(
@@ -715,7 +714,7 @@ def build_solution_metrics_figures(solution, reference_solution=None, horizontal
                              tickcolor=UI_LINE_COLOR), bordercolor=UI_LINE_COLOR),
         number=dict(font=dict(color=UI_FONT_COLOR), suffix='min'),
         value=solution.total_working_duration, delta=dict(reference=reference_solution.total_working_duration),
-        domain={'row': indicator_index//nb_columns, 'column': indicator_index%nb_columns})
+        domain={'row': indicator_index//nb_columns, 'column': indicator_index % nb_columns})
     )
     indicator_index += 1
     fig.add_trace(go.Indicator(
@@ -727,7 +726,7 @@ def build_solution_metrics_figures(solution, reference_solution=None, horizontal
         value=solution.total_traveling_duration,
         delta=dict(reference=reference_solution.total_traveling_duration,
                    increasing=dict(color='red'), decreasing=dict(color='green')),
-        domain={'row': indicator_index//nb_columns, 'column': indicator_index%nb_columns})
+        domain={'row': indicator_index//nb_columns, 'column': indicator_index % nb_columns})
     )
     fig.update_layout(
         grid={'rows': nb_rows, 'columns': nb_columns, 'pattern': 'independent'},

@@ -11,10 +11,15 @@ from src.modeling.departure import Departure
 from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
-from src.optimization.IP.sequence.basemodel import IPModelForSequenceOptimization, LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
+from src.optimization.IP.sequence.basemodel import IPModelForSequenceOptimization, \
+    LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 
 
-# Class IPModelForCategory3
+#############################
+# Class IPModelForCategory3 #
+#############################
+
+
 class IPModelForCategory3(IPModelForSequenceOptimization):
 
     def __init__(self, sequence: Sequence, pivot_task: Task):

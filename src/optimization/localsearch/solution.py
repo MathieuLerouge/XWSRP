@@ -22,12 +22,15 @@ if GUROBI_IS_ENABLED:
 LS_ID = "LS"
 
 
-# Class SolutionLS
+####################
+# Class SolutionLS #
+####################
+
 class SolutionLS(SolutionOpti):
 
     def __init__(self, instance: Instance, name: str = None, sequences: dict[str, SequenceLS] = None,
                  tasks_realizations: dict = None, lunch_breaks_realizations: dict = None):
-        super().__init__(LS_ID, instance, name, None, tasks_realizations, lunch_breaks_realizations)
+        super().__init__(instance, name, None, tasks_realizations, lunch_breaks_realizations, LS_ID)
         if sequences is None:
             sequences = dict()
             for employee in self._instance.employees:
@@ -160,7 +163,7 @@ class SolutionLS(SolutionOpti):
         :param entering_task: the task (Task) that is figured to be inserted
         :param employee: the employee (Employee) who would perform the entering task
         :param step_index: the index of the step (int) where the given task would be inserted
-        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether
           if the skill constraints are not satisfied start times should still be computed
         :return: the examination dictionary
         """
@@ -194,7 +197,7 @@ class SolutionLS(SolutionOpti):
         :param entering_task: the task (Task) that is figured to be inserted
         :param employee: the employee (Employee) who would perform the entering task
         :param activity: the activity (Activity) after which the given task would be inserted
-        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether
           if the skill constraints are not satisfied start times should still be computed
         :return: the examination dictionary
         """
@@ -223,7 +226,7 @@ class SolutionLS(SolutionOpti):
 
         :param task: the task (Task) that would be inserted
         :param employee: the employee (Employee) whose planning would be changed
-        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether
           if the skill constraints are not satisfied start times should still be computed
         :return: the examination dictionary
         """
@@ -252,7 +255,7 @@ class SolutionLS(SolutionOpti):
 
         :param tasks: the list of candidate tasks (Task) that may be inserted
         :param employees:
-        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether or not
+        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether
           if the skill constraints are not satisfied start times should still be computed
         :return: the examination dictionary
         """
@@ -496,13 +499,13 @@ class SolutionLS(SolutionOpti):
     ####################################
 
     def _set_task_performance_to_non_performed(self, task: Task):
-        task_performance = self._tasks_realizations[task.name]
+        task_performance = self._tasks_performances[task.name]
         task_performance[TASK_PERFORMANCE_STATUS_KEY] = False
         del task_performance[TASK_ASSIGNEE_KEY]
         del task_performance[TASK_START_TIME_KEY]
 
     def _set_task_performance_to_performed(self, task: Task, employee: Employee, startTime: int):
-        task_performance = self._tasks_realizations[task.name]
+        task_performance = self._tasks_performances[task.name]
         task_performance[TASK_PERFORMANCE_STATUS_KEY] = True
         task_performance[TASK_ASSIGNEE_KEY] = employee.name
         task_performance[TASK_START_TIME_KEY] = startTime
@@ -559,7 +562,7 @@ class SolutionLS(SolutionOpti):
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
           who performs the given task after it has been removed in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
-        :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
+        :return: a boolean (bool) to indicate whether the obtained solution is feasible
         """
 
         # Check that the given task is realized
@@ -613,7 +616,7 @@ class SolutionLS(SolutionOpti):
           who performs the given task after it has been removed in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
         :param ignore_skill_constraint:
-        :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
+        :return: a boolean (bool) to indicate whether the obtained solution is feasible
         """
 
         # Check that the given activity is not an employee's comeback
@@ -660,7 +663,7 @@ class SolutionLS(SolutionOpti):
             for key, value in sequence_former_KPIs.items():
                 self._KPIs[key] += sequence.get_KPI(key) - value
 
-        # Return whether or not the insertion has given a feasible solution
+        # Return whether the insertion has given a feasible solution
         return is_feasible
 
     def replace_task_by_another(self, leaving_task: Task, replacing_task: Task, start_time: int = None,
@@ -691,7 +694,7 @@ class SolutionLS(SolutionOpti):
           who performs the given task after it has been removed in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
         :param ignore_skill_constraint:
-        :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
+        :return: a boolean (bool) to indicate whether the obtained solution is feasible
         """
 
         # Check that the given leaving task is realized
@@ -737,7 +740,7 @@ class SolutionLS(SolutionOpti):
             for key, value in sequence_former_KPIs.items():
                 self._KPIs[key] += sequence.get_KPI(key) - value
 
-        # Return whether or not the insertion has given a feasible solution
+        # Return whether the insertion has given a feasible solution
         return is_feasible
 
     def shift_task_in_sequence_after_activity(self, task: Task, activity: Activity, start_time: int = None,
@@ -767,7 +770,7 @@ class SolutionLS(SolutionOpti):
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
           who performs the given task and activity after transformation in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the shift
-        :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
+        :return: a boolean (bool) to indicate whether the obtained solution is feasible
         """
 
         # Check that the task is performed and that the activity is performed
@@ -830,7 +833,7 @@ class SolutionLS(SolutionOpti):
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence of the employee
           who performs the given task and activity after transformation in order to minimize idle time
         :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the shift
-        :return: a boolean (bool) to indicate whether or not the obtained solution is feasible
+        :return: a boolean (bool) to indicate whether the obtained solution is feasible
         """
 
         # Check assumptions
@@ -890,7 +893,7 @@ class SolutionLS(SolutionOpti):
                 new_sequence.tighten_times(update_KPIs)
             self._replace_sequence_by_another(employee, new_sequence, update_KPIs)
 
-            # Return whether or not the insertion has given a feasible solution
+            # Return whether the insertion has given a feasible solution
             return True
 
         # If the task has not been inserted,
@@ -933,7 +936,7 @@ class SolutionLS(SolutionOpti):
         # Replace sequence
         self._replace_sequence_by_another(employee, new_sequence, update_KPIs)
 
-        # Return whether or not the insertion has given a feasible solution
+        # Return whether the insertion has given a feasible solution
         return True
 
     def reorder(self, employee: Employee, tighten_times: bool = True, update_KPIs: bool = True):
@@ -954,5 +957,5 @@ class SolutionLS(SolutionOpti):
         # Replace sequence
         self._replace_sequence_by_another(employee, new_sequence, update_KPIs)
 
-        # Return whether or not the insertion has given a feasible solution
+        # Return whether the insertion has given a feasible solution
         return True

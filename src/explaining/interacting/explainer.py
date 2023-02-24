@@ -30,6 +30,9 @@ class Explainer:
         WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3,
         WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_3
     ]
+    _available_counterfactual_questions_templates_ids = [
+        WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_3
+    ]
 
     def __init__(self, solution: Solution):
         self._language_key = LANGUAGE_ENGLISH_KEY
@@ -116,6 +119,10 @@ class Explainer:
     @property
     def activated_questions_templates(self):
         return list(self._activated_questions_templates.values())
+
+    @property
+    def activated_questions_templates_ids(self):
+        return list(self._activated_questions_templates.keys())
 
     def activate_question_template(self, question_template_id: str):
         if question_template_id in self._available_questions_templates_ids:
@@ -472,6 +479,11 @@ class Explainer:
     ##############################
     # Counterfactual explanation #
     ##############################
+
+    @property
+    def activated_counterfactual_questions_templates_ids(self):
+        return [template_id for template_id in self.activated_questions_templates_ids
+                if template_id in self._available_counterfactual_questions_templates_ids]
 
     @property
     def counterfactual_explanations_are_enabled(self):

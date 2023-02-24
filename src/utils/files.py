@@ -147,7 +147,20 @@ def check_inputs_file_existence(file_name_with_extension: str, inputs_directory_
 ############
 
 
-def is_an_instance_file_name(file_name_with_extension: str):
+def is_an_instance_file_name(file_name: str):
+    """
+    Check if a file name is an instance file name (with or without extension)
+
+    :param file_name: the name of the file (with or without extension)
+    :return: True if the file name is an instance file name, False otherwise
+    """
+    for prefix in INSTANCE_FILE_NAME_POSSIBLE_PREFIXES:
+        if prefix == file_name[:len(prefix)]:
+            return True
+    return False
+
+
+def is_an_instance_file_name_with_extension(file_name_with_extension: str):
     """
     Check if a file name is an instance file name
     NB: the file name must have an extension
@@ -155,8 +168,9 @@ def is_an_instance_file_name(file_name_with_extension: str):
     :param file_name_with_extension: the name of the file with its extension
     :return: True if the file name is an instance file name, False otherwise
     """
-    if has_a_file_extension(file_name_with_extension) and \
-            get_file_extension(file_name_with_extension) in INSTANCE_FILE_POSSIBLE_EXTENSIONS:
+    if not has_a_file_extension(file_name_with_extension):
+        raise ValueError(f"The file name {file_name_with_extension} has no extension")
+    if get_file_extension(file_name_with_extension) in INSTANCE_FILE_POSSIBLE_EXTENSIONS:
         for prefix in INSTANCE_FILE_NAME_POSSIBLE_PREFIXES:
             if prefix == file_name_with_extension[:len(prefix)]:
                 return True
@@ -165,9 +179,9 @@ def is_an_instance_file_name(file_name_with_extension: str):
 
 def get_instance_file_name_case_type(file_name: str):
     """
-    Get the case type of an instance file name
+    Get the case type of instance file name (with or without extension)
 
-    :param file_name: the name of the file
+    :param file_name: the name of the file (with or without extension)
     :return: the case type of the instance file name
     """
     if not is_an_instance_file_name(file_name):
@@ -182,9 +196,9 @@ def get_instance_file_name_case_type(file_name: str):
 
 def remove_instance_file_name_prefix(file_name: str):
     """
-    Remove the prefix of an instance file name
+    Remove the prefix of an instance file name (with or without extension)
 
-    :param file_name: the name of the file
+    :param file_name: the name of the file (with or without extension)
     :return: the name of the file without its prefix
     """
     if not is_an_instance_file_name(file_name):
@@ -200,7 +214,7 @@ def remove_instance_file_name_prefix(file_name: str):
 
 def does_instance_file_name_mention_version(file_name: str):
     """
-    Check if a instance file name mentions a version
+    Check if an instance file name mentions a version
 
     :param file_name: the name of the instance file
     :return: True if the instance file name mentions a version, False otherwise
@@ -216,9 +230,9 @@ def does_instance_file_name_mention_version(file_name: str):
 
 def get_instance_version_in_instance_file_name(file_name: str):
     """
-    Get the version of a instance file name
+    Get the version of an instance file name (with or without extension)
 
-    :param file_name: the name of the instance file
+    :param file_name: the name of the instance file (with or without extension)
     :return: the version of the instance file name
     """
     if not is_an_instance_file_name(file_name):
@@ -230,9 +244,9 @@ def get_instance_version_in_instance_file_name(file_name: str):
 
 def remove_instance_version_from_instance_file_name(file_name: str):
     """
-    Remove the version of a instance file name
+    Remove the version of an instance file name (with or without extension)
 
-    :param file_name: the name of the instance file
+    :param file_name: the name of the instance file (with or without extension)
     :return: the instance file name without the version
     """
     if not is_an_instance_file_name(file_name):
@@ -245,7 +259,7 @@ def remove_instance_version_from_instance_file_name(file_name: str):
 
 def get_core_in_instance_file_name(file_name: str):
     """
-    Get the core of a instance file name
+    Get the core of an instance file name
 
     :param file_name: the name of the file
     :return: the core of the instance file name
@@ -258,20 +272,18 @@ def get_core_in_instance_file_name(file_name: str):
     return file_name
 
 
-def get_instance_name_in_instance_file_name(file_name_with_extension: str):
+def get_instance_name_in_instance_file_name(file_name: str):
     """
-    Get the instance name from its file name
+    Get the instance name from its file name (with or without extension)
 
-    :param file_name_with_extension: the name of the file
+    :param file_name: the name of the file (with or without extension)
     :return: the name of the instance file name
     """
-    if not is_an_instance_file_name(file_name_with_extension):
-        raise ValueError(f"The file name {file_name_with_extension} is not an instance file name")
-    if does_instance_file_name_mention_version(file_name_with_extension):
-        file_name_with_extension = remove_instance_version_from_instance_file_name(file_name_with_extension)
-    if has_a_file_extension(file_name_with_extension):
-        file_name_with_extension = remove_file_extension(file_name_with_extension)
-    return file_name_with_extension
+    if not is_an_instance_file_name(file_name):
+        raise ValueError(f"The file name {file_name} is not an instance file name")
+    if has_a_file_extension(file_name):
+        file_name = remove_file_extension(file_name)
+    return file_name
 
 
 def get_instance_name_in_instance_file_path(file_path: str):
@@ -286,10 +298,10 @@ def get_instance_name_in_instance_file_path(file_path: str):
 
 def identify_meta_data_in_instance_file_name(file_name_with_extension: str):
     """
-    Identify the meta data in an instance file name
+    Identify the metadata in an instance file name
 
     :param file_name_with_extension: the name of the instance file with its extension
-    :return: the meta data of the instance file
+    :return: the metadata of the instance file
     """
     core = get_core_in_instance_file_name(file_name_with_extension)
     case_type = get_instance_file_name_case_type(file_name_with_extension)
@@ -302,10 +314,10 @@ def identify_meta_data_in_instance_file_name(file_name_with_extension: str):
 
 def identify_meta_data_in_instance_file_path(file_path: str):
     """
-    Identify the meta data in an instance file path
+    Identify the metadata in an instance file path
 
     :param file_path: the path of the instance file
-    :return: the meta data of the instance file
+    :return: the metadata of the instance file
     """
     return identify_meta_data_in_instance_file_name(file_path.split('/')[-1])
 
@@ -375,7 +387,7 @@ def get_paths_of_instances_files_in_given_directory(instances_directory_relative
         raise FileNotFoundError(f"There are no instances in the directory {instances_directory_path}")
     instances_files_paths = []
     for file_name in files_names_with_extensions:
-        if is_an_instance_file_name(file_name):
+        if is_an_instance_file_name_with_extension(file_name):
             instance_file_path = instances_directory_path + "/" + file_name
             instances_files_paths.append(instance_file_path)
     instances_files_paths.sort()
@@ -400,7 +412,20 @@ def get_path_of_directory_of_instances_of_given_version(version: int, absolute_p
 ############
 
 
-def is_a_solution_file_name(file_name_with_extension: str):
+def is_a_solution_file_name(file_name: str):
+    """
+    Check whether a file name is a solution file name (with or without extension)
+
+    :param file_name: the file name (with or without extension)
+    :return: whether the file name is a solution file name
+    """
+    for prefix in SOLUTION_FILE_NAME_POSSIBLE_PREFIXES:
+        if prefix == file_name[:len(prefix)]:
+            return True
+    return False
+
+
+def is_a_solution_file_name_with_extension(file_name_with_extension: str):
     """
     Check if a file name is a solution file name
 
@@ -417,9 +442,9 @@ def is_a_solution_file_name(file_name_with_extension: str):
 
 def get_solution_file_name_case_type(file_name: str):
     """
-    Get the case type of a solution file name
+    Get the case type of solution file name (with or without)
 
-    :param file_name: the name of the solution file
+    :param file_name: the name of the solution file (with or without)
     :return: the case type of the solution file name
     """
     if not is_a_solution_file_name(file_name):
@@ -434,9 +459,9 @@ def get_solution_file_name_case_type(file_name: str):
 
 def remove_solution_file_name_prefix(file_name: str):
     """
-    Remove the prefix of a solution file name
+    Remove the prefix of a solution file name (with or without)
 
-    :param file_name: the name of the file
+    :param file_name: the name of the file (with or without)
     :return: the core of the solution file name
     """
     if not is_a_solution_file_name(file_name):
@@ -452,9 +477,9 @@ def remove_solution_file_name_prefix(file_name: str):
 
 def does_solution_file_name_mention_version(file_name: str):
     """
-    Check if a solution file name mentions a version
+    Check if a solution file name mentions a version (with or without extension)
 
-    :param file_name: the name of the solution file
+    :param file_name: the name of the solution file (with or without extension)
     :return: True if the solution file name mentions a version, False otherwise
     """
     if not is_a_solution_file_name(file_name):
@@ -468,9 +493,9 @@ def does_solution_file_name_mention_version(file_name: str):
 
 def get_instance_version_in_solution_file_name(file_name: str):
     """
-    Get the version of a solution file name
+    Get the version of a solution file name (with or without)
 
-    :param file_name: the name of the solution file
+    :param file_name: the name of the solution file (with or without)
     :return: the version of the solution file name
     """
     if not is_a_solution_file_name(file_name):
@@ -482,9 +507,9 @@ def get_instance_version_in_solution_file_name(file_name: str):
 
 def remove_instance_version_from_solution_file_name(file_name: str):
     """
-    Remove the version of a solution file name
+    Remove the version of a solution file name (with or without)
 
-    :param file_name: the name of the solution file
+    :param file_name: the name of the solution file (with or without)
     :return: the core of the solution file name
     """
     if not is_a_solution_file_name(file_name):
@@ -497,14 +522,14 @@ def remove_instance_version_from_solution_file_name(file_name: str):
 
 def does_solution_file_name_mention_solving_method(file_name: str):
     """
-    Check if a solution file name mentions a solving method
+    Check if a solution file name mentions a solving method (with or without extension)
 
-    :param file_name: the name of the file
+    :param file_name: the name of the file (with or without extension)
     :return: True if the solution file name mentions a solving method, False otherwise
     """
     if not is_a_solution_file_name(file_name):
         raise ValueError(f"The file name {file_name} is not a solution file name")
-    return SOLUTION_SOLVING_METHOD_SYMBOL in file_name
+    return SOLUTION_SOLVING_METHOD_SYMBOL_BIS in file_name
 
 
 def get_solving_method_solution_file_name(file_name: str):
@@ -518,7 +543,7 @@ def get_solving_method_solution_file_name(file_name: str):
         raise ValueError(f"The file name {file_name} does not mention a solving method")
     if does_solution_file_name_mention_solving_parameters(file_name):
         file_name = remove_solving_parameters_from_solution_file_name(file_name)
-    return file_name.split(SOLUTION_SOLVING_METHOD_SYMBOL)[1].split(SOLUTION_FILE_EXTENSION)[0]
+    return file_name.split(SOLUTION_SOLVING_METHOD_SYMBOL_BIS)[1].split(SOLUTION_FILE_EXTENSION)[0]
 
 
 def remove_solving_method_from_solution_file_name(file_name: str):
@@ -530,14 +555,14 @@ def remove_solving_method_from_solution_file_name(file_name: str):
     """
     if not does_solution_file_name_mention_solving_method(file_name):
         raise ValueError(f"The file name {file_name} does not mention a solving method")
-    return file_name.replace(SOLUTION_SOLVING_METHOD_SYMBOL + get_solving_method_solution_file_name(file_name), "")
+    return file_name.replace(SOLUTION_SOLVING_METHOD_SYMBOL_BIS + get_solving_method_solution_file_name(file_name), "")
 
 
 def does_solution_file_name_mention_solving_parameters(file_name: str):
     """
-    Check if a solution file name mentions solving parameters
+    Check if a solution file name (with or without) mentions solving parameters
 
-    :param file_name: the name of the file
+    :param file_name: the name of the file (with or without)
     :return: True if the solution file name mentions solving parameters, False otherwise
     """
     if not is_a_solution_file_name(file_name):
@@ -599,10 +624,10 @@ def get_core_in_solution_file_name(file_name: str):
 
 def identify_meta_data_in_solution_file_name(file_name_with_extension: str):
     """
-    Identify the meta data in a solution file name
+    Identify the metadata in a solution file name
     
     :param file_name_with_extension: the name of the solution file with its extension
-    :return: a dictionary containing the meta data of the solution file name
+    :return: a dictionary containing the metadata of the solution file name
     """
     core = get_core_in_solution_file_name(file_name_with_extension)
     case_type = get_solution_file_name_case_type(file_name_with_extension)
@@ -625,10 +650,10 @@ def identify_meta_data_in_solution_file_name(file_name_with_extension: str):
 
 def identify_meta_data_in_solution_file_path(solution_file_path: str):
     """
-    Identify the meta data of a solution file path
+    Identify the metadata of a solution file path
 
     :param solution_file_path: the path of the solution file
-    :return: the meta data of the solution file path
+    :return: the metadata of the solution file path
     """
     return identify_meta_data_in_solution_file_name(solution_file_path.split('/')[-1])
 
@@ -651,7 +676,7 @@ def get_paths_of_solutions_files_in_given_directory(solutions_directory_relative
         raise FileNotFoundError(f"There are no solutions in the directory {directory_path}")
     solutions_files_paths = []
     for file_name_with_extension in files_names_with_extensions:
-        if is_a_solution_file_name(file_name_with_extension):
+        if is_a_solution_file_name_with_extension(file_name_with_extension):
             solutions_files_paths.append(f"{directory_path}/{file_name_with_extension}")
     solutions_files_paths.sort()
     return solutions_files_paths
@@ -660,13 +685,13 @@ def get_paths_of_solutions_files_in_given_directory(solutions_directory_relative
 def get_solutions_files_paths_given_meta_data(core: str, version: int = None, case_type: str = None,
                                               solutions_directory_relative_path: str = None):
     """
-    Get the paths of the solution files satisfying given meta data
+    Get the paths of the solution files satisfying given metadata
 
     :param core: the core of the solution file name
     :param version: the version of the solution file name if any
     :param case_type: the case type of the solution file name (snake case or camel case)
     :param solutions_directory_relative_path: the relative path of the directory containing the solution files
-    :return: the paths of the solution files satisfying given meta data
+    :return: the paths of the solution files satisfying given metadata
     """
     if solutions_directory_relative_path is None:
         if version is not None:
@@ -684,7 +709,7 @@ def get_solutions_files_paths_given_meta_data(core: str, version: int = None, ca
     if version is not None:
         extended_core += f"{INSTANCE_VERSION_SYMBOL}{str(version)}"
     for file_name in files_names_with_extensions:
-        if is_a_solution_file_name(file_name) and extended_core in file_name:
+        if is_a_solution_file_name_with_extension(file_name) and extended_core in file_name:
             if case_type is None or case_type == get_solution_file_name_case_type(file_name):
                 solutions_files_paths.append(f"{solutions_directory_path}/{file_name}")
     return solutions_files_paths

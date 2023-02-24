@@ -14,8 +14,8 @@ from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
 from src.modeling.constants import *
-from src.utils.constants import LINE_BREAK_STRING, SNAKE_CASE, CAMEL_CASE, INSTANCE_VERSION_SYMBOL,\
-    SOLUTION_NAME_PREFIX, SOLUTION_NAME_PREFIX_BIS
+from src.utils.constants import LINE_BREAK_STRING, SNAKE_CASE, CAMEL_CASE, SOLUTION_NAME_PREFIX, \
+    SOLUTION_NAME_PREFIX_BIS
 
 # Global variables
 DISPLACEMENT_STRING = ">>"
@@ -30,11 +30,15 @@ LUNCH_START_TIME_KEY = 'start_time'
 
 
 # TODO: create a class Performance?
-# Class Solution
+
+##################
+# Class Solution #
+##################
+
 class Solution:
 
     def __init__(self, instance: Instance, name: str = None, sequences: dict[str, Sequence] = None,
-                 tasks_realizations: dict = None, lunch_breaks_realizations: dict = None):
+                 tasks_performances: dict = None, lunch_breaks_performances: dict = None):
         self._instance = instance
         self._name = name if name is not None else self._create_name()
         if sequences is None:
@@ -42,13 +46,13 @@ class Solution:
             for employee in self._instance.employees:
                 sequences[employee.name] = Sequence(instance, employee)
         self._sequences = sequences
-        if tasks_realizations is None:
-            tasks_realizations = dict()
+        if tasks_performances is None:
+            tasks_performances = dict()
             for task_name in self._instance.tasks_names:
-                tasks_realizations[task_name] = dict()
-                tasks_realizations[task_name][TASK_PERFORMANCE_STATUS_KEY] = False
-        self._tasks_realizations = tasks_realizations
-        self._lunch_breaks_realizations = lunch_breaks_realizations
+                tasks_performances[task_name] = dict()
+                tasks_performances[task_name][TASK_PERFORMANCE_STATUS_KEY] = False
+        self._tasks_performances = tasks_performances
+        self._lunch_breaks_performances = lunch_breaks_performances
         self._KPIs = dict()
 
     def __getitem__(self, employee_name: str):
@@ -103,13 +107,6 @@ class Solution:
     def core_name(self):
         return self.instance.core_name
 
-    @property
-    def full_name(self):
-        if self.instance.version is None:
-            return self.name
-        else:
-            return self.name + INSTANCE_VERSION_SYMBOL + str(self.instance.version)
-
     def _create_name(self):
         if self.instance.name_case_type_is_snake_case:
             return SOLUTION_NAME_PREFIX + self.instance.core_name
@@ -160,14 +157,14 @@ class Solution:
         return self._instance.nb_tasks - self.nb_performed_tasks
 
     def get_task_performance_status(self, task: Task) -> bool:
-        return self._tasks_realizations[task.name][TASK_PERFORMANCE_STATUS_KEY]
+        return self._tasks_performances[task.name][TASK_PERFORMANCE_STATUS_KEY]
 
     def set_task_performance_status(self, task: Task, boolean: bool):
-        self._tasks_realizations[task.name][TASK_PERFORMANCE_STATUS_KEY] = boolean
+        self._tasks_performances[task.name][TASK_PERFORMANCE_STATUS_KEY] = boolean
 
     def get_task_assignee(self, task: Task):
         if self.get_task_performance_status(task):
-            return self._instance.get_employee_by_name(self._tasks_realizations[task.name][TASK_ASSIGNEE_KEY])
+            return self._instance.get_employee_by_name(self._tasks_performances[task.name][TASK_ASSIGNEE_KEY])
         else:
             raise ValueError(f"The task {task.name} is not performed, it does not have assignee")
 
@@ -197,32 +194,32 @@ class Solution:
 
     def set_task_assignee(self, task: Task, employee: Employee):
         if self.get_task_performance_status(task):
-            self._tasks_realizations[task.name][TASK_ASSIGNEE_KEY] = employee.name
+            self._tasks_performances[task.name][TASK_ASSIGNEE_KEY] = employee.name
         else:
             raise ValueError(f"The task {task.name} is not performed, "
                              f"it must be set performed before having any assignee")
 
     def get_task_start_time(self, task: Task) -> int:
         try:
-            return self._tasks_realizations[task.name][TASK_START_TIME_KEY]
+            return self._tasks_performances[task.name][TASK_START_TIME_KEY]
         except KeyError:
             raise ValueError(f"The task {task.name} is not performed, it does not have start time")
 
     def set_task_start_time(self, task: Task, start_time: int):
         if self.get_task_performance_status(task):
-            self._tasks_realizations[task.name][TASK_START_TIME_KEY] = start_time
+            self._tasks_performances[task.name][TASK_START_TIME_KEY] = start_time
         else:
             raise ValueError(f"The task {task.name} is not performed, "
                              f"it must be set performed before having any start time")
 
     def get_employee_lunch_break_start_time(self, employee: Employee):
-        return self._lunch_breaks_realizations[employee.name][TASK_START_TIME_KEY]
+        return self._lunch_breaks_performances[employee.name][TASK_START_TIME_KEY]
 
     def get_activity_before_employee_lunch(self, employee: Employee) -> Activity:
-        return self._lunch_breaks_realizations[employee.name][ACTIVITY_BEFORE_LUNCH_KEY]
+        return self._lunch_breaks_performances[employee.name][ACTIVITY_BEFORE_LUNCH_KEY]
 
     def get_activity_after_employee_lunch(self, employee: Employee) -> Activity:
-        return self._lunch_breaks_realizations[employee.name][ACTIVITY_AFTER_LUNCH_KEY]
+        return self._lunch_breaks_performances[employee.name][ACTIVITY_AFTER_LUNCH_KEY]
 
     def filter_tasks_names(self, employee: Employee, excluding_tasks_with_higher_skills: bool,
                            excluding_realized_tasks: bool, excluding_tasks_unassigned_to_employee: bool,
@@ -294,7 +291,7 @@ class Solution:
     def _compute_lunch_breaks_performances(self):
 
         if self._instance.has_lunch_break:
-            self._lunch_breaks_realizations = dict()
+            self._lunch_breaks_performances = dict()
 
             for employee_name, sequence in self._sequences.items():
                 lunch_break_realization = dict()
@@ -347,7 +344,7 @@ class Solution:
                         self._instance.lunch_break_time_LB
                     )
 
-                self._lunch_breaks_realizations[employee_name] = lunch_break_realization
+                self._lunch_breaks_performances[employee_name] = lunch_break_realization
 
     def _compute_departure_and_comeback_times(self):
 
@@ -357,7 +354,7 @@ class Solution:
             lunch_break_realization = dict()
             lunch_break_duration = 0
             if self._instance.has_lunch_break:
-                lunch_break_realization = self._lunch_breaks_realizations[employee_name]
+                lunch_break_realization = self._lunch_breaks_performances[employee_name]
                 lunch_break_duration = self._instance.lunch_break_duration
             else:
                 lunch_break_realization[ACTIVITY_BEFORE_LUNCH_KEY] = sequence[0].activity
@@ -401,7 +398,7 @@ class Solution:
                 lunch_break_realization = dict()
                 lunch_break_duration = 0
                 if self._instance.has_lunch_break:
-                    lunch_break_realization = self._lunch_breaks_realizations[employee_name]
+                    lunch_break_realization = self._lunch_breaks_performances[employee_name]
                     lunch_break_duration = self._instance.lunch_break_duration
                 else:
                     lunch_break_realization[ACTIVITY_BEFORE_LUNCH_KEY] = sequence[0].activity
@@ -506,10 +503,10 @@ class Solution:
         return sequences
 
     def _copy_tasks_realizations(self):
-        return copy.deepcopy(self._tasks_realizations)
+        return copy.deepcopy(self._tasks_performances)
 
     def _copy_lunch_breaks_realizations(self):
-        return copy.deepcopy(self._lunch_breaks_realizations)
+        return copy.deepcopy(self._lunch_breaks_performances)
 
     def _copy_KPIs(self):
         return copy.deepcopy(self._KPIs)

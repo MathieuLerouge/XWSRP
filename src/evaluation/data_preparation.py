@@ -13,12 +13,13 @@ from src.explaining.writing.explanation import export_multiple_contrastive_expla
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.optimization.localsearch.solution import SolutionLS
-
-if GUROBI_IS_ENABLED:
-    from src.optimization.IP.WSRPmodel import WSRPIPModel
 from src.reading.instance import extract_instance_from_file
 from src.reading.solution import extract_solution_from_file
 from src.utils.files import get_default_inputs_directory_path
+
+# Local libraries (if Gurobi is enabled)
+if GUROBI_IS_ENABLED:
+    from src.optimization.IP.WSRPmodel import WSRPIPModel
 
 
 #############################################
@@ -28,8 +29,8 @@ from src.utils.files import get_default_inputs_directory_path
 
 def get_path_of_instance_for_evaluation_in_default_inputs_directory(instance_index: int):
     """
-    Returns the path of the instance for evaluation with given index
-    NB: the instance is assumed to be located in the default inputs directory
+    Returns the path of the instance for evaluation with given index.
+    NB: the instance is assumed to be located in the default inputs directory.
 
     :param instance_index: the index of the instance for evaluation (int)
     :return: the path of the instance for evaluation with given index
@@ -41,8 +42,8 @@ def get_path_of_instance_for_evaluation_in_default_inputs_directory(instance_ind
 
 def get_instance_for_evaluation_in_default_inputs_directory(instance_index: int):
     """
-    Returns the instance for evaluation with given index
-    NB: the instance is assumed to be located in the default inputs directory
+    Returns the instance for evaluation with given index.
+    NB: the instance is assumed to be located in the default inputs directory.
 
     :param instance_index: the index of the instance for evaluation (int)
     :return: the instance for evaluation with given index
@@ -50,13 +51,13 @@ def get_instance_for_evaluation_in_default_inputs_directory(instance_index: int)
     instance_path = get_path_of_instance_for_evaluation_in_default_inputs_directory(instance_index)
     if not path.exists(instance_path):
         raise ValueError(f"The instance {instance_path} does not exist")
-    return extract_instance_from_file(instance_path, True, True, True, True)
+    return extract_instance_from_file(instance_path, True, True, True)
 
 
 def compute_solution_for_evaluation_by_ILP_optimization(instance: Instance, solving_time_limit: int = None,
                                                         mute_process: bool = False):
     """
-    Computes a solution of an instance for evaluation via ILP optimization
+    Computes a solution of an instance for evaluation via ILP optimization.
 
     :param instance: the instance for evaluation (Instance)
     :param solving_time_limit: solving time limit in seconds if any (int)
@@ -83,8 +84,8 @@ def compute_solution_for_evaluation_by_ILP_optimization(instance: Instance, solv
 
 def get_path_of_solution_for_evaluation_in_default_inputs_directory(instance_index: int):
     """
-    Returns the path of the solution for evaluation with given index
-    NB: the solution is assumed to be located in the default inputs directory
+    Returns the path of the solution for evaluation with given index.
+    NB: the solution is assumed to be located in the default inputs directory.
 
     :param instance_index: the index of the solution for evaluation (int)
     :return: the path of the solution for evaluation with given index
@@ -96,15 +97,14 @@ def get_path_of_solution_for_evaluation_in_default_inputs_directory(instance_ind
 
 def get_solution_for_evaluation_in_default_inputs_directory(instance_index: int):
     """
-    Returns the solution for evaluation with given index
-    NB: the solution is assumed to be located in the default inputs directory
+    Returns the solution for evaluation with given index.
+    NB: the solution is assumed to be located in the default inputs directory.
 
     :param instance_index: the index of the instance for evaluation (int)
     :return: the solution for evaluation with given index
     """
-    solution = extract_solution_from_file(
-        get_path_of_solution_for_evaluation_in_default_inputs_directory(instance_index), True, True, True, True, True
-    )
+    solution_path = get_path_of_solution_for_evaluation_in_default_inputs_directory(instance_index)
+    solution = extract_solution_from_file(solution_path, True, True, True)
     feasible, text = check_feasibility(solution)
     if not feasible:
         raise ValueError(f"The solution {solution.name} is not feasible: {text}")
@@ -120,7 +120,7 @@ def get_solution_for_evaluation_in_default_inputs_directory(instance_index: int)
 def check_explanations_negativity(solution: Solution, only_activated_questions_templates_for_evaluation: bool,
                                   use_already_computed_explanations: bool = False):
     """
-    Checks that the explanations about a solution are all negative
+    Checks that the explanations about a solution are all negative.
 
     :param solution: solution for evaluation which explanations are checked (Solution)
     :param only_activated_questions_templates_for_evaluation: if True, only activated questions templates for evaluation
@@ -154,7 +154,7 @@ def check_explanations_negativity(solution: Solution, only_activated_questions_t
                 index += 1
                 explanation = explainer.get_contrastive_explanation(question_template.id, fields_values)
                 if explanation.is_positive():
-                    print(f"/!\ the question \"{explanation.question.text}\" leads to a positive explanation")
+                    print(f"Warning: the question \"{explanation.question.text}\" leads to a positive explanation")
                     return False
                 if '3' in explanation.question.template.id and index % 25 == 0:
                     print(f"Now checking explanation answering to {explanation.question.text} computed")
@@ -173,8 +173,8 @@ def compute_and_export_contrastive_explanations(solution: Solution,
                                                 only_activated_questions_templates_for_evaluation: bool,
                                                 only_ILP_based_computation: bool = False):
     """
-    Computes and exports all contrastive explanations about a solution
-    NB: the explanations are exported in the default outputs directory
+    Computes and exports all contrastive explanations about a solution.
+    NB: the explanations are exported in the default outputs directory.
 
     :param solution: solution for evaluation which explanations are computed (Solution)
     :param only_activated_questions_templates_for_evaluation: if True, only activated questions templates for evaluation

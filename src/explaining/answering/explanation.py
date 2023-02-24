@@ -300,7 +300,7 @@ class Explanation:
                 text += "longer than "
             else:
                 text += "equal to "
-            text += f"the one of the current solution {current_solution.total_working_duration}min."
+            text += f"the one of the current solution {current_solution.total_working_duration}min"
         elif self.language_is_french:
             if without_new_solution:
                 text += f"{'Sa' if start_with_cap else 'sa'} durée totale de travail "
@@ -389,6 +389,11 @@ class PositiveExplanation(Explanation):
                 text += f"La raison pour laquelle {self._the_fact} est que la solution courante n'est pas optimale." \
                         f"{LINE_BREAK_STRING}" \
                         f"Ainsi, "
+                # text += f"La solution courante n'est en fait pas optimale ce qui explique pourquoi {self._the_fact}." \
+                #         f"{LINE_BREAK_STRING}" \
+                #         f"Ainsi, "
+                # text += f"La solution courante n'est en fait pas optimale ce qui explique pourquoi {self._the_fact} " \
+                #         f"et que "
         elif self.is_scenario:
             if self.language_is_english:
                 text += f"Thanks to the changes in the instance, " \
@@ -561,11 +566,11 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
                 raise ValueError("The explanation should be contrastive, scenario or couterfactual")
             if self.language_is_english:
                 text += f"the new solution obtained from the current one by {self._applying_the_foil_transformation} " \
-                        f"is feasible but not better than the current solution:"
+                        f"is feasible but not better than the current solution: "
             elif self.language_is_french:
                 text += f"la nouvelle solution obtenue à partir de la solution courante en " \
-                        f"appliquant {self._applying_the_foil_transformation} " \
-                        f"est réalisable mais pas meilleure que la solution courante :"
+                        f"{self._applying_the_foil_transformation} " \
+                        f"est faisable mais pas meilleure que la solution courante : "
         new_solution = self._support_solution
         current_solution = self.current_solution
         if new_solution.total_working_duration < current_solution.total_working_duration:
@@ -573,17 +578,13 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
         elif new_solution.total_working_duration == current_solution.total_working_duration:
             if self.language_is_english:
                 too_str = "too"
-                text = text.removesuffix(" ")
             elif self.language_is_french:
-                too_str = "également"
+                too_str = "également "
             else:
                 raise NotImplementedError
-            text += f":{LINE_BREAK_STRING}"\
-                    f"- {self._compare_total_working_duration(False, True)} {too_str};"
-            if self.language_is_french:
-                text = text.removesuffix(";")
-                text += " ;"
-            text += f"{LINE_BREAK_STRING}"
+            text += f"{LINE_BREAK_STRING}"\
+                    f"- {self._compare_total_working_duration(False, True)} {too_str};" \
+                    f"{LINE_BREAK_STRING}"
             if self.language_is_english:
                 text += f"- but {self._compare_total_traveling_duration(False, True)}."
             elif self.language_is_french:

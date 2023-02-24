@@ -14,7 +14,7 @@ from src.utils.files import get_project_directory_path
 
 def get_solutions_for_evaluation_directory_path():
     """
-    Returns the path of the directory containing the solutions for evaluation
+    Returns the path of the directory containing the solutions for evaluation.
 
     :return: the path of the directory containing the solutions for evaluation
     """
@@ -23,8 +23,8 @@ def get_solutions_for_evaluation_directory_path():
 
 def get_solution_for_evaluation_path(instance_index: int = 0):
     """
-    Returns the path of the solution for evaluation corresponding to the given instance index
-    NB: the solution for evaluation is assumed to be located in the evaluation directory
+    Returns the path of the solution for evaluation corresponding to the given instance index.
+    NB: the solution for evaluation is assumed to be located in the evaluation directory.
 
     :param instance_index: the index of the instance for evaluation
     :return: the path of the solution for evaluation corresponding to the given instance index
@@ -37,14 +37,14 @@ def get_solution_for_evaluation_path(instance_index: int = 0):
 
 def get_solution_for_evaluation(instance_index: int = 0):
     """
-    Returns the solution for evaluation corresponding to the given instance index
-    NB: the solution for evaluation is assumed to be located in the evaluation directory
+    Returns the solution for evaluation corresponding to the given instance index.
+    NB: the solution for evaluation is assumed to be located in the evaluation directory.
 
     :param instance_index: the index of the instance for evaluation
     :return: the solution for evaluation corresponding to the given instance index
     """
-    solution = \
-        extract_solution_from_file(get_solution_for_evaluation_path(instance_index), True, True, True, True, True)
+    solution_path = get_solution_for_evaluation_path(instance_index)
+    solution = extract_solution_from_file(solution_path, True, True, True)
     feasible, text = check_feasibility(solution)
     if not feasible:
         raise ValueError(f"The solution {solution.name} is not feasible: {text}")
@@ -60,7 +60,7 @@ def get_solution_for_evaluation(instance_index: int = 0):
 
 def get_explanations_for_evaluation_directory_path():
     """
-    Returns the path of the directory containing the explanations for evaluation
+    Returns the path of the directory containing the explanations for evaluation.
 
     :return: the path of the directory containing the explanations for evaluation
     """
@@ -69,8 +69,8 @@ def get_explanations_for_evaluation_directory_path():
 
 def get_explanations_for_evaluation_path(instance_index: int = 0):
     """
-    Returns the path of the explanations for evaluation corresponding to the given instance index
-    NB: the explanations for evaluation are assumed to be located in the evaluation directory
+    Returns the path of the explanations for evaluation corresponding to the given instance index.
+    NB: the explanations for evaluation are assumed to be located in the evaluation directory.
 
     :param instance_index: the index of the instance for evaluation
     :return: the path of the explanations for evaluation corresponding to the given instance index

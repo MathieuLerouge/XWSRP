@@ -20,6 +20,12 @@ TWENTY_FOUR_HOURS_FORMAT_WITH_DOTS = '24:'
 
 
 def get_hour_format(time_string: str):
+    """
+    Get the hour format of a given time string.
+
+    :param time_string: time string (str)
+    :return: hour format (str)
+    """
     if 'M' in time_string or 'm' in time_string:
         return TWELVE_HOURS_FORMAT
     elif 'h' in time_string:
@@ -32,7 +38,7 @@ def get_hour_format(time_string: str):
 
 def convert_time_string_to_nb_minutes(time_string: str):
     """
-    Convert a given time as string to a number of minutes
+    Convert a given time as string to a number of minutes.
 
     :param time_string: time string with format HH:MMam or HH:MMpm (str)
     :return: number of minutes (int)
@@ -55,6 +61,13 @@ def convert_time_string_to_nb_minutes(time_string: str):
 
 
 def convert_nb_minutes_to_time_string(nb_minutes: int, hour_format: str = TWELVE_HOURS_FORMAT):
+    """
+    Convert a given number of minutes to a time string.
+
+    :param nb_minutes: number of minutes (int)
+    :param hour_format: hour format (str)
+    :return: time string (str)
+    """
     midnight = dt.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     time = midnight + dt.timedelta(0, 60*nb_minutes)
     if hour_format == TWELVE_HOURS_FORMAT:
@@ -68,6 +81,13 @@ def convert_nb_minutes_to_time_string(nb_minutes: int, hour_format: str = TWELVE
 
 
 def convert_time_string_in_given_format(time_string: str, hour_format: str):
+    """
+    Convert a given time string to a time string in a given format.
+
+    :param time_string: time string (str)
+    :param hour_format: hour format (str)
+    :return: time string (str)
+    """
     if get_hour_format(time_string) == hour_format:
         return time_string
     else:
@@ -75,6 +95,12 @@ def convert_time_string_in_given_format(time_string: str, hour_format: str):
 
 
 def get_hour_format_associated_with_language(language: str):
+    """
+    Get the hour format associated with a given language.
+
+    :param language: language (str)
+    :return: hour format (str)
+    """
     if language == LANGUAGE_ENGLISH_KEY:
         return TWELVE_HOURS_FORMAT
     elif language == LANGUAGE_FRENCH_KEY:

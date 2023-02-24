@@ -25,6 +25,15 @@ ROUTES_FIGURE_ARROW_HEAD_LENGTH_FOR_UI = 0.002
 
 # Create routes figure
 def create_routes_figure(solution: Solution, figure_id: str = None, infeasibility=None, for_UI: bool = False) -> Figure:
+    """
+    Create a figure with the routes of the solution.
+
+    :param solution: solution to plot (Solution)
+    :param figure_id: figure ID (str)
+    :param infeasibility: infeasibility of the solution, if any (str)
+    :param for_UI: if True, the figure is created for the UI (bool)
+    :return: figure of the routes of the solution (Figure)
+    """
 
     plt.style.use('seaborn-whitegrid')
 
@@ -93,19 +102,19 @@ def create_routes_figure(solution: Solution, figure_id: str = None, infeasibilit
             ax.plot(path_first_coordinates, path_second_coordinates, label=employee.name,
                     color=colors[employee.name])
 
-        if len(path_first_coordinates) > 2:
-            arrow_start = np.array([path_first_coordinates[0], path_second_coordinates[0]])
-            arrow_end = np.array([path_first_coordinates[1], path_second_coordinates[1]])
-            if np.linalg.norm(arrow_end - arrow_start, 2) < 1e-10:
-                arrow_end = np.array([path_first_coordinates[2], path_second_coordinates[2]])
-            arrow_end = np.mean(np.array([arrow_start, arrow_end]), axis=0)
-            # if for_UI:
-            #     ax.arrow(arrow_start[0], arrow_start[1],
-            #              arrow_end[0] - arrow_start[0], arrow_end[1] - arrow_start[1],
-            #              head_width=ROUTES_FIGURE_ARROW_HEAD_WIDTH_FOR_UI,
-            #              head_length=ROUTES_FIGURE_ARROW_HEAD_LENGTH_FOR_UI,
-            #              color=colors[employee.name], linewidth=0)
-            # TODO Add arrows even if not for UI
+        # if len(path_first_coordinates) > 2:
+        #     arrow_start = np.array([path_first_coordinates[0], path_second_coordinates[0]])
+        #     arrow_end = np.array([path_first_coordinates[1], path_second_coordinates[1]])
+        #     if np.linalg.norm(arrow_end - arrow_start, 2) < 1e-10:
+        #         arrow_end = np.array([path_first_coordinates[2], path_second_coordinates[2]])
+        #     arrow_end = np.mean(np.array([arrow_start, arrow_end]), axis=0)
+        #     if for_UI:
+        #         ax.arrow(arrow_start[0], arrow_start[1],
+        #                  arrow_end[0] - arrow_start[0], arrow_end[1] - arrow_start[1],
+        #                  head_width=ROUTES_FIGURE_ARROW_HEAD_WIDTH_FOR_UI,
+        #                  head_length=ROUTES_FIGURE_ARROW_HEAD_LENGTH_FOR_UI,
+        #                  color=colors[employee.name], linewidth=0)
+        #     # TODO Add arrows even if not for UI
 
         ax.scatter(path_first_coordinates[0], path_second_coordinates[0],
                    color=colors[employee.name], alpha=0.7, marker='s', s=DEPOT_MARKER_SIZE, zorder=3)

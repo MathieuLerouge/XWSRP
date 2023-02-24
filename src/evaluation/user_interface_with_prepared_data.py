@@ -17,8 +17,8 @@ def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, en
                                                           enable_explanations_representation: bool = True,
                                                           language: str = LANGUAGE_FRENCH_KEY):
     """
-    Prepare the explainer GUI for evaluation
-    NB: the solution is assumed to be a solution prepared specifically for evaluation
+    Prepare the explainer GUI for evaluation.
+    NB: the solution is assumed to be a solution prepared specifically for evaluation.
 
     :param solution: the solution to explain (Solution)
     :param enable_explanations: whether to enable explanations (bool)
@@ -42,6 +42,9 @@ def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, en
         title = "Visualize Plannings"
         subtitle = "Outil de visualisation des données de ComputePlannings"
     explainer_GUI = ExplainerWebGUI(explainer, title, subtitle, enabling_explanations=enable_explanations)
+    explainer_GUI.enable_tab_description_panels()
+    if enable_explanations:
+        explainer_GUI.enable_contrastive_statistics()
     if not enable_explanations_representation:
         explainer_GUI.disable_explanations_representation()
     return explainer_GUI
@@ -49,9 +52,9 @@ def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, en
 
 def prepare_explainer_GUI_for_evaluation_given_experiment_version(version: str):
     """
-    Prepare the explainer GUI corresponding to the given evaluation experiment version
+    Prepare the explainer GUI corresponding to the given evaluation experiment version.
     NB: the version is associated with parameters which defines the solution to explain,
-    whether to enable explanations and whether to enable explanations representation
+    whether to enable explanations and whether to enable explanations representation.
 
     :param version: the evaluation experiment version (str)
     :return: the explainer GUI (ExplainerWebGUI)
@@ -66,9 +69,9 @@ def prepare_explainer_GUI_for_evaluation_given_experiment_version(version: str):
 
 def launch_explainer_GUI_for_evaluation_given_experiment_version(version: str):
     """
-    Launch the explainer GUI corresponding to the given evaluation experiment version
+    Launch the explainer GUI corresponding to the given evaluation experiment version.
     NB: the version is associated with parameters which defines the solution to explain,
-    whether to enable explanations and whether to enable explanations representation
+    whether to enable explanations and whether to enable explanations representation.
 
     :param version: the evaluation experiment version (str)
     :return: None

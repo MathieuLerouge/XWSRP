@@ -3,49 +3,26 @@
 
 
 # Local libraries
-from main_configuration import ROUTINE_KEY
-from src.checking.routine import apply_checking_routine
-from src.explaining.routine import apply_explanation_routine
-from src.optimization.routine import apply_optimization_routine
+from main_configuration import MAIN_PROCESS
+from src.explaining.__main__ import explaining_main
+from src.teaching.__main__ import teaching_main
 from src.utils.constants import *
 
 
-# Main function
+########
+# Main #
+########
+
+
 def main():
-
-    if ROUTINE_KEY == CHECKING_ROUTINE_KEY:
-        # Toggle (Variables to set)
-        ignore_employees_unavailabilities = False
-        ignore_tasks_unavailabilities = False
-        ignore_lunch_breaks = False
-        ignore_solving_method = False
-        ignore_instance_version = False
-        saving_checking = False
-        saving_analysis = False
-        showing_figures = True
-        saving_figures = False
-        # Apply the routine
-        apply_checking_routine(
-            ignore_employees_unavailabilities, ignore_tasks_unavailabilities, ignore_lunch_breaks,
-            ignore_solving_method, ignore_instance_version,
-            saving_checking, saving_analysis, showing_figures, saving_figures
-        )
-
-    elif ROUTINE_KEY == OPTIMIZING_ROUTINE_KEY:
-        # Toggle (Variables to set)
-        solving_time_limit_in_seconds = 3 * 60
-        # Apply the routine
-        apply_optimization_routine(solving_time_limit_in_seconds)
-
-    elif ROUTINE_KEY == EXPLAINING_ROUTINE_KEY:
-        # Apply the routine
-        apply_explanation_routine()
-
-    elif ROUTINE_KEY == EVALUATING_ROUTINE_KEY:
+    if MAIN_PROCESS in [TEACHING_FEASIBILITY_CHECK_PROCESS, TEACHING_INSTANCE_OPTIMIZATION_PROCESS]:
+        teaching_main()
+    elif MAIN_PROCESS in [EXPLAINER_ON_DEMO_SOLUTION_PROCESS, EXPLAINER_ON_SOLUTION_IN_DEFAULT_INPUTS_PROCESS]:
+        explaining_main()
+    elif MAIN_PROCESS == EVALUATION_PROCESS:
         print("Go to src/evaluation/processes.py to run the evaluation routine.")
-
     else:
-        raise ValueError(f"The routine {ROUTINE_KEY} does not exist")
+        raise ValueError(f"The routine {MAIN_PROCESS} does not exist")
 
 
 if __name__ == '__main__':

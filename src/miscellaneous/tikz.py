@@ -56,15 +56,7 @@ def main():
         solution_file_name = get_paths_of_solutions_files_in_given_directory()[0]
     except IndexError:
         raise FileNotFoundError(f"There are no solutions files found in directory {INPUTS_DIRECTORY_RELATIVE_PATH}")
-    ignore_employees_unavailabilities = True
-    ignore_tasks_unavailabilities = True
-    ignore_lunch_breaks = True
-    ignore_instance_version = True
-    ignore_solving_method = True
-    solution = extract_solution_from_file(
-        solution_file_name, ignore_employees_unavailabilities, ignore_tasks_unavailabilities, ignore_lunch_breaks,
-        ignore_instance_version, ignore_solving_method
-    )
+    solution = extract_solution_from_file(solution_file_name, True, True, True)
 
     print("%% Spatial %%")
     print()

@@ -1,7 +1,3 @@
-#! /usr/bin/env python3
-# coding: utf-8
-
-
 # Third party libraries
 import gurobipy as grb
 from gurobipy import GRB
@@ -10,26 +6,34 @@ import numpy as np
 # Local libraries
 from src.optimization.solution import SolutionOpti
 from src.optimization.IP.WSRPdata import WSRPIPModelData, LEAVING_HOME_INDEX, COMING_BACK_HOME_INDEX
+from src.utils.constants import SOLUTION_SOLVING_METHOD_SYMBOL_BIS
+
+# Global variables
+TRAVELING_DURATION_WEIGHT_KEY = 'traveling_duration'
+WORKING_DURATION_WEIGHT_KEY = 'working_duration'
+NB_REALIZED_TASKS_WEIGHT_KEY = 'nb_realized_tasks'
+SOLVING_METHOD_IP = 'IP'
 
 
-# Class WSRPIPModel
+#####################
+# Class WSRPIPModel #
+#####################
+
 class WSRPIPModel:
 
     def __init__(self, instance):
-        self._name = instance.name
+        self._name = f"{instance.core_name}{SOLUTION_SOLVING_METHOD_SYMBOL_BIS}{self._solving_method_id}"
         self._data = WSRPIPModelData(instance)
         self._assumptions = dict()
-        self._assumptions['version'] = None
         self._assumptions['cover_all_tasks'] = False
         self._weights = dict()
-        self._weights['traveling_duration'] = 1
-        self._weights['working_duration'] = -10
-        self._weights['nb_realized_tasks'] = None
+        self._weights[TRAVELING_DURATION_WEIGHT_KEY] = 1
+        self._weights[WORKING_DURATION_WEIGHT_KEY] = -10
+        self._weights[NB_REALIZED_TASKS_WEIGHT_KEY] = None
         self._model = None
         self._decision_variables = dict()
         self._successful_IP_solving = False
         self._solution = None
-        # self.version = 2 if instance.has_lunch_break else 1
 
     @property
     def name(self):
@@ -62,24 +66,6 @@ class WSRPIPModel:
     @property
     def is_considering_tasks_unavailabilities(self):
         return self._data.instance.has_task_unavailabilities
-
-    ###########
-    # Version #
-    ###########
-
-    @property
-    def version(self):
-        return self._assumptions['version']
-
-    @version.setter
-    def version(self, version):
-        self._assumptions['version'] = version
-        if version is not None:
-            self._name += "ByV" + str(version)
-            if version == 1:
-                self.is_making_all_tasks_covered = True
-            elif version == 2:
-                self.is_making_all_tasks_covered = False
 
     ##########
     # Update #
@@ -148,36 +134,6 @@ class WSRPIPModel:
         # Add L decision variables
         if self.is_considering_lunch_break:
             self.vars_L = self._model.addVars(self._data.employees_indices, vtype=GRB.INTEGER, name="L")
-        # TODO change to have only decision variables U with 4 indices (OK?)
-        # TODO delete commented lines below
-        # Add U decision variables
-        # if self.version == 1:
-        #     self.vars_U = self._model.addVars(
-        #         [(i, j, k)
-        #          for i in self._data.employees_indices
-        #          for j in self._data.get_hyp_activities_indices(
-        #             employee_index=i, including_departure=True, including_comeback=False
-        #         )
-        #          for k in self._data.get_hyp_activities_indices(
-        #             employee_index=i, including_departure=False, including_comeback=True
-        #         ) if k != j
-        #          ],
-        #         vtype=GRB.BINARY, name="U")
-        # elif self.version == 2:
-        #     self.vars_U = self._model.addVars(
-        #         [(i, j, k, n)
-        #          for i in self._data.employees_indices
-        #          for j in self._data.get_hyp_activities_indices(
-        #             employee_index=i, including_departure=True, including_comeback=False
-        #         )
-        #          for k in self._data.get_hyp_activities_indices(
-        #             employee_index=i, including_departure=False, including_comeback=True
-        #         ) if k != j
-        #          for n in self._data.get_hyp_activities_TW_indices(
-        #             employee_index=i, activity_index=j
-        #         )
-        #          ],
-        #         vtype=GRB.BINARY, name="U")
         self.vars_U = self._model.addVars(
             [(i, j, k, n) for i in self._data.employees_indices
              for j in self._data.get_hyp_activities_indices(i, True, False)
@@ -199,33 +155,42 @@ class WSRPIPModel:
 
     @property
     def weight_traveling_duration(self):
-        return self._weights['traveling_duration'] if self._weights['traveling_duration'] is not None else 0
+        if self._weights[TRAVELING_DURATION_WEIGHT_KEY] is not None:
+            return self._weights[TRAVELING_DURATION_WEIGHT_KEY]
+        else:
+            return 0
 
     @weight_traveling_duration.setter
     def weight_traveling_duration(self, weight):
-        self._weights['traveling_duration'] = weight
+        self._weights[TRAVELING_DURATION_WEIGHT_KEY] = weight
 
     @property
     def weight_working_duration(self):
-        return self._weights['working_duration'] if self._weights['working_duration'] is not None else 0
+        if self._weights[WORKING_DURATION_WEIGHT_KEY] is not None:
+            return self._weights[WORKING_DURATION_WEIGHT_KEY]
+        else:
+            return 0
 
     @weight_working_duration.setter
     def weight_working_duration(self, weight):
         if self.is_making_all_tasks_covered and weight is not None:
             raise ValueError("The working duration weight must be None "
                              "when it is assumed that all tasks must be covered")
-        self._weights['working_duration'] = weight
+        self._weights[WORKING_DURATION_WEIGHT_KEY] = weight
 
     @property
     def weight_nb_realized_tasks(self):
-        return self._weights['nb_realized_tasks'] if self._weights['nb_realized_tasks'] is not None else 0
+        if self._weights[NB_REALIZED_TASKS_WEIGHT_KEY] is not None:
+            return self._weights[NB_REALIZED_TASKS_WEIGHT_KEY]
+        else:
+            return 0
 
     @weight_nb_realized_tasks.setter
     def weight_nb_realized_tasks(self, weight):
         if self.is_making_all_tasks_covered and weight is not None:
             raise ValueError("The number of realized tasks weight must be None "
                              "when it is assumed that all tasks must be covered")
-        self._weights['nb_realized_tasks'] = weight
+        self._weights[NB_REALIZED_TASKS_WEIGHT_KEY] = weight
 
     def _add_objective_function(self):
 
@@ -278,24 +243,9 @@ class WSRPIPModel:
     # - Covering constraints #
     ##########################
 
-    # TODO Must adapt to decision variables U with 4 indices (OK?)
     def _add_covering_constraints(self):
         # Add tasks covering constraints
         if self.is_making_all_tasks_covered:
-            # TODO remove commented lines below
-            # for j in self._data.tasks_indices:
-            #     self._model.addLConstr(
-            #         grb.quicksum(
-            #             [self.vars_U[(i, j, k)]
-            #              for i in self._data.employees_indices
-            #              for k in self._data.get_hyp_activities_indices(
-            #                 employee_index=i, including_departure=False, including_comeback=True
-            #              ) if k != j
-            #              ]
-            #         ),
-            #         sense=GRB.EQUAL, rhs=1,
-            #         name=f"TaskCoveringConstraint[{j}]"
-            #     )
             for j in self._data.tasks_indices:
                 self._model.addLConstr(
                     grb.quicksum([self.vars_U[(i, j, k, n)]
@@ -468,69 +418,7 @@ class WSRPIPModel:
     # - Time sequence constraints #
     ###############################
 
-    # TODO Remove version
     def _add_time_sequence_constraints(self):
-
-        # # Case of models of type 1
-        # if self.version == 1:
-        #
-        #     # Departure-to-first-task time sequence
-        #     for k in self._data.tasks_indices:
-        #         self._model.addLConstr(
-        #             grb.quicksum([
-        #                 self.vars_U[(i, LEAVING_HOME_INDEX, k)] * (
-        #                         self._data.get_employee_by_index(i).start_time_LB +
-        #                         self._data.get_traveling_duration(
-        #                             employee_index=i, activity_index1=LEAVING_HOME_INDEX, activity_index2=k
-        #                         )
-        #                 )
-        #                 for i in self._data.employees_indices
-        #             ]) - self.vars_T[k],
-        #             sense=GRB.LESS_EQUAL, rhs=0,
-        #             name=f"DepartureToFirstTaskTimeSequenceConstraint[{k}]"
-        #         )
-        #
-        #     # Between-two-tasks time sequence
-        #     for j in self._data.tasks_indices:
-        #         for k in self._data.tasks_indices:
-        #             if k != j:
-        #                 self._model.addLConstr(
-        #                     self.vars_T[j] - self.vars_T[k] +
-        #                     grb.quicksum([
-        #                         self.vars_U[(i, j, k)] * (
-        #                                 self._data.get_task_by_index(j).duration +
-        #                                 self._data.get_traveling_duration(
-        #                                     employee_index=i, activity_index1=j, activity_index2=k
-        #                                 ) + self._data.get_task_by_index(j).end_time_UB
-        #                         )
-        #                         for i in self._data.employees_indices
-        #                     ]) - self._data.get_task_by_index(j).end_time_UB,
-        #                     sense=GRB.LESS_EQUAL, rhs=0,
-        #                     name=f"TaskToTaskTimeSequenceConstraint[{j},{k}]"
-        #                 )
-        #
-        #     # Last-task-to-comeback time sequence
-        #     for j in self._data.tasks_indices:
-        #         self._model.addLConstr(
-        #             self.vars_T[j] +
-        #             grb.quicksum([
-        #                 self.vars_U[(i, j, COMING_BACK_HOME_INDEX)] * (
-        #                         self._data.get_task_by_index(j).duration +
-        #                         self._data.get_traveling_duration(
-        #                             employee_index=i, activity_index1=j, activity_index2=COMING_BACK_HOME_INDEX
-        #                         ) -
-        #                         self._data.get_employee_by_index(i).end_time_UB +
-        #                         self._data.get_task_by_index(j).end_time_UB
-        #                 )
-        #                 for i in self._data.employees_indices
-        #             ]),
-        #             sense=GRB.LESS_EQUAL, rhs=self._data.get_task_by_index(j).end_time_UB,
-        #             name=f"LastTaskToComebackTimeSequenceConstraint[{j}]"
-        #         )
-        #
-        # # Case of models of type 2
-        # elif self.version == 2:
-
         # Departure-to-first-task time sequence
         for k in self._data.tasks_indices:
             self._model.addLConstr(
@@ -694,8 +582,6 @@ class WSRPIPModel:
                                 sense=GRB.LESS_EQUAL, rhs=self._data.instance.lunch_break_time_UB,
                                 name=f"UnavailabilityAfterLunchTimeSequenceConstraint[{i},{j},{k}]"
                             )
-        # else:
-        #     raise AttributeError("The version should be 1 or 2")
         self._model.update()
 
     #############################
@@ -755,64 +641,13 @@ class WSRPIPModel:
         if self._successful_IP_solving:
             self._extract_solution()
 
-    ############
-    # Solution #
-    ############
-
-    def _extract_solution(self):
-
-        # Initialize solution
-        solution = SolutionOpti(solving_method_id=f"V{self.version}", instance=self._data.instance)
-        solution.solving_method_parameters = {
-            'Traveling duration weight': self.weight_traveling_duration,
-            'Working duration weight': self.weight_working_duration,
-            'Number of realized tasks weight': self.weight_nb_realized_tasks
-        }
-
-        solution.solving_time = self.solving_run_time
-        solution.optimality_gap = self.optimality_gap
-        solution.objective_value = self.objective_value
-
-        # Results about tasks
-        for j in self._data.tasks_indices:
-            task = self._data.get_task_by_index(j)
-            if self.is_making_all_tasks_covered:
-                performed = True
-            else:
-                performed = self.vars_X[j].x > 0.99
-            solution.set_task_performance_status(task, performed)
-            if performed:
-                solution.set_task_start_time(task, int(self.vars_T[j].x))
-        for i in self._data.employees_indices:
-            for j in self._data.tasks_indices:
-                for k in self._data.get_hyp_activities_indices(i, False, True):
-                    if j != k:
-                        # TODO
-                        # if self.version == 1:
-                        #     if self.vars_U[(i, j, k)].x > 0.99:
-                        #         solution.set_task_assignee(self._data.get_task_by_index(j),
-                        #                                    self._data.get_employee_by_index(i))
-                        # elif self.version == 2:
-                        for n in self._data.get_hyp_activities_TW_indices(i, j):
-                            if self.vars_U[(i, j, k, n)].x > 0.99:
-                                solution.set_task_assignee(self._data.get_task_by_index(j),
-                                                           self._data.get_employee_by_index(i))
-
-        # Compute full solution
-        solution.compute_sequences_based_on_tasks_performances()
-
-        self._solution = solution
+    ##################
+    # Solving method #
+    ##################
 
     @property
-    def solution(self):
-        if self.has_solution:
-            return self._solution
-        else:
-            raise AttributeError("There is no solution")
-
-    @property
-    def has_solution(self):
-        return self._solution is not None
+    def _solving_method_id(self):
+        return SOLVING_METHOD_IP
 
     @property
     def optimality_gap(self):
@@ -834,3 +669,53 @@ class WSRPIPModel:
             return np.round(self._model.objVal, 3)
         else:
             raise AttributeError("There is no solution stored")
+
+    ############
+    # Solution #
+    ############
+
+    def _initialize_solution(self):
+        self._solution = SolutionOpti(self._data.instance, solving_method_id=self._solving_method_id)
+
+    def _extract_solution(self):
+        # Initialize solution
+        self._initialize_solution()
+        self.solution.solving_method_parameters = {
+            'Traveling duration weight': self.weight_traveling_duration,
+            'Working duration weight': self.weight_working_duration,
+            'Number of realized tasks weight': self.weight_nb_realized_tasks
+        }
+        self.solution.solving_time = self.solving_run_time
+        self.solution.optimality_gap = self.optimality_gap
+        self.solution.objective_value = self.objective_value
+        # Results about tasks
+        for j in self._data.tasks_indices:
+            task = self._data.get_task_by_index(j)
+            if self.is_making_all_tasks_covered:
+                performed = True
+            else:
+                performed = self.vars_X[j].x > 0.99
+            self.solution.set_task_performance_status(task, performed)
+            if performed:
+                self.solution.set_task_start_time(task, int(self.vars_T[j].x))
+        for i in self._data.employees_indices:
+            for j in self._data.tasks_indices:
+                for k in self._data.get_hyp_activities_indices(i, False, True):
+                    if j != k:
+                        for n in self._data.get_hyp_activities_TW_indices(i, j):
+                            if self.vars_U[(i, j, k, n)].x > 0.99:
+                                self.solution.set_task_assignee(self._data.get_task_by_index(j),
+                                                                self._data.get_employee_by_index(i))
+        # Compute full solution
+        self.solution.compute_sequences_based_on_tasks_performances()
+
+    @property
+    def solution(self):
+        if self.has_solution:
+            return self._solution
+        else:
+            raise AttributeError("There is no solution")
+
+    @property
+    def has_solution(self):
+        return self._solution is not None

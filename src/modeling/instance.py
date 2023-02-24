@@ -12,7 +12,7 @@ from src.modeling.departure import Departure, LEAVING_HOME_STRING
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.utils.constants import LINE_BREAK_STRING, INSTANCE_NAME_PREFIX, INSTANCE_NAME_PREFIX_BIS, \
-    INSTANCE_VERSION_SYMBOL, SNAKE_CASE, CAMEL_CASE
+    SNAKE_CASE, CAMEL_CASE
 from src.utils.location import Location
 from src.utils.speed import convert_speed_from_to, M_PER_S_STRING, KM_PER_MIN_STRING, KM_PER_H_STRING
 from src.utils.time import convert_time_string_to_nb_minutes, convert_nb_minutes_to_time_string
@@ -31,7 +31,6 @@ class Instance:
         self._lunch_break = dict()
         self._hypothetical_activities = dict()
         self._speed = speed
-        self._version = None
 
     def __repr__(self):
         representation = self._name + LINE_BREAK_STRING
@@ -77,25 +76,6 @@ class Instance:
             return self._name.replace(INSTANCE_NAME_PREFIX_BIS, "")
         else:
             raise ValueError(f"The case type of the instance name {self.name} is not supported")
-
-    @property
-    def full_name(self):
-        if self.version is None:
-            return self.name
-        else:
-            return self.name + INSTANCE_VERSION_SYMBOL + str(self.version)
-
-    ###########
-    # Version #
-    ###########
-
-    @property
-    def version(self):
-        return self._version
-
-    @version.setter
-    def version(self, version: int):
-        self._version = version
 
     #############
     # Employees #

@@ -18,7 +18,7 @@ from src.writing.solution import write_solution
 def run_greedy_algorithm(instance: Instance):
     solution = SolutionLS(instance)
     sorted_tasks = instance.tasks
-    sorted_tasks.sort(key=lambda task: (task.skill_level, task.duration), reverse=True)
+    sorted_tasks.sort(key=lambda t: (t.skill_level, t.duration), reverse=True)
     must_search_for_inserting = True
     i = 0
     while must_search_for_inserting:
@@ -141,7 +141,7 @@ def run_simulated_annealing(solution: SolutionLS):
 
 if __name__ == "__main__":
     instance_path_example = f"{get_project_directory_path()}/data/DB/instances/instance_Exeter20180803.json"
-    instance_example = extract_instance_from_file(instance_path_example, True, True, True, True)
+    instance_example = extract_instance_from_file(instance_path_example, True, True, True)
     solution_example = run_greedy_algorithm(instance_example)
     write_solution(solution_example, f"{get_project_directory_path()}/data/DB/solutions")
     print(solution_example.nb_performed_tasks, solution_example.total_working_duration,

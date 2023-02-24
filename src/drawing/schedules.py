@@ -27,6 +27,16 @@ SCHEDULES_FIGURE_DPI_FOR_UI = 80
 # Create schedules figure
 def create_schedules_figure(solution: Solution, figure_id: str = None,
                             infeasibility=None, critical_bounds=None, for_UI: bool = False) -> Figure:
+    """
+    Create a figure of schedules.
+
+    :param solution: solution to draw (Solution)
+    :param figure_id: figure id (str)
+    :param infeasibility: infeasibility (Infeasibility)
+    :param critical_bounds: critical bounds (CriticalBounds)
+    :param for_UI: whether the figure is for UI (bool)
+    :return: a figure of schedules (Figure)
+    """
 
     # Create a new figure if needed
     if figure_id is None:

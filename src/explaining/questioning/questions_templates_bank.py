@@ -76,7 +76,7 @@ QUESTIONS_TEMPLATES_LIST = [
         id=WHY_NOT_INS_3,
         all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
-                                  "in addition to their already-performed activities"
+                                  "in addition to their already-performed activities "
                                   "(even if it means changing their order)?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
                                  "en plus des activités déjà réalisées dans son planning "
@@ -132,7 +132,7 @@ QUESTIONS_TEMPLATES_LIST = [
         id=WHY_NOT_SWP_3,
         all_texts={
             LANGUAGE_ENGLISH_KEY: "Why is the employee {Employee} not performing the task {Task} "
-                                  "instead of any of their already-performed tasks"
+                                  "instead of any of their already-performed tasks "
                                   "(even if it means changing their order)?",
             LANGUAGE_FRENCH_KEY: "Pourquoi est-ce que l'employé {Employee} ne réalise pas la tâche {Task} "
                                  "à la place d'une tâche de son planning "
