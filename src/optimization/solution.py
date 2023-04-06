@@ -84,7 +84,7 @@ class SolutionOpti(Solution):
 
     @property
     def solving_time(self):
-        return float(self._optimization_data[SOLVING_TIME_KEY])
+        return self._optimization_data[SOLVING_TIME_KEY]
 
     @solving_time.setter
     def solving_time(self, solving_time: float):
@@ -92,7 +92,7 @@ class SolutionOpti(Solution):
 
     @property
     def optimality_gap(self):
-        return float(self._optimization_data[OPTIMALITY_GAP_KEY])
+        return self._optimization_data[OPTIMALITY_GAP_KEY]
 
     @optimality_gap.setter
     def optimality_gap(self, optimality_gap: float):
@@ -100,7 +100,7 @@ class SolutionOpti(Solution):
 
     @property
     def objective_value(self):
-        return float(self._optimization_data[OBJECTIVE_VALUE_KEY])
+        return self._optimization_data[OBJECTIVE_VALUE_KEY]
 
     @objective_value.setter
     def objective_value(self, objective_value: float):

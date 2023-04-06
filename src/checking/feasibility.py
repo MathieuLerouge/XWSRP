@@ -60,8 +60,8 @@ def check_time_windows_constraints(solution: Solution):
             if not task_available_when_performed:
                 satisfaction = False
                 checking_text += f"In the provided solution, the task {task.name} is supposed to be performed over "\
-                                 f"{TimeInterval(start_time, end_time)} while it is available only over {task.TWs}."\
-                                 f"{LINE_BREAK_STRING}"
+                                 f"{TimeInterval(start_time, end_time)} while it is available only over " \
+                                 f"{task.TWs.as_string()}. {LINE_BREAK_STRING}"
             # - Employee
             employee = solution.get_task_assignee(task)
             if start_time < employee.start_time_LB:

@@ -39,7 +39,8 @@ def write_solution_analysis(solution: Solution, outputs_directory_relative_path:
     # Write about solving method
     if isinstance(solution, SolutionOpti):
         file.write("Optimization method id: " + str(solution.solving_method_id) + LINE_BREAK_STRING)
-        file.write("Optimization run time (in s): " + str(solution.solving_time) + LINE_BREAK_STRING)
+        if solution.solving_time is not None:
+            file.write("Optimization run time (in s): " + str(solution.solving_time) + LINE_BREAK_STRING)
         if solution.solving_method_parameters is not None:
             file.write("Objective function parameters: " + str(solution.solving_method_parameters) + LINE_BREAK_STRING)
         if solution.optimality_gap is not None:

@@ -137,7 +137,6 @@ def run_feasibility_check_on_provided_solutions(save_solutions_feasibility_check
             if save_solutions_figures:
                 figures_manager.save_figures()
         solutions_checking_text += checking_text
-        print(solution)
         print("")
     solutions_checking_text = solutions_checking_text.removesuffix(LINE_BREAK_STRING)
     if save_solutions_feasibility_check_as_file:

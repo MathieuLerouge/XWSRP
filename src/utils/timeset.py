@@ -42,13 +42,19 @@ class TimeIntervalUnion(IntIntervalUnion):
 
     @classmethod
     def from_IntIntervalUnion(cls, union: IntIntervalUnion):
-        return cls(union.intervals)
+        return cls([TimeInterval.from_IntInterval(interval) for interval in union.intervals])
 
     def as_string(self, hour_format: str = TWELVE_HOURS_FORMAT):
         if self.is_empty():
             return "Ø"
         else:
-            return "U".join([interval.as_string(hour_format) for interval in self._intervals])
+            return " U ".join([interval.as_string(hour_format) for interval in self._intervals])
+
+    def __repr__(self):
+        return self.as_string()
+
+    def subtract(self, interval_to_subtract: TimeInterval):
+        return self.from_IntIntervalUnion(super().subtract(interval_to_subtract))
 
 
 # Main function
