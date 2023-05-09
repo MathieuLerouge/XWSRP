@@ -1,4 +1,4 @@
-data/DB/
+data/benchmark/
 data/EJOR/
 data/teaching/
 env/
@@ -14,6 +14,7 @@ src/optimization/inputs/
 
 __pycache__/
 .idea/
+.vscode/
 
 src/checking/tests.py
 src/drawing/tests.py
