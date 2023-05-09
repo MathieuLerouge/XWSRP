@@ -3,7 +3,7 @@ from src.explaining.modeling.employee import EditableEmployee
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.modeling.sequence import EditableSequence
 from src.modeling.solution import Solution
-from src.optimization.localsearch.solution import SolutionLS
+from src.optimization.heuristics.solution import SolutionForHeuristics
 
 
 # def recreate_sequences_with_reference_to_instance(solution: Solution, instance: Instance):
@@ -19,7 +19,7 @@ from src.optimization.localsearch.solution import SolutionLS
 
 
 # Class EditableSolution
-class EditableSolution(SolutionLS):
+class EditableSolution(SolutionForHeuristics):
 
     def __init__(self, instance: EditableInstance, name: str = None, sequences: dict[str, EditableSequence] = None,
                  tasks_performances: dict = None):

@@ -32,7 +32,34 @@ def create_activity_key(activity: Activity):
         raise ValueError(f"The {activity} does not have any key.")
 
 
-# Class IPModelForSequenceOptimization
+##############
+# Exceptions #
+##############
+
+class InfeasibleModelException(Exception):
+    pass
+
+
+class UnboundedModelException(Exception):
+    pass
+
+
+class TimeLimitReachedWithSolutionException(Exception):
+    def __init__(self, solution_sequence: Sequence, message="Time limit was reached but feasible solutions were found"):
+        self.solution_sequence = solution_sequence
+        self.message = message
+        super().__init__(message)
+
+
+class TimeLimitReachedWithoutSolutionException(Exception):
+    def __init__(self, message="No solution was found before time limit was reached"):
+        super().__init__(message)
+
+
+########################################
+# Class IPModelForSequenceOptimization #
+########################################
+
 class IPModelForSequenceOptimization:
 
     def __init__(self, instance: Instance, employee: Employee, candidate_tasks: list[Task]):
@@ -383,24 +410,22 @@ class IPModelForSequenceOptimization:
     def optimize(self, mute=True):
         if mute:
             self._GRB_model.params.outputflag = 0
+        else:
+            if self._GRB_model.params.outputflag == 0:
+                self._GRB_model.params.outputflag = 1
         self._GRB_model.optimize()
         if self._GRB_model.Status == GRB.INFEASIBLE:
-            print("IP model is infeasible")
-            print("")
+            raise InfeasibleModelException("The model is infeasible.")
         elif self._GRB_model.Status == GRB.UNBOUNDED:
-            print("IP model is unbounded")
-            print("")
-        else:
-            if self._GRB_model.Status == GRB.TIME_LIMIT:
-                print("IP model solving was stopped as it reached given time limit")
-                if self._GRB_model.SolCount > 0:
-                    print(f"but {self._GRB_model.SolCount} solutions were found")
-                    self._extract_data_from_IP_solving()
-                else:
-                    print(f"and no solutions were found")
-                print("")
-            else:
+            raise UnboundedModelException("The model is unbounded.")
+        elif self._GRB_model.Status == GRB.TIME_LIMIT:
+            if self._GRB_model.SolCount > 0:
                 self._extract_data_from_IP_solving()
+                raise TimeLimitReachedWithSolutionException(self.solution_sequence)
+            else:
+                raise TimeLimitReachedWithoutSolutionException()
+        else:
+            self._extract_data_from_IP_solving()
 
     ###################################
     # Data extraction from IP solving #

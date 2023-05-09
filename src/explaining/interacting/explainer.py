@@ -16,7 +16,7 @@ from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.utils.files import check_inputs_file_existence
 from src.utils.language import check_if_language_is_english, check_if_language_is_french
-from src.utils.constants import INPUTS_DIRECTORY_RELATIVE_PATH, OUTPUTS_DIRECTORY_RELATIVE_PATH
+from src.utils.constants import DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH, DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
 
 
 ###################
@@ -28,7 +28,7 @@ class Explainer:
     _available_questions_templates_ids = [
         WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
         WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3,
-        WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_3
+        WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
     ]
     _available_counterfactual_questions_templates_ids = [
         WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_3
@@ -44,8 +44,9 @@ class Explainer:
         self._history = History(self._root_solution)
         self._current_solution = self._root_solution
         # Contrastive explanations
-        self._contrastive_explanations_inputs_directory_relative_path = INPUTS_DIRECTORY_RELATIVE_PATH
-        self._contrastive_explanations_outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
+        self._time_limit_for_contrastive_explanation_ILP_computation = None
+        self._contrastive_explanations_inputs_directory_relative_path = DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
+        self._contrastive_explanations_outputs_directory_relative_path = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
         self._automatically_exporting_single_contrastive_explanations_is_enabled = False
         self._using_already_computed_contrastive_explanations_is_enabled = False
         self._already_computed_contrastive_explanations = dict()
@@ -348,6 +349,14 @@ class Explainer:
     # Contrastive explanation - Compute #
     #####################################
 
+    @property
+    def time_limit_for_contrastive_explanation_ILP_computation(self):
+        return self._time_limit_for_contrastive_explanation_ILP_computation
+
+    @time_limit_for_contrastive_explanation_ILP_computation.setter
+    def time_limit_for_contrastive_explanation_ILP_computation(self, time_limit: int):
+        self._time_limit_for_contrastive_explanation_ILP_computation = time_limit
+
     def _create_contrastive_question(self, question_template_id: str, fields_values: list[str]):
         if question_template_id not in self._activated_questions_templates:
             raise ValueError(f"The template {question_template_id} is not handled by this explainer")
@@ -355,7 +364,8 @@ class Explainer:
 
     def _compute_contrastive_explanation(self, contrastive_question: ContrastiveQuestion):
         contrastive_support_solution, infeasibility, all_descriptions_of_applied_transformation = \
-            apply_induced_transformation(self.current_solution, contrastive_question)
+            apply_induced_transformation(self.current_solution, contrastive_question,
+                                         self.time_limit_for_contrastive_explanation_ILP_computation)
         contrastive_explanation = create_explanation(contrastive_question, contrastive_support_solution,
                                                      infeasibility, all_descriptions_of_applied_transformation)
         if self.is_using_already_computed_contrastive_explanations:

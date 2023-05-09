@@ -12,7 +12,7 @@ from src.modeling.departure import Departure, LEAVING_HOME_STRING
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.utils.constants import LINE_BREAK_STRING, INSTANCE_NAME_PREFIX, INSTANCE_NAME_PREFIX_BIS, \
-    SNAKE_CASE, CAMEL_CASE
+    SNAKE_CASE, CAMEL_CASE, SOLUTION_NAME_PREFIX, SOLUTION_NAME_PREFIX_BIS
 from src.utils.location import Location
 from src.utils.speed import convert_speed_from_to, M_PER_S_STRING, KM_PER_MIN_STRING, KM_PER_H_STRING
 from src.utils.time import convert_time_string_to_nb_minutes, convert_nb_minutes_to_time_string
@@ -76,6 +76,14 @@ class Instance:
             return self._name.replace(INSTANCE_NAME_PREFIX_BIS, "")
         else:
             raise ValueError(f"The case type of the instance name {self.name} is not supported")
+
+    def create_default_solution_name(self):
+        if self.name_case_type_is_snake_case:
+            return SOLUTION_NAME_PREFIX + self.core_name
+        elif self.name_case_type_is_camel_case:
+            return SOLUTION_NAME_PREFIX_BIS + self.core_name
+        else:
+            raise ValueError(f"The name case type is neither {SNAKE_CASE} nor {CAMEL_CASE}")
 
     #############
     # Employees #
@@ -317,16 +325,31 @@ class Instance:
         for employee_name, employee_data in dictionary['employees'].items():
             start_time = convert_time_string_to_nb_minutes(employee_data['availability']['start_time'])
             end_time = convert_time_string_to_nb_minutes(employee_data['availability']['end_time'])
-            location = Location(employee_data['location']['latitude'], employee_data['location']['longitude'])
+            if 'latitude' in employee_data['location']:
+                location = Location(employee_data['location']['latitude'], employee_data['location']['longitude'])
+            elif 'x' in employee_data['location']:
+                location = Location(employee_data['location']['x'], employee_data['location']['y'], False)
+            else:
+                raise ValueError("The given location is not geographic nor cartesian")
             skill_level = int(employee_data['skill level'])
             instance.add_employee(employee_name, start_time, end_time, location, skill_level)
         for task_name, task_data in dictionary['tasks'].items():
             start_time = convert_time_string_to_nb_minutes(task_data['availability']['start_time'])
             end_time = convert_time_string_to_nb_minutes(task_data['availability']['end_time'])
-            location = Location(task_data['location']['latitude'], task_data['location']['longitude'])
+            if 'latitude' in task_data['location']:
+                location = Location(task_data['location']['latitude'], task_data['location']['longitude'])
+            elif 'x' in task_data['location']:
+                location = Location(task_data['location']['x'], task_data['location']['y'], False)
+            else:
+                raise ValueError("The given location is not geographic nor cartesian")
             duration = int(task_data['duration'])
             skill_level = int(task_data['skill level'])
-            instance.add_task(task_name, duration, start_time, end_time, skill_level, location)
+            try:
+                instance.add_task(task_name, duration, start_time, end_time, skill_level, location)
+            except ValueError:
+                raise ValueError(f"Cannot add {task_name} which data are:"
+                                 f"duration: {duration}, start_time: {start_time}, end_time: {end_time}, "
+                                 f"skill_level: {skill_level}, location: {location}")
         instance.update()
         return instance
 
@@ -351,7 +374,6 @@ class Instance:
                 'availability': {'start_time': convert_nb_minutes_to_time_string(task.start_time_LB),
                                  'end_time': convert_nb_minutes_to_time_string(task.end_time_UB)},
                 'location': {'latitude': task.location.latitude, 'longitude': task.location.longitude},
-                'duration': task.duration,
-                'skill level': task.skill_level
+                'duration': task.duration, 'skill level': task.skill_level
             }
         return dictionary

@@ -1,7 +1,7 @@
 # Local libraries
 from src.modeling.solution import Solution
 from src.modeling.task import Task
-from src.utils.constants import LINE_BREAK_STRING, OUTPUTS_DIRECTORY_RELATIVE_PATH
+from src.utils.constants import LINE_BREAK_STRING, DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import make_absolute_path_from_relative_one
 from src.utils.timeset import TimeInterval, convert_nb_minutes_to_time_string
 
@@ -268,7 +268,7 @@ def create_solution_feasibility_check_file_path(solution: Solution, outputs_dire
     :return: the file path
     """
     if outputs_directory_relative_path is None:
-        outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
+        outputs_directory_relative_path = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
     return make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{solution.name}Checks.txt")
 
 
@@ -280,5 +280,5 @@ def create_multiple_solution_feasibility_checks_file_path(outputs_directory_rela
     :return: the file path
     """
     if outputs_directory_relative_path is None:
-        outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
+        outputs_directory_relative_path = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
     return make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/SolutionsChecks.txt")

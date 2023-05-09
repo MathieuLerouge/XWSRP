@@ -101,7 +101,7 @@ def get_default_inputs_directory_path():
 
     :return: the (absolute) path of the default inputs directory
     """
-    return make_absolute_path_from_relative_one(INPUTS_DIRECTORY_RELATIVE_PATH)
+    return make_absolute_path_from_relative_one(DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH)
 
 
 def get_default_outputs_directory_path():
@@ -110,7 +110,7 @@ def get_default_outputs_directory_path():
 
     :return: the (absolute) path of the default outputs directory
     """
-    return make_absolute_path_from_relative_one(OUTPUTS_DIRECTORY_RELATIVE_PATH)
+    return make_absolute_path_from_relative_one(DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH)
 
 
 def make_inputs_file_relative_path_from_file_name(file_name_with_extension: str,
@@ -124,7 +124,7 @@ def make_inputs_file_relative_path_from_file_name(file_name_with_extension: str,
     :return: the relative path of the file
     """
     if inputs_directory_relative_path is None:
-        inputs_directory_relative_path = INPUTS_DIRECTORY_RELATIVE_PATH
+        inputs_directory_relative_path = DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
     file_path = f"{inputs_directory_relative_path}/{file_name_with_extension}"
     return file_path
 
@@ -369,6 +369,12 @@ def create_instance_file_path(core: str, version: int = None, case_type: str = S
     return f"{instance_directory_path}/{create_instance_file_name(core, version, case_type)}{instance_file_extension}"
 
 
+def create_instance_file_paths_with_various_extensions(core: str, version: int = None, case_type: str = SNAKE_CASE,
+                                                       instance_directory_relative_path: str = None):
+    return [create_instance_file_path(core, version, case_type, extension, instance_directory_relative_path)
+            for extension in INSTANCE_FILE_POSSIBLE_EXTENSIONS]
+
+
 def get_paths_of_instances_files_in_given_directory(instances_directory_relative_path: str = None):
     """
     Get the paths of all the instance files in a directory
@@ -529,10 +535,26 @@ def does_solution_file_name_mention_solving_method(file_name: str):
     """
     if not is_a_solution_file_name(file_name):
         raise ValueError(f"The file name {file_name} is not a solution file name")
-    return SOLUTION_SOLVING_METHOD_SYMBOL_BIS in file_name
+    case_type = get_solution_file_name_case_type(file_name)
+    if case_type == SNAKE_CASE:
+        return SOLUTION_SOLVING_METHOD_SYMBOL in file_name
+    elif case_type == CAMEL_CASE:
+        return SOLUTION_SOLVING_METHOD_SYMBOL_BIS in file_name
+    else:
+        raise ValueError(f"The case type {case_type} is not supported")
 
 
-def get_solving_method_solution_file_name(file_name: str):
+def does_solution_file_path_mention_solving_method(file_path: str):
+    """
+    Check if a solution file path mentions a solving method (with or without extension)
+
+    :param file_path: the path of the file (with or without extension)
+    :return: True if the solution file path mentions a solving method, False otherwise
+    """
+    return does_solution_file_name_mention_solving_method(file_path.split('/')[-1])
+
+
+def get_solving_method_in_solution_file_name(file_name: str):
     """
     Get the solving method mentioned in a solution file name
 
@@ -543,7 +565,23 @@ def get_solving_method_solution_file_name(file_name: str):
         raise ValueError(f"The file name {file_name} does not mention a solving method")
     if does_solution_file_name_mention_solving_parameters(file_name):
         file_name = remove_solving_parameters_from_solution_file_name(file_name)
-    return file_name.split(SOLUTION_SOLVING_METHOD_SYMBOL_BIS)[1].split(SOLUTION_FILE_EXTENSION)[0]
+    case_type = get_solution_file_name_case_type(file_name)
+    if case_type == SNAKE_CASE:
+        return file_name.split(f"_{SOLUTION_SOLVING_METHOD_SYMBOL}_")[1].split(SOLUTION_FILE_EXTENSION)[0]
+    elif case_type == CAMEL_CASE:
+        return file_name.split(SOLUTION_SOLVING_METHOD_SYMBOL_BIS)[1].split(SOLUTION_FILE_EXTENSION)[0]
+    else:
+        raise ValueError(f"The case type {case_type} is not supported")
+
+
+def get_solving_method_in_solution_file_path(file_path: str):
+    """
+    Get the solving method mentioned in a solution file path
+
+    :param file_path: the path of the file
+    :return: the solving method mentioned in the solution file path
+    """
+    return get_solving_method_in_solution_file_name(file_path.split('/')[-1])
 
 
 def remove_solving_method_from_solution_file_name(file_name: str):
@@ -555,7 +593,14 @@ def remove_solving_method_from_solution_file_name(file_name: str):
     """
     if not does_solution_file_name_mention_solving_method(file_name):
         raise ValueError(f"The file name {file_name} does not mention a solving method")
-    return file_name.replace(SOLUTION_SOLVING_METHOD_SYMBOL_BIS + get_solving_method_solution_file_name(file_name), "")
+    solving_method = get_solving_method_in_solution_file_name(file_name)
+    case_type = get_solution_file_name_case_type(file_name)
+    if case_type == SNAKE_CASE:
+        return file_name.replace(f"_{SOLUTION_SOLVING_METHOD_SYMBOL}_{solving_method}", "")
+    elif case_type == CAMEL_CASE:
+        return file_name.replace(f"{SOLUTION_SOLVING_METHOD_SYMBOL_BIS}{solving_method}", "")
+    else:
+        raise ValueError(f"The case type {case_type} is not supported")
 
 
 def does_solution_file_name_mention_solving_parameters(file_name: str):
@@ -575,7 +620,7 @@ def does_solution_file_name_mention_solving_parameters(file_name: str):
     return False
 
 
-def get_solving_parameters_solution_file_name(file_name: str):
+def get_solving_parameters_in_solution_file_name(file_name: str):
     """
     Get the solving parameters mentioned in a solution file name
 
@@ -636,11 +681,11 @@ def identify_meta_data_in_solution_file_name(file_name_with_extension: str):
     else:
         version = None
     if does_solution_file_name_mention_solving_method(file_name_with_extension):
-        solving_method = get_solving_method_solution_file_name(file_name_with_extension)
+        solving_method = get_solving_method_in_solution_file_name(file_name_with_extension)
     else:
         solving_method = None
     if does_solution_file_name_mention_solving_parameters(file_name_with_extension):
-        solving_parameters = get_solving_parameters_solution_file_name(file_name_with_extension)
+        solving_parameters = get_solving_parameters_in_solution_file_name(file_name_with_extension)
     else:
         solving_parameters = None
     meta_data = {META_DATA_CORE_KEY: core, META_DATA_CASE_KEY: case_type, META_DATA_VERSION_KEY: version,
@@ -750,37 +795,43 @@ def find_instance_file_path_corresponding_to_solution(solution_file_path: str,
     core, case_type, version = \
         meta_data[META_DATA_CORE_KEY], meta_data[META_DATA_CASE_KEY], meta_data[META_DATA_VERSION_KEY]
     if instance_directory_relative_path is not None:
-        instance_file_path = create_instance_file_path(core, version, case_type, instance_directory_relative_path)
-        if path.exists(instance_file_path):
-            return instance_file_path
-        else:
-            raise FileExistsError(f"{instance_file_path} does not exist")
+        instance_file_paths = \
+            create_instance_file_paths_with_various_extensions(core, version, case_type,
+                                                               instance_directory_relative_path)
+        for instance_file_path in instance_file_paths:
+            if path.exists(instance_file_path):
+                return instance_file_path
+        raise FileExistsError(f"{instance_file_paths} do not exist")
     else:
         solution_directory_path = solution_file_path[:solution_file_path.rindex('/')]
         instance_directory_relative_path = make_relative_path_from_absolute_one(solution_directory_path)
-        instance_file_possible_path_1 = \
-            create_instance_file_path(core, version, case_type,
-                                      instance_directory_relative_path=instance_directory_relative_path)
-        if path.exists(instance_file_possible_path_1):
-            return instance_file_possible_path_1
+        instance_file_possible_paths_1 = \
+            create_instance_file_paths_with_various_extensions(core, version, case_type,
+                                                               instance_directory_relative_path)
+        for instance_file_possible_path_1 in instance_file_possible_paths_1:
+            if path.exists(instance_file_possible_path_1):
+                return instance_file_possible_path_1
         if "solutions" in solution_file_path:
             instance_directory_relative_path = \
                 make_relative_path_from_absolute_one(solution_directory_path.replace("solutions", "instances"))
-        instance_file_possible_path_2 = \
-            create_instance_file_path(core, version, case_type,
-                                      instance_directory_relative_path=instance_directory_relative_path)
-        if path.exists(instance_file_possible_path_2):
-            return instance_file_possible_path_2
+        instance_file_possible_paths_2 = \
+            create_instance_file_paths_with_various_extensions(core, version, case_type,
+                                                               instance_directory_relative_path)
+        for instance_file_possible_path_2 in instance_file_possible_paths_2:
+            if path.exists(instance_file_possible_path_2):
+                return instance_file_possible_path_2
         if version is not None:
             instance_directory_relative_path = \
                 get_path_of_directory_of_instances_of_given_version(version, absolute_path=False)
-        instance_file_possible_path_3 = \
-            create_instance_file_path(core, version, case_type,
-                                      instance_directory_relative_path=instance_directory_relative_path)
-        if path.exists(instance_file_possible_path_3):
-            return instance_file_possible_path_3
-        instance_file_possible_paths = list({instance_file_possible_path_1, instance_file_possible_path_2,
-                                             instance_file_possible_path_3})
+        instance_file_possible_paths_3 = \
+            create_instance_file_paths_with_various_extensions(core, version, case_type,
+                                                               instance_directory_relative_path)
+
+        for instance_file_possible_path_3 in instance_file_possible_paths_3:
+            if path.exists(instance_file_possible_path_3):
+                return instance_file_possible_path_3
+        instance_file_possible_paths = \
+            list(set(instance_file_possible_paths_1 + instance_file_possible_paths_2 + instance_file_possible_paths_3))
         if len(instance_file_possible_paths) == 1:
             raise FileExistsError(f"{instance_file_possible_paths[0]} does not exist")
         else:

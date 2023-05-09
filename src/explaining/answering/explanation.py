@@ -3,6 +3,8 @@ from abc import abstractmethod
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
+from src.explaining.questioning.questions_templates_bank import \
+    BASED_ON_MOST_RELEVANT_NEIGHBORING_SOLUTION_QUESTIONS_TEMPLATES_IDS
 from src.modeling.solution import Solution
 from src.explaining.questioning.question import Question, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
 from src.explaining.answering.explanations_templates_bank import EXPLANATIONS_TEMPLATES
@@ -88,12 +90,10 @@ def create_explanation_from_dict(dictionary, solution: Solution):
     return create_explanation(question, support_solution, infeasibility, all_descriptions_of_applied_transformation)
 
 
-###############
-# Explanation #
-###############
+#####################
+# Class Explanation #
+#####################
 
-
-# Class Explanation
 class Explanation:
 
     def __init__(self, question: Question, support_solution: Solution,
@@ -101,7 +101,8 @@ class Explanation:
                  instance_alterations: InstanceChanges = None):
         self._question = question
         self._support_solution = support_solution
-        self._is_based_on_most_relevant_neighboring_solution = (question.template.id[-1] != '1')
+        self._is_based_on_most_relevant_neighboring_solution = \
+            question.template.id in BASED_ON_MOST_RELEVANT_NEIGHBORING_SOLUTION_QUESTIONS_TEMPLATES_IDS
         self._instance_alterations = instance_alterations
         fields_key_value_map = dict(zip(question.template.fields_keys, question.fields_values))
         fields_key_value_map['SolutionName'] = self._question.solution.name

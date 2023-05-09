@@ -14,8 +14,7 @@ from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
 from src.modeling.constants import *
-from src.utils.constants import LINE_BREAK_STRING, SNAKE_CASE, CAMEL_CASE, SOLUTION_NAME_PREFIX, \
-    SOLUTION_NAME_PREFIX_BIS
+from src.utils.constants import LINE_BREAK_STRING
 
 # Global variables
 DISPLACEMENT_STRING = ">>"
@@ -108,12 +107,7 @@ class Solution:
         return self.instance.core_name
 
     def _create_name(self):
-        if self.instance.name_case_type_is_snake_case:
-            return SOLUTION_NAME_PREFIX + self.instance.core_name
-        elif self.instance.name_case_type_is_camel_case:
-            return SOLUTION_NAME_PREFIX_BIS + self.instance.core_name
-        else:
-            raise ValueError(f"The name case type is neither {SNAKE_CASE} nor {CAMEL_CASE}")
+        return self.instance.create_default_solution_name()
 
     #############
     # Sequences #
@@ -124,6 +118,18 @@ class Solution:
 
     def get_sequence_by_name(self, employee_name: str):
         return self._sequences[employee_name]
+
+    #############
+    # Employees #
+    #############
+
+    @property
+    def performing_employees(self):
+        return [employee for employee in self._instance.employees if self.get_sequence(employee).nb_realized_tasks > 0]
+
+    @property
+    def non_performing_employees(self):
+        return [employee for employee in self._instance.employees if self.get_sequence(employee).nb_realized_tasks == 0]
 
     ##############
     # Activities #

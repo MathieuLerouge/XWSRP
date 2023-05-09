@@ -7,7 +7,7 @@ from src.drawing.KPIs import create_KPIs_figure
 from src.drawing.routes import create_routes_figure
 from src.drawing.schedules import create_schedules_figure
 from src.modeling.solution import Solution
-from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH
+from src.utils.constants import DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import make_absolute_path_from_relative_one
 
 
@@ -59,14 +59,21 @@ def create_figure_file_path(solution: Solution, figure_key: str, outputs_directo
     :return: figure file path (str)
     """
     if outputs_directory_relative_path is None:
-        outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
-    return make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{solution.name}{figure_key}.png")
+        outputs_directory_relative_path = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
+    if solution.instance.name_case_type_is_snake_case:
+        figure_file_name_with_extension = f"{solution.name}_{figure_key}.png"
+    elif solution.instance.name_case_type_is_camel_case:
+        figure_keys_bis = {ROUTES_FIGURE_KEY: ROUTES_FIGURE_KEY_BIS, SCHEDULES_FIGURE_KEY: SCHEDULES_FIGURE_KEY_BIS,
+                           KPIS_FIGURE_KEY: KPIS_FIGURE_KEY_BIS}
+        figure_file_name_with_extension = f"{solution.name}{figure_keys_bis[figure_key]}.png"
+    else:
+        raise ValueError(f"Wrong case type {solution.instance.name_case_type}")
+    return make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{figure_file_name_with_extension}")
 
 
 ##################
 # FiguresManager #
 ##################
-
 
 class FiguresManager:
 

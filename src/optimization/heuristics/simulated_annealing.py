@@ -8,41 +8,16 @@ import matplotlib.pyplot as plt
 # Local libraries
 from src.drawing.routes import create_routes_figure
 from src.drawing.schedules import create_schedules_figure
-from src.modeling.instance import Instance
-from src.optimization.localsearch.solution import SolutionLS
+from src.optimization.heuristics.greedy import run_greedy_algorithm
+from src.optimization.heuristics.solution import SolutionForHeuristics
 from src.reading.instance import extract_instance_from_file
 from src.utils.files import get_project_directory_path
 from src.writing.solution import write_solution
 
 
-def run_greedy_algorithm(instance: Instance):
-    solution = SolutionLS(instance)
-    sorted_tasks = instance.tasks
-    sorted_tasks.sort(key=lambda t: (t.skill_level, t.duration), reverse=True)
-    must_search_for_inserting = True
-    i = 0
-    while must_search_for_inserting:
-        i += 1
-        print("Step: ", i)
-        examination = \
-            solution.examine_best_insertion_between_consecutive_activities_among_sets(sorted_tasks, instance.employees)
-        if examination['is_feasible']:
-            task = instance.get_task_by_name(examination['task_name'])
-            employee = instance.get_employee_by_name(examination['employee_name'])
-            index = examination['step_index_for_insertion']
-            activity = solution.get_sequence(employee).get_step(index - 1).activity
-            solution.insert_task_after_activity(task, activity, examination['start_time'], tighten_times=True)
-            sorted_tasks.remove(task)
-            if not sorted_tasks:
-                must_search_for_inserting = False
-        else:
-            must_search_for_inserting = False
-    return solution
+def run_simulated_annealing(solution: SolutionForHeuristics):
 
-
-def run_simulated_annealing(solution: SolutionLS):
-
-    def _insert_random_non_performed_task(_solution: SolutionLS):
+    def _insert_random_non_performed_task(_solution: SolutionForHeuristics):
         """
         Insert a random non-performed task in a random employee's sequence
         Assumption: there are non-performed tasks
@@ -52,32 +27,30 @@ def run_simulated_annealing(solution: SolutionLS):
         """
         task = random.choice(_solution.non_performed_tasks)
         employee = random.choice(_solution.instance.get_employees_with_skill_level_higher_than(task.skill_level))
-        examination = _solution.examine_best_insertion_between_consecutive_activities(task, employee)
-        if examination['is_feasible']:
-            activity = \
-                _solution.get_sequence(employee).get_step(examination['step_index_for_insertion'] - 1).activity
-            _solution.insert_task_after_activity(task, activity, examination['start_time'], tighten_times=True)
+        examination = _solution.find_best_insertion_between_consecutive_activities(employee, task)
+        if examination.is_feasible:
+            activity = examination.activity_before_insertion
+            _solution.insert_task_after_activity(task, activity, examination.start_time, tighten_times=True)
             return _solution, True
         else:
             return _solution, False
 
-    def _transfer_random_performed_task_from_employee_to_another(_solution: SolutionLS):
+    def _transfer_random_performed_task_from_employee_to_another(_solution: SolutionForHeuristics):
         """
         Transfer a random performed task of an employee's sequence to another employee
         Assumption: there are performed tasks
         """
         task = random.choice(solution.performed_tasks)
         employee = random.choice(_solution.instance.get_employees_with_skill_level_higher_than(task.skill_level))
-        examination = _solution.examine_best_insertion_between_consecutive_activities(task, employee)
-        if examination['is_feasible']:
-            activity = \
-                _solution.get_sequence(employee).get_step(examination['step_index_for_insertion'] - 1).activity
-            _solution.insert_task_after_activity(task, activity, examination['start_time'], tighten_times=True)
+        examination = _solution.find_best_insertion_between_consecutive_activities(employee, task)
+        if examination.is_feasible:
+            activity = examination.activity_before_insertion
+            _solution.insert_task_after_activity(task, activity, examination.start_time, tighten_times=True)
             return _solution, True
         else:
             return _solution, False
 
-    def _remove_random_performed_task(_solution: SolutionLS):
+    def _remove_random_performed_task(_solution: SolutionForHeuristics):
         """
         Remove a random performed task from an employee's sequence
         :param _solution: a solution
@@ -94,7 +67,7 @@ def run_simulated_annealing(solution: SolutionLS):
     moves_if_no_performed_tasks.remove(_remove_random_performed_task)
     moves_if_all_tasks_performed.remove(_insert_random_non_performed_task)
 
-    def _apply_random_move(_solution: SolutionLS):
+    def _apply_random_move(_solution: SolutionForHeuristics):
         if _solution.nb_performed_tasks == 0:
             return random.choice(moves_if_no_performed_tasks)(_solution)
         elif _solution.nb_non_performed_tasks == 0:
@@ -102,7 +75,7 @@ def run_simulated_annealing(solution: SolutionLS):
         else:
             return random.choice(moves)(_solution)
 
-    def _compute_energy(_solution: SolutionLS):
+    def _compute_energy(_solution: SolutionForHeuristics):
         return _solution.total_traveling_duration - 10*_solution.total_working_duration
 
     def _compute_probability(_energy_variation: float, _temperature: float):

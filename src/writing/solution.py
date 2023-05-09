@@ -19,7 +19,7 @@ def write_solution(solution: Solution, outputs_directory_relative_path: str = No
 
     # Open file name
     if outputs_directory_relative_path is None:
-        outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
+        outputs_directory_relative_path = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
     file_path = make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{solution.name}.txt")
     file = open(file_path, "w")
 

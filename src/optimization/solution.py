@@ -2,7 +2,7 @@
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.utils.constants import SOLUTION_NAME_PREFIX, SOLUTION_NAME_PREFIX_BIS, SOLUTION_SOLVING_METHOD_SYMBOL_BIS, \
-    SNAKE_CASE, CAMEL_CASE
+    SNAKE_CASE, CAMEL_CASE, SOLUTION_SOLVING_METHOD_SYMBOL
 from src.utils.files import remove_solving_method_from_solution_file_name
 
 # Global variables
@@ -47,7 +47,7 @@ class SolutionOpti(Solution):
     def _create_name(self):
         if self.instance.name_case_type_is_snake_case:
             return f"{SOLUTION_NAME_PREFIX}{self.instance.core_name}_" \
-                   f"{SOLUTION_SOLVING_METHOD_SYMBOL_BIS}_{self.solving_method_id}"
+                   f"{SOLUTION_SOLVING_METHOD_SYMBOL}_{self.solving_method_id}"
         elif self.instance.name_case_type_is_camel_case:
             return f"{SOLUTION_NAME_PREFIX_BIS}{self.instance.core_name_with_version}" \
                    f"{SOLUTION_SOLVING_METHOD_SYMBOL_BIS}{self.solving_method_id}"

@@ -1,6 +1,6 @@
 # Local libraries
 from src.modeling.sequence import Sequence
-from src.optimization.localsearch.solution import SolutionLS
+from src.optimization.heuristics.solution import SolutionForHeuristics
 from src.teaching.modeling.instance import InstanceForTeaching
 from src.utils.constants import SOLUTION_NAME_PREFIX_BIS, CAMEL_CASE, SOLUTION_SOLVING_METHOD_SYMBOL_BIS
 
@@ -9,7 +9,7 @@ from src.utils.constants import SOLUTION_NAME_PREFIX_BIS, CAMEL_CASE, SOLUTION_S
 # Class SolutionForTeaching #
 #############################
 
-class SolutionForTeaching(SolutionLS):
+class SolutionForTeaching(SolutionForHeuristics):
 
     def __init__(self, instance: InstanceForTeaching, name: str = None, sequences: dict[str, Sequence] = None,
                  tasks_performances: dict = None, lunch_breaks_performances: dict = None,

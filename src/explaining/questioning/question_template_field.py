@@ -6,10 +6,13 @@ ACTIVITY_TYPE_ID = 'Activity'
 EMPLOYEE = "<must refer to employee>"
 TASK = "<must refer to task>"
 ACTIVITY = "<must refer to activity>"
-# - Performed
+# - Performing employee
+PERFORMING_EMPLOYEE = "<must refer to a performing employee>"
+PERFORMING_MORE_THAN_ONE_TASK_EMPLOYEE = "<must refer to a employee performing more than one task>"
+# - Performed task
 PERFORMED = "<must refer to performed activity>"
 NOT_PERFORMED = "<must refer to non performed activity>"
-# - Performed by
+# - Performed task by
 PERFORMED_BY_0 = "<must refer to activity performed by 0>"
 PERFORMED_BY_1 = "<must refer to activity performed by 1>"
 PERFORMED_BY_2 = "<must refer to activity performed by 2>"
@@ -37,6 +40,8 @@ class FieldAssumptions:
     def __init__(self, assumptions: str = ""):
         self._type_id = None
         self._must_refer_to_employee = False
+        self._must_refer_to_a_performing_employee = False
+        self._must_refer_to_an_employee_performing_more_than_one_task = False
         self._must_refer_to_task = False
         self._must_refer_to_activity = False
         self._must_refer_to_performed_activity = False
@@ -61,6 +66,14 @@ class FieldAssumptions:
         if ACTIVITY in assumptions:
             self._set_type_id(ACTIVITY_TYPE_ID)
             self._must_refer_to_activity = True
+        if PERFORMING_EMPLOYEE in assumptions:
+            if self._type_id != EMPLOYEE_TYPE_ID:
+                raise ValueError(f"{PERFORMING_EMPLOYEE} can only be used with {EMPLOYEE}")
+            self._must_refer_to_a_performing_employee = True
+        if PERFORMING_MORE_THAN_ONE_TASK_EMPLOYEE in assumptions:
+            if self._type_id != EMPLOYEE_TYPE_ID:
+                raise ValueError(f"{PERFORMING_MORE_THAN_ONE_TASK_EMPLOYEE} can only be used with {EMPLOYEE}")
+            self._must_refer_to_an_employee_performing_more_than_one_task = True
         if PERFORMED in assumptions:
             if self._type_id not in [TASK_TYPE_ID, ACTIVITY_TYPE_ID]:
                 raise ValueError(f"The field cannot satisfy both {PERFORMED} and not {TASK_TYPE_ID, ACTIVITY_TYPE_ID}")
@@ -134,6 +147,14 @@ class FieldAssumptions:
     @property
     def this_field_must_refer_to_an_employee(self):
         return self._must_refer_to_employee
+
+    @property
+    def this_field_must_refer_to_a_performing_employee(self):
+        return self._must_refer_to_a_performing_employee
+
+    @property
+    def this_field_must_refer_to_an_employee_performing_more_than_one_task(self):
+        return self._must_refer_to_an_employee_performing_more_than_one_task
 
     @property
     def this_field_must_refer_to_a_task(self):

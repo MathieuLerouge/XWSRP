@@ -25,6 +25,7 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     def __init__(self, sequence: Sequence, pivot_task: Task):
         self._pivot_task = pivot_task
         self._sequence = sequence
+        self._time_limit = None
         super().__init__(sequence.instance, sequence.employee, self._compute_candidate_tasks())
 
     @abstractmethod
@@ -34,12 +35,6 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     @property
     def pivot_task(self):
         return self._pivot_task
-
-    def get_candidate_tasks_keys(self, including_pivot_task: bool = True):
-        if including_pivot_task:
-            return [task.name for task in self.candidate_tasks]
-        else:
-            return [task.name for task in self.candidate_tasks if task != self._pivot_task]
 
     def get_pivot_task_key(self):
         return self._pivot_task.name
@@ -77,9 +72,25 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
         else:
             raise AttributeError("There is no solution sequence stored")
 
+    def get_candidate_tasks_keys(self, including_pivot_task: bool = True):
+        if including_pivot_task:
+            return [task.name for task in self.candidate_tasks]
+        else:
+            return [task.name for task in self.candidate_tasks if task != self._pivot_task]
+
     @property
     def support_sequence(self) -> Sequence:
         return self.solution_sequence
+
+    @property
+    def time_limit(self):
+        return self._time_limit
+
+    @time_limit.setter
+    def time_limit(self, time_limit: int):
+        self._time_limit = time_limit
+        self._GRB_model.setParam('OutputFlag', 0)
+        self._GRB_model.setParam('TimeLimit', time_limit)
 
     ######################
     # Decision variables #

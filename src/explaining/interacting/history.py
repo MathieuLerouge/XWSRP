@@ -3,13 +3,13 @@ from typing import Union
 
 # Local libraries
 from src.modeling.instance import Instance
-from src.optimization.localsearch.solution import SolutionLS
+from src.optimization.heuristics.solution import SolutionForHeuristics
 
 
 # Class History
 class History:
 
-    def __init__(self, solution: SolutionLS):
+    def __init__(self, solution: SolutionForHeuristics):
         self._memory = dict()
         self._memory[solution.instance.name] = dict(
             instance=solution.instance,
@@ -21,19 +21,19 @@ class History:
     def contain_instance(self, instance: Instance):
         return instance.name in self._memory.keys()
 
-    def contain_solution(self, solution: SolutionLS):
+    def contain_solution(self, solution: SolutionForHeuristics):
         if self.contain_instance(solution.instance):
             if solution.name in self._memory[solution.instance.name]['solutions']:
                 return True
         return False
 
-    def __contains__(self, obj: Union[Instance, SolutionLS]):
+    def __contains__(self, obj: Union[Instance, SolutionForHeuristics]):
         if isinstance(obj, Instance):
             return self.contain_instance(obj)
-        elif isinstance(obj, SolutionLS):
+        elif isinstance(obj, SolutionForHeuristics):
             return self.contain_solution(obj)
         else:
-            return TypeError(f"The object type which is {type(obj)} must be {Instance} or {SolutionLS}")
+            return TypeError(f"The object type which is {type(obj)} must be {Instance} or {SolutionForHeuristics}")
 
     @property
     def nb_instances(self):
@@ -80,7 +80,7 @@ class History:
     def get_solutions_names_of_instance_by_name(self, instance_name: str):
         return list(self._memory[instance_name]['solutions'].keys())
 
-    def store_solution(self, solution: SolutionLS):
+    def store_solution(self, solution: SolutionForHeuristics):
         if not self.contain_solution(solution):
             if self.contain_instance(solution.instance):
                 self._memory[solution.instance.name]['solutions'][solution.name] = solution

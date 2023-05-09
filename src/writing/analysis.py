@@ -1,7 +1,8 @@
 # Local libraries
 from src.modeling.solution import Solution
 from src.optimization.solution import SolutionOpti
-from src.utils.constants import OUTPUTS_DIRECTORY_RELATIVE_PATH, SOLUTION_ANALYSIS_FILE_NAME_SUFFIX, LINE_BREAK_STRING
+from src.utils.constants import DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH, SOLUTION_ANALYSIS_FILE_NAME_SUFFIX_BIS, \
+    LINE_BREAK_STRING, SOLUTION_ANALYSIS_FILE_NAME_SUFFIX
 from src.utils.files import make_absolute_path_from_relative_one
 
 
@@ -21,8 +22,13 @@ def write_solution_analysis(solution: Solution, outputs_directory_relative_path:
 
     # Open file_name
     if outputs_directory_relative_path is None:
-        outputs_directory_relative_path = OUTPUTS_DIRECTORY_RELATIVE_PATH
-    file_name = f"{solution.name}{SOLUTION_ANALYSIS_FILE_NAME_SUFFIX}.txt"
+        outputs_directory_relative_path = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
+    if solution.instance.name_case_type_is_snake_case:
+        file_name = solution.name + '_' + SOLUTION_ANALYSIS_FILE_NAME_SUFFIX + '.txt'
+    elif solution.instance.name_case_type_is_camel_case:
+        file_name = solution.name + SOLUTION_ANALYSIS_FILE_NAME_SUFFIX_BIS + '.txt'
+    else:
+        raise ValueError('The instance name case type is not recognized.')
     file_path = make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{file_name}")
     file = open(file_path, "w")
 

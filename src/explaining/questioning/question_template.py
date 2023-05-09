@@ -156,9 +156,15 @@ class QuestionTemplate:
         instance = solution.instance
         assumptions = self._fields_information[focused_field_index]['assumptions']
         # Case where the focused field must be an employee name
+        # TODO change return depending on other_fields_values
         if assumptions.this_field_must_refer_to_an_employee:
-            # TODO change return depending on other_fields_values
-            return instance.employees_names
+            if assumptions.this_field_must_refer_to_an_employee_performing_more_than_one_task:
+                return [employee.name for employee in instance.employees
+                        if solution.get_sequence(employee).nb_realized_tasks > 1]
+            elif assumptions.this_field_must_refer_to_a_performing_employee:
+                return [employee.name for employee in solution.performing_employees]
+            else:
+                return instance.employees_names
         # Case where the focused field must be a task name
         elif assumptions.this_field_must_refer_to_a_task:
             possible_tasks = instance.tasks

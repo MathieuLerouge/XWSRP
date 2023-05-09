@@ -12,7 +12,7 @@ from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
 from src.optimization.IP.sequence.basemodel import IPModelForSequenceOptimization, LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
-from src.optimization.localsearch.sequence import SequenceLS
+from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
 # Class IPModelForInsertionAlteringInput
@@ -81,7 +81,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
 
     @property
     def support_sequence(self):
-        return SequenceLS.from_Sequence(self.solution_sequence)
+        return SequenceForHeuristics.from_Sequence(self.solution_sequence)
 
     ######################
     # Decision variables #

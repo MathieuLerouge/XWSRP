@@ -7,7 +7,8 @@ from src.explaining.transforming.infeasibility import *
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
-from src.optimization.localsearch.sequence import SequenceLS
+from src.optimization.heuristics.examination import InsertionExamination, ReplacementExamination, ReorderExamination
+from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
@@ -29,7 +30,8 @@ if GUROBI_IS_ENABLED:
 #############################################
 
 
-def apply_induced_transformation(solution: EditableSolution, question: Question):
+def apply_induced_transformation(solution: EditableSolution, question: Question,
+                                 time_limit_for_ILP_computation: int = None):
     question_template_id = question.template.id
     fields_values = question.fields_values
     if question_template_id == WHY_NOT_INS_1:
@@ -41,7 +43,7 @@ def apply_induced_transformation(solution: EditableSolution, question: Question)
     elif question_template_id == WHY_NOT_INS_2C:
         return apply_ins_2c(solution, fields_values[0])
     elif question_template_id == WHY_NOT_INS_3:
-        return apply_ins_3(solution, fields_values[0], fields_values[1])
+        return apply_ins_3(solution, fields_values[0], fields_values[1], time_limit_for_ILP_computation)
     elif question_template_id == WHY_NOT_SWP_1:
         return apply_swp_1(solution, fields_values[0], fields_values[1], fields_values[2])
     elif question_template_id == WHY_NOT_SWP_2A:
@@ -51,13 +53,19 @@ def apply_induced_transformation(solution: EditableSolution, question: Question)
     elif question_template_id == WHY_NOT_SWP_2C:
         return apply_swp_2c(solution, fields_values[0])
     elif question_template_id == WHY_NOT_SWP_3:
-        return apply_swp_3(solution, fields_values[0], fields_values[1])
+        return apply_swp_3(solution, fields_values[0], fields_values[1], time_limit_for_ILP_computation)
     elif question_template_id == WHY_NOT_ORD_LAT_1:
         return apply_ord_1a(solution, fields_values[0], fields_values[1], fields_values[2])
     elif question_template_id == WHY_NOT_ORD_EAR_1:
         return apply_ord_1b(solution, fields_values[0], fields_values[1], fields_values[2])
+    elif question_template_id == WHY_NOT_ORD_LAT_2:
+        return apply_ord_2a(solution, fields_values[0], fields_values[1])
+    elif question_template_id == WHY_NOT_ORD_EAR_2:
+        return apply_ord_2b(solution, fields_values[0], fields_values[1])
+    elif question_template_id == WHY_NOT_ORD_2:
+        return apply_ord_2c(solution, fields_values[0], fields_values[1])
     elif question_template_id == WHY_NOT_ORD_3:
-        return apply_ord_3(solution, fields_values[0])
+        return apply_ord_3(solution, fields_values[0], time_limit_for_ILP_computation)
     else:
         raise NotImplementedError(f"The transformation induced by the template {question_template_id} is not handled")
 
@@ -65,11 +73,11 @@ def apply_induced_transformation(solution: EditableSolution, question: Question)
 if GUROBI_IS_ENABLED:
     def create_support_solution_and_infeasibility_for_category_3(solution: EditableSolution, employee: Employee,
                                                                  task: Task, model: IPModelForCategory3):
-        # Save whether or not the transformation is feasible
+        # Save whether the transformation is feasible
         transformation_is_skill_feasible = employee.is_capable_of_performing(task)
         transformation_is_feasible = transformation_is_skill_feasible and (model.pivot_task_time_gap == 0)
         # Create support solution
-        support_sequence = SequenceLS.from_Sequence(model.solution_sequence)
+        support_sequence = SequenceForHeuristics.from_Sequence(model.solution_sequence)
         support_solution = solution.copy(solution.name + "_support")
         if support_solution.get_task_performance_status(task):
             support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
@@ -107,26 +115,26 @@ if GUROBI_IS_ENABLED:
 ########################################
 
 def create_support_solution_and_infeasibility_for_insertion(solution: EditableSolution, employee: Employee, task: Task,
-                                                            activity: Activity, examination: dict):
-    transformation_is_feasible = examination['is_feasible']
+                                                            activity: Activity, examination: InsertionExamination):
+    transformation_is_feasible = examination.is_feasible
     support_solution = solution.copy(solution.name + "_support")
     if support_solution.get_task_performance_status(task):
         support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
     infeasibility = None
     if transformation_is_feasible:
-        support_solution.insert_task_after_activity(task, activity, start_time=examination['start_time'])
+        support_solution.insert_task_after_activity(task, activity, start_time=examination.start_time)
     else:
-        if not examination['is_time_feasible']:
+        if not examination.is_time_feasible:
             support_solution.insert_task_after_activity(
-                task, activity, examination['start_time'],
-                examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
-                False, False, (not examination['is_skill_feasible'])
+                task, activity, examination.start_time,
+                examination.earliest_start_time_for_upstream, examination.latest_start_time_for_downstream,
+                False, False, (not examination.is_skill_feasible)
             )
         else:
             support_solution.insert_task_after_activity(
-                task, activity, examination['start_time'], None, None, False, False, True
+                task, activity, examination.start_time, None, None, False, False, True
             )
-        if not examination['is_skill_feasible']:
+        if not examination.is_skill_feasible:
             infeasibility = SkillInfeasibility(employee, task)
         else:
             sequence = support_solution.get_sequence(employee)
@@ -134,8 +142,8 @@ def create_support_solution_and_infeasibility_for_insertion(solution: EditableSo
             upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(index - 1)
             downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(index + 1)
             infeasibility = TimeInfeasibility(
-                employee, task, examination['is_upstream_feasible'], examination['is_downstream_feasible'],
-                examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
+                employee, task, examination.is_upstream_feasible, examination.is_downstream_feasible,
+                examination.earliest_start_time_for_upstream, examination.latest_start_time_for_downstream,
                 upstream_critical_step_index=upstream_critical_step_index,
                 downstream_critical_step_index=downstream_critical_step_index
             )
@@ -167,7 +175,7 @@ def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, 
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
     activity = solution.instance.get_hypothetical_activity_by_names(activity_name, employee_name)
-    examination = solution.examine_insertion_after(task, employee, activity, False)
+    examination = solution.examine_insertion_after(employee, task, activity, False)
     return create_support_solution_and_infeasibility_for_insertion(solution, employee, task, activity, examination)
 
 
@@ -183,9 +191,8 @@ def apply_ins_2a(solution: EditableSolution, employee_name: str, task_name: str)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
-    examination = solution.examine_best_insertion_between_consecutive_activities(task, employee, False)
-    index = examination['step_index_for_insertion']
-    activity = solution.get_sequence(employee).get_step(index - 1).activity
+    examination = solution.find_best_insertion_between_consecutive_activities(employee, task, False)
+    activity = examination.activity_before_insertion
     return create_support_solution_and_infeasibility_for_insertion(solution, employee, task, activity, examination)
 
 
@@ -201,12 +208,11 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
     employee = solution.instance.get_employee_by_name(employee_name)
     if len(solution.non_performed_tasks) == 0:
         raise ValueError("There is no non-performed task in the solution.")
-    examination = solution.examine_best_insertion_between_consecutive_activities_among_sets(
+    examination = solution.find_best_insertion_between_consecutive_activities_among_sets(
         solution.non_performed_tasks, [employee], False
     )
-    task = solution.instance.get_task_by_name(examination['task_name'])
-    index = examination['step_index_for_insertion']
-    activity = solution.get_sequence(employee).get_step(index - 1).activity
+    task = examination.inserted_task
+    activity = examination.activity_before_insertion
     return create_support_solution_and_infeasibility_for_insertion(solution, employee, task, activity, examination)
 
 
@@ -219,32 +225,40 @@ def apply_ins_2c(solution: EditableSolution, task_name: str):
     :return:
     """
     task = solution.instance.get_task_by_name(task_name)
-    examination = solution.examine_best_insertion_between_consecutive_activities_among_sets(
+    examination = solution.find_best_insertion_between_consecutive_activities_among_sets(
         [task], solution.instance.employees, False
     )
-    employee = solution.instance.get_employee_by_name(examination['employee_name'])
-    index = examination['step_index_for_insertion']
-    activity = solution.get_sequence(employee).get_step(index - 1).activity
+    employee = examination.employee
+    activity = examination.activity_before_insertion
     return create_support_solution_and_infeasibility_for_insertion(solution, employee, task, activity, examination)
 
 
-def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str):
+def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, time_limit: int = None):
     """
     Why is the employee {Employee} not performing the task {Task} in addition to their activities?
 
-    :param solution: the solution
-    :param employee_name: the name of the employee
-    :param task_name: the name of the task to be inserted
+    :param solution: the solution to transform (EditableSolution)
+    :param employee_name: the name of the employee (str)
+    :param task_name: the name of the task to be inserted (str)
+    :param time_limit: the time limit for the insertion (int)
     :return: a tuple containing the support solution, the infeasibility (if any) and
     the text of the transformation to apply in various languages
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
-    sequence = solution.get_sequence(employee)
-    model = IPModelForInsertion3(sequence, task)
-    model.optimize(mute=True)
-    support_solution, infeasibility, description_of_support_sequence = \
-        create_support_solution_and_infeasibility_for_category_3(solution, employee, task, model)
+    if employee.is_capable_of_performing(task):
+        sequence = solution.get_sequence(employee)
+        model = IPModelForInsertion3(sequence, task)
+        if time_limit is not None:
+            model.time_limit = time_limit
+        # model.warm_start()
+        model.optimize(mute=True)
+        support_solution, infeasibility, description_of_support_sequence = \
+            create_support_solution_and_infeasibility_for_category_3(solution, employee, task, model)
+    else:
+        support_solution = solution.copy(solution.name + "_support")
+        infeasibility = SkillInfeasibility(employee, task)
+        description_of_support_sequence = ""
     applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
             f"adding {task.name} in {employee.name}'s planning according to the following route "
@@ -261,24 +275,24 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str):
 ###################################
 
 def create_support_solution_and_infeasibility_for_swap(solution: EditableSolution, employee: Employee,
-                                                       task1: Task, task2: Task, examination: dict):
-    transformation_is_feasible = examination['is_feasible']  # Sequence-wise
+                                                       task1: Task, task2: Task, examination: ReplacementExamination):
+    transformation_is_feasible = examination.is_feasible  # Sequence-wise
     support_solution = solution.copy(solution.name + "_support")
     infeasibility = None
     if transformation_is_feasible:
-        support_solution.replace_task_by_another(task2, task1, examination['start_time'])
+        support_solution.replace_task_by_another(task2, task1, examination.start_time)
     else:
-        if not examination['is_time_feasible']:
+        if not examination.is_time_feasible:
             support_solution.replace_task_by_another(
-                task2, task1, examination['start_time'],
-                examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
-                False, False, (not examination['is_skill_feasible'])
+                task2, task1, examination.start_time,
+                examination.earliest_start_time_for_upstream, examination.latest_start_time_for_downstream,
+                False, False, (not examination.is_skill_feasible)
             )
         else:
             support_solution.replace_task_by_another(
-                task2, task1, examination['start_time'], None, None, False, False, True
+                task2, task1, examination.start_time, None, None, False, False, True
             )
-        if not examination['is_skill_feasible']:
+        if not examination.is_skill_feasible:
             infeasibility = SkillInfeasibility(employee, task1)
         else:
             sequence = support_solution.get_sequence(employee)
@@ -286,8 +300,8 @@ def create_support_solution_and_infeasibility_for_swap(solution: EditableSolutio
             upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(index - 1)
             downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(index + 1)
             infeasibility = TimeInfeasibility(
-                employee, task1, examination['is_upstream_feasible'], examination['is_downstream_feasible'],
-                examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
+                employee, task1, examination.is_upstream_feasible, examination.is_downstream_feasible,
+                examination.earliest_start_time_for_upstream, examination.latest_start_time_for_downstream,
                 upstream_critical_step_index=upstream_critical_step_index,
                 downstream_critical_step_index=downstream_critical_step_index
             )
@@ -313,13 +327,13 @@ def apply_swp_1(solution: EditableSolution, employee_name: str, task1_name: str,
     employee = solution.instance.get_employee_by_name(employee_name)
     task1 = solution.instance.get_task_by_name(task1_name)
     task2 = solution.instance.get_task_by_name(task2_name)
-    examination = solution.examine_swap_with_a_task(employee, task1, task2, False)
+    examination = solution.examine_replacing_task_with_another(employee, task2, task1, False)
     return create_support_solution_and_infeasibility_for_swap(solution, employee, task1, task2, examination)
 
 
 def apply_swp_2a(solution: EditableSolution, employee_name: str, task_name: str):
     """
-    Why is the employee {Employee} not performing the task {Task} in place of any of their tasks?
+    Why is the employee {Employee} not performing the task {Task} in place of one of their tasks?
 
     :param solution:
     :param employee_name:
@@ -328,10 +342,9 @@ def apply_swp_2a(solution: EditableSolution, employee_name: str, task_name: str)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     entering_task = solution.instance.get_task_by_name(task_name)
-    examination = solution.examine_swap_with_any_task(employee, entering_task, False)
-    index = examination['step_index_for_swap']
-    leaving_task = solution.get_sequence(employee).get_step(index).activity
-    return create_support_solution_and_infeasibility_for_swap(solution, employee, entering_task, leaving_task,
+    examination = solution.examine_replacing_any_task_with_given_task(employee, entering_task, False)
+    replaced_task = examination.replaced_task
+    return create_support_solution_and_infeasibility_for_swap(solution, employee, entering_task, replaced_task,
                                                               examination)
 
 
@@ -346,11 +359,10 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
     employee = solution.instance.get_employee_by_name(employee_name)
     if len(solution.non_performed_tasks) == 0:
         raise ValueError("There is no non-performed task in the solution.")
-    examination = solution.examine_swap_tasks_among_sets([employee], solution.non_performed_tasks, False)
-    entering_task = solution.instance.get_task_by_name(examination['task_name'])
-    index = examination['step_index_for_swap']
-    leaving_task = solution.get_sequence(employee).get_step(index).activity
-    return create_support_solution_and_infeasibility_for_swap(solution, employee, entering_task, leaving_task,
+    examination = solution.find_best_replacement_among_sets([employee], solution.non_performed_tasks, False)
+    replacing_task = examination.replacing_task
+    replaced_task = examination.replaced_task
+    return create_support_solution_and_infeasibility_for_swap(solution, employee, replacing_task, replaced_task,
                                                               examination)
 
 
@@ -362,40 +374,50 @@ def apply_swp_2c(solution: EditableSolution, task_name: str):
     :param task_name:
     :return:
     """
-    task = solution.instance.get_task_by_name(task_name)
-    examination = solution.examine_swap_tasks_among_sets(solution.instance.employees, [task], False)
-    employee = solution.instance.get_employee_by_name(examination['employee_name'])
-    index = examination['step_index_for_swap']
-    leaving_task = solution.get_sequence(employee).get_step(index).activity
-    return create_support_solution_and_infeasibility_for_swap(solution, employee, task, leaving_task, examination)
+    replacing_task = solution.instance.get_task_by_name(task_name)
+    examination = solution.find_best_replacement_among_sets(solution.performing_employees, [replacing_task], False)
+    employee = examination.employee
+    replaced_task = examination.replaced_task
+    return create_support_solution_and_infeasibility_for_swap(solution, employee, replacing_task, replaced_task,
+                                                              examination)
 
 
-def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str):
+def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, time_limit: int = None):
     """
     Why is the employee {Employee} not performing the task {Task} rather than any of their tasks?
 
-    :param solution:
-    :param employee_name:
-    :param task_name:
-    :return:
+    :param solution: the solution to transform (EditableSolution)
+    :param employee_name: the name of the employee (str)
+    :param task_name: the name of the task (str)
+    :param time_limit: the time limit for the explanation computation (int)
+    :return: the transformed solution (EditableSolution), the infeasibility (Infeasibility), ...
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
-    sequence = solution.get_sequence(employee)
-    model = IPModelForSwap3(sequence, task)
-    model.optimize(mute=True)
-    support_solution, infeasibility, description_of_support_sequence = \
-        create_support_solution_and_infeasibility_for_category_3(solution, employee, task, model)
-    leaving_task = model.leaving_task
-    applying_transformation_text_in_various_languages = {
-        LANGUAGE_ENGLISH_KEY:
-            f"replacing {leaving_task.name} by {task.name} in {employee.name}'s and applying the following route "
-            f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
-        LANGUAGE_FRENCH_KEY:
-            f"remplaçant {leaving_task.name} par {task.name} dans le planning de {employee.name} "
-            f"et en appliquant l'itinéraire suivant "
-            f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
-    }
+    if employee.is_capable_of_performing(task):
+        sequence = solution.get_sequence(employee)
+        model = IPModelForSwap3(sequence, task)
+        if time_limit is not None:
+            model.time_limit = time_limit
+        model.optimize(mute=True)
+        support_solution, infeasibility, description_of_support_sequence = \
+            create_support_solution_and_infeasibility_for_category_3(solution, employee, task, model)
+        leaving_task = model.leaving_task
+        applying_transformation_text_in_various_languages = {
+            LANGUAGE_ENGLISH_KEY:
+                f"replacing {leaving_task.name} by {task.name} in {employee.name}'s and applying the following route "
+                f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
+            LANGUAGE_FRENCH_KEY:
+                f"remplaçant {leaving_task.name} par {task.name} dans le planning de {employee.name} "
+                f"et en appliquant l'itinéraire suivant "
+                f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
+        }
+    else:
+        support_solution = solution.copy(solution.name + "_support")
+        infeasibility = SkillInfeasibility(employee, task)
+        applying_transformation_text_in_various_languages = {
+            LANGUAGE_ENGLISH_KEY: "", LANGUAGE_FRENCH_KEY: ""
+        }
     return support_solution, infeasibility, applying_transformation_text_in_various_languages
 
 
@@ -404,43 +426,44 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str):
 #########################################
 
 def create_support_solution_and_infeasibility_for_ordering(solution: EditableSolution, employee: Employee,
-                                                           moving_task: Task, fixed_task: Task, examination: dict):
+                                                           moving_task: Task, fixed_task: Task,
+                                                           examination: ReorderExamination):
     """
     Create the support solution and create infeasibility related to reordering (if any)
     
-    :param solution: solution to be transformed
-    :param employee: employee whose sequence is to be transformed 
-    :param moving_task: task to be moved 
-    :param fixed_task: fixed task
-    :param examination: result of the examination of the transformation
-    :return: a tuple containing the support solution, the infeasibility (if any) and
-    the text of the transformation to apply in various languages 
+    :param solution: solution to be transformed (EditableSolution)
+    :param employee: employee whose sequence is to be transformed (Employee)
+    :param moving_task: task to be moved (Task)
+    :param fixed_task: fixed task located before or after which the moving task is inserted (Task)
+    :param examination: result of the examination of the transformation (ReorderExamination)
+    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    the text of the transformation to apply in various languages (dict(str, str))
     """
     support_sequence = solution.get_sequence(employee)
     if support_sequence.get_step_index_of(moving_task) < support_sequence.get_step_index_of(fixed_task):
         is_moving_task_1_after_task_2 = True
     else:
         is_moving_task_1_after_task_2 = False
-    transformation_is_feasible = examination['is_feasible']
+    transformation_is_feasible = examination.is_feasible
     support_solution = solution.copy(solution.name + "_support")
     infeasibility = None
     if transformation_is_feasible:
         if is_moving_task_1_after_task_2:
-            support_solution.shift_task_in_sequence_after_activity(moving_task, fixed_task, examination['start_time'])
+            support_solution.shift_task_in_sequence_after_activity(moving_task, fixed_task, examination.start_time)
         else:
-            support_solution.shift_task_in_sequence_before_activity(moving_task, fixed_task, examination['start_time'])
+            support_solution.shift_task_in_sequence_before_activity(moving_task, fixed_task, examination.start_time)
     else:
-        if not examination['is_time_feasible']:
+        if not examination.is_time_feasible:
             if is_moving_task_1_after_task_2:
                 support_solution.shift_task_in_sequence_after_activity(
-                    moving_task, fixed_task, examination['start_time'],
-                    examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
+                    moving_task, fixed_task, examination.start_time,
+                    examination.earliest_start_time_for_upstream, examination.latest_start_time_for_downstream,
                     False, False
                 )
             else:
                 support_solution.shift_task_in_sequence_before_activity(
-                    moving_task, fixed_task, examination['start_time'],
-                    examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
+                    moving_task, fixed_task, examination.start_time,
+                    examination.earliest_start_time_for_upstream, examination.latest_start_time_for_downstream,
                     False, False
                 )
             support_sequence = support_solution.get_sequence(employee)
@@ -448,8 +471,8 @@ def create_support_solution_and_infeasibility_for_ordering(solution: EditableSol
             upstream_critical_step_index = support_sequence.find_first_critical_step_index_backward_from(index - 1)
             downstream_critical_step_index = support_sequence.find_first_critical_step_index_forward_from(index + 1)
             infeasibility = TimeInfeasibility(
-                employee, moving_task, examination['is_upstream_feasible'], examination['is_downstream_feasible'],
-                examination['earliest_start_time_for_upstream'], examination['latest_start_time_for_downstream'],
+                employee, moving_task, examination.is_upstream_feasible, examination.is_downstream_feasible,
+                examination.earliest_start_time_for_upstream, examination.latest_start_time_for_downstream,
                 upstream_critical_step_index=upstream_critical_step_index,
                 downstream_critical_step_index=downstream_critical_step_index
             )
@@ -512,19 +535,85 @@ def apply_ord_1b(solution: EditableSolution, employee_name: str, task_name_1: st
     return create_support_solution_and_infeasibility_for_ordering(solution, employee, task_1, task_2, examination)
 
 
-def apply_ord_3(solution: EditableSolution, employee_name: str):
+def apply_ord_2a(solution: EditableSolution, employee_name: str, task_name: str):
     """
-    Create content for the explanation related to the question (Ord-3):
-    "Why is the employee {Employee} not performing the activities of their route in another order?"
+    Create content for the explanation related to the question (Ord-2a):
+    "Why is the employee {Employee} not performing the task {Task} later in their route?"
 
-    :param solution: the solution to be transformed
-    :param employee_name: the name of the employee whose route should be reordered
+    :param solution: the solution to be transformed (EditableSolution)
+    :param employee_name: the name (str) of the employee whose route is to be modified
+    :param task_name: the name (str) of the task to be moved
     :return: a tuple containing the support solution, the infeasibility (if any) and
     the text of the transformation to apply in various languages
     """
     employee = solution.instance.get_employee_by_name(employee_name)
+    moving_task = solution.instance.get_task_by_name(task_name)
+    examination = solution.find_best_reordering_later_in_employee_sequence(employee, moving_task)
+    fixed_task = examination.activity_before
+    return create_support_solution_and_infeasibility_for_ordering(solution, employee, moving_task, fixed_task,
+                                                                  examination)
+
+
+def apply_ord_2b(solution: EditableSolution, employee_name: str, task_name: str):
+    """
+    Create content for the explanation related to the question (Ord-2b):
+    "Why is the employee {Employee} not performing the task {Task} earlier in their route?"
+
+    :param solution: the solution to be transformed (EditableSolution)
+    :param employee_name: the name (str) of the employee whose route is to be modified
+    :param task_name: the name (str) of the task to be moved
+    :return: a tuple containing the support solution, the infeasibility (if any) and
+    the text of the transformation to apply in various languages
+    """
+    employee = solution.instance.get_employee_by_name(employee_name)
+    moving_task = solution.instance.get_task_by_name(task_name)
+    examination = solution.find_best_reordering_earlier_in_employee_sequence(employee, moving_task)
+    fixed_task = examination.activity_after
+    return create_support_solution_and_infeasibility_for_ordering(solution, employee, moving_task, fixed_task,
+                                                                  examination)
+
+
+def apply_ord_2c(solution: EditableSolution, employee_name: str, task_name: str):
+    """
+    Create content for the explanation related to the question (Ord-2c):
+    "Why is the employee {Employee} not performing the task {Task} at another position in their route?"
+
+    :param solution: the solution to be transformed (EditableSolution)
+    :param employee_name: the name (str) of the employee whose route is to be modified
+    :param task_name: the name (str) of the task to be moved
+    :return: a tuple containing the support solution, the infeasibility (if any) and
+    the text of the transformation to apply in various languages
+    """
+    employee = solution.instance.get_employee_by_name(employee_name)
+    moving_task = solution.instance.get_task_by_name(task_name)
+    examination = solution.find_best_reordering_in_employee_sequence(employee, moving_task)
+    sequence = solution.get_sequence(employee)
+    if sequence.get_step_index_of(moving_task) < sequence.get_step_index_of(examination.activity_before):
+        fixed_task = examination.activity_before
+    elif sequence.get_step_index_of(moving_task) > sequence.get_step_index_of(examination.activity_after):
+        fixed_task = examination.activity_after
+    else:
+        raise ValueError("The moving task is not moved")
+    return create_support_solution_and_infeasibility_for_ordering(solution, employee, moving_task, fixed_task,
+                                                                  examination)
+
+
+def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int = None):
+    """
+    Create content for the explanation related to the question (Ord-3):
+    "Why is the employee {Employee} not performing the activities of their route in another order?"
+
+    :param solution: the solution to transform (EditableSolution)
+    :param employee_name: the name (str) of the employee whose route should be reordered
+    :param time_limit: the time limit (int) in seconds for computing the transformation
+    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    the text of the transformation to apply in various languages (dict(str, str))
+    """
+    employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
     model = IPModelForReordering3(sequence)
+    if time_limit is not None:
+        model.time_limit = time_limit
     model.optimize(mute=True)
     pivot_task = model.pivot_task
     support_solution, infeasibility, description_of_support_sequence = \
@@ -566,7 +655,7 @@ def apply_induced_transformation_bis(solution: EditableSolution, question: Count
 if GUROBI_IS_ENABLED:
     def create_support_solution_infeasibility_and_alterations(solution: EditableSolution, employee: Employee,
                                                               task: Task, model: IPModelForInsertionAlteringInput):
-        # Save whether or not the transformation is feasible
+        # Save whether the transformation is feasible
         transformation_is_skill_feasible = employee.is_capable_of_performing(task)
         transformation_is_feasible = transformation_is_skill_feasible and (model.task_to_insert_time_gap == 0)
         # Create support solution

@@ -15,7 +15,11 @@ from src.modeling.task import Task
 from src.modeling.constants import *
 
 
-# Class Sequence
+##################
+# Class Sequence #
+##################
+
+
 class Sequence:
 
     def __init__(self, instance: Instance, employee: Employee, steps: list[Step] = None):
@@ -107,6 +111,13 @@ class Sequence:
         return self[index]
 
     def get_steps(self, index_start: int = 0, index_end: int = None) -> list[Step]:
+        """
+        Return the steps of the sequence between index_start (included) and index_end (excluded)
+
+        :param index_start: index of the first step to return (int)
+        :param index_end: index of the last step to return (int)
+        :return: list of steps (list[Step])
+        """
         return self._steps[index_start:index_end] if index_end is not None else self._steps[index_start:]
 
     def append(self, step: Step):
@@ -130,13 +141,6 @@ class Sequence:
         sequence = Sequence(self._instance, self._employee, self._copy_steps())
         sequence._KPIs = self._copy_KPIs()
         return sequence
-
-    def clear(self):
-        while not (self._steps.empty()):
-            step = self._steps.pop()
-            step.clear()
-        self._steps = None
-        self._KPIs = None
 
     ##############
     # Activities #
@@ -169,6 +173,12 @@ class Sequence:
     def contains(self, activity: Activity):
         return activity in self.get_contained_activities()
 
+    def get_step_of(self, activity: Activity):
+        for step in self._steps:
+            if step.activity == activity:
+                return step
+        raise ValueError(f"The given activity {activity.name} is not in this sequence {self}")
+
     def get_step_index_of(self, activity: Activity):
         """Get the index in this sequence of the step corresponding to the given activity.
 
@@ -184,6 +194,22 @@ class Sequence:
         if activity_index >= self.nb_steps:
             raise ValueError(f"The given activity {activity.name} is not in this sequence {self}")
         return activity_index
+
+    def get_first_task_step_index(self):
+        index = None
+        for step_index in range(1, self.nb_steps - 1):
+            if isinstance(self._steps[step_index].activity, Task):
+                index = step_index
+                break
+        return index
+
+    def get_last_task_step_index(self):
+        index = None
+        for step_index in range(self.nb_steps - 1, 1, -1):
+            if isinstance(self._steps[step_index].activity, Task):
+                index = step_index
+                break
+        return index
 
     def get_step_indices_of_contained_tasks(self):
         tasks_indices = []
