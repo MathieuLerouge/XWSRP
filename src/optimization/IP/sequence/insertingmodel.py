@@ -20,7 +20,7 @@ class IPModelForSequenceInserting(IPModelForSequenceOptimization):
     def new_task(self):
         return self._new_task
 
-    def get_candidate_tasks_keys(self, including_new_task: bool = True):
+    def _get_candidate_tasks_keys(self, including_new_task: bool = True):
         if including_new_task:
             return [task.name for task in self.candidate_tasks]
         else:
@@ -36,7 +36,7 @@ class IPModelForSequenceInserting(IPModelForSequenceOptimization):
     def _add_covering_constraints(self):
 
         # Add constraints about old tasks covering
-        for j in self.get_candidate_tasks_keys(including_new_task=False):
+        for j in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]
@@ -80,7 +80,7 @@ class IPModelForSequenceInserting(IPModelForSequenceOptimization):
     def _add_time_window_constraints(self):
 
         # Add time windows lower bounds constraints for old tasks
-        for j in self.get_candidate_tasks_keys(including_new_task=False):
+        for j in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB,
                 sense=GRB.GREATER_EQUAL, rhs=0,
@@ -101,7 +101,7 @@ class IPModelForSequenceInserting(IPModelForSequenceOptimization):
         )
 
         # Add time windows upper bounds constraints for old tasks
-        for j in self.get_candidate_tasks_keys(including_new_task=False):
+        for j in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration
                 - self.get_candidate_task_by_key(j).end_time_UB,

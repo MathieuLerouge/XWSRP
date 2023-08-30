@@ -530,7 +530,7 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
         else:
             if self.is_contrastive:
                 if self.language_is_english:
-                    text += f"The reason for why {self._the_fact} is that "
+                    text += f"The reason why {self._the_fact} is that "
                 elif self.language_is_french:
                     text += f"La raison pour laquelle {self._the_fact} est que "
             elif self.is_scenario:
@@ -564,7 +564,7 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
                             f"Alors, {self._having_the_foil} n'est toujours pas intéressant.{LINE_BREAK_STRING}" \
                             f"En effet, "
             else:
-                raise ValueError("The explanation should be contrastive, scenario or couterfactual")
+                raise ValueError("The explanation should be contrastive, scenario or counterfactual")
             if self.language_is_english:
                 text += f"the new solution obtained from the current one by {self._applying_the_foil_transformation} " \
                         f"is feasible but not better than the current solution: "

@@ -28,8 +28,8 @@ class IPModelForSequencePrescribing(IPModelForSequenceOptimization):
     def prescribed_tasks(self):
         return self._prescribed_tasks
 
-    def get_candidate_tasks_keys(self, including_prescribed_tasks: bool = True,
-                                 including_non_prescribed_tasks: bool = True):
+    def _get_candidate_tasks_keys(self, including_prescribed_tasks: bool = True,
+                                  including_non_prescribed_tasks: bool = True):
         if including_prescribed_tasks:
             if including_non_prescribed_tasks:
                 return [task.name for task in self.candidate_tasks]
@@ -51,7 +51,7 @@ class IPModelForSequencePrescribing(IPModelForSequenceOptimization):
     def _add_covering_constraints(self):
 
         # Add constraints about non-prescribed tasks covering
-        for j in self.get_candidate_tasks_keys(including_prescribed_tasks=False):
+        for j in self._get_candidate_tasks_keys(including_prescribed_tasks=False):
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]
@@ -95,7 +95,7 @@ class IPModelForSequencePrescribing(IPModelForSequenceOptimization):
     def _add_time_window_constraints(self):
 
         # Add time windows lower bounds constraints for non-prescribed tasks
-        for j in self.get_candidate_tasks_keys(including_prescribed_tasks=False):
+        for j in self._get_candidate_tasks_keys(including_prescribed_tasks=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] - grb.quicksum(
                     [self.vars_U[(j, k)]
@@ -115,7 +115,7 @@ class IPModelForSequencePrescribing(IPModelForSequenceOptimization):
             )
 
         # Add time windows upper bounds constraints for non-prescribed tasks
-        for j in self.get_candidate_tasks_keys(including_prescribed_tasks=False):
+        for j in self._get_candidate_tasks_keys(including_prescribed_tasks=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] - grb.quicksum(
                     [self.vars_U[(j, k)]

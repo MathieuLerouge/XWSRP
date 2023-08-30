@@ -3,7 +3,7 @@ import gurobipy as grb
 from gurobipy import GRB
 
 # Local libraries
-from src.explaining.transforming.category3.category3 import IPModelForCategory3
+from src.explaining.transforming.contrastive_and_scenario.ILP_model.category3 import IPModelForCategory3
 
 
 # Class IPModelForSwap3
@@ -14,7 +14,7 @@ class IPModelForSwap3(IPModelForCategory3):
 
     @property
     def leaving_task(self):
-        for task_key in self.get_candidate_tasks_keys(including_pivot_task=False):
+        for task_key in self._get_candidate_tasks_keys(including_pivot_task=False):
             if not self._check_task_is_performed_by_key(task_key):
                 return self.get_candidate_task_by_key(task_key)
         raise Exception("There is a problem here!")
@@ -36,7 +36,7 @@ class IPModelForSwap3(IPModelForCategory3):
             name=f"TaskCoveringConstraint[{j}]"
         )
         # Constraint for potentially covering all other tasks
-        for j in self.get_candidate_tasks_keys(including_pivot_task=False):
+        for j in self._get_candidate_tasks_keys(including_pivot_task=False):
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]

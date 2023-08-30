@@ -8,7 +8,9 @@ from src.explaining.questioning.question import ContrastiveQuestion, Counterfact
 from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.reading.explanation import import_single_explanation_from_json_file, \
     import_multiple_explanations_from_json_file
-from src.explaining.transforming.transformation import apply_induced_transformation, apply_induced_transformation_bis
+from src.explaining.transforming.transformation import \
+    apply_transformation_induced_by_contrastive_or_scenario_question, \
+    apply_transformation_induced_by_counterfactual_question
 from src.explaining.writing.explanation import define_single_contrastive_explanation_json_file_name, \
     export_single_contrastive_explanation_to_json_file, define_multiple_contrastive_explanations_json_file_name, \
     export_multiple_contrastive_explanations_to_json_file
@@ -31,7 +33,9 @@ class Explainer:
         WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
     ]
     _available_counterfactual_questions_templates_ids = [
-        WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_3
+        WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_3,
+        WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_3,
+        WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
     ]
 
     def __init__(self, solution: Solution):
@@ -364,8 +368,10 @@ class Explainer:
 
     def _compute_contrastive_explanation(self, contrastive_question: ContrastiveQuestion):
         contrastive_support_solution, infeasibility, all_descriptions_of_applied_transformation = \
-            apply_induced_transformation(self.current_solution, contrastive_question,
-                                         self.time_limit_for_contrastive_explanation_ILP_computation)
+            apply_transformation_induced_by_contrastive_or_scenario_question(
+                self.current_solution, contrastive_question,
+                self.time_limit_for_contrastive_explanation_ILP_computation
+            )
         contrastive_explanation = create_explanation(contrastive_question, contrastive_support_solution,
                                                      infeasibility, all_descriptions_of_applied_transformation)
         if self.is_using_already_computed_contrastive_explanations:
@@ -457,7 +463,9 @@ class Explainer:
             scenario_current_solution = current_solution.copy(current_solution.name + "_scenario")
             scenario_current_solution.instance = scenario_instance
             scenario_support_solution, infeasibility, description_of_applied_transformation = \
-                apply_induced_transformation(scenario_current_solution, scenario_question)
+                apply_transformation_induced_by_contrastive_or_scenario_question(
+                    scenario_current_solution, scenario_question
+                )
             scenario_explanation = create_explanation(scenario_question, scenario_support_solution, infeasibility,
                                                       description_of_applied_transformation)
             self._last_scenario_explanation = scenario_explanation
@@ -520,7 +528,9 @@ class Explainer:
             counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
             (counterfactual_support_solution, infeasibility,
              description_of_applied_transformation, instance_alterations) = \
-                apply_induced_transformation_bis(counterfactual_solution, counterfactual_question)
+                apply_transformation_induced_by_counterfactual_question(
+                    counterfactual_solution, counterfactual_question
+                )
             counterfactual_explanation = \
                 create_explanation(counterfactual_question, counterfactual_support_solution, infeasibility,
                                    description_of_applied_transformation, instance_alterations)

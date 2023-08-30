@@ -21,15 +21,15 @@ def main():
     Main process of the project
     NB: configuration parameters about main process can be set in main_configuration.py
     """
-    if MAIN_PROCESS == EXPLANATION_PROCESS:
+    if MAIN_PROCESS == RUN_EXPLANATION_PROCESS:
         explaining_main()
-    elif MAIN_PROCESS == EVALUATION_PROCESS:
+    elif MAIN_PROCESS == RUN_EVALUATION_PROCESS:
         print("Go to src/evaluation/processes.py to run the evaluation process.")
-    elif MAIN_PROCESS in [OPTIMIZATION_PROCESS, REOPTIMIZATION_PROCESS]:
+    elif MAIN_PROCESS in [RUN_OPTIMIZATION_PROCESS, RUN_REOPTIMIZATION_PROCESS]:
         optimization_main()
-    elif MAIN_PROCESS == ANALYSIS_PROCESS:
+    elif MAIN_PROCESS == RUN_ANALYSIS_PROCESS:
         analysis_main()
-    elif MAIN_PROCESS == TEACHING_PROCESS:
+    elif MAIN_PROCESS == RUN_TEACHING_PROCESS:
         teaching_main()
     else:
         raise ValueError(f"The process {MAIN_PROCESS} does not exist")

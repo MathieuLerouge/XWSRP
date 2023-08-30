@@ -1650,12 +1650,12 @@ class SequenceForHeuristics(Sequence):
 
     def remove_step(self, step_index: int, tighten_times: bool = True, update_KPIs: bool = True):
         """
-        Remove the step from this sequence at the given index.
+        Remove the step from this sequence at the given index
 
         Assumptions (only checked in debug):
-        - 1. the given step index is between 1 (included) and the number of steps - 1 (included);
-        - 2. the activity at the given step index is a Task;
-        - 3. the times of the sequence are consistent.
+        - 1. the given step index is between 1 (included) and the number of steps - 1 (included)
+        - 2. the activity at the given step index is a Task
+        - 3. the times of the sequence are consistent
 
         :param step_index: the index (int) of the step that is removed from this sequence
         :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence
@@ -1668,6 +1668,23 @@ class SequenceForHeuristics(Sequence):
         self._feasibly_remove_step(step_index, tighten_times, update_KPIs)
         assert self.is_time_consistent, "The times of the sequence are not consistent after removing."
         return True
+
+    def remove_task(self, task: Task, tighten_times: bool = True, update_KPIs: bool = True):
+        """
+        Remove the task from this sequence
+
+        Assumptions (only checked in debug):
+        - 1. the task is in the sequence
+        - 2. the times of the sequence are consistent
+
+        :param task: the task (Task) to remove from this sequence
+        :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence
+          after the task has been removed in order to minimize idle time
+        :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
+        :return: a boolean (bool) which indicates whether the change is feasible
+        """
+        assert self.contains(task), f"Task {task} is not in the sequence"
+        return self.remove_step(self.get_step_index_of(task), tighten_times, update_KPIs)
 
     def remove_all_tasks(self, tighten_times: bool = True, update_KPIs: bool = True):
         """

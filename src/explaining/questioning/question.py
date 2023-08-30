@@ -115,15 +115,16 @@ class ScenarioQuestion(Question):
 # Class CounterfactualQuestion
 class CounterfactualQuestion(Question):
 
-    def __init__(self, contrastive_question: ContrastiveQuestion, instance_slacks: InstanceChanges = None):
+    def __init__(self, contrastive_question: ContrastiveQuestion,
+                 instance_parameter_alteration_bounds: InstanceChanges = None):
         super().__init__(contrastive_question.solution, contrastive_question.template.id,
                          contrastive_question.fields_values)
         self._contrastive_question = contrastive_question
-        self._instance_slacks = instance_slacks
+        self._instance_parameter_alteration_bounds = instance_parameter_alteration_bounds
 
     @property
-    def instance_slacks(self):
-        return self._instance_slacks
+    def instance_parameter_alteration_bounds(self):
+        return self._instance_parameter_alteration_bounds
 
     @property
     def text(self):

@@ -3,7 +3,7 @@ import gurobipy as grb
 from gurobipy import GRB
 
 # Local libraries
-from src.explaining.transforming.category3.category3 import IPModelForCategory3
+from src.explaining.transforming.contrastive_and_scenario.ILP_model.category3 import IPModelForCategory3
 from src.optimization.IP.sequence.basemodel import create_activity_key
 
 
@@ -21,7 +21,7 @@ class IPModelForInsertion3(IPModelForCategory3):
     ##########################
 
     def _add_tasks_covering_constraints(self):
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]
@@ -36,7 +36,7 @@ class IPModelForInsertion3(IPModelForCategory3):
 
     def warm_start(self):
         # Set values for time variables
-        for j in self.get_candidate_tasks_keys(False):
+        for j in self._get_candidate_tasks_keys(False):
             task = self.get_candidate_task_by_key(j)
             step = self._sequence.get_step_of(task)
             self.vars_T[j].start = step.start_time

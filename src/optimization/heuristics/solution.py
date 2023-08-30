@@ -280,8 +280,8 @@ class SolutionForHeuristics(SolutionOpti):
 
     def find_feasible_insertions_between_consecutive_activities(self, employee: Employee, task: Task):
         """
-        Find all feasible insertions of the given task between two consecutive activities of the given employee's
-        sequence.
+        Find all feasible insertions of the given task
+        between two consecutive activities of the given employee's sequence
 
         Assumptions (only checked in debug):
         The times of this sequence are consistent.

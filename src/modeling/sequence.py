@@ -195,6 +195,26 @@ class Sequence:
             raise ValueError(f"The given activity {activity.name} is not in this sequence {self}")
         return activity_index
 
+    def get_step_before(self, activity: Activity):
+        index = self.get_step_index_of(activity)
+        if index == 0:
+            return None
+        return self._steps[index - 1]
+
+    def get_activity_before(self, activity: Activity):
+        step = self.get_step_before(activity)
+        return step.activity if step is not None else None
+
+    def get_step_after(self, activity: Activity):
+        index = self.get_step_index_of(activity)
+        if index == self.nb_steps - 1:
+            return None
+        return self._steps[index + 1]
+
+    def get_activity_after(self, activity: Activity):
+        step = self.get_step_after(activity)
+        return step.activity if step is not None else None
+
     def get_first_task_step_index(self):
         index = None
         for step_index in range(1, self.nb_steps - 1):

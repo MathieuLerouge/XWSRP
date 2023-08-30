@@ -23,7 +23,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
     def new_task(self):
         return self._new_task
 
-    def get_candidate_tasks_keys(self, including_new_task: bool = True):
+    def _get_candidate_tasks_keys(self, including_new_task: bool = True):
         if including_new_task:
             return [task.name for task in self.candidate_tasks]
         else:
@@ -71,7 +71,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
 
     def _add_decision_variables_T(self):
         self.vars_T = self._GRB_model.addVars(
-            self.get_candidate_tasks_keys(including_new_task=False),
+            self._get_candidate_tasks_keys(including_new_task=False),
             vtype=GRB.INTEGER, lb=0, name="T"
         )
 
@@ -143,7 +143,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
     def _add_covering_constraints(self):
 
         # Add constraints about candidate tasks covering
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]
@@ -175,7 +175,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
     def _add_time_window_constraints(self):
 
         # Add time windows lower bounds constraints for prior tasks
-        for j in self.get_candidate_tasks_keys(including_new_task=False):
+        for j in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB,
                 sense=GRB.GREATER_EQUAL, rhs=0,
@@ -191,7 +191,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
         )
 
         # Add time windows upper bounds constraints for prior tasks
-        for j in self.get_candidate_tasks_keys(including_new_task=False):
+        for j in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration
                 - self.get_candidate_task_by_key(j).end_time_UB,
@@ -218,7 +218,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
 
         # Add departure-to-first-task time sequence constraints
         # - for prior tasks
-        for k in self.get_candidate_tasks_keys(including_new_task=False):
+        for k in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
                 self.vars_T[k] -
                 (self.employee.start_time_LB + self.get_traveling_duration(LEAVING_HOME_KEY, k)) *
@@ -238,7 +238,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
 
         # Add last-task-to-comeback time sequence constraints
         # - for prior tasks
-        for j in self.get_candidate_tasks_keys(including_new_task=False):
+        for j in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
                 self.vars_U[(j, COMING_BACK_HOME_KEY)] *
@@ -259,9 +259,9 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
         )
 
         # Add task-to-task time sequence constraints
-        for j in self.get_candidate_tasks_keys(including_new_task=False):
+        for j in self._get_candidate_tasks_keys(including_new_task=False):
             # - with j and k prior tasks
-            for k in self.get_candidate_tasks_keys(including_new_task=False):
+            for k in self._get_candidate_tasks_keys(including_new_task=False):
                 if k != j:
                     self._GRB_model.addLConstr(
                         self.vars_T[j] + self.get_candidate_task_by_key(j).duration +
@@ -283,7 +283,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
             )
         # - with j new task and k prior task
         j = self.get_new_task_key()
-        for k in self.get_candidate_tasks_keys(including_new_task=False):
+        for k in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
                 self.var_T_forward + self.get_candidate_task_by_key(j).duration +
                 self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
@@ -295,7 +295,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
 
         # Add task-to-unavailability time sequence constraints
         # - for prior tasks
-        for j in self.get_candidate_tasks_keys(including_new_task=False):
+        for j in self._get_candidate_tasks_keys(including_new_task=False):
             for k in self.get_unavailabilities_keys():
                 self._GRB_model.addLConstr(
                     self.vars_T[j] + self.get_candidate_task_by_key(j).duration +
@@ -320,7 +320,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
         # Add unavailability-to-task time sequence constraints
         # - for old tasks
         for j in self.get_unavailabilities_keys():
-            for k in self.get_candidate_tasks_keys(including_new_task=False):
+            for k in self._get_candidate_tasks_keys(including_new_task=False):
                 self._GRB_model.addLConstr(
                     self.get_unavailability_by_key(j).end_time_UB +
                     self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
@@ -382,7 +382,7 @@ class IPModelForSequenceAdding(IPModelForSequenceOptimization):
                 Step(activity=ComeBack(employee=self.employee), start_time=self.employee.end_time_UB)
             )
         ]
-        for j in self.get_candidate_tasks_keys(including_new_task=False):
+        for j in self._get_candidate_tasks_keys(including_new_task=False):
             task = self.get_candidate_task_by_key(j)
             start_time = int(self.vars_T[j].x)
             start_times_and_steps.append((start_time, Step(activity=task, start_time=start_time)))

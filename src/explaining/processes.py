@@ -256,13 +256,6 @@ def compute_computation_time_analysis_of_contrastive_explanations(
                         computation_times.append(np.round(time.time() - start_time, 3))
                     else:
                         nb_crashes += 1
-                        #print(fields_values)
-                        # 'Fletcher Lane', 'T170'
-                        # employee_name = fields_values[0]
-                        # employee = solution.instance.get_employee_by_name(employee_name)
-                        # task_name = fields_values[1]
-                        # task = solution.instance.get_task_by_name(task_name)
-                        # raise e
             if nb_crashes > 0:
                 if nb_explanation_computations < nb_possible_questions:
                     raise Exception(f"Damn!")
@@ -309,13 +302,13 @@ def compute_computation_time_analysis_of_contrastive_explanations(
                 minimum_computation_time=np.round(min(computation_times), 3) if computation_times else None,
                 maximum_computation_time=np.round(max(computation_times), 3) if computation_times else None,
                 average_computation_time=np.round(np.mean(computation_times), 3) if computation_times else None,
-                standard_deviation_computation_time= \
-                    np.round(np.std(computation_times), 3) if computation_times else None,
+                standard_deviation_computation_time=(np.round(np.std(computation_times), 3) if computation_times
+                                                     else None),
                 median_computation_time=np.round(np.median(computation_times), 3) if computation_times else None,
-                first_quartile_computation_time= \
-                    np.round(np.percentile(computation_times, 25), 3) if computation_times else None,
-                third_quartile_computation_time= \
-                    np.round(np.percentile(computation_times, 75), 3) if computation_times else None,
+                first_quartile_computation_time=(np.round(np.percentile(computation_times, 25), 3) if computation_times
+                                                 else None),
+                third_quartile_computation_time=(np.round(np.percentile(computation_times, 75), 3) if computation_times
+                                                 else None),
                 computation_times=computation_times
             )
             template_analysis = analysis[question_template_id]

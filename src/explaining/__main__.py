@@ -7,8 +7,8 @@ from src.explaining.processes import launch_explainer_UI_on_demo_solution, launc
     compute_computation_time_analysis_of_contrastive_explanations
 from src.explaining.writing.explanation import export_contrastive_explanations_analysis_to_json_file
 from src.reading.solution import extract_solution_from_file
-from src.utils.constants import EXPLAINER_PROCESS_ON_DEMO_SOLUTION, EXPLAINER_PROCESS_ON_SOLUTION_IN_DEFAULT_INPUTS, \
-    EXPLANATIONS_COMPUTATION_ANALYSIS_ON_SOLUTIONS_IN_DEFAULT_INPUTS, EXPLANATION_PROCESS
+from src.utils.constants import RUN_EXPLAINER_ON_DEMO_SOLUTION_AS_EXPLANATION_PROCESS, RUN_EXPLAINER_ON_GIVEN_SOLUTION_AS_EXPLANATION_PROCESS, \
+    RUN_EXPLANATION_COMPUTATION_ANALYSIS_AS_EXPLANATION_PROCESS, RUN_EXPLANATION_PROCESS
 from src.utils.display import print_title_frame
 from src.utils.files import get_paths_of_solutions_files_in_given_directory
 
@@ -28,19 +28,19 @@ def explaining_main():
 
     :return: None
     """
-    if MAIN_PROCESS == EXPLANATION_PROCESS:
-        if MAIN_PROCESS_AMONG_EXPLAINER_ONES == EXPLAINER_PROCESS_ON_DEMO_SOLUTION:
+    if MAIN_PROCESS == RUN_EXPLANATION_PROCESS:
+        if MAIN_PROCESS_AMONG_EXPLAINER_ONES == RUN_EXPLAINER_ON_DEMO_SOLUTION_AS_EXPLANATION_PROCESS:
             launch_explainer_UI_on_demo_solution(
                 EXPLAINER_DEMO_SOLUTION_LANGUAGE, EXPLAINER_DEMO_SOLUTION_ENABLE_HISTORY,
                 EXPLAINER_DEMO_SOLUTION_ENABLE_SCENARIO, EXPLAINER_DEMO_SOLUTION_ENABLE_COUNTERFACTUAL,
                 EXPLAINER_DEMO_SOLUTION_ENABLE_USING_ALREADY_COMPUTED_CONTRASTIVE_EXPLANATIONS
             )
-        elif MAIN_PROCESS_AMONG_EXPLAINER_ONES == EXPLAINER_PROCESS_ON_SOLUTION_IN_DEFAULT_INPUTS:
+        elif MAIN_PROCESS_AMONG_EXPLAINER_ONES == RUN_EXPLAINER_ON_GIVEN_SOLUTION_AS_EXPLANATION_PROCESS:
             launch_explainer_UI_on_default_solution(
                 EXPLAINER_DEFAULT_SOLUTION_LANGUAGE, EXPLAINER_DEFAULT_SOLUTION_ENABLE_HISTORY,
                 EXPLAINER_DEFAULT_SOLUTION_ENABLE_SCENARIO, EXPLAINER_DEFAULT_SOLUTION_ENABLE_COUNTERFACTUAL
             )
-        elif MAIN_PROCESS_AMONG_EXPLAINER_ONES == EXPLANATIONS_COMPUTATION_ANALYSIS_ON_SOLUTIONS_IN_DEFAULT_INPUTS:
+        elif MAIN_PROCESS_AMONG_EXPLAINER_ONES == RUN_EXPLANATION_COMPUTATION_ANALYSIS_AS_EXPLANATION_PROCESS:
             solutions_files_paths = get_paths_of_solutions_files_in_given_directory()
             if len(solutions_files_paths) == 0:
                 print("No solution file found in the default inputs directory")

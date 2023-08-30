@@ -34,7 +34,7 @@ def optimization_main():
     There are various
     :return: None
     """
-    if MAIN_PROCESS == OPTIMIZATION_PROCESS:
+    if MAIN_PROCESS == RUN_OPTIMIZATION_PROCESS:
 
         # Extract the paths of all the instances located in the default inputs directory
         instances_files_paths = get_paths_of_instances_files_in_given_directory()
@@ -57,12 +57,12 @@ def optimization_main():
             # Solve each instance
             start = time.time()
             # - Using the greedy algorithm
-            if MAIN_PROCESS_AMONG_OPTIMIZATION_ONES == GREEDY_ALGORITHM_PROCESS:
+            if MAIN_PROCESS_AMONG_OPTIMIZATION_ONES == RUN_GREEDY_ALGORITHM_AS_OPTIMIZATION_PROCESS:
                 print_title_frame(f"Solving of {instance.name} using greedy algorithm")
                 print("")
                 solution = run_greedy_algorithm(instance)
             # - Using the stochastic heuristic algorithm
-            elif MAIN_PROCESS_AMONG_OPTIMIZATION_ONES == STOCHASTIC_HEURISTIC_PROCESS:
+            elif MAIN_PROCESS_AMONG_OPTIMIZATION_ONES == RUN_STOCHASTIC_HEURISTIC_AS_OPTIMIZATION_PROCESS:
                 # Solution computation
                 print_title_frame(f"Solving of {instance.name} using stochastic heuristic algorithm")
                 print("")
@@ -77,7 +77,7 @@ def optimization_main():
                 print("Solving: done")
                 print("")
             # -Using the variable neighborhood search algorithm
-            elif MAIN_PROCESS_AMONG_OPTIMIZATION_ONES == NEIGHBORHOOD_SEARCH_PROCESS:
+            elif MAIN_PROCESS_AMONG_OPTIMIZATION_ONES == RUN_NEIGHBORHOOD_SEARCH_AS_OPTIMIZATION_PROCESS:
                 # Solution computation
                 print_title_frame(f"Solving of {instance.name} using variable neighborhood search algorithm")
                 print("")
@@ -116,7 +116,7 @@ def optimization_main():
             print("Representation: done")
             print("")
 
-    elif MAIN_PROCESS == REOPTIMIZATION_PROCESS:
+    elif MAIN_PROCESS == RUN_REOPTIMIZATION_PROCESS:
 
         # Extract the paths of all the solutions located in the default inputs directory
         solutions_files_paths = get_paths_of_solutions_files_in_given_directory()
@@ -144,7 +144,7 @@ def optimization_main():
             # Reoptimize each solution
             start = time.time()
             # - Using the variable neighborhood search algorithm
-            if MAIN_PROCESS_AMONG_REOPTIMIZATION_ONES == NEIGHBORHOOD_SEARCH_PROCESS:
+            if MAIN_PROCESS_AMONG_REOPTIMIZATION_ONES == RUN_NEIGHBORHOOD_SEARCH_AS_OPTIMIZATION_PROCESS:
                 print_title_frame(f"Reoptimizing of {initial_solution.name} "
                                   f"using variable neighborhood search algorithm")
                 print("")

@@ -166,11 +166,11 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
 
     def _add_decision_variables_X(self):
         self.vars_X_at = self._GRB_model.addVars(
-            self.get_candidate_tasks_keys(),
+            self._get_candidate_tasks_keys(),
             vtype=GRB.BINARY, name="X_at"
         )
         self.vars_X_bt = self._GRB_model.addVars(
-            self.get_candidate_tasks_keys(),
+            self._get_candidate_tasks_keys(),
             vtype=GRB.BINARY, name="X_bt"
         )
         self.vars_X_au = self._GRB_model.addVars(
@@ -188,17 +188,17 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
             vtype=GRB.BINARY, name="X_be"
         )
         self.vars_X_dt = self._GRB_model.addVars(
-            self.get_candidate_tasks_keys(),
+            self._get_candidate_tasks_keys(),
             vtype=GRB.BINARY, name="X_dt"
         )
 
     def _add_decision_variables_Delta(self):
         self.vars_Delta_at = self._GRB_model.addVars(
-            self.get_candidate_tasks_keys(),
+            self._get_candidate_tasks_keys(),
             vtype=GRB.INTEGER, lb=0, name="Delta_at"
         )
         self.vars_Delta_bt = self._GRB_model.addVars(
-            self.get_candidate_tasks_keys(),
+            self._get_candidate_tasks_keys(),
             vtype=GRB.INTEGER, lb=0, name="Delta_bt"
         )
         self.vars_Delta_au = self._GRB_model.addVars(
@@ -216,7 +216,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
             vtype=GRB.INTEGER, lb=0, name="Delta_be"
         )
         self.vars_Delta_dt = self._GRB_model.addVars(
-            self.get_candidate_tasks_keys(),
+            self._get_candidate_tasks_keys(),
             vtype=GRB.INTEGER, lb=0, name="Delta_dt"
         )
 
@@ -235,19 +235,19 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
         # Define the number-of-alterations expression
         nb_alterations_expression = grb.LinExpr()
         nb_alterations_expression.add(
-            grb.quicksum([self.vars_X_at[j] + self.vars_X_bt[j] for j in self.get_candidate_tasks_keys()]) +
+            grb.quicksum([self.vars_X_at[j] + self.vars_X_bt[j] for j in self._get_candidate_tasks_keys()]) +
             grb.quicksum([self.vars_X_au[j] + self.vars_X_bu[j] for j in self.get_unavailabilities_keys()]) +
             self.var_X_ae + self.var_X_be +
-            grb.quicksum([self.vars_X_dt[j] for j in self.get_candidate_tasks_keys()])
+            grb.quicksum([self.vars_X_dt[j] for j in self._get_candidate_tasks_keys()])
         )
 
         # Define the quantity-of-alterations expression
         quantity_alterations_expression = grb.LinExpr()
         quantity_alterations_expression.add(
-            grb.quicksum([self.vars_Delta_at[j] + self.vars_Delta_bt[j] for j in self.get_candidate_tasks_keys()]) +
+            grb.quicksum([self.vars_Delta_at[j] + self.vars_Delta_bt[j] for j in self._get_candidate_tasks_keys()]) +
             grb.quicksum([self.vars_Delta_au[j] + self.vars_Delta_bu[j] for j in self.get_unavailabilities_keys()]) +
             self.var_Delta_ae + self.var_Delta_be +
-            grb.quicksum([self.vars_Delta_dt[j] for j in self.get_candidate_tasks_keys()])
+            grb.quicksum([self.vars_Delta_dt[j] for j in self._get_candidate_tasks_keys()])
         )
 
         # Set objective function expression as a weight sum of sub objective functions
@@ -273,7 +273,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
     def _add_covering_constraints(self):
 
         # Add constraints about candidate tasks covering
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]
@@ -305,7 +305,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
     def _add_time_window_constraints(self):
 
         # Add time windows lower bound constraints
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB + self.vars_Delta_at[j],
                 sense=GRB.GREATER_EQUAL, rhs=0,
@@ -318,7 +318,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
             )
 
         # Add time windows upper bound constraints
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 self.vars_T[j] - self.get_candidate_task_by_key(j).end_time_UB - self.vars_Delta_dt[j]
                 + self.get_candidate_task_by_key(j).duration - self.vars_Delta_bt[j],
@@ -347,7 +347,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
     def _add_sequence_times_constraints(self):
 
         # Add departure-to-first-task time sequence constraints
-        for k in self.get_candidate_tasks_keys():
+        for k in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 self.vars_T[k]
                 - self.vars_U[(LEAVING_HOME_KEY, k)]
@@ -363,7 +363,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
         )
 
         # Add last-task-to-comeback time sequence constraints
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_Delta_dt[j]
                 - self.vars_U[(j, COMING_BACK_HOME_KEY)]
@@ -380,8 +380,8 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
         )
 
         # Add task-to-task time sequence constraints
-        for j in self.get_candidate_tasks_keys():
-            for k in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
+            for k in self._get_candidate_tasks_keys():
                 if k != j:
                     self._GRB_model.addLConstr(
                         self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_Delta_dt[j]
@@ -392,7 +392,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
                     )
 
         # Add task-to-unavailability time sequence constraints
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             for k in self.get_unavailabilities_keys():
                 self._GRB_model.addLConstr(
                     self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_Delta_dt[j]
@@ -411,7 +411,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
 
         # Add unavailability-to-task time sequence constraints
         for j in self.get_unavailabilities_keys():
-            for k in self.get_candidate_tasks_keys():
+            for k in self._get_candidate_tasks_keys():
                 self._GRB_model.addLConstr(
                     self.get_unavailability_by_key(j).end_time_UB
                     + self.vars_U[(j, k)] * self.get_traveling_duration(j, k)
@@ -447,7 +447,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
     ############
 
     def _extract_instance_alterations(self):
-        for task_key in self.get_candidate_tasks_keys():
+        for task_key in self._get_candidate_tasks_keys():
             task = self.get_candidate_task_by_key(task_key)
             if self.vars_X_at[task_key].x == 1:
                 self._alterations.set_activity_LB(task, int(-self.vars_Delta_at[task_key].x))
@@ -481,7 +481,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
                 Step(activity=ComeBack(employee=altered_employee), start_time=altered_employee.end_time_UB)
             )
         ]
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             if int(np.sum(
                 [self.vars_U[j, k].x
                  for k in self.get_activities_keys(including_departure=False, including_comeback=True) if k != j]

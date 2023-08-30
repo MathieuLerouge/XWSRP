@@ -3,7 +3,7 @@ import gurobipy as grb
 from gurobipy import GRB
 
 # Local libraries
-from src.explaining.transforming.category3.category3 import IPModelForCategory3
+from src.explaining.transforming.contrastive_and_scenario.ILP_model.category3 import IPModelForCategory3
 from src.modeling.sequence import Sequence
 from src.optimization.IP.sequence.basemodel import create_activity_key
 
@@ -18,9 +18,9 @@ class IPModelForReordering3(IPModelForCategory3):
     def _compute_candidate_tasks(self):
         return self._sequence.get_contained_tasks()
 
-    ###############
-    # Constraints #
-    ###############
+    #####################
+    # Constraints - All #
+    #####################
 
     def _add_constraints(self):
         self._add_covering_constraints()
@@ -37,7 +37,7 @@ class IPModelForReordering3(IPModelForCategory3):
     ##########################
 
     def _add_tasks_covering_constraints(self):
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]
@@ -46,6 +46,10 @@ class IPModelForReordering3(IPModelForCategory3):
                 sense=GRB.EQUAL, rhs=1,
                 name=f"TaskCoveringConstraint[{j}]"
             )
+
+    #######################
+    # Constraints - Order #
+    #######################
 
     def _add_sequence_order_constraint(self):
         sequence = self._sequence

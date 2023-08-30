@@ -11,12 +11,16 @@ from src.modeling.departure import Departure
 from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
-from src.optimization.IP.sequence.basemodel import IPModelForSequenceOptimization, LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
+from src.optimization.IP.sequence.basemodel import IPModelForSequenceOptimization, \
+    LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
-# Class IPModelForInsertionAlteringInput
-class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
+####################################################
+# Class IPModelForInsertionWithInstanceAlterations #
+####################################################
+
+class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization):
 
     def __init__(self, sequence: Sequence, task_to_insert: Task, instance_slacks: InstanceChanges = None):
         candidate_tasks = sequence.get_contained_tasks() + [task_to_insert]
@@ -28,7 +32,12 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
     def task_to_insert(self):
         return self._task_to_insert
 
-    def get_candidate_tasks_keys(self, including_task_to_insert: bool = True):
+    def _get_candidate_tasks_keys(self, including_task_to_insert: bool = True):
+        """
+        Return the list of candidate tasks keys i.e. the keys of the tasks that can be part of this sequence
+
+        :return: the list of candidate tasks keys (List[str])
+        """
         if including_task_to_insert:
             return [task.name for task in self.candidate_tasks]
         else:
@@ -89,7 +98,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
 
     def _add_decision_variables_T(self):
         self.vars_T = self._GRB_model.addVars(
-            self.get_candidate_tasks_keys(including_task_to_insert=False), vtype=GRB.INTEGER, lb=0, name="T"
+            self._get_candidate_tasks_keys(including_task_to_insert=False), vtype=GRB.INTEGER, lb=0, name="T"
         )
 
     def _add_decision_variables_split_T(self):
@@ -98,34 +107,34 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
 
     # Decision variables U are unchanged
 
-    # TODO depending on instance_slacks
+    # TODO depending on instance_parameter_alteration_bounds
     def _add_decision_variables_X_employee(self):
         self.var_X_LB_e = self._GRB_model.addVar(vtype=GRB.BINARY, name="X_LB_e")
         self.var_X_UB_e = self._GRB_model.addVar(vtype=GRB.BINARY, name="X_UB_e")
 
-    # TODO depending on instance_slacks
+    # TODO depending on instance_parameter_alteration_bounds
     def _add_decision_variables_X_tasks(self):
-        self.vars_X_LB_t = self._GRB_model.addVars(self.get_candidate_tasks_keys(), vtype=GRB.BINARY, name="X_LB_t")
-        self.vars_X_UB_t = self._GRB_model.addVars(self.get_candidate_tasks_keys(), vtype=GRB.BINARY, name="X_UB_t")
-        self.vars_X_dt_t = self._GRB_model.addVars(self.get_candidate_tasks_keys(), vtype=GRB.BINARY, name="X_dt")
+        self.vars_X_LB_t = self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.BINARY, name="X_LB_t")
+        self.vars_X_UB_t = self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.BINARY, name="X_UB_t")
+        self.vars_X_dt_t = self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.BINARY, name="X_dt")
 
     def _add_decision_variables_X(self):
         self._add_decision_variables_X_employee()
         self._add_decision_variables_X_tasks()
 
-    # TODO depending on instance_slacks
+    # TODO depending on instance_parameter_alteration_bounds
     def _add_decision_variables_Delta_employee(self):
         self.var_D_LB_e = self._GRB_model.addVar(vtype=GRB.INTEGER, name="D_LB_e", lb=0, ub=self.employee.start_time_LB)
         self.var_D_UB_e = self._GRB_model.addVar(vtype=GRB.INTEGER, name="D_UB_e",
                                                  lb=0, ub=(24*60 - self.employee.end_time_UB))
 
-    # TODO depending on instance_slacks
+    # TODO depending on instance_parameter_alteration_bounds
     def _add_decision_variables_Delta_tasks(self):
-        self.vars_D_LB_t = self._GRB_model.addVars(self.get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_LB_t",
+        self.vars_D_LB_t = self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_LB_t",
                                                    lb=0, ub=[task.start_time_LB for task in self.candidate_tasks])
-        self.vars_D_UB_t = self._GRB_model.addVars(self.get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_UB_t",
+        self.vars_D_UB_t = self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_UB_t",
                                                    lb=0, ub=[24*60 - task.end_time_UB for task in self.candidate_tasks])
-        self.vars_D_dt_t = self._GRB_model.addVars(self.get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_dt_t",
+        self.vars_D_dt_t = self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_dt_t",
                                                    lb=0, ub=[task.duration for task in self.candidate_tasks])
 
     def _add_decision_variable_Delta_max(self):
@@ -161,11 +170,11 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
     def _compute_nb_alterations_expression(self):
         self.nb_alterations_expression = \
             grb.quicksum([self.vars_X_LB_t[j] + self.vars_X_UB_t[j] + self.vars_X_dt_t[j]
-                          for j in self.get_candidate_tasks_keys()]) + \
+                          for j in self._get_candidate_tasks_keys()]) + \
             self.var_X_LB_e + self.var_X_UB_e
 
     def _compute_total_altered_task_duration(self):
-        self.total_altered_task_duration = grb.quicksum([self.vars_D_dt_t[j] for j in self.get_candidate_tasks_keys()])
+        self.total_altered_task_duration = grb.quicksum([self.vars_D_dt_t[j] for j in self._get_candidate_tasks_keys()])
 
     def _compute_key_quantities(self):
         self._compute_time_gap_expression()
@@ -182,7 +191,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
         self._GRB_model.ModelSense = GRB.MINIMIZE
         # weighted_nb_alterations_expression = \
         #     grb.quicksum([self.vars_X_LB_t[j] + self.vars_X_UB_t[j] + 3*self.vars_X_dt_t[j]
-        #                   for j in self.get_candidate_tasks_keys()]) + \
+        #                   for j in self._get_candidate_tasks_keys()]) + \
         #     self.var_X_LB_e + self.var_X_UB_e
         objectives = [self.time_gap_expression, self.total_altered_task_duration, self.var_D_max,
                       self.nb_alterations_expression, self.traveling_duration_expression]
@@ -208,7 +217,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
     ##########################
 
     def _add_covering_constraints(self):
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 grb.quicksum(
                     [self.vars_U[(j, k)]
@@ -230,7 +239,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
     #############################
 
     def _add_time_window_constraints(self):
-        for j in self.get_candidate_tasks_keys(including_task_to_insert=False):
+        for j in self._get_candidate_tasks_keys(including_task_to_insert=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB + self.vars_D_LB_t[j],
                 sense=GRB.GREATER_EQUAL, rhs=0,
@@ -262,7 +271,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
 
     def _add_sequence_times_constraints(self):
         # Add departure-to-first-task time sequence constraints
-        for k in self.get_candidate_tasks_keys(including_task_to_insert=False):
+        for k in self._get_candidate_tasks_keys(including_task_to_insert=False):
             self._GRB_model.addLConstr(
                 self.vars_T[k]
                 - self.employee.start_time_LB + self.var_D_LB_e - self.get_traveling_duration(LEAVING_HOME_KEY, k),
@@ -277,7 +286,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
             name=f"SequenceDepartureToTaskConstraint[{k}]"
         )
         # Add last-task-to-comeback time sequence constraints
-        for j in self.get_candidate_tasks_keys(including_task_to_insert=False):
+        for j in self._get_candidate_tasks_keys(including_task_to_insert=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_D_dt_t[j]
                 + self.get_traveling_duration(j, COMING_BACK_HOME_KEY)
@@ -294,8 +303,8 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
             name=f"SequenceTaskToComebackConstraint[{j}]"
         )
         # Add task-to-task time sequence constraints
-        for j in self.get_candidate_tasks_keys(including_task_to_insert=False):
-            for k in self.get_candidate_tasks_keys(including_task_to_insert=False):
+        for j in self._get_candidate_tasks_keys(including_task_to_insert=False):
+            for k in self._get_candidate_tasks_keys(including_task_to_insert=False):
                 if k != j:
                     self._GRB_model.addLConstr(
                         self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_D_dt_t[j]
@@ -305,7 +314,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
                         name=f"SequenceTaskToTaskConstraint[{j, k}]"
                     )
         j = self.get_task_to_insert_key()
-        for k in self.get_candidate_tasks_keys(including_task_to_insert=False):
+        for k in self._get_candidate_tasks_keys(including_task_to_insert=False):
             if k != j:
                 self._GRB_model.addLConstr(
                     self.var_T_forward + self.get_candidate_task_by_key(j).duration - self.vars_D_dt_t[j]
@@ -315,7 +324,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
                     name=f"SequenceTaskToTaskConstraint[{j, k}]"
                 )
         k = self.get_task_to_insert_key()
-        for j in self.get_candidate_tasks_keys(including_task_to_insert=False):
+        for j in self._get_candidate_tasks_keys(including_task_to_insert=False):
             if k != j:
                 self._GRB_model.addLConstr(
                     self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_D_dt_t[j]
@@ -364,7 +373,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
         self._GRB_model.update()
 
     def _add_alterations_bounds_constraints_tasks(self):
-        for j in self.get_candidate_tasks_keys():
+        for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
                 self.vars_D_LB_t[j] - self.vars_X_LB_t[j] * self.get_candidate_task_by_key(j).start_time_LB,
                 sense=GRB.LESS_EQUAL, rhs=0,
@@ -423,7 +432,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
                 int(self.employee.end_time_UB + self.var_D_UB_e.x) if self.var_X_UB_e.x == 1 else None,
                 None
             )
-        for task_key in self.get_candidate_tasks_keys():
+        for task_key in self._get_candidate_tasks_keys():
             if (self.vars_X_LB_t[task_key].x == 1 or self.vars_X_UB_t[task_key].x == 1 or
                     self.vars_X_dt_t[task_key].x == 1):
                 task = self.get_candidate_task_by_key(task_key)
@@ -453,7 +462,7 @@ class IPModelForInsertionAlteringInput(IPModelForSequenceOptimization):
                      start_time=self.employee.end_time_UB + int(self.var_D_UB_e.x))
             )
         ]
-        for j in self.get_candidate_tasks_keys(including_task_to_insert=False):
+        for j in self._get_candidate_tasks_keys(including_task_to_insert=False):
             task = self.get_candidate_task_by_key(j)
             start_time = int(self.vars_T[j].x)
             start_times_and_steps.append((start_time, Step(activity=task, start_time=start_time)))

@@ -19,7 +19,8 @@ EXPLANATIONS_TEMPLATES_LIST = [
                 the_fact="{Task} n'est pas réalisée par {Employee} juste après {Activity}",
                 the_foil="{Task} est réalisée par {Employee} juste après {Activity}",
                 having_the_foil="faire que {Task} soit réalisée par {Employee} juste après {Activity}",
-                applying_the_foil_transformation="insérant {Task} juste après {Activity} dans le planning de {Employee}",
+                applying_the_foil_transformation="insérant {Task} juste après {Activity} "
+                                                 "dans le planning de {Employee}",
             )
         }
     ),

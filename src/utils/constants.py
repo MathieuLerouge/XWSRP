@@ -1,3 +1,36 @@
+########################
+# About main processes #
+########################
+
+# Explanation process
+RUN_EXPLANATION_PROCESS = 'explaining'
+RUN_EXPLAINER_ON_DEMO_SOLUTION_AS_EXPLANATION_PROCESS = 'explaining_demo'
+RUN_EXPLAINER_ON_GIVEN_SOLUTION_AS_EXPLANATION_PROCESS = 'explaining_solution'
+RUN_EXPLANATION_COMPUTATION_ANALYSIS_AS_EXPLANATION_PROCESS = 'explanation_computation_analysis'
+
+# Evaluation process
+RUN_EVALUATION_PROCESS = 'evaluating'
+
+# Optimization and reoptimizing processes
+RUN_OPTIMIZATION_PROCESS = 'optimizing'
+RUN_REOPTIMIZATION_PROCESS = 'reoptimizing'
+RUN_GREEDY_ALGORITHM_AS_OPTIMIZATION_PROCESS = 'greedy_algorithm'
+RUN_STOCHASTIC_HEURISTIC_AS_OPTIMIZATION_PROCESS = 'stochastic_heuristic'
+RUN_NEIGHBORHOOD_SEARCH_AS_OPTIMIZATION_PROCESS = 'neighborhood_search'
+
+# Analysis process
+RUN_ANALYSIS_PROCESS = 'analyzing'
+
+# Teaching process
+RUN_TEACHING_PROCESS = 'teaching'
+RUN_SOLUTION_FEASIBILITY_CHECK_AS_TEACHING_PROCESS = 'teaching_checking'
+RUN_INSTANCE_IP_SOLVING_AS_TEACHING_PROCESS = 'teaching_optimizing'
+
+
+#########
+# Other #
+#########
+
 LINE_BREAK_STRING = "\r\n"
 
 POSSIBLE_EXTENSIONS = ['.json', '.txt', '.xlsx', '.xls', '.DS_Store', '.gitkeep']
@@ -10,28 +43,6 @@ META_DATA_SOLVING_PARAMETERS_KEY = 'solving parameters'
 
 CAMEL_CASE = 'CamelCase'
 SNAKE_CASE = 'snake_case'
-
-# Main processes
-# - Explainer
-EXPLANATION_PROCESS = 'explaining'
-EXPLAINER_PROCESS_ON_DEMO_SOLUTION = 'explaining_demo'
-EXPLAINER_PROCESS_ON_SOLUTION_IN_DEFAULT_INPUTS = 'explaining_solution'
-EXPLANATIONS_COMPUTATION_ANALYSIS_ON_SOLUTIONS_IN_DEFAULT_INPUTS = 'explanations_computation_analysis'
-# - Evaluation
-EVALUATION_PROCESS = 'evaluating'
-# - Optimization
-OPTIMIZATION_PROCESS = 'optimizing'
-GREEDY_ALGORITHM_PROCESS = 'greedy_algorithm'
-STOCHASTIC_HEURISTIC_PROCESS = 'stochastic_heuristic'
-NEIGHBORHOOD_SEARCH_PROCESS = 'neighborhood_search'
-# - Reoptimization
-REOPTIMIZATION_PROCESS = 'reoptimizing'
-# - Analysis
-ANALYSIS_PROCESS = 'analyzing'
-# - Teaching
-TEACHING_PROCESS = 'teaching'
-TEACHING_SOLUTION_FEASIBILITY_CHECK_PROCESS = 'teaching_checking'
-TEACHING_INSTANCE_IP_SOLVING_PROCESS = 'teaching_optimizing'
 
 # Data directories
 DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH = 'inputs'
