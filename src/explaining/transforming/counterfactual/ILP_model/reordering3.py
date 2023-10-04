@@ -34,5 +34,5 @@ class IPModelForReordering3WithInstanceAlterations(IPModelForReorderingWithInsta
 
         :return: the task to move (Task)
         """
-        moving_task_index = int(len(self._sequence) / 2)
-        return self._sequence.get_contained_tasks()[moving_task_index]
+        moving_task_index = int(self._sequence.nb_realized_tasks / 2)
+        return self._sequence.get_contained_tasks(True)[moving_task_index]

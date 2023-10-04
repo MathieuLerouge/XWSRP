@@ -38,13 +38,13 @@ class Question:
     def text(self):
         return self._text
 
-    def set_language(self, language_key: str):
-        self.template.set_language(language_key)
-        self._text = self._template.complete_text_with_fields_values(self.fields_values)
-
     @property
     def language(self):
         return self.template.language
+
+    def set_language(self, language_key: str):
+        self.template.set_language(language_key)
+        self._text = self._template.complete_text_with_fields_values(self.fields_values)
 
     @language.setter
     def language(self, language_key: str):

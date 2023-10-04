@@ -60,26 +60,26 @@ class IPModelForSwap1WithInstanceAlterations(IPModelForSwapWithInstanceAlteratio
     # Objective function #
     ######################
 
-    def _add_objective_function(self):
-        """
-        Add the objective function to the model, which minimizes according to a lexicographic order:
-
-        - the time gap between backward and forward start times of the replacing task
-        - the total sum of task duration alterations
-        - the largest time alteration
-        - the number of instance parameter alterations
-        - the total traveling time
-
-        :return: None
-        """
-        self._build_key_expressions()
-        self._GRB_model.ModelSense = GRB.MINIMIZE
-        objectives = [self._time_gap_expression,
-                      self._total_altered_task_duration_expression, self.var_D_max, self._nb_alterations_expression,
-                      self._total_traveling_time_expression]
-        for index, objective in enumerate(objectives):
-            self._GRB_model.setObjectiveN(objective, index, len(objectives) - 1 - index)
-        self._GRB_model.update()
+    # def _add_objective_function(self):
+    #     """
+    #     Add the objective function to the model, which minimizes according to a lexicographic order:
+    #
+    #     - the time gap between backward and forward start times of the replacing task
+    #     - the total sum of task duration alterations
+    #     - the largest time alteration
+    #     - the number of instance parameter alterations
+    #     - the total traveling time
+    #
+    #     :return: None
+    #     """
+    #     self._build_key_expressions()
+    #     self._GRB_model.ModelSense = GRB.MINIMIZE
+    #     objectives = [self._time_gap_expression,
+    #                   self._total_altered_task_duration_expression, self.var_D_max, self._nb_alterations_expression,
+    #                   self._total_traveling_time_expression]
+    #     for index, objective in enumerate(objectives):
+    #         self._GRB_model.setObjectiveN(objective, index, len(objectives) - 1 - index)
+    #     self._GRB_model.update()
 
     #####################
     # Constraints - All #
@@ -116,7 +116,6 @@ class IPModelForSwap1WithInstanceAlterations(IPModelForSwapWithInstanceAlteratio
             activity_key_1 = create_activity_key(activities[j])
             activity_key_2 = create_activity_key(activities[j + 1])
             if activities[j] != activity_before_replacement and activities[j] != self._replaced_task:
-                print("Here0", (activity_key_1, activity_key_2))
                 self._GRB_model.addLConstr(
                     self.vars_U[(activity_key_1, activity_key_2)],
                     sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activity_key_1},{activity_key_2}]"
@@ -127,13 +126,11 @@ class IPModelForSwap1WithInstanceAlterations(IPModelForSwapWithInstanceAlteratio
                     sense=GRB.EQUAL, rhs=0, name=f"FixedArc[{activity_key_1},{activity_key_2}]"
                 )
                 if activities[j] == activity_before_replacement:
-                    print("Here1", (activity_key_1, activity_key_2))
                     self._GRB_model.addLConstr(
                         self.vars_U[(activity_key_1, self._pivot_task_key)],
                         sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activity_key_1},{self._pivot_task_key}]"
                     )
                 else:
-                    print("Here2", (activity_key_1, activity_key_2))
                     self._GRB_model.addLConstr(
                         self.vars_U[(self._pivot_task_key, activity_key_2)],
                         sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{self._pivot_task_key},{activity_key_2}]"

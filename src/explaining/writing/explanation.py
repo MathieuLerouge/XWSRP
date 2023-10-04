@@ -3,7 +3,7 @@ import json
 
 # Local libraries
 from src.explaining.answering.explanation import Explanation
-from src.explaining.questioning.question import ContrastiveQuestion
+from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.modeling.solution import Solution
 from src.utils.constants import DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import make_absolute_path_from_relative_one
@@ -58,23 +58,48 @@ def export_multiple_contrastive_explanations_to_json_file(explanations: list[Exp
 
 def define_contrastive_explanations_analysis_json_file_name(solution: Solution):
     """
-    Define the name (with extension) of the file of the contrastive explanations
+    Define the name (with extension) of the file of the analysis of contrastive explanations computation
     :param solution: the solution to which the explanations are related (Solution)
     :return: the name (with extension) of the file of analysis of contrastive explanations (str)
     """
-    return f"{solution.name}_explanations_analysis.json"
+    return f"{solution.name}_contrastive_explanations_analysis.json"
 
 
-def export_contrastive_explanations_analysis_to_json_file(solution: Solution, explanations_analysis: dict,
-                                                          outputs_directory_relative_path: str = None):
+def define_counterfactual_explanations_analysis_json_file_name(solution: Solution):
     """
-    Export the contrastive explanations analysis to a json file
+    Define the name (with extension) of the file of the analysis of counterfactual explanations computation
     :param solution: the solution to which the explanations are related (Solution)
-    :param explanations_analysis: the analysis of contrastive explanations (dict)
+    :return: the name (with extension) of the file of analysis of counterfactual explanations (str)
+    """
+    return f"{solution.name}_counterfactual_explanations_analysis.json"
+
+
+def define_explanations_analysis_json_file_name(solution: Solution, question_type=None):
+    """
+    Define the name (with extension) of the file of the analysis of explanations computation
+    :param solution: the solution to which the explanations are related (Solution)
+    :param question_type: the type of question/explanation to analyze (either contrastive of counterfactual)
+    :return: the name (with extension) of the file of analysis of explanations (str)
+    """
+    if question_type is None or question_type == ContrastiveQuestion:
+        return define_contrastive_explanations_analysis_json_file_name(solution)
+    elif question_type == CounterfactualQuestion:
+        return define_counterfactual_explanations_analysis_json_file_name(solution)
+    else:
+        raise ValueError("The question type must be either contrastive or counterfactual")
+
+
+def export_explanations_analysis_to_json_file(solution: Solution, explanations_analysis: dict, question_type=None,
+                                              outputs_directory_relative_path: str = None):
+    """
+    Export the explanations analysis to a json file
+    :param solution: the solution to which the explanations are related (Solution)
+    :param explanations_analysis: the analysis of explanations computations (dict)
+    :param question_type: the type of question/explanation to analyze (either contrastive of counterfactual)
     :param outputs_directory_relative_path: the relative path of the directory where the file will be saved (str)
     :return: None
     """
-    file_name = define_contrastive_explanations_analysis_json_file_name(solution)
+    file_name = define_explanations_analysis_json_file_name(solution, question_type)
     if outputs_directory_relative_path is None:
         outputs_directory_relative_path = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
     file_path = make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{file_name}")

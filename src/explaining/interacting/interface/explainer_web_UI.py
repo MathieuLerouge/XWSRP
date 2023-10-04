@@ -948,10 +948,10 @@ class ExplainerWebGUI:
             # Some variables involved in various blocks of the tab content
             if self.language_is_english:
                 contrastive_submit_button_label = "Submit"
-                contrastive_ok_button_text = "Next"
+                contrastive_ok_button_text = "Return"
             elif self.language_is_french:
                 contrastive_submit_button_label = "Soumettre"
-                contrastive_ok_button_text = "Suivant"
+                contrastive_ok_button_text = "Retour"
             else:
                 raise ValueError(f"Language '{self.language}' is not supported.")
 

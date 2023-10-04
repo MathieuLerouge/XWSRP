@@ -1,6 +1,7 @@
 # Standard libraries
 from typing import Union
 
+from src.explaining.questioning.constants import WHY_NOT_INS_2B, WHY_NOT_SWP_2B
 # Local libraries
 from src.explaining.questioning.question_template_field import *
 from src.modeling.comeback import COMING_BACK_HOME_STRING
@@ -255,6 +256,11 @@ class QuestionTemplate:
             raise NotImplementedError(f"The field is either an employee, a task or an activity name")
 
     def compute_all_fields_valid_values(self, solution: Solution):
+
+        if self.id in [WHY_NOT_INS_2B, WHY_NOT_SWP_2B]:
+            if solution.nb_non_performed_tasks == 0:
+                return []
+
         def aux(first_fields_valid_values: list[dict[int, str]]):
             field_number = len(first_fields_valid_values[0])
             if field_number == self.nb_fields:

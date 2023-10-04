@@ -2,6 +2,7 @@
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.transforming.infeasibility import SkillInfeasibility, TimeInfeasibility
+from src.explaining.transforming.exceptions import ImpossibleTransformationException
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 # Local libraries if Gurobi enabled
@@ -14,13 +15,14 @@ if GUROBI_IS_ENABLED:
     from src.explaining.transforming.counterfactual.ILP_model.insertion1 import \
         IPModelForInsertion1WithInstanceAlterations
     from src.explaining.transforming.counterfactual.ILP_model.insertion2 import \
-        IPModelForInsertion2aWithInstanceAlterations
+    IPModelForInsertion2aWithInstanceAlterations, IPModelForInsertion2bWithInstanceAlterations
     from src.explaining.transforming.counterfactual.ILP_model.insertion3 import \
         IPModelForInsertion3WithInstanceAlterations
     from src.explaining.transforming.counterfactual.ILP_model.swap_with_alterations import \
         IPModelForSwapWithInstanceAlterations
     from src.explaining.transforming.counterfactual.ILP_model.swap1 import IPModelForSwap1WithInstanceAlterations
-    from src.explaining.transforming.counterfactual.ILP_model.swap2 import IPModelForSwap2aWithInstanceAlterations
+    from src.explaining.transforming.counterfactual.ILP_model.swap2 import IPModelForSwap2aWithInstanceAlterations, \
+    IPModelForSwap2bWithInstanceAlterations
     from src.explaining.transforming.counterfactual.ILP_model.swap3 import IPModelForSwap3WithInstanceAlterations
     from src.explaining.transforming.counterfactual.ILP_model.reordering_with_alterations import \
         IPModelForReorderingWithInstanceAlterations
@@ -200,6 +202,38 @@ def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: 
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
+def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
+                     instance_parameter_alteration_bounds: InstanceChanges = None,
+                     solving_time_limit: int = None):
+    """
+    Apply induced transformation and get explanation content for answering (Ins,2b) counterfactual question:
+    "How to make possible that employee {Employee} performs any non-performed task
+    between two consecutive activities of their planning?"
+
+    :param solution: the solution to explain (EditableSolution)
+    :param employee_name: the name of the employee mentioned in the question (str)
+    :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
+    :param solving_time_limit: the solving time limit in seconds (int)
+    :return: a tuple containing the transformed solution (EditableSolution), the infeasibility (Infeasibility),
+    the texts describing the transformation in various languages (dict) and
+    the instance changes (InstanceChanges)
+    """
+    employee = solution.instance.get_employee_by_name(employee_name)
+    sequence = solution.get_sequence(employee)
+    if len(solution.non_performed_tasks) == 0:
+        raise ImpossibleTransformationException("Inserting any non-performed task is impossible "
+                                                "given a solution performing all the tasks")
+    performable_non_performed_tasks = [task for task in solution.non_performed_tasks
+                                       if employee.is_capable_of_performing(task)]
+    if len(performable_non_performed_tasks) == 0:
+        raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
+    model = IPModelForInsertion2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
+                                                         instance_parameter_alteration_bounds,
+                                                         solving_time_limit)
+    model.optimize(mute=True)
+    return extract_explanation_content_from_ILP_model_results(solution, model)
+
+
 def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: str,
                     instance_parameter_alteration_bounds: InstanceChanges = None,
                     solving_time_limit: int = None):
@@ -271,6 +305,36 @@ def apply_ctf_swp_2a(solution: EditableSolution, employee_name: str, task_name: 
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     replacing_task = solution.instance.get_task_by_name(task_name)
     model = IPModelForSwap2aWithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
+                                                    solving_time_limit)
+    model.optimize(mute=True)
+    return extract_explanation_content_from_ILP_model_results(solution, model)
+
+
+def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
+                     instance_parameter_alteration_bounds: InstanceChanges = None,
+                     solving_time_limit: int = None):
+    """
+    Apply induced transformation and get explanation content for answering (Swp,2b) counterfactual question:
+    "How to make possible that employee {Employee} performs any non-performed task in place of one of their tasks?"
+
+    :param solution: the solution to explain (EditableSolution)
+    :param employee_name: the name of the employee mentioned in the question (str)
+    :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
+    :param solving_time_limit: the solving time limit in seconds (int)
+    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    the text of the transformation to apply in various languages (dict(str, str))
+    """
+    employee = solution.instance.get_employee_by_name(employee_name)
+    sequence = solution.get_sequence(employee)
+    if len(solution.non_performed_tasks) == 0:
+        raise ImpossibleTransformationException("Inserting any non-performed task is impossible "
+                                                "given a solution performing all the tasks")
+    performable_non_performed_tasks = [task for task in solution.non_performed_tasks
+                                       if employee.is_capable_of_performing(task)]
+    if len(performable_non_performed_tasks) == 0:
+        raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
+    model = IPModelForSwap2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
+                                                    instance_parameter_alteration_bounds,
                                                     solving_time_limit)
     model.optimize(mute=True)
     return extract_explanation_content_from_ILP_model_results(solution, model)
@@ -371,6 +435,8 @@ def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: 
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
+    if sequence.nb_steps <= 3:
+        raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
     moving_task = solution.instance.get_task_by_name(task_name)
     model = IPModelForReordering2aWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                           solving_time_limit)
@@ -394,6 +460,8 @@ def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: 
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
+    if sequence.nb_steps <= 3:
+        raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
     moving_task = solution.instance.get_task_by_name(task_name)
     model = IPModelForReordering2bWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                           solving_time_limit)
@@ -417,6 +485,8 @@ def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: 
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
+    if sequence.nb_steps <= 3:
+        raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
     moving_task = solution.instance.get_task_by_name(task_name)
     model = IPModelForReordering2cWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                           solving_time_limit)
@@ -439,6 +509,8 @@ def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
+    if sequence.nb_steps <= 3:
+        raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
     model = IPModelForReordering3WithInstanceAlterations(sequence, instance_parameter_alteration_bounds,
                                                          solving_time_limit)
     model.optimize(mute=True)

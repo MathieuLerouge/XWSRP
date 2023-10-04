@@ -237,6 +237,15 @@ class Explanation:
             raise NotImplementedError("Non-supported language")
 
     @property
+    def _None_of_the_neighbors(self):
+        if self.language_is_english:
+            return "None of the " + self._neighbors
+        elif self.language_is_french:
+            return "Aucune des " + self._neighbors
+        else:
+            raise NotImplementedError("Non-supported language")
+
+    @property
     def _none_of_the_feasible_neighbors(self):
         if self.language_is_english:
             return "none of the feasible " + self._neighbors
@@ -244,6 +253,41 @@ class Explanation:
             return "aucune des " + self._neighbors.replace("solutions", "solutions faisables", 1)
         else:
             raise NotImplementedError("Non-supported language")
+
+    @property
+    def _None_of_the_feasible_neighbors(self):
+        if self.language_is_english:
+            return "None of the feasible " + self._neighbors
+        elif self.language_is_french:
+            return "Aucune des " + self._neighbors.replace("solutions", "solutions faisables", 1)
+        else:
+            raise NotImplementedError("Non-supported language")
+
+    @property
+    def _assume_the_current_is_altered(self):
+        if self.language_is_english:
+            return f"assume that the following change" \
+                   f"{'s are ' if self._instance_alterations.nb_changes > 1 else ' is '}" \
+                   f"applied to the current instance: " \
+                   f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}" \
+                   f"{self._instance_alterations.as_string(language=self.language)}" \
+                   f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"
+        elif self.language_is_french:
+            return f"supposons que " \
+                   f"{'les changements' if self._instance_alterations.nb_changes > 1 else 'le changement'} " \
+                   f"suivant{'s' if self._instance_alterations.nb_changes > 1 else ''} " \
+                   f"soi{'en' if self._instance_alterations.nb_changes > 1 else ''}t " \
+                   f"appliqué{'s' if self._instance_alterations.nb_changes > 1 else ''} à l'instance : " \
+                   f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}" \
+                   f"{self._instance_alterations.as_string(language=self.language)}" \
+                   f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"
+
+    @property
+    def _Assume_the_current_is_altered(self):
+        if self.language_is_english:
+            return "A" + self._assume_the_current_is_altered[1:]
+        elif self.language_is_french:
+            return "S" + self._assume_the_current_is_altered[1:]
 
     @property
     def _activity(self):
@@ -383,65 +427,38 @@ class PositiveExplanation(Explanation):
         text = ""
         if self.is_contrastive:
             if self.language_is_english:
-                text += f"The reason for why {self._the_fact} is that the current solution is not optimal." \
-                        f"{LINE_BREAK_STRING}" \
-                        f"Therefore, "
+                text += f"Because the current solution is actually not optimal, {self._the_fact}." \
+                        f"However, indeed, "
             elif self.language_is_french:
-                text += f"La raison pour laquelle {self._the_fact} est que la solution courante n'est pas optimale." \
+                text += f"Parce la solution n'est en fait pas optimale, {self._the_fact}." \
                         f"{LINE_BREAK_STRING}" \
-                        f"Ainsi, "
-                # text += f"La solution courante n'est en fait pas optimale ce qui explique pourquoi {self._the_fact}." \
-                #         f"{LINE_BREAK_STRING}" \
-                #         f"Ainsi, "
-                # text += f"La solution courante n'est en fait pas optimale ce qui explique pourquoi {self._the_fact} " \
-                #         f"et que "
+                        f"Cependant, en effet, "
         elif self.is_scenario:
             if self.language_is_english:
-                text += f"Thanks to the changes in the instance, " \
-                        f"{self._having_the_foil} becomes interesting.{LINE_BREAK_STRING}" \
-                        f"Indeed, "
+                text += f"Thanks to the changes in the instance, "
             elif self.language_is_french:
-                text += f"Grâce aux changements dans l'instance, " \
-                        f"{self._having_the_foil} devient intéressant.{LINE_BREAK_STRING}" \
-                        f"En effet, "
+                text += f"Grâce aux changements dans l'instance, "
         elif self.is_counterfactual:
+            text += f"{self._Assume_the_current_is_altered}"
             if self.language_is_english:
-                text += f"Assume that the following change" \
-                        f"{'s are ' if self._instance_alterations.nb_changes > 1 else ' is '}" \
-                        f"applied to the instance: " \
-                        f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                        f"{self._instance_alterations.as_string(language=self.language)}"\
-                        f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                        f"Then, {self._having_the_foil} becomes interesting.{LINE_BREAK_STRING}" \
-                        f"Indeed, "
+                text += f"Then, "
             elif self.language_is_french:
-                text += f"Supposons que " \
-                        f"{'les changements' if self._instance_alterations.nb_changes > 1 else 'le changement'} " \
-                        f"suivant{'s' if self._instance_alterations.nb_changes > 1 else ''} " \
-                        f"soi{'en' if self._instance_alterations.nb_changes > 1 else ''}t " \
-                        f"appliqué{'s' if self._instance_alterations.nb_changes > 1 else ''} à l'instance : " \
-                        f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                        f"{self._instance_alterations.as_string(language=self.language)}"\
-                        f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                        f"Alors, {self._having_the_foil} devient intéressant.{LINE_BREAK_STRING}" \
-                        f"En effet, "
+                text += f"Alors, "
         else:
             raise ValueError("The explanation should be contrastive, scenario or counterfactual")
         if self.is_based_on_most_relevant_neighboring_solution:
             if self.language_is_english:
-                text += f"among {self._all_the_neighbors}, " \
-                        f"a new feasible solution can be found that is better than the current one:"
+                text += f"{self._having_the_foil} can be observed in better solutions than the current one such as " \
+                        f"the solution obtained by {self.applying_support_solution_transformation}:"
             elif self.language_is_french:
-                text += f"parmi {self._all_the_neighbors}, " \
-                        f"une nouvelle solution faisable peut être trouvée " \
-                        f"qui est meilleure que la solution courante :"
+                text += f"{self._having_the_foil} peut être observé dans des solutions meilleures que la solution " \
+                        f"courante telle que la solution obtenue en {self.applying_support_solution_transformation} : "
         else:
             if self.language_is_english:
-                text += f"by {self._applying_the_foil_transformation} to the current solution, " \
-                        f"we obtain a new feasible solution that is better than the current one:"
+                text += f"{self._having_the_foil} is possible and provides a better solution than the current one: "
             elif self.language_is_french:
-                text += f"en {self._applying_the_foil_transformation} dans la solution courante, " \
-                        f"on obtient une nouvelle solution faisable qui est meilleure que la solution courante :"
+                text += f"{self._having_the_foil} est possible et donne une meilleure solution " \
+                        f"que la solution courante  :"
         text += f"{LINE_BREAK_STRING}" \
                 f"- {self._compare_total_working_duration()};{LINE_BREAK_STRING}" \
                 f"- {self._compare_total_traveling_duration()}."
@@ -499,24 +516,11 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
                     text += f"Malgré les changements dans l'instance, " \
                             f"{self._having_the_foil} n'est toujours pas intéressant.{LINE_BREAK_STRING}"
             elif self.is_counterfactual:
+                text += f"{self._Assume_the_current_is_altered}"
                 if self.language_is_english:
-                    text += f"Assume that the following change" \
-                            f"{'s are ' if self._instance_alterations.nb_changes > 1 else ' is '}" \
-                            f"applied to the instance: " \
-                            f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"{self._instance_alterations.as_string(language=self.language)}"\
-                            f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"Then, {self._having_the_foil} remains not interesting.{LINE_BREAK_STRING}"
+                    text += f"Then, {self._having_the_foil} remains not interesting.{LINE_BREAK_STRING}"
                 elif self.language_is_french:
-                    text += f"Supposons que " \
-                            f"{'les changements' if self._instance_alterations.nb_changes > 1 else 'le changement'} " \
-                            f"suivant{'s' if self._instance_alterations.nb_changes > 1 else ''} " \
-                            f"soi{'en' if self._instance_alterations.nb_changes > 1 else ''}t " \
-                            f"appliqué{'s' if self._instance_alterations.nb_changes > 1 else ''} à l'instance : " \
-                            f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"{self._instance_alterations.as_string(language=self.language)}"\
-                            f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"Alors, {self._having_the_foil} n'est toujours pas intéressant.{LINE_BREAK_STRING}"
+                    text += f"Alors, {self._having_the_foil} n'est toujours pas intéressant.{LINE_BREAK_STRING}"
             else:
                 raise ValueError("The explanation should be contrastive, scenario and counterfactual")
             if self.language_is_english:
@@ -543,25 +547,12 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
                             f"{self._having_the_foil} n'est toujours pas intéressant.{LINE_BREAK_STRING} " \
                             f"En effet, "
             elif self.is_counterfactual:
+                text += f"{self._Assume_the_current_is_altered}"
                 if self.language_is_english:
-                    text += f"Assume that the following change" \
-                            f"{'s are ' if self._instance_alterations.nb_changes > 1 else ' is '}" \
-                            f"applied to the instance: " \
-                            f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"{self._instance_alterations.as_string(language=self.language)}" \
-                            f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"Then, {self._having_the_foil} remains not interesting.{LINE_BREAK_STRING}" \
+                    text += f"Then, {self._having_the_foil} remains not interesting.{LINE_BREAK_STRING}" \
                             f"Indeed, "
                 elif self.language_is_french:
-                    text += f"Supposons que " \
-                            f"{'les changements' if self._instance_alterations.nb_changes > 1 else 'le changement'} " \
-                            f"suivant{'s' if self._instance_alterations.nb_changes > 1 else ''} " \
-                            f"soi{'en' if self._instance_alterations.nb_changes > 1 else ''}t " \
-                            f"appliqué{'s' if self._instance_alterations.nb_changes > 1 else ''} à l'instance : " \
-                            f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"{self._instance_alterations.as_string(language=self.language)}" \
-                            f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"\
-                            f"Alors, {self._having_the_foil} n'est toujours pas intéressant.{LINE_BREAK_STRING}" \
+                    text += f"Alors, {self._having_the_foil} n'est toujours pas intéressant.{LINE_BREAK_STRING}" \
                             f"En effet, "
             else:
                 raise ValueError("The explanation should be contrastive, scenario or counterfactual")
@@ -653,22 +644,27 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
         elif self.is_scenario:
             if self.language_is_english:
                 text += f"Despite the changes in the instance, " \
-                        f"{self._having_the_foil} remains impossible.{LINE_BREAK_STRING}"
+                        f"{self._having_the_foil} remains impossible " \
+                        f"because {employee.name} is not skilled enough.{LINE_BREAK_STRING}"
             elif self.language_is_french:
                 text += f"Malgré les changements dans l'instance, " \
-                        f"{self._having_the_foil} demeure impossible.{LINE_BREAK_STRING}"
+                        f"{self._having_the_foil} demeure impossible " \
+                        f"car {employee.name} n'a pas les compétences suffisantes.{LINE_BREAK_STRING}"
         else:
-            raise ValueError("The explanation should be contrastive or scenario")
+            if self.language_is_english:
+                text += f"Despite all the possible changes that could be applied to the instance, " \
+                        f"{self._having_the_foil} remains impossible " \
+                        f"because {employee.name} is not skilled enough.{LINE_BREAK_STRING}"
+            elif self.language_is_french:
+                text += f"Malgré tous les changements qui pourraient être appliqués à l'instance, " \
+                        f"{self._having_the_foil} demeure impossible " \
+                        f"car {employee.name} n'a pas les compétences suffisantes.{LINE_BREAK_STRING}"
         if self.language_is_english:
-            text += f"Indeed, "
+            text += f"Indeed, {employee.name} has a skill level of {employee.skill_level} while " \
+                    f"{task.name} requires a level of at least {task.skill_level}."
         elif self.language_is_french:
-            text += f"En effet, "
-        if self.language_is_english:
-            text += f"{employee.name} has a skill level of {employee.skill_level} while " \
-                    f"{task.name} requires a level of at least {task.skill_level}. "
-        elif self.language_is_french:
-            text += f"{employee.name} a un niveau de compétence de {employee.skill_level} alors que " \
-                    f"{task.name} requiert un niveau au moins égal à {task.skill_level}. "
+            text += f"En effet, {employee.name} a un niveau de compétence de {employee.skill_level} alors que " \
+                    f"{task.name} requiert un niveau au moins égal à {task.skill_level}."
         return text
 
 
@@ -711,42 +707,66 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
         hour_format = self._hour_format
         new_solution = self._support_solution
         text = ""
+
+        # First part - affirmation
         if self.is_contrastive:
             if self.language_is_english:
                 text += f"In the current solution, {self._the_fact} "
-                text += f"because time constraints do not allow it.{LINE_BREAK_STRING}"
+                text += f"because of time constraints.{LINE_BREAK_STRING}"
             elif self.language_is_french:
                 text += f"Dans la solution courante, {self._the_fact} "
-                text += f"car les contraintes de temps ne le permettent pas.{LINE_BREAK_STRING}"
+                text += f"à cause des contraintes de temps.{LINE_BREAK_STRING}"
         elif self.is_scenario:
             if self.language_is_english:
                 text += f"Despite the changes in the instance, " \
-                        f"{self._having_the_foil} remains impossible.{LINE_BREAK_STRING}"
+                        f"{self._having_the_foil} remains impossible due to time constraints." \
+                        f"{LINE_BREAK_STRING}"
             elif self.language_is_french:
                 text += f"Malgré les changements dans l'instance, " \
-                        f"{self._having_the_foil} demeure impossible.{LINE_BREAK_STRING}"
+                        f"{self._having_the_foil} demeure impossible à cause des contraintes de temps." \
+                        f"{LINE_BREAK_STRING}"
         else:
-            raise ValueError("The explanation should be contrastive or scenario")
+            if self.language_is_english:
+                text += f"Despite all the possible changes that could be applied to the current instance, " \
+                        f"{self._having_the_foil} remains impossible due to time constraints." \
+                        f"For example, {self._assume_the_current_is_altered}" \
+                        f"{LINE_BREAK_STRING}"
+            elif self.language_is_french:
+                text += f"Malgré tous les changements qui pourraient être appliqués à l'instance, " \
+                        f"{self._having_the_foil} demeure impossible à cause des contraintes de temps." \
+                        f"Par exemple, {self._assume_the_current_is_altered}" \
+                        f"{LINE_BREAK_STRING}"
+
+        # Second part - whether using support content
         if self.is_based_on_most_relevant_neighboring_solution:
             if self.language_is_english:
-                text += f"Indeed, {self._none_of_the_neighbors} is feasible. For instance, "
-                text += f"consider the new solution obtained from the current one " \
+                text += f"{self._None_of_the_neighbors} are feasible. " \
+                        f"For example, consider the new solution obtained from the current one " \
                         f"by {self.applying_support_solution_transformation}. "
             elif self.language_is_french:
-                text += f"En effet, {self._none_of_the_neighbors} n'est faisable. Par exemple, "\
-                        f"considérons la solution obtenue à partir de la solution courante " \
+                text += f"{self._None_of_the_neighbors} n'est faisable. " \
+                        f"Par exemple, considérons la solution obtenue à partir de la solution courante " \
                         f"en {self.applying_support_solution_transformation}. "
         else:
             if self.language_is_english:
-                text += f"Indeed, consider the new solution obtained from the current one " \
+                text += f"Consider the new solution obtained from the current one " \
                         f"by {self._applying_the_foil_transformation}. "
             elif self.language_is_french:
-                text += f"En effet, considérons la solution obtenue à partir de la solution courante " \
+                text += f"Considérons la solution obtenue à partir de la solution courante " \
                         f"en {self._applying_the_foil_transformation}. "
+        if self.language_is_english:
+            text += "This new solution is not feasible. "
+        elif self.language_is_french:
+            text += "Cette solution n'est pas faisable. "
 
         #############################################
         # Specific explanation of the time conflict #
         #############################################
+
+        if self.language_is_english:
+            text += "Indeed, "
+        elif self.language_is_french:
+            text += "En effet, "
 
         # - Part of the text about upstream steps
         employee = self._conflicting_employee
@@ -756,29 +776,29 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
         upstream_critical_step_index = self._upstream_critical_step_index
         if step_index == 1:
             if self.language_is_english:
-                text += f"By performing {task.name} at the earliest possible time after leaving home, "
+                text += f"by performing {task.name} at the earliest possible time after leaving home, "
             elif self.language_is_french:
-                text += f"En réalisant {task.name} le plus tôt possible après avoir quitté son domicile, "
+                text += f"en réalisant {task.name} le plus tôt possible après avoir quitté son domicile, "
         elif upstream_critical_step_index == 0:
             if self.language_is_english:
-                text += f"By performing all the {self._activities} from home to " \
+                text += f"by performing all the {self._activities} from home to " \
                         f"{task.name} at the earliest possible time, "
             elif self.language_is_french:
-                text += f"En réalisant toutes les {self._activities} du domicile jusque " \
+                text += f"en réalisant toutes les {self._activities} du domicile jusque " \
                         f"{task.name} le plus tôt possible, "
         elif upstream_critical_step_index == step_index - 1:
             activity_before = sequence[step_index - 1].activity
             if self.language_is_english:
-                text += f"By performing {activity_before.name} and {task.name} at the earliest possible time, "
+                text += f"by performing {activity_before.name} and {task.name} at the earliest possible time, "
             elif self.language_is_french:
-                text += f"En réalisant {activity_before.name} et {task.name} le plus tôt possible, "
+                text += f"en réalisant {activity_before.name} et {task.name} le plus tôt possible, "
         elif upstream_critical_step_index < step_index - 1:
             upstream_critical_activity = sequence[upstream_critical_step_index].activity
             if self.language_is_english:
-                text += f"By performing all the {self._activities} from {upstream_critical_activity.name} to " \
+                text += f"by performing all the {self._activities} from {upstream_critical_activity.name} to " \
                         f"{task.name} at the earliest possible time, "
             elif self.language_is_french:
-                text += f"En réalisant toutes les {self._activities} de {upstream_critical_activity.name} à " \
+                text += f"en réalisant toutes les {self._activities} de {upstream_critical_activity.name} à " \
                         f"{task.name} le plus tôt possible, "
         else:
             raise ValueError(f"There is something wrong with the upstream critical step index which value "
@@ -839,8 +859,9 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
                                  f"{downstream_critical_step_index} while the one of the step index is {step_index} "
                                  f"and the number of steps is {sequence.nb_steps}")
 
+        # Fourth part - conclusion
         if self.language_is_english:
-            text += "Therefore, this new solution is infeasible."
+            text += f"Thus, {self._having_the_foil} is impossible."
         elif self.language_is_french:
-            text += "Ainsi, cette nouvelle solution n'est pas faisable."
+            text += f"Ainsi, {self._having_the_foil} n'est pas faisable."
         return text

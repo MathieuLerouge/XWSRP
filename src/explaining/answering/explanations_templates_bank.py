@@ -12,13 +12,13 @@ EXPLANATIONS_TEMPLATES_LIST = [
             LANGUAGE_ENGLISH_KEY: dict(
                 the_fact="{Task} is not performed by {Employee} just after {Activity}",
                 the_foil="{Task} is performed by {Employee} just after {Activity}",
-                having_the_foil="having {Task} performed by {Employee} just after {Activity}",
+                having_the_foil="having {Employee} perform {Task} just after {Activity}",
                 applying_the_foil_transformation="inserting {Task} just after {Activity} in {Employee}'s planning"
             ),
             LANGUAGE_FRENCH_KEY: dict(
                 the_fact="{Task} n'est pas réalisée par {Employee} juste après {Activity}",
                 the_foil="{Task} est réalisée par {Employee} juste après {Activity}",
-                having_the_foil="faire que {Task} soit réalisée par {Employee} juste après {Activity}",
+                having_the_foil="faire que {Employee} réalise {Task} juste après {Activity}",
                 applying_the_foil_transformation="insérant {Task} juste après {Activity} "
                                                  "dans le planning de {Employee}",
             )
@@ -30,7 +30,7 @@ EXPLANATIONS_TEMPLATES_LIST = [
             LANGUAGE_ENGLISH_KEY: dict(
                 the_fact="{Task} is not performed by {Employee} between two consecutive activities of their planning",
                 the_foil="{Task} is performed by {Employee} between two consecutive activities of their planning",
-                having_the_foil="having {Task} performed by {Employee} "
+                having_the_foil="having {Employee} perform {Task} "
                                 "between two consecutive activities of their planning",
                 neighbors="solutions obtained by inserting {Task} "
                           "between two consecutive activities of {Employee}'s planning"
@@ -38,7 +38,7 @@ EXPLANATIONS_TEMPLATES_LIST = [
             LANGUAGE_FRENCH_KEY: dict(
                 the_fact="{Task} n'est pas réalisée par {Employee} entre deux activités consécutives de son planning",
                 the_foil="{Task} est réalisée par {Employee} entre deux activités consécutives de son planning",
-                having_the_foil="faire que {Task} soit réalisée par {Employee} "
+                having_the_foil="faire que {Employee} réalise {Task} "
                                 "entre deux activités consécutives de son planning",
                 neighbors="solutions obtenues en insérant {Task} "
                           "entre deux activités consécutives du planning de {Employee}",
@@ -53,7 +53,7 @@ EXPLANATIONS_TEMPLATES_LIST = [
                          "between two consecutive activities of their planning",
                 the_foil="a formerly-non-performed task is performed by {Employee} "
                          "between two consecutive activities of their planning",
-                having_the_foil="having a formerly-non-performed task performed by {Employee} "
+                having_the_foil="having {Employee} perform a formerly-non-performed task "
                                 "between two consecutive activities of their planning",
                 neighbors="solutions obtained by inserting a non-performed task "
                           "between two consecutive activities of {Employee}'s planning"
@@ -63,7 +63,7 @@ EXPLANATIONS_TEMPLATES_LIST = [
                          "entre deux activités consécutives de son planning",
                 the_foil="une tâche précédemment non-réalisée est réalisée par {Employee} "
                          "entre deux activités consécutives de son planning",
-                having_the_foil="faire qu'une tâche précédemment non-réalisée soit désormais réalisée par {Employee} "
+                having_the_foil="faire que {Employee} réalise une tâche précédemment non-réalisée "
                                 "entre deux activités consécutives de son planning",
                 neighbors="solutions obtenues en insérant une tâche non-réalisée "
                           "entre deux activités consécutives du planning de {Employee}"
@@ -77,7 +77,7 @@ EXPLANATIONS_TEMPLATES_LIST = [
                 the_fact="{Task} is not performed by any of the employees "
                          "between two consecutive activities of their planning",
                 the_foil="{Task} is performed by an employee between two consecutive activities of their planning",
-                having_the_foil="having {Task} performed by an employee "
+                having_the_foil="having an employee perform {Task} "
                                 "between two consecutive activities of their planning",
                 neighbors="solutions obtained by inserting {Task} "
                           "between two consecutive activities of an employee's planning"
@@ -85,7 +85,7 @@ EXPLANATIONS_TEMPLATES_LIST = [
             LANGUAGE_FRENCH_KEY: dict(
                 the_fact="{Task} n'est réalisée par aucun employé entre deux activités consécutives de leur planning",
                 the_foil="{Task} est réalisée par un employé entre deux activités consécutives de son planning",
-                having_the_foil="faire que {Task} soit réalisée par un employé "
+                having_the_foil="faire qu'un employé réalise {Task}  "
                                 "entre deux activités consécutives de son planning",
                 neighbors="solutions obtenues en insérant {Task}"
                           " entre deux activités consécutives du planning d'un employé"
@@ -98,13 +98,13 @@ EXPLANATIONS_TEMPLATES_LIST = [
             LANGUAGE_ENGLISH_KEY: dict(
                 the_fact="{Task} is not performed by {Employee} in addition to their activities",
                 the_foil="{Task} is performed by {Employee} in addition to their activities",
-                having_the_foil="having {Task} performed by {Employee} in addition to their activities",
+                having_the_foil="having {Employee} perform {Task} in addition to their activities",
                 neighbors="solutions obtained by assigning {Task} to {Employee} in addition to their activities"
             ),
             LANGUAGE_FRENCH_KEY: dict(
                 the_fact="{Task} n'est pas réalisée par {Employee} en plus des activités de son planning",
                 the_foil="{Task} est réalisée par {Employee} en plus des activités de son planning",
-                having_the_foil="faire que {Task} soit réalisée par {Employee} en plus des activités de son planning",
+                having_the_foil="faire que {Employee} réalise {Task} en plus des activités de son planning",
                 neighbors="solutions obtenues en affectant {Task} à {Employee} en plus des activités de son planning"
             )
         }

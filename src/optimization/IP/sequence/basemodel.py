@@ -436,6 +436,7 @@ class IPModelForSequenceOptimization:
         else:
             if self._GRB_model.params.outputflag == 0:
                 self._GRB_model.params.outputflag = 1
+        #
         self._GRB_model.optimize()
         if self._GRB_model.Status == GRB.INFEASIBLE:
             raise InfeasibleModelException("The model is infeasible.")

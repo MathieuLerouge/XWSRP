@@ -33,8 +33,8 @@ class Explainer:
         WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
     ]
     _available_counterfactual_questions_templates_ids = [
-        WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_3,
-        WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_3,
+        WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_3,
+        WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_3,
         WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
     ]
 
@@ -63,6 +63,7 @@ class Explainer:
         self._nb_scenario_explanations_asked_by_ids = \
             dict([(id, 0) for id in self._activated_questions_templates.keys()])
         # Counterfactual explanations
+        self._time_limit_for_counterfactual_explanation_ILP_computation = None
         self._counterfactual_explanations_are_enabled = False
         self._last_counterfactual_explanation = None
         self._nb_counterfactual_explanations_asked_by_ids = \
@@ -499,6 +500,14 @@ class Explainer:
     ##############################
 
     @property
+    def time_limit_for_counterfactual_explanation_ILP_computation(self):
+        return self._time_limit_for_counterfactual_explanation_ILP_computation
+
+    @time_limit_for_counterfactual_explanation_ILP_computation.setter
+    def time_limit_for_counterfactual_explanation_ILP_computation(self, time_limit: int):
+        self._time_limit_for_counterfactual_explanation_ILP_computation = time_limit
+
+    @property
     def activated_counterfactual_questions_templates_ids(self):
         return [template_id for template_id in self.activated_questions_templates_ids
                 if template_id in self._available_counterfactual_questions_templates_ids]
@@ -517,19 +526,30 @@ class Explainer:
     def disable_counterfactual_explanations(self):
         self._counterfactual_explanations_are_enabled = False
 
-    def _create_counterfactual_question(self, instance_slacks: InstanceChanges = None):
-        return CounterfactualQuestion(self.last_contrastive_explanation.question, instance_slacks)
+    def _create_counterfactual_question(self, contrastive_question: ContrastiveQuestion = None,
+                                        instance_slacks: InstanceChanges = None):
+        if contrastive_question is None:
+            contrastive_question = self.last_contrastive_explanation.question
+        return CounterfactualQuestion(contrastive_question, instance_slacks)
 
-    def compute_counterfactual_explanation(self, instance_slacks: InstanceChanges = None):
+    def compute_counterfactual_explanation(self, question_template_id: str = None, fields_values: list[str] = None,
+                                           instance_slacks: InstanceChanges = None):
         if self.counterfactual_explanations_are_enabled:
-            counterfactual_question = self._create_counterfactual_question(instance_slacks)
+            if (question_template_id is None) and (fields_values is None):
+                contrastive_question = None
+            elif (question_template_id is not None) and (fields_values is not None):
+                contrastive_question = self._create_contrastive_question(question_template_id, fields_values)
+            else:
+                raise ValueError("Question template id and fields values must be either both None or both not None")
+            counterfactual_question = self._create_counterfactual_question(contrastive_question, instance_slacks)
             self._increase_question_asked_count(counterfactual_question)
             current_solution = self.current_solution
             counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
             (counterfactual_support_solution, infeasibility,
              description_of_applied_transformation, instance_alterations) = \
                 apply_transformation_induced_by_counterfactual_question(
-                    counterfactual_solution, counterfactual_question
+                    counterfactual_solution, counterfactual_question,
+                    self.time_limit_for_counterfactual_explanation_ILP_computation
                 )
             counterfactual_explanation = \
                 create_explanation(counterfactual_question, counterfactual_support_solution, infeasibility,

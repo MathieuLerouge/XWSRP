@@ -16,7 +16,7 @@ from src.optimization.IP.sequence.basemodel import IPModelForSequenceOptimizatio
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 # Global variables
-MAX_NB_ALTERATIONS = 6
+MAX_NB_ALTERATIONS = 2
 
 
 #########################################################
@@ -487,6 +487,22 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
             grb.quicksum([(self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0)
                           for j in self._get_candidate_tasks_keys()])
 
+    def _build_total_time_alteration_expression(self):
+        """
+        Build the expression corresponding to the total time alteration task duration
+
+        :return: None
+        """
+        self._total_time_alterations_expression = \
+            grb.quicksum([(self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0)
+                          for j in self._get_candidate_tasks_keys()]) + \
+            grb.quicksum([(self.vars_D_LB_t[j] if self.vars_X_LB_t[j] is not None else 0)
+                          for j in self._get_candidate_tasks_keys()]) + \
+            grb.quicksum([(self.vars_D_UB_t[j] if self.vars_X_UB_t[j] is not None else 0)
+                          for j in self._get_candidate_tasks_keys()]) + \
+            (self.var_D_LB_e if self.var_X_LB_e is not None else 0) + \
+            (self.var_D_UB_e if self.var_X_UB_e is not None else 0)
+
     def _build_key_expressions(self):
         """
         Build the key expressions that are used in the objective function
@@ -499,6 +515,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         self._build_time_gap_expression()
         self._build_nb_alterations_expression()
         self._build_total_task_duration_alterations_expression()
+        self._build_total_time_alteration_expression()
 
     ###############################
     # Objective function - Itself #
@@ -519,9 +536,13 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         """
         self._build_key_expressions()
         self._GRB_model.ModelSense = GRB.MINIMIZE
+        # objectives = [self._time_gap_expression,
+        #               self._total_altered_task_duration_expression, self.var_D_max, self._nb_alterations_expression,
+        #               - self._total_working_time_expression, self._total_traveling_time_expression]
         objectives = [self._time_gap_expression,
+                      - self._total_working_time_expression, self._total_traveling_time_expression,
                       self._total_altered_task_duration_expression, self.var_D_max, self._nb_alterations_expression,
-                      - self._total_working_time_expression, self._total_traveling_time_expression]
+                      self._total_time_alterations_expression]
         for index, objective in enumerate(objectives):
             self._GRB_model.setObjectiveN(objective, index, len(objectives)-1-index)
         self._GRB_model.update()
@@ -701,7 +722,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         :return: None
         """
         self._GRB_model.addLConstr(self.var_T_backward - self.var_T_forward,
-                                   sense=GRB.GREATER_EQUAL, rhs=0, name=f"TimeGapConstraint[{self._pivot_task_key}]")
+                                   sense=GRB.GREATER_EQUAL, rhs=0, name=f"TimeGapConstraint")
 
     ####################################
     # Constraints - Alterations bounds #
@@ -789,6 +810,15 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         self._add_employee_related_alterations_bounds_constraints()
         self._add_alterations_bounds_constraints_tasks()
         self._add_max_nb_alterations_constraint(MAX_NB_ALTERATIONS)
+        # TODO: temp
+        self._GRB_model.addLConstr(
+            self.var_X_LB_e,
+            sense=GRB.EQUAL, rhs=0, name=f"NoDepartureLBAlterationConstraint"
+        )
+        self._GRB_model.addLConstr(
+            self.var_X_UB_e,
+            sense=GRB.EQUAL, rhs=0, name=f"NoComebackUBAlterationConstraint"
+        )
 
     ######################################################
     # Data extraction from IP solving results - Instance #
@@ -849,7 +879,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         employee_start_time_LB = \
             self.employee.start_time_LB - (int(self.var_D_LB_e.x) if self.var_X_LB_e is not None else 0)
         employee_end_time_UB = \
-            self.employee.end_time_UB - (int(self.var_D_UB_e.x) if self.var_X_UB_e is not None else 0)
+            self.employee.end_time_UB + (int(self.var_D_UB_e.x) if self.var_X_UB_e is not None else 0)
         start_times_and_steps = [
             (employee_start_time_LB, Step(Departure(self.employee), start_time=employee_start_time_LB)),
             (employee_end_time_UB, Step(ComeBack(self.employee), start_time=employee_end_time_UB))
@@ -877,7 +907,18 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
             raise Exception(f"The first activity of the sequence is not a departure but {first_step.activity}")
         _, last_step = start_times_and_steps[-1]
         if not isinstance(last_step.activity, ComeBack):
-            raise Exception(f"The last activity of the sequence is not a comeback but {last_step.activity}")
+            for _, step in start_times_and_steps:
+                j = create_activity_key(step.activity)
+                if j in self.get_activities_keys(including_departure=True, including_comeback=False):
+                    for k in self.get_activities_keys(including_departure=False, including_comeback=True):
+                        if k != j:
+                            if self.vars_U[j, k].x > 0:
+                                print(f"{j} to {k}")
+            raise Exception(f"The last activity of the sequence is not a comeback but {last_step.activity.name}. \n"
+                            f"The pivot task is {self._pivot_task.name} with "
+                            f"backward start time {self.var_T_backward.x} and "
+                            f"forward start time {self.var_T_forward.x}. \n"
+                            f"The list of start times and steps is {start_times_and_steps}.")
         return [step for _, step in start_times_and_steps]
 
     def _extract_sequence_from_IP_solving(self):

@@ -1,0 +1,20 @@
+# Why-not / contrastive questions templates ids
+# - Insertion
+WHY_NOT_INS_1 = 'WN-Ins-1'
+WHY_NOT_INS_2A = 'WN-Ins-2a'
+WHY_NOT_INS_2B = 'WN-Ins-2b'
+WHY_NOT_INS_2C = 'WN-Ins-2c'
+WHY_NOT_INS_3 = 'WN-Ins-3'
+# - Swap
+WHY_NOT_SWP_1 = 'WN-Swp-1'
+WHY_NOT_SWP_2A = 'WN-Swp-2a'
+WHY_NOT_SWP_2B = 'WN-Swp-2b'
+WHY_NOT_SWP_2C = 'WN-Swp-2c'
+WHY_NOT_SWP_3 = 'WN-Swp-3'
+# - Reordering
+WHY_NOT_ORD_LAT_1 = 'WN-Ord-1a'
+WHY_NOT_ORD_EAR_1 = 'WN-Ord-1b'
+WHY_NOT_ORD_LAT_2 = 'WN-Ord-2a'
+WHY_NOT_ORD_EAR_2 = 'WN-Ord-2b'
+WHY_NOT_ORD_2 = 'WN-Ord-2c'
+WHY_NOT_ORD_3 = 'WN-Ord-3'

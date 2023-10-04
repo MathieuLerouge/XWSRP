@@ -90,26 +90,26 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForTransformationWithIns
     # Objective function #
     ######################
 
-    def _add_objective_function(self):
-        """
-        Add the objective function to the model, which minimizes according to a lexicographic order:
-
-        - the time gap between backward and forward start times of the replacing task
-        - the total sum of task duration alterations
-        - the largest time alteration
-        - the number of instance parameter alterations
-        - the total traveling time
-
-        :return: None
-        """
-        self._build_key_expressions()
-        self._GRB_model.ModelSense = GRB.MINIMIZE
-        objectives = [self._time_gap_expression,
-                      self._total_altered_task_duration_expression, self.var_D_max, self._nb_alterations_expression,
-                      self._total_traveling_time_expression]
-        for index, objective in enumerate(objectives):
-            self._GRB_model.setObjectiveN(objective, index, len(objectives) - 1 - index)
-        self._GRB_model.update()
+    # def _add_objective_function(self):
+    #     """
+    #     Add the objective function to the model, which minimizes according to a lexicographic order:
+    #
+    #     - the time gap between backward and forward start times of the replacing task
+    #     - the total sum of task duration alterations
+    #     - the largest time alteration
+    #     - the number of instance parameter alterations
+    #     - the total traveling time
+    #
+    #     :return: None
+    #     """
+    #     self._build_key_expressions()
+    #     self._GRB_model.ModelSense = GRB.MINIMIZE
+    #     objectives = [self._time_gap_expression,
+    #                   self._total_altered_task_duration_expression, self.var_D_max, self._nb_alterations_expression,
+    #                   self._total_traveling_time_expression]
+    #     for index, objective in enumerate(objectives):
+    #         self._GRB_model.setObjectiveN(objective, index, len(objectives) - 1 - index)
+    #     self._GRB_model.update()
 
     #####################
     # Constraints - All #

@@ -1,6 +1,7 @@
 # Local libraries
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.transforming.infeasibility import SkillInfeasibility, TimeInfeasibility
+from src.explaining.transforming.exceptions import ImpossibleTransformationException
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
@@ -122,9 +123,14 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     if len(solution.non_performed_tasks) == 0:
-        raise ValueError("There is no non-performed task in the solution.")
+        raise ImpossibleTransformationException("Inserting any non-performed task is impossible "
+                                                "given a solution performing all the tasks")
+    performable_non_performed_tasks = [task for task in solution.non_performed_tasks
+                                       if employee.is_capable_of_performing(task)]
+    if len(performable_non_performed_tasks) == 0:
+        raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
     examination = solution.find_best_insertion_between_consecutive_activities_among_sets(
-        solution.non_performed_tasks, [employee], False
+        performable_non_performed_tasks, [employee], False
     )
     task = examination.inserted_task
     activity = examination.activity_before_insertion
@@ -256,8 +262,13 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     if len(solution.non_performed_tasks) == 0:
-        raise ValueError("There is no non-performed task in the solution.")
-    examination = solution.find_best_replacement_among_sets([employee], solution.non_performed_tasks, False)
+        raise ImpossibleTransformationException("Exchanging a task with any non-performed task is impossible "
+                                                "given a solution performing all the tasks")
+    performable_non_performed_tasks = [task for task in solution.non_performed_tasks
+                                       if employee.is_capable_of_performing(task)]
+    if len(performable_non_performed_tasks) == 0:
+        raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
+    examination = solution.find_best_replacement_among_sets([employee], performable_non_performed_tasks, False)
     replacing_task = examination.replacing_task
     replaced_task = examination.replaced_task
     return extract_explanation_content_for_swap_from_examination(solution, employee, replacing_task, replaced_task,

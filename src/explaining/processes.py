@@ -11,7 +11,9 @@ from main_configuration import EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EA
 from src.checking.feasibility import check_feasibility
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
+from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import *
+from src.explaining.transforming.exceptions import ImpossibleTransformationException
 from src.explaining.writing.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.modeling.solution import Solution
 from src.optimization.IP.sequence.basemodel import TimeLimitReachedWithSolutionException, \
@@ -137,7 +139,6 @@ def launch_explainer_UI_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, e
 # Explainer on default solution #
 #################################
 
-
 def get_default_solution():
     """
     Returns the solution in the default inputs directory.
@@ -186,9 +187,9 @@ def launch_explainer_UI_on_default_solution(language: str, enable_history: bool 
 # Explanations computation time analysis #
 ##########################################
 
-def compute_computation_time_analysis_of_contrastive_explanations(
+def compute_computation_time_analysis_of_explanations(
         solution: Solution, questions_templates_ids: list[str] = None,
-        maximum_number_of_explanations_per_template: int = 50):
+        maximum_number_of_explanations_per_template: int = 50, question_type=None):
     """
     Compute the computation time analysis of the contrastive explanations about the given solution.
 
@@ -196,46 +197,72 @@ def compute_computation_time_analysis_of_contrastive_explanations(
     :param questions_templates_ids: the IDs of the questions templates to use (list of str),
     if None, all activated questions templates are computed
     :param maximum_number_of_explanations_per_template: the maximum number of explanations per template (int)
+    :param question_type: the type of question/explanation to analyze (either contrastive of counterfactual)
     :return: the analysis of explanations (ExplanationsAnalysis)
     """
+    if question_type is None or question_type == ContrastiveQuestion:
+        explanations_are_contrastive = True
+    else:
+        explanations_are_contrastive = False
+
+    # Prepare explainer
     explainer = Explainer(solution)
     explainer.disable_history()
     explainer.disable_scenario_explanations()
-    explainer.disable_counterfactual_explanations()
-    explainer.enable_using_already_computed_contrastive_explanations()
+    if explanations_are_contrastive:
+        explainer.disable_counterfactual_explanations()
+        explainer.time_limit_for_contrastive_explanation_ILP_computation = \
+            EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION
+    else:
+        explainer.enable_counterfactual_explanations()
+        explainer.time_limit_for_counterfactual_explanation_ILP_computation = \
+            EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION
+    explainer.disable_using_already_computed_contrastive_explanations()
     explainer.disable_exporting_automatically_single_contrastive_explanations()
-    explainer.time_limit_for_contrastive_explanation_ILP_computation = \
-        EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION
-    analysis = dict()
+
+    # Define question templates to analyze
     if questions_templates_ids is None:
-        questions_templates_ids = explainer.activated_questions_templates_ids
+        if explanations_are_contrastive:
+            questions_templates_ids = explainer.activated_questions_templates_ids
+        else:
+            questions_templates_ids = explainer.activated_counterfactual_questions_templates_ids
+
+    # Run analysis
+    analysis = dict()
     for question_template_id in questions_templates_ids:
         question_template = QUESTIONS_TEMPLATES[question_template_id]
         if question_template in explainer.activated_questions_templates:
-            print("Computing explanations related to:", question_template.id)
-            computation_times = []
+
+            # Prepare fields values
             all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
             nb_possible_questions = len(all_fields_valid_values)
-            nb_explanation_computations = min(nb_possible_questions, maximum_number_of_explanations_per_template)
+            random.seed(42)
+            random.shuffle(all_fields_valid_values)
+
+            computation_times = []
+            nb_executed_computations = 0
             nb_interrupted_computations, nb_interruptions_with_solution, nb_interruptions_without_solution = 0, 0, 0
             nb_completed_computations, nb_positive_explanations, nb_negative_explanations = 0, 0, 0
-            if nb_explanation_computations < nb_possible_questions:
-                random.seed(42)
-                selected_fields_values = random.sample(all_fields_valid_values, nb_explanation_computations)
-            else:
-                selected_fields_values = all_fields_valid_values
+            nb_rejected_computations = 0
             messages_counter = 0
-            nb_crashes = 0
+
+            print("Computing explanations related to:", question_template.id)
+
             explanations_computation_start_time = time.time()
-            for i, fields_values in enumerate(selected_fields_values):
-                explanations_computation_time = time.time() - explanations_computation_start_time
-                n = explanations_computation_time // EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES
-                if n > messages_counter:
-                    messages_counter = n
-                    print(f"{i} explanations computed out of {nb_explanation_computations}")
+            while ((nb_executed_computations < maximum_number_of_explanations_per_template) and
+                   len(all_fields_valid_values) > 0):
+
+                # Select fields values
+                fields_values = all_fields_valid_values.pop()
+
+                # Compute the explanation associated with the given question template and the given fields
+                # and save information about the explanation
                 start_time = time.time()
                 try:
-                    explanation = explainer.get_contrastive_explanation(question_template.id, fields_values)
+                    if explanations_are_contrastive:
+                        explanation = explainer.get_contrastive_explanation(question_template.id, fields_values)
+                    else:
+                        explanation = explainer.compute_counterfactual_explanation(question_template.id, fields_values)
                     nb_completed_computations += 1
                     if explanation.is_positive():
                         nb_positive_explanations += 1
@@ -248,51 +275,58 @@ def compute_computation_time_analysis_of_contrastive_explanations(
                 except TimeLimitReachedWithoutSolutionException:
                     nb_interrupted_computations += 1
                     nb_interruptions_without_solution += 1
+                except ImpossibleTransformationException:
+                    nb_rejected_computations += 1
                 except Exception as e:
-                    if (question_template.id in [WHY_NOT_INS_2B, WHY_NOT_SWP_2B] and
-                            solution.nb_non_performed_tasks == 0):
-                        nb_completed_computations += 1
-                        nb_positive_explanations += 1
-                        computation_times.append(np.round(time.time() - start_time, 3))
+                    question = ContrastiveQuestion(solution, question_template_id, fields_values)
+                    if not explanations_are_contrastive:
+                        question = CounterfactualQuestion(question)
+                    if 'Ins' in question.template.id or 'Swp' in question.template.id:
+                        if fields_values[0] in solution.instance.employees_names:
+                            employee = solution.instance.get_employee_by_name(fields_values[0])
+                            sequence = solution.get_sequence(employee)
+                            if len(fields_values) > 1 and fields_values[1] in solution.instance.tasks_names:
+                                task_1 = solution.instance.get_task_by_name(fields_values[1])
+                                travel_time = solution.instance.compute_traveling_duration(sequence[0].activity, task_1)
+                                if travel_time > 12*60:
+                                    nb_completed_computations += 1
+                                    nb_negative_explanations += 1
+                                    computation_times.append(np.round(time.time() - start_time, 3))
+                                else:
+                                    print("Question:", question.text)
+                                    print("Sequence:", sequence)
+                                    print("Travel time between home and inserted task:", travel_time)
+                                    raise e
+                            else:
+                                if 'Ins-2b' in question.template.id:
+                                    print("Non performed tasks:", solution.non_performed_tasks)
+                                    print("Nb possible questions:", nb_possible_questions)
+                                print("Question:", question.text)
+                                print("Sequence:", sequence)
+                                raise e
+                        else:
+                            print("Question:", question.text)
+                            raise e
                     else:
-                        nb_crashes += 1
-            if nb_crashes > 0:
-                if nb_explanation_computations < nb_possible_questions:
-                    raise Exception(f"Damn!")
-                selected_fields_values = random.sample(all_fields_valid_values, nb_explanation_computations)
-                explanations_computation_start_time = time.time()
-                for i, fields_values in enumerate(selected_fields_values):
-                    explanations_computation_time = time.time() - explanations_computation_start_time
-                    n = explanations_computation_time // EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES
-                    if n > messages_counter:
-                        messages_counter = n
-                        print(f"{i} explanations computed out of {nb_explanation_computations}")
-                    start_time = time.time()
-                    try:
-                        explanation = explainer.get_contrastive_explanation(question_template.id, fields_values)
-                        nb_completed_computations += 1
-                        if explanation.is_positive():
-                            nb_positive_explanations += 1
-                        else:
-                            nb_negative_explanations += 1
-                        computation_times.append(np.round(time.time() - start_time, 3))
-                    except TimeLimitReachedWithSolutionException:
-                        nb_interrupted_computations += 1
-                        nb_interruptions_with_solution += 1
-                    except TimeLimitReachedWithoutSolutionException:
-                        nb_interrupted_computations += 1
-                        nb_interruptions_without_solution += 1
-                    except Exception as e:
-                        if (question_template.id in [WHY_NOT_INS_2B, WHY_NOT_SWP_2B] and
-                                solution.nb_non_performed_tasks == 0):
-                            nb_completed_computations += 1
-                            nb_positive_explanations += 1
-                            computation_times.append(np.round(time.time() - start_time, 3))
-                        else:
-                            raise Exception(f"Damn!")
+                        print("Question:", question.text)
+                        raise e
+                nb_executed_computations += 1
+
+                # Display messages about the analysis computation at regular intervals
+                # (to make sure every thing is working properly)
+                explanations_computation_time = time.time() - explanations_computation_start_time
+                n = explanations_computation_time // EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES
+                if n > messages_counter:
+                    messages_counter = n
+                    nb_computations_left = min(len(all_fields_valid_values),
+                                               maximum_number_of_explanations_per_template - nb_executed_computations)
+                    print(f"{nb_executed_computations} explanation computation run, "
+                          f"{nb_computations_left} explanation computation left")
+
+            # Save analysis results related to the question template within a dictionary
             analysis[question_template_id] = dict(
                 nb_possible_questions=nb_possible_questions,
-                nb_explanation_computations=nb_explanation_computations,
+                nb_explanation_computations=nb_executed_computations,
                 nb_interrupted_computations=nb_interrupted_computations,
                 nb_interruptions_with_solution=nb_interruptions_with_solution,
                 nb_interruptions_without_solution=nb_interruptions_without_solution,
@@ -311,10 +345,14 @@ def compute_computation_time_analysis_of_contrastive_explanations(
                                                  else None),
                 computation_times=computation_times
             )
+
+            # Display analysis results related to the question template
             template_analysis = analysis[question_template_id]
             print(f"Explanations related to {question_template.id} computed")
             print(f"Nb of possible questions: {nb_possible_questions}")
-            print(f"Nb of explanation computations: {nb_explanation_computations}")
+            if nb_rejected_computations > 0:
+                print(f"Nb of rejected computations: {nb_rejected_computations}")
+            print(f"Nb of executed computations: {nb_executed_computations}")
             if nb_interrupted_computations > 0:
                 print(f"Nb of interrupted computations: {nb_interrupted_computations}")
                 print(f"Nb of inter. comput. w. solution : {nb_interruptions_with_solution}")
@@ -335,6 +373,7 @@ def compute_computation_time_analysis_of_contrastive_explanations(
             print(f"First quartile computation time: {template_analysis['first_quartile_computation_time']}s")
             print(f"Third quartile computation time: {template_analysis['third_quartile_computation_time']}s")
             print("")
+
     return analysis
 
 

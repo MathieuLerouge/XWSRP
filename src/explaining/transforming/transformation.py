@@ -9,9 +9,10 @@ from src.explaining.transforming.contrastive_and_scenario.LS_based_transformatio
 from src.explaining.transforming.contrastive_and_scenario.ILP_based_transformation import \
     apply_ins_3, apply_swp_3, apply_ord_3
 from src.explaining.transforming.counterfactual.ILP_based_transformation import \
-    apply_ctf_ins_1, apply_ctf_ins_2a, apply_ctf_ins_3, \
+    apply_ctf_ins_1, apply_ctf_ins_2a, apply_ctf_ins_2b, apply_ctf_ins_3, \
     apply_ctf_swp_1, apply_ctf_swp_2a, apply_ctf_swp_3, \
-    apply_ctf_ord_1a, apply_ctf_ord_1b, apply_ctf_ord_2a, apply_ctf_ord_2b, apply_ctf_ord_2c, apply_ctf_ord_3
+    apply_ctf_ord_1a, apply_ctf_ord_1b, apply_ctf_ord_2a, apply_ctf_ord_2b, apply_ctf_ord_2c, apply_ctf_ord_3, \
+    apply_ctf_swp_2b
 
 
 #####################################
@@ -95,6 +96,9 @@ def apply_transformation_induced_by_counterfactual_question(solution: EditableSo
     elif question_template_id == WHY_NOT_INS_2A:
         return apply_ctf_ins_2a(solution, fields_values[0], fields_values[1],
                                 question.instance_parameter_alteration_bounds, time_limit_for_ILP_computation)
+    elif question_template_id == WHY_NOT_INS_2B:
+        return apply_ctf_ins_2b(solution, fields_values[0],
+                                question.instance_parameter_alteration_bounds, time_limit_for_ILP_computation)
     elif question_template_id == WHY_NOT_INS_3:
         return apply_ctf_ins_3(solution, fields_values[0], fields_values[1],
                                question.instance_parameter_alteration_bounds, time_limit_for_ILP_computation)
@@ -103,6 +107,9 @@ def apply_transformation_induced_by_counterfactual_question(solution: EditableSo
                                question.instance_parameter_alteration_bounds, time_limit_for_ILP_computation)
     elif question_template_id == WHY_NOT_SWP_2A:
         return apply_ctf_swp_2a(solution, fields_values[0], fields_values[1],
+                                question.instance_parameter_alteration_bounds, time_limit_for_ILP_computation)
+    elif question_template_id == WHY_NOT_SWP_2B:
+        return apply_ctf_swp_2b(solution, fields_values[0],
                                 question.instance_parameter_alteration_bounds, time_limit_for_ILP_computation)
     elif question_template_id == WHY_NOT_SWP_3:
         return apply_ctf_swp_3(solution, fields_values[0], fields_values[1],

@@ -150,8 +150,6 @@ class IPModelForSwapWithInstanceAlterations(IPModelForTransformationWithInstance
             )
         # Constraint ensuring that there must be as many task performed as there are tasks in the sequence
         # before the transformation
-        print("Here1", len(self.get_activities_keys(including_departure=True, including_comeback=False)))
-        print("Here2", self._sequence.nb_steps - 1)
         self._GRB_model.addLConstr(
             grb.quicksum([self.vars_U[(j, k)]
                           for j in self.get_activities_keys(including_departure=True, including_comeback=False)
