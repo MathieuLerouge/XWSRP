@@ -207,14 +207,14 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         """
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
             self._GRB_model.addLConstr(
-                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB +
+                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb +
                 (self.vars_D_LB_t[j] if self.vars_X_LB_t[j] is not None else 0),
                 sense=GRB.GREATER_EQUAL, rhs=0, name=f"TimeWindowLBConstraint[{j}]"
             )
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
                 (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) -
-                self.get_candidate_task_by_key(j).end_time_UB -
+                self.get_candidate_task_by_key(j).end_time_ub -
                 (self.vars_D_UB_t[j] if self.vars_X_UB_t[j] is not None else 0),
                 sense=GRB.LESS_EQUAL, rhs=0, name=f"TimeWindowUBConstraint[{j}]"
             )
@@ -222,14 +222,14 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
             j = create_activity_key(task)
             self._GRB_model.addLConstr(
                 self.var_T_backward -
-                self._task_performances_expressions[j]*self.get_candidate_task_by_key(j).start_time_LB +
+                self._task_performances_expressions[j]*self.get_candidate_task_by_key(j).start_time_lb +
                 (self.vars_D_LB_t[j] if self.vars_X_LB_t[j] is not None else 0),
                 sense=GRB.GREATER_EQUAL, rhs=0, name=f"TimeWindowLBConstraint[{j}]"
             )
             self._GRB_model.addLConstr(
                 self.var_T_forward + self.get_candidate_task_by_key(j).duration -
                 (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) -
-                self._task_performances_expressions[j]*self.get_candidate_task_by_key(j).end_time_UB -
+                self._task_performances_expressions[j]*self.get_candidate_task_by_key(j).end_time_ub -
                 (self.vars_D_UB_t[j] if self.vars_X_UB_t[j] is not None else 0) -
                 (1 - self._task_performances_expressions[j])*(24*60),
                 sense=GRB.LESS_EQUAL, rhs=0, name=f"TimeWindowUBConstraint[{j}]"
@@ -248,7 +248,7 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         # Add departure-to-first-task time sequence constraints
         for k in self._get_candidate_tasks_keys(including_pivot_task=False):
             self._GRB_model.addLConstr(
-                self.vars_T[k] - self.get_traveling_duration(LEAVING_HOME_KEY, k) - self.employee.start_time_LB +
+                self.vars_T[k] - self.get_traveling_duration(LEAVING_HOME_KEY, k) - self.employee.start_time_lb +
                 (self.var_D_LB_e if self.var_X_LB_e is not None else 0),
                 sense=GRB.GREATER_EQUAL, rhs=0, name=f"SequenceDepartureToTaskConstraint[{k}]"
             )
@@ -257,7 +257,7 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
             self._GRB_model.addLConstr(
                 self.var_T_backward -
                 self._task_performances_expressions[k]*self.get_traveling_duration(LEAVING_HOME_KEY, k) -
-                self.employee.start_time_LB +
+                self.employee.start_time_lb +
                 (self.var_D_LB_e if self.var_X_LB_e is not None else 0),
                 sense=GRB.GREATER_EQUAL, rhs=0, name=f"SequenceDepartureToTaskConstraint[{k}]"
             )
@@ -266,7 +266,7 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
                 (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
-                self.get_traveling_duration(j, COMING_BACK_HOME_KEY) - self.employee.end_time_UB -
+                self.get_traveling_duration(j, COMING_BACK_HOME_KEY) - self.employee.end_time_ub -
                 (self.var_D_UB_e if self.var_X_UB_e is not None else 0),
                 sense=GRB.LESS_EQUAL, rhs=0, name=f"SequenceTaskToComebackConstraint[{j}]"
             )
@@ -276,7 +276,7 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
                 self.var_T_forward + self.get_candidate_task_by_key(j).duration -
                 (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
                 self._task_performances_expressions[j]*self.get_traveling_duration(j, COMING_BACK_HOME_KEY) -
-                self.employee.end_time_UB -
+                self.employee.end_time_ub -
                 (self.var_D_UB_e if self.var_X_UB_e is not None else 0),
                 sense=GRB.LESS_EQUAL, rhs=0, name=f"SequenceTaskToComebackConstraint[{j}]"
             )

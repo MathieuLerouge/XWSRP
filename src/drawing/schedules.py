@@ -115,7 +115,7 @@ def create_schedules_figure(solution: Solution, figure_id: str = None,
                             [employee_index - 3 * bar_height / 2, employee_index + 3 * bar_height / 2],
                             color='darkgrey', linestyle='-')
                 elif 'End' in critical_bounds[employee.name].keys():
-                    ax.plot([sequence[0].end_time_UB, sequence[0].end_time_UB],
+                    ax.plot([sequence[0].end_time_ub, sequence[0].end_time_ub],
                             [employee_index - 3 * bar_height / 2, employee_index + 3 * bar_height / 2],
                             color='darkgrey', linestyle='-')
 

@@ -20,7 +20,7 @@ def build_employees_data(instance: Instance, language: str = LANGUAGE_ENGLISH_KE
     """
     hour_format = get_hour_format_associated_with_language(language)
     return [dict(name=employee.name, level=employee.skill_level,
-                 start=employee.get_start_time_LB(False, hour_format), end=employee.get_end_time_UB(False, hour_format))
+                 start=employee.get_start_time_lb(False, hour_format), end=employee.get_end_time_ub(False, hour_format))
             for employee in instance.employees]
 
 
@@ -36,10 +36,10 @@ def build_employees_data_conditional_style(employees_data, reference_instance: I
         [{'if': {'row_index': 'odd'}, 'backgroundColor': UI_TABLE_CELL_BACKGROUND_COLOR_BIS}]
     for row_index, employee_data in enumerate(employees_data):
         reference_employee = reference_instance.get_employee_by_name(employee_data['name'])
-        if convert_time_string_to_nb_minutes(employee_data['start']) != reference_employee.start_time_LB:
+        if convert_time_string_to_nb_minutes(employee_data['start']) != reference_employee.start_time_lb:
             employees_data_conditional_style.append({'if': {'column_id': 'start', 'row_index': row_index},
                                                      'backgroundColor': 'dodgerblue', 'color': 'white'})
-        if convert_time_string_to_nb_minutes(employee_data['end']) != reference_employee.end_time_UB:
+        if convert_time_string_to_nb_minutes(employee_data['end']) != reference_employee.end_time_ub:
             employees_data_conditional_style.append({'if': {'column_id': 'end', 'row_index': row_index},
                                                      'backgroundColor': 'dodgerblue', 'color': 'white'})
     return employees_data_conditional_style
@@ -97,7 +97,7 @@ def build_tasks_data(instance: Instance, language: str = LANGUAGE_ENGLISH_KEY):
     """
     hour_format = get_hour_format_associated_with_language(language)
     return [dict(name=task.name, level=task.skill_level, duration=task.duration,
-                 start=task.get_start_time_LB(False, hour_format), end=task.get_end_time_UB(False, hour_format))
+                 start=task.get_start_time_lb(False, hour_format), end=task.get_end_time_ub(False, hour_format))
             for task in instance.tasks]
 
 
@@ -112,10 +112,10 @@ def build_tasks_data_conditional_style(tasks_data, reference_instance: Instance)
     tasks_data_conditional_style = [{'if': {'row_index': 'odd'}, 'backgroundColor': UI_TABLE_CELL_BACKGROUND_COLOR_BIS}]
     for row_index, task_data in enumerate(tasks_data):
         reference_task = reference_instance.get_task_by_name(task_data['name'])
-        if convert_time_string_to_nb_minutes(task_data['start']) != reference_task.start_time_LB:
+        if convert_time_string_to_nb_minutes(task_data['start']) != reference_task.start_time_lb:
             tasks_data_conditional_style.append({'if': {'column_id': 'start', 'row_index': row_index},
                                                  'backgroundColor': 'dodgerblue', 'color': 'white'})
-        if convert_time_string_to_nb_minutes(task_data['end']) != reference_task.end_time_UB:
+        if convert_time_string_to_nb_minutes(task_data['end']) != reference_task.end_time_ub:
             tasks_data_conditional_style.append({'if': {'column_id': 'end', 'row_index': row_index},
                                                  'backgroundColor': 'dodgerblue', 'color': 'white'})
         if int(task_data['duration']) != reference_task.duration:

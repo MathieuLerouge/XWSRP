@@ -9,9 +9,9 @@ from src.utils.location import Location
 class AssignedActivity(Activity):
 
     # Remark: it is not possible to specify employee input type (Employee), otherwise there is a circular import
-    def __init__(self, employee, name: str, duration: int = 0, start_time_LB: int = None, end_time_UB: int = None,
+    def __init__(self, employee, name: str, duration: int = 0, start_time_lb: int = None, end_time_ub: int = None,
                  skill_level: int = 0, location: Location = None):
-        super().__init__(name, duration, start_time_LB, end_time_UB, skill_level, location)
+        super().__init__(name, duration, start_time_lb, end_time_ub, skill_level, location)
         self._employee = employee
 
     def __eq__(self, activity):

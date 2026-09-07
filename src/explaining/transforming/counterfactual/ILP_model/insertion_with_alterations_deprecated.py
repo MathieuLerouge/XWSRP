@@ -124,16 +124,16 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
 
     # TODO depending on instance_parameter_alteration_bounds
     def _add_decision_variables_Delta_employee(self):
-        self.var_D_LB_e = self._GRB_model.addVar(vtype=GRB.INTEGER, name="D_LB_e", lb=0, ub=self.employee.start_time_LB)
+        self.var_D_LB_e = self._GRB_model.addVar(vtype=GRB.INTEGER, name="D_LB_e", lb=0, ub=self.employee.start_time_lb)
         self.var_D_UB_e = self._GRB_model.addVar(vtype=GRB.INTEGER, name="D_UB_e",
-                                                 lb=0, ub=(24*60 - self.employee.end_time_UB))
+                                                 lb=0, ub=(24*60 - self.employee.end_time_ub))
 
     # TODO depending on instance_parameter_alteration_bounds
     def _add_decision_variables_Delta_tasks(self):
         self.vars_D_LB_t = self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_LB_t",
-                                                   lb=0, ub=[task.start_time_LB for task in self.candidate_tasks])
+                                                   lb=0, ub=[task.start_time_lb for task in self.candidate_tasks])
         self.vars_D_UB_t = self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_UB_t",
-                                                   lb=0, ub=[24*60 - task.end_time_UB for task in self.candidate_tasks])
+                                                   lb=0, ub=[24*60 - task.end_time_ub for task in self.candidate_tasks])
         self.vars_D_dt_t = self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_dt_t",
                                                    lb=0, ub=[task.duration for task in self.candidate_tasks])
 
@@ -241,25 +241,25 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
     def _add_time_window_constraints(self):
         for j in self._get_candidate_tasks_keys(including_task_to_insert=False):
             self._GRB_model.addLConstr(
-                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB + self.vars_D_LB_t[j],
+                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb + self.vars_D_LB_t[j],
                 sense=GRB.GREATER_EQUAL, rhs=0,
                 name=f"TimeWindowLBConstraint[{j}]"
             )
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_D_dt_t[j]
-                - self.get_candidate_task_by_key(j).end_time_UB - self.vars_D_UB_t[j],
+                - self.get_candidate_task_by_key(j).end_time_ub - self.vars_D_UB_t[j],
                 sense=GRB.LESS_EQUAL, rhs=0,
                 name=f"TimeWindowUBConstraint[{j}]"
             )
         j = self.get_task_to_insert_key()
         self._GRB_model.addLConstr(
-            self.var_T_backward - self.get_candidate_task_by_key(j).start_time_LB + self.vars_D_LB_t[j],
+            self.var_T_backward - self.get_candidate_task_by_key(j).start_time_lb + self.vars_D_LB_t[j],
             sense=GRB.GREATER_EQUAL, rhs=0,
             name=f"TimeWindowLBConstraint[{j}]"
         )
         self._GRB_model.addLConstr(
             self.var_T_forward + self.get_candidate_task_by_key(j).duration - self.vars_D_dt_t[j]
-            - self.get_candidate_task_by_key(j).end_time_UB - self.vars_D_UB_t[j],
+            - self.get_candidate_task_by_key(j).end_time_ub - self.vars_D_UB_t[j],
             sense=GRB.LESS_EQUAL, rhs=0,
             name=f"TimeWindowUBConstraint[{j}]"
         )
@@ -274,14 +274,14 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
         for k in self._get_candidate_tasks_keys(including_task_to_insert=False):
             self._GRB_model.addLConstr(
                 self.vars_T[k]
-                - self.employee.start_time_LB + self.var_D_LB_e - self.get_traveling_duration(LEAVING_HOME_KEY, k),
+                - self.employee.start_time_lb + self.var_D_LB_e - self.get_traveling_duration(LEAVING_HOME_KEY, k),
                 sense=GRB.GREATER_EQUAL, rhs=0,
                 name=f"SequenceDepartureToTaskConstraint[{k}]"
             )
         k = self.get_task_to_insert_key()
         self._GRB_model.addLConstr(
             self.var_T_backward - self.get_traveling_duration(LEAVING_HOME_KEY, k)
-            - self.employee.start_time_LB + self.var_D_LB_e,
+            - self.employee.start_time_lb + self.var_D_LB_e,
             sense=GRB.GREATER_EQUAL, rhs=0,
             name=f"SequenceDepartureToTaskConstraint[{k}]"
         )
@@ -290,7 +290,7 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_D_dt_t[j]
                 + self.get_traveling_duration(j, COMING_BACK_HOME_KEY)
-                - self.employee.end_time_UB - self.var_D_UB_e,
+                - self.employee.end_time_ub - self.var_D_UB_e,
                 sense=GRB.LESS_EQUAL, rhs=0,
                 name=f"SequenceTaskToComebackConstraint[{j}]"
             )
@@ -298,7 +298,7 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
         self._GRB_model.addLConstr(
             self.var_T_forward + self.get_candidate_task_by_key(j).duration - self.vars_D_dt_t[j]
             + self.get_traveling_duration(j, COMING_BACK_HOME_KEY)
-            - self.employee.end_time_UB - self.var_D_UB_e,
+            - self.employee.end_time_ub - self.var_D_UB_e,
             sense=GRB.LESS_EQUAL, rhs=0,
             name=f"SequenceTaskToComebackConstraint[{j}]"
         )
@@ -351,7 +351,7 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
 
     def _add_alterations_bounds_constraints_employees(self):
         self._GRB_model.addLConstr(
-            self.var_D_LB_e - self.var_X_LB_e * self.employee.start_time_LB,
+            self.var_D_LB_e - self.var_X_LB_e * self.employee.start_time_lb,
             sense=GRB.LESS_EQUAL, rhs=0,
             name=f"DepartureLBAlterationUBConstraint"
         )
@@ -361,7 +361,7 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
             name=f"EmployeeLBAlterationAndMaximumAlterationConstraint"
         )
         self._GRB_model.addLConstr(
-            self.var_D_UB_e - self.var_X_UB_e * (24 * 60 - self.employee.end_time_UB),
+            self.var_D_UB_e - self.var_X_UB_e * (24 * 60 - self.employee.end_time_ub),
             sense=GRB.LESS_EQUAL, rhs=0,
             name=f"ComebackUBAlterationUBConstraint"
         )
@@ -375,7 +375,7 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
     def _add_alterations_bounds_constraints_tasks(self):
         for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
-                self.vars_D_LB_t[j] - self.vars_X_LB_t[j] * self.get_candidate_task_by_key(j).start_time_LB,
+                self.vars_D_LB_t[j] - self.vars_X_LB_t[j] * self.get_candidate_task_by_key(j).start_time_lb,
                 sense=GRB.LESS_EQUAL, rhs=0,
                 name=f"TimeWindowLBAlterationUBConstraint[{j}]"
             )
@@ -385,7 +385,7 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
                 name=f"TimeWindowLBAlterationAndMaximumAlterationConstraint[{j}]"
             )
             self._GRB_model.addLConstr(
-                self.vars_D_UB_t[j] - self.vars_X_UB_t[j] * (24*60 - self.get_candidate_task_by_key(j).end_time_UB),
+                self.vars_D_UB_t[j] - self.vars_X_UB_t[j] * (24*60 - self.get_candidate_task_by_key(j).end_time_ub),
                 sense=GRB.LESS_EQUAL, rhs=0,
                 name=f"TimeWindowUBAlterationUBConstraint[{j}]"
             )
@@ -428,8 +428,8 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
         if self.var_X_LB_e.x == 1 or self.var_X_UB_e.x == 1:
             alterations.add_employee_change(
                 self.employee,
-                int(self.employee.start_time_LB - self.var_D_LB_e.x) if self.var_X_LB_e.x == 1 else None,
-                int(self.employee.end_time_UB + self.var_D_UB_e.x) if self.var_X_UB_e.x == 1 else None,
+                int(self.employee.start_time_lb - self.var_D_LB_e.x) if self.var_X_LB_e.x == 1 else None,
+                int(self.employee.end_time_ub + self.var_D_UB_e.x) if self.var_X_UB_e.x == 1 else None,
                 None
             )
         for task_key in self._get_candidate_tasks_keys():
@@ -439,9 +439,9 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
                 alterations.add_task_change(
                     task,
                     int(task.duration - self.vars_D_dt_t[task_key].x) if self.vars_X_dt_t[task_key].x == 1 else None,
-                    (int(task.start_time_LB - self.vars_D_LB_t[task_key].x)
+                    (int(task.start_time_lb - self.vars_D_LB_t[task_key].x)
                      if self.vars_X_LB_t[task_key].x == 1 else None),
-                    int(task.end_time_UB + self.vars_D_UB_t[task_key].x) if self.vars_X_UB_t[task_key].x == 1 else None,
+                    int(task.end_time_ub + self.vars_D_UB_t[task_key].x) if self.vars_X_UB_t[task_key].x == 1 else None,
                     None
                 )
         self._support_instance_alterations = alterations
@@ -453,13 +453,13 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
     def _extract_ordered_steps(self):
         start_times_and_steps = [
             (
-                self.employee.start_time_LB - int(self.var_D_LB_e.x),
+                self.employee.start_time_lb - int(self.var_D_LB_e.x),
                 Step(activity=Departure(employee=self.employee),
-                     start_time=self.employee.start_time_LB - int(self.var_D_LB_e.x))
+                     start_time=self.employee.start_time_lb - int(self.var_D_LB_e.x))
             ), (
-                self.employee.end_time_UB + int(self.var_D_UB_e.x),
+                self.employee.end_time_ub + int(self.var_D_UB_e.x),
                 Step(activity=ComeBack(employee=self.employee),
-                     start_time=self.employee.end_time_UB + int(self.var_D_UB_e.x))
+                     start_time=self.employee.end_time_ub + int(self.var_D_UB_e.x))
             )
         ]
         for j in self._get_candidate_tasks_keys(including_task_to_insert=False):
@@ -473,7 +473,7 @@ class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization)
         for j in self.get_unavailabilities_keys():
             unavailability = self.get_unavailability_by_key(j)
             start_times_and_steps.append(
-                (unavailability.start_time_LB, Step(activity=unavailability, start_time=unavailability.start_time_LB))
+                (unavailability.start_time_lb, Step(activity=unavailability, start_time=unavailability.start_time_lb))
             )
         start_times_and_steps.sort()
         _, first_step = start_times_and_steps[0]

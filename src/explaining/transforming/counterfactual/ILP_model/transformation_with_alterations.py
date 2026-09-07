@@ -274,11 +274,11 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
             self.var_X_LB_e = None
             self.var_X_UB_e = None
             if bounds.is_affecting_employee(employee):
-                new_start_time_LB = bounds.get_employee_start_time_LB(employee)
-                if new_start_time_LB is not None and new_start_time_LB < employee.start_time_LB:
+                new_start_time_lb = bounds.get_employee_start_time_lb(employee)
+                if new_start_time_lb is not None and new_start_time_lb < employee.start_time_lb:
                     self.var_X_LB_e = self._GRB_model.addVar(vtype=GRB.BINARY, name="X_LB_e")
-                new_end_time_UB = bounds.get_employee_end_time_UB(employee)
-                if new_end_time_UB is not None and new_end_time_UB > employee.end_time_UB:
+                new_end_time_ub = bounds.get_employee_end_time_ub(employee)
+                if new_end_time_ub is not None and new_end_time_ub > employee.end_time_ub:
                     self.var_X_UB_e = self._GRB_model.addVar(vtype=GRB.BINARY, name="X_UB_e")
 
     def _add_decision_variables_X_tasks(self):
@@ -303,12 +303,12 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
             for task in self.candidate_tasks():
                 if bounds.is_affecting_task(task):
                     task_key = create_activity_key(task)
-                    new_start_time_LB = bounds.get_task_start_time_LB(task)
-                    if new_start_time_LB is not None and new_start_time_LB < task.start_time_LB:
+                    new_start_time_lb = bounds.get_task_start_time_lb(task)
+                    if new_start_time_lb is not None and new_start_time_lb < task.start_time_lb:
                         self.vars_X_LB_t[task_key] = \
                             self._GRB_model.addVar(vtype=GRB.BINARY, name=f"X_LB_t[{task_key}]")
-                    new_end_time_UB = bounds.get_task_end_time_UB(task)
-                    if new_end_time_UB is not None and new_end_time_UB > task.end_time_UB:
+                    new_end_time_ub = bounds.get_task_end_time_ub(task)
+                    if new_end_time_ub is not None and new_end_time_ub > task.end_time_ub:
                         self.vars_X_UB_t[task_key] = \
                             self._GRB_model.addVar(vtype=GRB.BINARY, name=f"X_UB_t[{task_key}]")
                     new_duration = bounds.get_task_duration(task)
@@ -341,20 +341,20 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         employee = self.employee
         if bounds is None:
             self.var_D_LB_e = self._GRB_model.addVar(vtype=GRB.INTEGER, name="D_LB_e",
-                                                     lb=0, ub=employee.start_time_LB)
+                                                     lb=0, ub=employee.start_time_lb)
             self.var_D_UB_e = self._GRB_model.addVar(vtype=GRB.INTEGER, name="D_UB_e",
-                                                     lb=0, ub=(24 * 60 - employee.end_time_UB))
+                                                     lb=0, ub=(24 * 60 - employee.end_time_ub))
         else:
             self.var_D_LB_e = None
             self.var_D_UB_e = None
             if self.var_X_LB_e is not None:
-                new_start_time_LB = bounds.get_employee_start_time_LB(employee)
+                new_start_time_lb = bounds.get_employee_start_time_lb(employee)
                 self.var_D_LB_e = self._GRB_model.addVar(vtype=GRB.INTEGER, name="D_LB_e",
-                                                         lb=0, ub=(employee.start_time_LB - new_start_time_LB))
+                                                         lb=0, ub=(employee.start_time_lb - new_start_time_lb))
             if self.var_X_UB_e is not None:
-                new_end_time_UB = bounds.get_employee_end_time_UB(employee)
+                new_end_time_ub = bounds.get_employee_end_time_ub(employee)
                 self.var_D_UB_e = self._GRB_model.addVar(vtype=GRB.INTEGER, name="D_UB_e",
-                                                         lb=0, ub=(new_end_time_UB - employee.end_time_UB))
+                                                         lb=0, ub=(new_end_time_ub - employee.end_time_ub))
 
     def _add_decision_variables_Delta_tasks(self):
         """
@@ -367,10 +367,10 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         if bounds is None:
             self.vars_D_LB_t = \
                 self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_LB_t",
-                                        lb=0, ub=[task.start_time_LB for task in self.candidate_tasks])
+                                        lb=0, ub=[task.start_time_lb for task in self.candidate_tasks])
             self.vars_D_UB_t = \
                 self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_UB_t",
-                                        lb=0, ub=[24 * 60 - task.end_time_UB for task in self.candidate_tasks])
+                                        lb=0, ub=[24 * 60 - task.end_time_ub for task in self.candidate_tasks])
             self.vars_D_dt_t = \
                 self._GRB_model.addVars(self._get_candidate_tasks_keys(), vtype=GRB.INTEGER, name="D_dt_t",
                                         lb=0, ub=[task.duration for task in self.candidate_tasks])
@@ -381,15 +381,15 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
             for task in self.candidate_tasks():
                 task_key = create_activity_key(task)
                 if self.vars_X_LB_t[task_key] is not None:
-                    new_start_time_LB = bounds.get_task_start_time_LB(task)
+                    new_start_time_lb = bounds.get_task_start_time_lb(task)
                     self.vars_D_LB_t[task_key] = \
                         self._GRB_model.addVar(vtype=GRB.INTEGER, name=f"D_LB_t[{task_key}]",
-                                               lb=0, ub=(task.start_time_LB - new_start_time_LB))
+                                               lb=0, ub=(task.start_time_lb - new_start_time_lb))
                 if self.vars_X_UB_t[task_key] is not None:
-                    new_end_time_UB = bounds.get_task_end_time_UB(task)
+                    new_end_time_ub = bounds.get_task_end_time_ub(task)
                     self.vars_D_UB_t[task_key] = \
                         self._GRB_model.addVar(vtype=GRB.INTEGER, name=f"D_UB_t[{task_key}]",
-                                               lb=0, ub=(new_end_time_UB - task.end_time_UB))
+                                               lb=0, ub=(new_end_time_ub - task.end_time_ub))
                 if self.vars_X_dt_t[task_key] is not None:
                     new_duration = bounds.get_task_duration(task)
                     self.vars_D_dt_t[task_key] = \
@@ -609,27 +609,27 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         """
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
             self._GRB_model.addLConstr(
-                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB +
+                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb +
                 (self.vars_D_LB_t[j] if self.vars_X_LB_t[j] is not None else 0),
                 sense=GRB.GREATER_EQUAL, rhs=0, name=f"TimeWindowLBConstraint[{j}]"
             )
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
                 (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) -
-                self.get_candidate_task_by_key(j).end_time_UB -
+                self.get_candidate_task_by_key(j).end_time_ub -
                 (self.vars_D_UB_t[j] if self.vars_X_UB_t[j] is not None else 0),
                 sense=GRB.LESS_EQUAL, rhs=0, name=f"TimeWindowUBConstraint[{j}]"
             )
         j = self._pivot_task_key
         self._GRB_model.addLConstr(
-            self.var_T_backward - self.get_candidate_task_by_key(j).start_time_LB +
+            self.var_T_backward - self.get_candidate_task_by_key(j).start_time_lb +
             (self.vars_D_LB_t[j] if self.vars_X_LB_t[j] is not None else 0),
             sense=GRB.GREATER_EQUAL, rhs=0, name=f"TimeWindowLBConstraint[{j}]"
         )
         self._GRB_model.addLConstr(
             self.var_T_forward + self.get_candidate_task_by_key(j).duration -
             (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) -
-            self.get_candidate_task_by_key(j).end_time_UB -
+            self.get_candidate_task_by_key(j).end_time_ub -
             (self.vars_D_UB_t[j] if self.vars_X_UB_t[j] is not None else 0),
             sense=GRB.LESS_EQUAL, rhs=0, name=f"TimeWindowUBConstraint[{j}]"
         )
@@ -650,13 +650,13 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         # Add departure-to-first-task time sequence constraints
         for k in self._get_candidate_tasks_keys(including_pivot_task=False):
             self._GRB_model.addLConstr(
-                self.vars_T[k] - self.get_traveling_duration(LEAVING_HOME_KEY, k) - self.employee.start_time_LB +
+                self.vars_T[k] - self.get_traveling_duration(LEAVING_HOME_KEY, k) - self.employee.start_time_lb +
                 (self.var_D_LB_e if self.var_X_LB_e is not None else 0),
                 sense=GRB.GREATER_EQUAL, rhs=0, name=f"SequenceDepartureToTaskConstraint[{k}]"
             )
         k = self._pivot_task_key
         self._GRB_model.addLConstr(
-            self.var_T_backward - self.get_traveling_duration(LEAVING_HOME_KEY, k) - self.employee.start_time_LB +
+            self.var_T_backward - self.get_traveling_duration(LEAVING_HOME_KEY, k) - self.employee.start_time_lb +
             (self.var_D_LB_e if self.var_X_LB_e is not None else 0),
             sense=GRB.GREATER_EQUAL, rhs=0, name=f"SequenceDepartureToTaskConstraint[{k}]"
         )
@@ -665,7 +665,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
                 (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
-                self.get_traveling_duration(j, COMING_BACK_HOME_KEY) - self.employee.end_time_UB -
+                self.get_traveling_duration(j, COMING_BACK_HOME_KEY) - self.employee.end_time_ub -
                 (self.var_D_UB_e if self.var_X_UB_e is not None else 0),
                 sense=GRB.LESS_EQUAL, rhs=0, name=f"SequenceTaskToComebackConstraint[{j}]"
             )
@@ -673,7 +673,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         self._GRB_model.addLConstr(
             self.var_T_forward + self.get_candidate_task_by_key(j).duration -
             (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
-            self.get_traveling_duration(j, COMING_BACK_HOME_KEY) - self.employee.end_time_UB -
+            self.get_traveling_duration(j, COMING_BACK_HOME_KEY) - self.employee.end_time_ub -
             (self.var_D_UB_e if self.var_X_UB_e is not None else 0),
             sense=GRB.LESS_EQUAL, rhs=0, name=f"SequenceTaskToComebackConstraint[{j}]"
         )
@@ -736,7 +736,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         """
         if self.var_X_LB_e is not None:
             self._GRB_model.addLConstr(
-                self.var_D_LB_e - self.var_X_LB_e * self.employee.start_time_LB,
+                self.var_D_LB_e - self.var_X_LB_e * self.employee.start_time_lb,
                 sense=GRB.LESS_EQUAL, rhs=0, name=f"DepartureLBAlterationUBConstraint"
             )
             self._GRB_model.addLConstr(
@@ -745,7 +745,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
             )
         if self.var_X_UB_e is not None:
             self._GRB_model.addLConstr(
-                self.var_D_UB_e - self.var_X_UB_e * (24 * 60 - self.employee.end_time_UB),
+                self.var_D_UB_e - self.var_X_UB_e * (24 * 60 - self.employee.end_time_ub),
                 sense=GRB.LESS_EQUAL, rhs=0, name=f"ComebackUBAlterationUBConstraint"
             )
             self._GRB_model.addLConstr(
@@ -762,7 +762,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         for j in self._get_candidate_tasks_keys():
             if self.vars_X_LB_t[j] is not None:
                 self._GRB_model.addLConstr(
-                    self.vars_D_LB_t[j] - self.vars_X_LB_t[j] * self.get_candidate_task_by_key(j).start_time_LB,
+                    self.vars_D_LB_t[j] - self.vars_X_LB_t[j] * self.get_candidate_task_by_key(j).start_time_lb,
                     sense=GRB.LESS_EQUAL, rhs=0, name=f"TimeWindowLBAlterationUBConstraint[{j}]"
                 )
                 self._GRB_model.addLConstr(
@@ -772,7 +772,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
             if self.vars_X_UB_t[j] is not None:
                 self._GRB_model.addLConstr(
                     self.vars_D_UB_t[j] - self.vars_X_UB_t[j] * (
-                                24 * 60 - self.get_candidate_task_by_key(j).end_time_UB),
+                                24 * 60 - self.get_candidate_task_by_key(j).end_time_ub),
                     sense=GRB.LESS_EQUAL, rhs=0, name=f"TimeWindowUBAlterationUBConstraint[{j}]"
                 )
                 self._GRB_model.addLConstr(
@@ -832,14 +832,14 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         :return: None
         """
         alterations = InstanceChanges()
-        employee_start_time_LB_is_altered = (self.var_X_LB_e is not None) and self.var_X_LB_e.x == 1
+        employee_start_time_lb_is_altered = (self.var_X_LB_e is not None) and self.var_X_LB_e.x == 1
         employee_start_time_UB_is_altered = (self.var_X_UB_e is not None) and self.var_X_UB_e.x == 1
         # Employee parameter alterations
-        if employee_start_time_LB_is_altered or employee_start_time_UB_is_altered:
+        if employee_start_time_lb_is_altered or employee_start_time_UB_is_altered:
             alterations.add_employee_change(
                 self.employee,
-                int(self.employee.start_time_LB - self.var_D_LB_e.x) if employee_start_time_LB_is_altered else None,
-                int(self.employee.end_time_UB + self.var_D_UB_e.x) if employee_start_time_UB_is_altered else None,
+                int(self.employee.start_time_lb - self.var_D_LB_e.x) if employee_start_time_lb_is_altered else None,
+                int(self.employee.end_time_ub + self.var_D_UB_e.x) if employee_start_time_UB_is_altered else None,
                 None
             )
         # Task parameter alterations
@@ -850,9 +850,9 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
                 alterations.add_task_change(
                     task,
                     int(task.duration - self.vars_D_dt_t[task_key].x) if self.vars_X_dt_t[task_key].x == 1 else None,
-                    (int(task.start_time_LB - self.vars_D_LB_t[task_key].x)
+                    (int(task.start_time_lb - self.vars_D_LB_t[task_key].x)
                      if self.vars_X_LB_t[task_key].x == 1 else None),
-                    int(task.end_time_UB + self.vars_D_UB_t[task_key].x) if self.vars_X_UB_t[task_key].x == 1 else None,
+                    int(task.end_time_ub + self.vars_D_UB_t[task_key].x) if self.vars_X_UB_t[task_key].x == 1 else None,
                     None
                 )
         self._support_instance_alterations = alterations
@@ -876,13 +876,13 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
 
         :return: list of steps (List[Step])
         """
-        employee_start_time_LB = \
-            self.employee.start_time_LB - (int(self.var_D_LB_e.x) if self.var_X_LB_e is not None else 0)
-        employee_end_time_UB = \
-            self.employee.end_time_UB + (int(self.var_D_UB_e.x) if self.var_X_UB_e is not None else 0)
+        employee_start_time_lb = \
+            self.employee.start_time_lb - (int(self.var_D_LB_e.x) if self.var_X_LB_e is not None else 0)
+        employee_end_time_ub = \
+            self.employee.end_time_ub + (int(self.var_D_UB_e.x) if self.var_X_UB_e is not None else 0)
         start_times_and_steps = [
-            (employee_start_time_LB, Step(Departure(self.employee), start_time=employee_start_time_LB)),
-            (employee_end_time_UB, Step(ComeBack(self.employee), start_time=employee_end_time_UB))
+            (employee_start_time_lb, Step(Departure(self.employee), start_time=employee_start_time_lb)),
+            (employee_end_time_ub, Step(ComeBack(self.employee), start_time=employee_end_time_ub))
         ]
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
             if int(np.sum(
@@ -899,7 +899,7 @@ class IPModelForTransformationWithInstanceAlterations(IPModelForSequenceOptimiza
         for j in self.get_unavailabilities_keys():
             unavailability = self.get_unavailability_by_key(j)
             start_times_and_steps.append(
-                (unavailability.start_time_LB, Step(unavailability, start_time=unavailability.start_time_LB))
+                (unavailability.start_time_lb, Step(unavailability, start_time=unavailability.start_time_lb))
             )
         start_times_and_steps.sort()
         _, first_step = start_times_and_steps[0]

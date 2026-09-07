@@ -31,36 +31,36 @@ class InstanceChanges:
     def nb_employees_changes(self):
         return len(self._employees_params)
 
-    def add_employee_change(self, employee: Employee, start_time_LB: int = None, end_time_UB: int = None,
+    def add_employee_change(self, employee: Employee, start_time_lb: int = None, end_time_ub: int = None,
                             skill_level: int = None, hour_format: str = TWELVE_HOURS_FORMAT):
-        if not (start_time_LB is None and end_time_UB is None and skill_level is None):
+        if not (start_time_lb is None and end_time_ub is None and skill_level is None):
             if employee.name not in self._employees_changed_params:
                 self._employees_params[employee.name] = \
-                    dict(start_time_LB=employee.start_time_LB, end_time_UB=employee.end_time_UB,
+                    dict(start_time_lb=employee.start_time_lb, end_time_ub=employee.end_time_ub,
                          skill_level=employee.skill_level)
                 self._employees_params_as_strings[employee.name] = \
-                    dict(start_time_LB=employee.get_start_time_LB(False, hour_format),
-                         end_time_UB=employee.get_end_time_UB(False, hour_format),
+                    dict(start_time_lb=employee.get_start_time_lb(False, hour_format),
+                         end_time_ub=employee.get_end_time_ub(False, hour_format),
                          skill_level=str(employee.skill_level))
-                start_time_LB_as_string = (None if start_time_LB is None
-                                           else convert_nb_minutes_to_time_string(start_time_LB, hour_format))
-                end_time_UB_as_string = (None if end_time_UB is None
-                                         else convert_nb_minutes_to_time_string(end_time_UB, hour_format))
+                start_time_lb_as_string = (None if start_time_lb is None
+                                           else convert_nb_minutes_to_time_string(start_time_lb, hour_format))
+                end_time_ub_as_string = (None if end_time_ub is None
+                                         else convert_nb_minutes_to_time_string(end_time_ub, hour_format))
                 self._employees_changed_params[employee.name] = \
-                    dict(start_time_LB=start_time_LB, end_time_UB=end_time_UB, skill_level=skill_level)
+                    dict(start_time_lb=start_time_lb, end_time_ub=end_time_ub, skill_level=skill_level)
                 self._employees_changed_params_as_strings[employee.name] = \
-                    dict(start_time_LB=None if start_time_LB is None else start_time_LB_as_string,
-                         end_time_UB=None if end_time_UB is None else end_time_UB_as_string,
+                    dict(start_time_lb=None if start_time_lb is None else start_time_lb_as_string,
+                         end_time_ub=None if end_time_ub is None else end_time_ub_as_string,
                          skill_level=None if skill_level is None else str(skill_level))
             else:
-                if start_time_LB is not None:
-                    self._employees_changed_params[employee.name]['start_time_LB'] = start_time_LB
-                    self._employees_changed_params_as_strings[employee.name]['start_time_LB'] = \
-                        convert_nb_minutes_to_time_string(start_time_LB, hour_format)
-                if end_time_UB is not None:
-                    self._employees_changed_params[employee.name]['end_time_UB'] = end_time_UB
-                    self._employees_changed_params_as_strings[employee.name]['end_time_UB'] = \
-                        convert_nb_minutes_to_time_string(end_time_UB, hour_format)
+                if start_time_lb is not None:
+                    self._employees_changed_params[employee.name]['start_time_lb'] = start_time_lb
+                    self._employees_changed_params_as_strings[employee.name]['start_time_lb'] = \
+                        convert_nb_minutes_to_time_string(start_time_lb, hour_format)
+                if end_time_ub is not None:
+                    self._employees_changed_params[employee.name]['end_time_ub'] = end_time_ub
+                    self._employees_changed_params_as_strings[employee.name]['end_time_ub'] = \
+                        convert_nb_minutes_to_time_string(end_time_ub, hour_format)
                 if skill_level is not None:
                     self._employees_changed_params[employee.name]['skill_level'] = skill_level
                     self._employees_changed_params_as_strings[employee.name]['skill_level'] = str(skill_level)
@@ -71,17 +71,17 @@ class InstanceChanges:
     def is_affecting_employee_by_name(self, employee_name: str):
         return employee_name in self._employees_params
 
-    def get_employee_start_time_LB(self, employee: Employee):
-        return self._employees_changed_params[employee.name]['start_time_LB']
+    def get_employee_start_time_lb(self, employee: Employee):
+        return self._employees_changed_params[employee.name]['start_time_lb']
 
-    def get_employee_start_time_LB_by_name(self, employee_name: str):
-        return self._employees_changed_params[employee_name]['start_time_LB']
+    def get_employee_start_time_lb_by_name(self, employee_name: str):
+        return self._employees_changed_params[employee_name]['start_time_lb']
 
-    def get_employee_end_time_UB(self, employee: Employee):
-        return self._employees_changed_params[employee.name]['end_time_UB']
+    def get_employee_end_time_ub(self, employee: Employee):
+        return self._employees_changed_params[employee.name]['end_time_ub']
 
-    def get_employee_end_time_UB_by_name(self, employee_name: str):
-        return self._employees_changed_params[employee_name]['end_time_UB']
+    def get_employee_end_time_ub_by_name(self, employee_name: str):
+        return self._employees_changed_params[employee_name]['end_time_ub']
 
     def get_employee_skill_level(self, employee: Employee):
         return self._employees_changed_params[employee.name]['skill_level']
@@ -93,42 +93,42 @@ class InstanceChanges:
     def nb_tasks_changes(self):
         return len(self._tasks_original_params)
 
-    def add_task_change(self, task: Task, duration: int = None, start_time_LB: int = None, end_time_UB: int = None,
+    def add_task_change(self, task: Task, duration: int = None, start_time_lb: int = None, end_time_ub: int = None,
                         skill_level: int = None, hour_format: str = TWELVE_HOURS_FORMAT):
-        if not (duration is None and start_time_LB is None and end_time_UB is None and skill_level is None):
+        if not (duration is None and start_time_lb is None and end_time_ub is None and skill_level is None):
             if task.name not in self._tasks_changed_params:
                 self._tasks_original_params[task.name] = \
-                    dict(duration=task.duration, start_time_LB=task.start_time_LB,
-                         end_time_UB=task.end_time_UB, skill_level=task.skill_level)
+                    dict(duration=task.duration, start_time_lb=task.start_time_lb,
+                         end_time_ub=task.end_time_ub, skill_level=task.skill_level)
                 self._tasks_original_params_as_strings[task.name] = \
                     dict(duration=task.get_duration(as_integer=False),
-                         start_time_LB=task.get_start_time_LB(False, hour_format),
-                         end_time_UB=task.get_end_time_UB(False, hour_format),
+                         start_time_lb=task.get_start_time_lb(False, hour_format),
+                         end_time_ub=task.get_end_time_ub(False, hour_format),
                          skill_level=str(task.skill_level))
                 self._tasks_changed_params[task.name] = \
-                    dict(duration=duration, start_time_LB=start_time_LB,
-                         end_time_UB=end_time_UB, skill_level=skill_level)
-                start_time_LB_as_string = (None if start_time_LB is None
-                                           else convert_nb_minutes_to_time_string(start_time_LB, hour_format))
-                end_time_UB_as_string = (None if end_time_UB is None
-                                         else convert_nb_minutes_to_time_string(end_time_UB, hour_format))
+                    dict(duration=duration, start_time_lb=start_time_lb,
+                         end_time_ub=end_time_ub, skill_level=skill_level)
+                start_time_lb_as_string = (None if start_time_lb is None
+                                           else convert_nb_minutes_to_time_string(start_time_lb, hour_format))
+                end_time_ub_as_string = (None if end_time_ub is None
+                                         else convert_nb_minutes_to_time_string(end_time_ub, hour_format))
                 self._tasks_changed_params_as_strings[task.name] = \
                     dict(duration=None if duration is None else str(duration)+"min",
-                         start_time_LB=None if start_time_LB is None else start_time_LB_as_string,
-                         end_time_UB=None if end_time_UB is None else end_time_UB_as_string,
+                         start_time_lb=None if start_time_lb is None else start_time_lb_as_string,
+                         end_time_ub=None if end_time_ub is None else end_time_ub_as_string,
                          skill_level=None if skill_level is None else str(skill_level))
             else:
                 if duration is not None:
                     self._tasks_changed_params[task.name]['duration'] = duration
                     self._tasks_changed_params_as_strings[task.name]['duration'] = str(duration) + "min"
-                if start_time_LB is not None:
-                    self._tasks_changed_params[task.name]['start_time_LB'] = start_time_LB
-                    self._tasks_changed_params_as_strings[task.name]['start_time_LB'] = \
-                        convert_nb_minutes_to_time_string(start_time_LB, hour_format)
-                if end_time_UB is not None:
-                    self._tasks_changed_params[task.name]['end_time_UB'] = end_time_UB
-                    self._tasks_changed_params_as_strings[task.name]['end_time_UB'] = \
-                        convert_nb_minutes_to_time_string(end_time_UB, hour_format)
+                if start_time_lb is not None:
+                    self._tasks_changed_params[task.name]['start_time_lb'] = start_time_lb
+                    self._tasks_changed_params_as_strings[task.name]['start_time_lb'] = \
+                        convert_nb_minutes_to_time_string(start_time_lb, hour_format)
+                if end_time_ub is not None:
+                    self._tasks_changed_params[task.name]['end_time_ub'] = end_time_ub
+                    self._tasks_changed_params_as_strings[task.name]['end_time_ub'] = \
+                        convert_nb_minutes_to_time_string(end_time_ub, hour_format)
                 if skill_level is not None:
                     self._tasks_changed_params[task.name]['skill_level'] = skill_level
                     self._tasks_changed_params_as_strings[task.name]['skill_level'] = str(skill_level)
@@ -145,17 +145,17 @@ class InstanceChanges:
     def get_task_duration_by_name(self, task_name: str):
         return self._tasks_changed_params[task_name]['duration']
 
-    def get_task_start_time_LB(self, task: Task):
-        return self._tasks_changed_params[task.name]['start_time_LB']
+    def get_task_start_time_lb(self, task: Task):
+        return self._tasks_changed_params[task.name]['start_time_lb']
 
-    def get_task_start_time_LB_by_name(self, task_name: str):
-        return self._tasks_changed_params[task_name]['start_time_LB']
+    def get_task_start_time_lb_by_name(self, task_name: str):
+        return self._tasks_changed_params[task_name]['start_time_lb']
 
-    def get_task_end_time_UB(self, task: Task):
-        return self._tasks_changed_params[task.name]['end_time_UB']
+    def get_task_end_time_ub(self, task: Task):
+        return self._tasks_changed_params[task.name]['end_time_ub']
 
-    def get_task_end_time_UB_by_name(self, task_name: str):
-        return self._tasks_changed_params[task_name]['end_time_UB']
+    def get_task_end_time_ub_by_name(self, task_name: str):
+        return self._tasks_changed_params[task_name]['end_time_ub']
 
     def get_task_skill_level(self, task: Task):
         return self._tasks_changed_params[task.name]['skill_level']
@@ -167,16 +167,16 @@ class InstanceChanges:
         hour_format = get_hour_format_associated_with_language(language)
         changes_texts = []
         if check_if_language_is_english(language):
-            employee_parameters_names = dict(start_time_LB="earliest working time", end_time_UB="latest working time",
+            employee_parameters_names = dict(start_time_lb="earliest working time", end_time_ub="latest working time",
                                              skill_level="skill level")
-            task_parameters_names = dict(start_time_LB="earliest start time", end_time_UB="latest end time",
+            task_parameters_names = dict(start_time_lb="earliest start time", end_time_ub="latest end time",
                                          duration="duration", skill_level="skill level")
         elif check_if_language_is_french(language):
-            employee_parameters_names = dict(start_time_LB="heure de début de journée travail",
-                                             end_time_UB="heure de fin de journée de travail",
+            employee_parameters_names = dict(start_time_lb="heure de début de journée travail",
+                                             end_time_ub="heure de fin de journée de travail",
                                              skill_level="niveau de compétence level")
-            task_parameters_names = dict(start_time_LB="heure de début de disponibilité",
-                                         end_time_UB="heure de fin de disponibilité",
+            task_parameters_names = dict(start_time_lb="heure de début de disponibilité",
+                                         end_time_ub="heure de fin de disponibilité",
                                          duration="durée", skill_level="niveau de compétence exigée")
         else:
             raise NotImplementedError(f"Language {language} is not supported")
@@ -189,7 +189,7 @@ class InstanceChanges:
                                f"to {value} instead of {self._employees_params_as_strings[employee_name][parameter]}"
                     elif check_if_language_is_french(language):
                         original_value = self._employees_params_as_strings[employee_name][parameter]
-                        if parameter == 'start_time_LB' or parameter == 'end_time_UB':
+                        if parameter == 'start_time_lb' or parameter == 'end_time_ub':
                             value = convert_time_string_in_given_format(value, hour_format)
                             original_value = convert_time_string_in_given_format(original_value, hour_format)
                         text = f"{'La donnée' if starting_with_uppercase else 'la donnée'} " \
@@ -207,7 +207,7 @@ class InstanceChanges:
                                f"to {value} instead of {self._tasks_original_params_as_strings[task_name][parameter]}"
                     elif check_if_language_is_french(language):
                         original_value = self._tasks_original_params_as_strings[task_name][parameter]
-                        if parameter == 'start_time_LB' or parameter == 'end_time_UB':
+                        if parameter == 'start_time_lb' or parameter == 'end_time_ub':
                             value = convert_time_string_in_given_format(value, hour_format)
                             original_value = convert_time_string_in_given_format(original_value, hour_format)
                         text = f"{'La donnée' if starting_with_uppercase else 'la donnée'} " \

@@ -51,11 +51,11 @@ class IPModelForInsertion3(IPModelForCategory3):
         self.var_T_backward.start = \
             max(step_before_insertion.end_time +
                 self._sequence.instance.compute_traveling_duration(activity_before_insertion, inserted_task),
-                inserted_task.start_time_LB)
+                inserted_task.start_time_lb)
         self.var_T_forward.start = min(
             step_after_insertion.start_time -
             self._sequence.instance.compute_traveling_duration(inserted_task, activity_after_insertion),
-            inserted_task.end_time_UB
+            inserted_task.end_time_ub
         ) - inserted_task.duration
         # Set values for spatial variables
         for indices in self.vars_U.keys():

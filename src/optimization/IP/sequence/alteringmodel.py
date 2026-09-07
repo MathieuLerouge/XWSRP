@@ -307,7 +307,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
         # Add time windows lower bound constraints
         for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
-                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB + self.vars_Delta_at[j],
+                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb + self.vars_Delta_at[j],
                 sense=GRB.GREATER_EQUAL, rhs=0,
                 name=f"TimeWindowLBConstraint[{j}]"
             )
@@ -320,7 +320,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
         # Add time windows upper bound constraints
         for j in self._get_candidate_tasks_keys():
             self._GRB_model.addLConstr(
-                self.vars_T[j] - self.get_candidate_task_by_key(j).end_time_UB - self.vars_Delta_dt[j]
+                self.vars_T[j] - self.get_candidate_task_by_key(j).end_time_ub - self.vars_Delta_dt[j]
                 + self.get_candidate_task_by_key(j).duration - self.vars_Delta_bt[j],
                 sense=GRB.LESS_EQUAL, rhs=0,
                 name=f"TimeWindowUBConstraint[{j}]"
@@ -351,7 +351,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
             self._GRB_model.addLConstr(
                 self.vars_T[k]
                 - self.vars_U[(LEAVING_HOME_KEY, k)]
-                * (self.employee.start_time_LB + self.get_traveling_duration(LEAVING_HOME_KEY, k))
+                * (self.employee.start_time_lb + self.get_traveling_duration(LEAVING_HOME_KEY, k))
                 + self.var_Delta_ae,
                 sense=GRB.GREATER_EQUAL, rhs=0,
                 name=f"SequenceDepartureToTaskConstraint[{k}]"
@@ -367,9 +367,9 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_Delta_dt[j]
                 - self.vars_U[(j, COMING_BACK_HOME_KEY)]
-                * (self.employee.end_time_UB - self.get_traveling_duration(j, COMING_BACK_HOME_KEY))
+                * (self.employee.end_time_ub - self.get_traveling_duration(j, COMING_BACK_HOME_KEY))
                 - self.var_Delta_be
-                - (1 - self.vars_U[(j, COMING_BACK_HOME_KEY)]) * self.get_candidate_task_by_key(j).end_time_UB,
+                - (1 - self.vars_U[(j, COMING_BACK_HOME_KEY)]) * self.get_candidate_task_by_key(j).end_time_ub,
                 sense=GRB.LESS_EQUAL, rhs=0,
                 name=f"SequenceTaskToComebackConstraint[{j}]"
             )
@@ -386,7 +386,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
                     self._GRB_model.addLConstr(
                         self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_Delta_dt[j]
                         + self.vars_U[(j, k)] * self.get_traveling_duration(j, k)
-                        - self.vars_T[k] - (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_UB,
+                        - self.vars_T[k] - (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub,
                         sense=GRB.LESS_EQUAL, rhs=0,
                         name=f"SequenceTaskToTaskConstraint[{j, k}]"
                     )
@@ -397,8 +397,8 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
                 self._GRB_model.addLConstr(
                     self.vars_T[j] + self.get_candidate_task_by_key(j).duration - self.vars_Delta_dt[j]
                     + self.vars_U[(j, k)] * self.get_traveling_duration(j, k)
-                    - self.get_unavailability_by_key(k).start_time_LB - self.vars_Delta_au[k]
-                    - (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_UB,
+                    - self.get_unavailability_by_key(k).start_time_lb - self.vars_Delta_au[k]
+                    - (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub,
                     sense=GRB.LESS_EQUAL, rhs=0,
                     name=f"SequenceTaskToUnavailabilityConstraint[{j, k}]"
                 )
@@ -413,10 +413,10 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
         for j in self.get_unavailabilities_keys():
             for k in self._get_candidate_tasks_keys():
                 self._GRB_model.addLConstr(
-                    self.get_unavailability_by_key(j).end_time_UB
+                    self.get_unavailability_by_key(j).end_time_ub
                     + self.vars_U[(j, k)] * self.get_traveling_duration(j, k)
                     - self.vars_Delta_bu[j] - self.vars_T[k]
-                    - (1 - self.vars_U[(j, k)]) * self.get_unavailability_by_key(j).end_time_UB,
+                    - (1 - self.vars_U[(j, k)]) * self.get_unavailability_by_key(j).end_time_ub,
                     sense=GRB.LESS_EQUAL, rhs=0,
                     name=f"SequenceUnavailabilityToTaskConstraint[{j, k}]"
                 )
@@ -434,9 +434,9 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
                     self._GRB_model.addLConstr(
                         self.vars_U[(j, k)],
                         sense=GRB.LESS_EQUAL,
-                        rhs=int(self.get_unavailability_by_key(j).end_time_UB +
+                        rhs=int(self.get_unavailability_by_key(j).end_time_ub +
                                 self.get_traveling_duration(j, k) <=
-                                self.get_unavailability_by_key(k).start_time_LB),
+                                self.get_unavailability_by_key(k).start_time_lb),
                         name=f"SequenceUnavailabilityToUnavailabilityConstraint[{j, k}]"
                     )
 
@@ -474,11 +474,11 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
         altered_employee = self._altered_instance.get_employee_by_name(self.employee.name)
         start_times_and_steps = [
             (
-                altered_employee.start_time_LB,
-                Step(activity=Departure(employee=altered_employee), start_time=altered_employee.start_time_LB)
+                altered_employee.start_time_lb,
+                Step(activity=Departure(employee=altered_employee), start_time=altered_employee.start_time_lb)
             ), (
-                altered_employee.end_time_UB,
-                Step(activity=ComeBack(employee=altered_employee), start_time=altered_employee.end_time_UB)
+                altered_employee.end_time_ub,
+                Step(activity=ComeBack(employee=altered_employee), start_time=altered_employee.end_time_ub)
             )
         ]
         for j in self._get_candidate_tasks_keys():
@@ -492,7 +492,7 @@ class IPModelForAlteringSequence(IPModelForSequenceOptimization):
         for j in self.get_unavailabilities_keys():
             unavailability = self.get_unavailability_by_key(j, altered=True)
             start_times_and_steps.append(
-                (unavailability.start_time_LB, Step(activity=unavailability, start_time=unavailability.start_time_LB))
+                (unavailability.start_time_lb, Step(activity=unavailability, start_time=unavailability.start_time_lb))
             )
         start_times_and_steps.sort()
         return [step for _, step in start_times_and_steps]

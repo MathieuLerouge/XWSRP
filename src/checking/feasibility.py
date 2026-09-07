@@ -64,18 +64,18 @@ def check_time_windows_constraints(solution: Solution):
                                  f"{task.TWs.as_string()}. {LINE_BREAK_STRING}"
             # - Employee
             employee = solution.get_task_assignee(task)
-            if start_time < employee.start_time_LB:
+            if start_time < employee.start_time_lb:
                 satisfaction = False
                 checking_text += f"In the provided solution, the task {task.name} is supposed to be performed over " \
                                  f"{TimeInterval(start_time, end_time)} by employee {employee.name} " \
                                  f"while he/she must start working at " \
-                                 f"{convert_nb_minutes_to_time_string(employee.start_time_LB)}.{LINE_BREAK_STRING}"
-            if employee.end_time_UB < end_time:
+                                 f"{convert_nb_minutes_to_time_string(employee.start_time_lb)}.{LINE_BREAK_STRING}"
+            if employee.end_time_ub < end_time:
                 satisfaction = False
                 checking_text += f"In the provided solution, the task {task.name} is supposed to be performed over "\
                                  f"{TimeInterval(start_time, end_time)} by employee {employee.name} "\
                                  f"while he/she must end working at "\
-                                 f"{convert_nb_minutes_to_time_string(employee.end_time_UB)}."\
+                                 f"{convert_nb_minutes_to_time_string(employee.end_time_ub)}."\
                                  f"{LINE_BREAK_STRING}"
             for unavailability in employee.unavailabilities:
                 if unavailability.TWs[0].contain(start_time) or unavailability.TWs[0].contain(end_time):
@@ -126,7 +126,7 @@ def check_sequence_constraints(solution: Solution, tolerance_in_minutes: int = 0
             # Check start-to-first-step sequence (if first step is a task)
             first_step = sequence[1]
             if isinstance(first_step.activity, Task):
-                if sequence[0].start_time < employee.start_time_LB - tolerance_in_minutes:
+                if sequence[0].start_time < employee.start_time_lb - tolerance_in_minutes:
                     satisfaction = False
                     checking_text += f"In the provided solution, {employee.name} is supposed to perform " \
                                      f"the task {first_step.activity.name} at " \
@@ -134,7 +134,7 @@ def check_sequence_constraints(solution: Solution, tolerance_in_minutes: int = 0
                                      f"which means that he/she is supposed to leave their initial location at " \
                                      f"{convert_nb_minutes_to_time_string(sequence[0].start_time)}. " \
                                      f"However, he/she must not start to work before " \
-                                     f"{convert_nb_minutes_to_time_string(employee.start_time_LB)}." \
+                                     f"{convert_nb_minutes_to_time_string(employee.start_time_lb)}." \
                                      f"{LINE_BREAK_STRING}"
 
             # Check step-to-step sequence (including unavailabilities)
@@ -173,7 +173,7 @@ def check_sequence_constraints(solution: Solution, tolerance_in_minutes: int = 0
             # Check last-step-to-end sequence (if last step is a task)
             last_step = sequence[-2]
             if isinstance(last_step.activity, Task):
-                if sequence[-1].arrival_time > employee.end_time_UB + tolerance_in_minutes:
+                if sequence[-1].arrival_time > employee.end_time_ub + tolerance_in_minutes:
                     satisfaction = False
                     checking_text += f"In the provided solution, {employee.name} is supposed perform " \
                                      f"{last_step.activity.name} at " \
@@ -182,7 +182,7 @@ def check_sequence_constraints(solution: Solution, tolerance_in_minutes: int = 0
                                      f"which means that he/she is supposed to be at his/her final location at " \
                                      f"{convert_nb_minutes_to_time_string(sequence[-1].arrival_time)}. " \
                                      f"However, {employee.name} must end to work no later than " \
-                                     f"{convert_nb_minutes_to_time_string(employee.end_time_UB)}." \
+                                     f"{convert_nb_minutes_to_time_string(employee.end_time_ub)}." \
                                      f"{LINE_BREAK_STRING}"
 
     if not satisfaction:

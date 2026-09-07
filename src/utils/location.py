@@ -1,25 +1,27 @@
-#! /usr/bin/env python3
-# coding: utf-8
-
-
 # Third party library
 import numpy as np
 
 
 # Global variables
-COORDINATES_TOLERANCE = 0.00000001
+COORDINATES_TOLERANCE = 1e-8
 EARTH_RADIUS_IN_KM = 6371
 
 
-# Class Location
+############
+# Location #
+############
+
 class Location:
+    """
+    A point defined by either geographic (latitude/longitude) or cartesian (x/y) coordinates.
+    """
 
     def __init__(self, first_coordinate=None, second_coordinate=None, is_geographic=True):
-        """Create a location defined given either geographic coordinates or cartesian coordinates
-
-        :param first_coordinate: latitude in degrees, if coordinates are geographic; x in km otherwise (float)
-        :param second_coordinate: longitude in degrees, if coordinates are geographic; y in km otherwise (float)
-        :param is_geographic: True if _coordinates are geographic, False otherwise (bool)
+        """
+        Args:
+            first_coordinate: Latitude in degrees if is_geographic, x in km otherwise. None for an empty location.
+            second_coordinate: Longitude in degrees if is_geographic, y in km otherwise. None for an empty location.
+            is_geographic: True if the coordinates are geographic, False if they're cartesian.
         """
         self._is_geographic = True
         self._coordinates = None
@@ -30,20 +32,52 @@ class Location:
                 self._coordinates = self._coordinates * np.pi / 180
 
     def __eq__(self, location):
-        return np.isclose(self._coordinates, location.coordinates, atol=COORDINATES_TOLERANCE)
+        """
+        Returns whether both locations' coordinates are within COORDINATES_TOLERANCE of each other.
+
+        Two empty locations are considered equal; an empty location is never equal to a non-empty one.
+        """
+        if not isinstance(location, Location):
+            return False
+        elif self.is_empty() or location.is_empty():
+            return self.is_empty() and location.is_empty()
+        else:
+            self_coordinates = self._coordinates
+            other_coordinates = location.coordinates
+            assert self_coordinates is not None and other_coordinates is not None
+            return bool(np.all(np.isclose(self_coordinates, other_coordinates, atol=COORDINATES_TOLERANCE)))
 
     @property
     def coordinates(self):
+        """The raw coordinate array, or None if this location is empty."""
         return self._coordinates
 
     @property
     def latitude(self):
+        """
+        Latitude in radians.
+
+        Raises:
+            ValueError: If this location isn't geographic.
+        """
         if self.is_geographic():
             return self.coordinates[0]
         else:
             raise ValueError("This location is not geographic")
 
     def get_latitude(self, radians=True):
+        """
+        Returns the latitude, in radians or degrees.
+
+        Args:
+            radians: If True, return the latitude in radians. If False, in degrees.
+
+        Returns:
+            The latitude.
+
+        Raises:
+            ValueError: If this location isn't geographic.
+        """
         if radians:
             return self.latitude
         else:
@@ -51,33 +85,61 @@ class Location:
 
     @property
     def longitude(self):
+        """
+        Longitude in radians.
+
+        Raises:
+            ValueError: If this location isn't geographic.
+        """
         if self.is_geographic():
             return self.coordinates[1]
         else:
             raise ValueError("This location is not geographic")
 
     def get_longitude(self, radians=True):
+        """
+        Returns the longitude, in radians or degrees.
+
+        Args:
+            radians: If True, return the longitude in radians. If False, in degrees.
+
+        Returns:
+            The longitude.
+
+        Raises:
+            ValueError: If this location isn't geographic.
+        """
         if radians:
             return self.longitude
         else:
             return np.rad2deg(self.longitude)
 
     def is_empty(self):
+        """Returns whether this location has no coordinates."""
         return self._coordinates is None
 
     def is_geographic(self):
+        """Returns whether this location's coordinates are geographic (latitude/longitude)."""
         return self._is_geographic
 
     def is_cartesian(self):
+        """Returns whether this location's coordinates are cartesian (x/y)."""
         return not self.is_geographic()
 
     def distance_to(self, location):
         """
-        Compute the distance between two locations
-        NB: the distance is in km
+        Returns the distance, in km, to another location.
 
-        :param location: the location to which the distance is computed (Location)
-        :return:
+        Args:
+            location: Location to compute the distance to. Must be non-empty and use the same
+                coordinate system (geographic or cartesian) as this location.
+
+        Returns:
+            The distance in km.
+
+        Raises:
+            ValueError: If either location is empty, or if the two locations don't use the same
+                coordinate system.
         """
         if self.is_empty():
             raise ValueError("this location is empty")
@@ -101,23 +163,29 @@ class Location:
 
 
 def compute_cartesian_distance(coordinates1, coordinates2):
-    """Compute the distance between two pairs of cartesian coordinates
+    """
+    Returns the Euclidean distance, in km, between two pairs of cartesian (x, y) coordinates.
 
-    :param coordinates1: array (numpy.array or list) of two cartesian coordinates (float)
-    :param coordinates2: array (numpy.array or list) of two cartesian coordinates (float)
-    :returns: distance in km (float)
+    Args:
+        coordinates1: First pair of cartesian coordinates, in km (numpy.array or list of float).
+        coordinates2: Second pair of cartesian coordinates, in km (numpy.array or list of float).
+
+    Returns:
+        The distance in km.
     """
     return np.linalg.norm(coordinates2 - coordinates1, 2)
 
 
 def compute_geographic_distance(coordinates1, coordinates2):
-    """Compute the distance between two pairs of geographic coordinates
+    """
+    Returns the great-circle distance, in km, between two pairs of geographic coordinates.
 
-    :param coordinates1: array (numpy.array or list) of two geographic coordinates (float),
-    (coordinates[0] is a latitude in radians, coordinates[1] is a longitude in radians)
-    :param coordinates2: array (numpy.array or list) of two geographic coordinates (float),
-    (coordinates[0] is a latitude in radians, coordinates[1] is a longitude in radians)
-    :returns: distance in km (float)
+    Args:
+        coordinates1: First (latitude, longitude) pair, in radians (numpy.array or list of float).
+        coordinates2: Second (latitude, longitude) pair, in radians (numpy.array or list of float).
+
+    Returns:
+        The distance in km.
     """
     if np.equal(coordinates1, coordinates2).all():
         return 0
@@ -125,31 +193,6 @@ def compute_geographic_distance(coordinates1, coordinates2):
         return EARTH_RADIUS_IN_KM * np.arccos(
             min(1.0,
                 np.sin(coordinates1[0]) * np.sin(coordinates2[0]) +
-                np.cos(coordinates1[0]) * np.cos(coordinates2[0]) * np.cos(coordinates2[1]-coordinates1[1])
+                np.cos(coordinates1[0]) * np.cos(coordinates2[0]) * np.cos(coordinates2[1] - coordinates1[1])
                 )
         )
-
-
-def main():
-
-    # Create geographic locations
-    example_geographic_location1 = Location(44.556549383420084, -0.31939224223757195)
-    example_geographic_location2 = Location(44.967500952177986, -0.6086852638150881)
-    print(example_geographic_location1)
-    print(example_geographic_location2)
-    print(example_geographic_location1.distance_to(example_geographic_location2))
-
-    # Create cartesian locations
-    example_cartesian_location1 = Location(1, 0, is_geographic=False)
-    example_cartesian_location2 = Location(1, 1, is_geographic=False)
-    print(example_cartesian_location1)
-    print(example_cartesian_location2)
-    print(example_cartesian_location1.distance_to(example_cartesian_location2))
-
-    # Create empty location
-    example_empty_location = Location()
-    print(example_empty_location)
-
-
-if __name__ == '__main__':
-    main()

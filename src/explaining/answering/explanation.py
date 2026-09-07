@@ -810,10 +810,10 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
             earliest_end_time = convert_nb_minutes_to_time_string(earliest_end_time, hour_format)
             if self.language_is_english:
                 text += f"{employee.name} can end {task.name} at the earliest at {earliest_end_time}. " \
-                        f"However, {task.name} must be ended by {task.get_end_time_UB(False, hour_format)}. "
+                        f"However, {task.name} must be ended by {task.get_end_time_ub(False, hour_format)}. "
             elif self.language_is_french:
                 text += f"{employee.name} peut terminer {task.name} au plus tôt à {earliest_end_time}. " \
-                        f"Cependant, {task.name} doit être terminée avant {task.get_end_time_UB(False, hour_format)}. "
+                        f"Cependant, {task.name} doit être terminée avant {task.get_end_time_ub(False, hour_format)}. "
 
         # - Part of the text about time conflict at task with downstream steps (if downstream-infeasible)
         else:
@@ -831,29 +831,29 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
             downstream_critical_activity = sequence[downstream_critical_step_index].activity
             if step_index == sequence.nb_steps - 2:
                 if self.language_is_english:
-                    text += f"{employee.name} can then be at home by {employee.get_end_time_UB(False, hour_format)}. "
+                    text += f"{employee.name} can then be at home by {employee.get_end_time_ub(False, hour_format)}. "
                 elif self.language_is_french:
                     text += f"permettre à {employee.name} d'être de retour à son domicile " \
-                            f"avant {employee.get_end_time_UB(False, hour_format)}. "
+                            f"avant {employee.get_end_time_ub(False, hour_format)}. "
             elif downstream_critical_step_index == sequence.nb_steps - 1:
                 if self.language_is_english:
                     text += f"{employee.name} can perform all the {self._activities} from {task.name} to home " \
-                            f"and be back at home by {employee.get_end_time_UB(False, hour_format)}. "
+                            f"and be back at home by {employee.get_end_time_ub(False, hour_format)}. "
                 elif self.language_is_french:
                     text += f"permettre à {employee.name} de réaliser toutes les {self._activities} à partir de " \
                             f"{task.name} et d'être de retour à son domicile avant " \
-                            f"{employee.get_end_time_UB(False, hour_format)}. "
+                            f"{employee.get_end_time_ub(False, hour_format)}. "
             elif downstream_critical_step_index < sequence.nb_steps - 1:
                 if self.language_is_english:
                     text += f"{employee.name} can perform all the {self._activities} from {task.name} " \
                             f"to {downstream_critical_activity.name} " \
                             f"and end {downstream_critical_activity.name} " \
-                            f"by {downstream_critical_activity.get_end_time_UB(False, hour_format)}. "
+                            f"by {downstream_critical_activity.get_end_time_ub(False, hour_format)}. "
                 elif self.language_is_french:
                     text += f"permettre à {employee.name} de réaliser toutes les {self._activities} de {task.name} " \
                             f"jusque {downstream_critical_activity.name} " \
                             f"et terminer {downstream_critical_activity.name} " \
-                            f"avant {downstream_critical_activity.get_end_time_UB(False, hour_format)}. "
+                            f"avant {downstream_critical_activity.get_end_time_ub(False, hour_format)}. "
             else:
                 raise ValueError(f"There is something wrong with the downstream critical step index which value is "
                                  f"{downstream_critical_step_index} while the one of the step index is {step_index} "

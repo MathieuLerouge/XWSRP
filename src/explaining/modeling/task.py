@@ -6,9 +6,9 @@ from src.utils.location import Location
 # Class Task
 class EditableTask(Task):
 
-    def __init__(self, name: str, duration: int, start_time_LB: int, end_time_UB: int,
+    def __init__(self, name: str, duration: int, start_time_lb: int, end_time_ub: int,
                  skill_level: int, location: Location):
-        super().__init__(name, duration, start_time_LB, end_time_UB, skill_level, location)
+        super().__init__(name, duration, start_time_lb, end_time_ub, skill_level, location)
 
     @property
     def duration(self):
@@ -19,20 +19,20 @@ class EditableTask(Task):
         self._duration = duration
 
     @property
-    def start_time_LB(self):
-        return self._start_time_LB
+    def start_time_lb(self):
+        return self._start_time_lb
 
-    @start_time_LB.setter
-    def start_time_LB(self, start_time_LB: int):
-        self._start_time_LB = start_time_LB
+    @start_time_lb.setter
+    def start_time_lb(self, start_time_lb: int):
+        self._start_time_lb = start_time_lb
 
     @property
-    def end_time_UB(self):
-        return self._end_time_UB
+    def end_time_ub(self):
+        return self._end_time_ub
 
-    @end_time_UB.setter
-    def end_time_UB(self, end_time_UB: int):
-        self._end_time_UB = end_time_UB
+    @end_time_ub.setter
+    def end_time_ub(self, end_time_ub: int):
+        self._end_time_ub = end_time_ub
 
     @property
     def skill_level(self):

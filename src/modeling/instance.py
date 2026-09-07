@@ -105,7 +105,7 @@ class Instance:
 
     @property
     def total_employees_availability_duration(self):
-        return sum([employee.end_time_UB - employee.start_time_LB for employee in self.employees])
+        return sum([employee.end_time_ub - employee.start_time_lb for employee in self.employees])
 
     def get_employee_by_name(self, employee_name: str) -> Employee:
         try:
@@ -116,11 +116,11 @@ class Instance:
     def get_employees_with_skill_level_higher_than(self, skill_level: int):
         return [employee for employee in self.employees if employee.skill_level >= skill_level]
 
-    def add_employee(self, name: str, start_time_LB: int, end_time_UB: int, location: Location, skill_level: int):
+    def add_employee(self, name: str, start_time_lb: int, end_time_ub: int, location: Location, skill_level: int):
         if name in self._employees.keys():
             raise ValueError(f"The given employee {name} is already among the employees of this instance")
         else:
-            self._employees[name] = Employee(name, start_time_LB, end_time_UB, location, skill_level)
+            self._employees[name] = Employee(name, start_time_lb, end_time_ub, location, skill_level)
 
     @property
     def has_employee_unavailabilities(self):
@@ -152,12 +152,12 @@ class Instance:
         except KeyError:
             raise ValueError(f"The given task's name {task_name} is not one of the tasks' names")
 
-    def add_task(self, name: str, duration: int, start_time_LB: int, end_time_UB: int,
+    def add_task(self, name: str, duration: int, start_time_lb: int, end_time_ub: int,
                  skill_level: int, location: Location):
         if name in self._tasks.keys():
             raise ValueError(f"The given task {name} is already among the tasks of the instance")
         else:
-            self._tasks[name] = Task(name, duration, start_time_LB, end_time_UB, skill_level, location)
+            self._tasks[name] = Task(name, duration, start_time_lb, end_time_ub, skill_level, location)
 
     @property
     def has_task_unavailabilities(self):
@@ -295,14 +295,14 @@ class Instance:
         instance_name = self._name + "_copy" if name is None else name
         instance = Instance(instance_name, self._speed)
         for employee in self.employees:
-            instance.add_employee(employee.name, employee.start_time_LB, employee.end_time_UB,
+            instance.add_employee(employee.name, employee.start_time_lb, employee.end_time_ub,
                                   employee.location, employee.skill_level)
             employee_copy = instance.get_employee_by_name(employee.name)
             for unavailability in employee.unavailabilities:
-                employee_copy.add_unavailability(unavailability.location, unavailability.start_time_LB,
-                                                 unavailability.end_time_UB)
+                employee_copy.add_unavailability(unavailability.location, unavailability.start_time_lb,
+                                                 unavailability.end_time_ub)
         for task in self.tasks:
-            instance.add_task(task.name, task.duration, task.start_time_LB, task.end_time_UB,
+            instance.add_task(task.name, task.duration, task.start_time_lb, task.end_time_ub,
                               task.skill_level, task.location)
         instance.update()
         return instance
@@ -364,15 +364,15 @@ class Instance:
                       'employees': dict(), 'tasks': dict()}
         for employee in self.employees:
             dictionary['employees'][employee.name] = {
-                'availability': {'start_time': convert_nb_minutes_to_time_string(employee.start_time_LB),
-                                 'end_time': convert_nb_minutes_to_time_string(employee.end_time_UB)},
+                'availability': {'start_time': convert_nb_minutes_to_time_string(employee.start_time_lb),
+                                 'end_time': convert_nb_minutes_to_time_string(employee.end_time_ub)},
                 'location': {'latitude': employee.location.latitude, 'longitude': employee.location.longitude},
                 'skill level': employee.skill_level
             }
         for task in self.tasks:
             dictionary['tasks'][task.name] = {
-                'availability': {'start_time': convert_nb_minutes_to_time_string(task.start_time_LB),
-                                 'end_time': convert_nb_minutes_to_time_string(task.end_time_UB)},
+                'availability': {'start_time': convert_nb_minutes_to_time_string(task.start_time_lb),
+                                 'end_time': convert_nb_minutes_to_time_string(task.end_time_ub)},
                 'location': {'latitude': task.location.latitude, 'longitude': task.location.longitude},
                 'duration': task.duration, 'skill level': task.skill_level
             }

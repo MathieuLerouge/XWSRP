@@ -11,9 +11,9 @@ from src.utils.location import Location
 # Class Task
 class Task(Activity):
 
-    def __init__(self, name: str, duration: int, start_time_LB: int, end_time_UB: int,
+    def __init__(self, name: str, duration: int, start_time_lb: int, end_time_ub: int,
                  skill_level: int, location: Location):
-        super().__init__(name, duration, start_time_LB, end_time_UB, skill_level, location)
+        super().__init__(name, duration, start_time_lb, end_time_ub, skill_level, location)
 
     def __eq__(self, task):
         if isinstance(task, Task) and task.name == self.name:

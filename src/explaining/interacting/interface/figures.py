@@ -158,12 +158,12 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                     label = f"{employee.name}'s home<br><br> "
                     description = f"<b>{employee.name}</b> <br>" \
                                   f"Skill level: {employee.skill_level} <br>" \
-                                  f"WH: {employee.TW.as_string(hour_format)}"
+                                  f"WH: {employee.time_window.as_string(hour_format)}"
                 elif check_if_language_is_french(language):
                     label = f"Domicile de {employee.name}<br><br> "
                     description = f"<b>{employee.name}</b> <br>" \
                                   f"Niveau : {employee.skill_level} <br>" \
-                                  f"Horaires de l'employé : <br>{employee.TW.as_string(hour_format)}"
+                                  f"Horaires de l'employé : <br>{employee.time_window.as_string(hour_format)}"
                 else:
                     raise ValueError(f"Unknown language: {language}")
                 # NB: Scattermapbox can not handle marker symbol other than circles
@@ -286,7 +286,7 @@ def create_home_description_in_schedules_figure(activity: Activity, time_as_stri
             raise TypeError(f"The activity {activity} must either a Departure or a ComeBack")
         return (f"<b>{text_first_line}</b><br>"
                 f"Time: <b>{time_as_string}</b><br>"
-                f"Employee working hours: {activity.employee.TW.as_string(hour_format)}<br>")
+                f"Employee working hours: {activity.employee.time_window.as_string(hour_format)}<br>")
     elif check_if_language_is_french(language):
         if isinstance(activity, Departure):
             text_first_line = "Départ domicile"
@@ -296,7 +296,7 @@ def create_home_description_in_schedules_figure(activity: Activity, time_as_stri
             raise TypeError(f"The activity {activity} must either a Departure or a ComeBack")
         return (f"<b>{text_first_line}</b><br>"
                 f"Heure : <b>{time_as_string}</b><br>"
-                f"Horaires de l'employé : <br>{activity.employee.TW.as_string(hour_format)}<br>")
+                f"Horaires de l'employé : <br>{activity.employee.time_window.as_string(hour_format)}<br>")
     else:
         raise ValueError(f"Unknown language: {language}")
 
@@ -396,7 +396,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                 int(np.ceil(solution.compute_traveling_duration(before_conflict_step, conflict_step)))
             conflict_activity = conflict_step.activity
             conflict_step_earliest_start_time = max(before_conflict_step.end_time + traveling_duration,
-                                                    conflict_activity.start_time_LB)
+                                                    conflict_activity.start_time_lb)
             assert (conflict_step_earliest_start_time ==
                     infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task)
             conflict_step_earliest_start_time = infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task
@@ -423,7 +423,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
             traveling_duration = \
                 int(np.ceil(solution.compute_traveling_duration(conflict_step, after_conflict_step)))
             conflict_step_latest_end_time = min(after_conflict_step.start_time - traveling_duration,
-                                                conflict_activity.end_time_UB)
+                                                conflict_activity.end_time_ub)
             conflict_step_latest_start_time = conflict_step_latest_end_time - conflict_activity.duration
             assert (conflict_step_latest_start_time ==
                     infeasibility.latest_downstream_feasible_start_time_of_conflicting_task)
@@ -516,16 +516,16 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
             downstream_critical_bound_y_suffix = "2"
             if infeasibility.solution_is_upstream_feasible:
                 if not infeasibility.solution_is_downstream_feasible:
-                    if conflict_step_earliest_start_time == conflicting_task.start_time_LB:
+                    if conflict_step_earliest_start_time == conflicting_task.start_time_lb:
                         upstream_critical_step_index = conflict_index
             else:
                 if infeasibility.solution_is_downstream_feasible:
-                    if conflict_step_latest_end_time == conflicting_task.end_time_UB:
+                    if conflict_step_latest_end_time == conflicting_task.end_time_ub:
                         downstream_critical_step_index = conflict_index
             upstream_critical_step = sequence[upstream_critical_step_index]
-            upstream_critical_bound = upstream_critical_step.activity.start_time_LB
+            upstream_critical_bound = upstream_critical_step.activity.start_time_lb
             downstream_critical_step = sequence[downstream_critical_step_index]
-            downstream_critical_bound = downstream_critical_step.activity.end_time_UB
+            downstream_critical_bound = downstream_critical_step.activity.end_time_ub
             if check_if_language_is_english(language):
                 lower_bound_text = f"Yielding <b>lower bound</b><br>" \
                                    f"of <b>{upstream_critical_step.activity.name}</b> availability<br>time window"

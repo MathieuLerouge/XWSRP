@@ -26,8 +26,8 @@ class Sequence:
         self._instance = instance
         self._employee = employee
         if steps is None:
-            steps = [Step(Departure(employee), employee.start_time_LB, employee.start_time_LB, employee.start_time_LB),
-                     Step(ComeBack(employee), employee.start_time_LB, employee.start_time_LB, employee.start_time_LB)]
+            steps = [Step(Departure(employee), employee.start_time_lb, employee.start_time_lb, employee.start_time_lb),
+                     Step(ComeBack(employee), employee.start_time_lb, employee.start_time_lb, employee.start_time_lb)]
         self._steps = steps
         self._KPIs = dict()
 
@@ -260,7 +260,7 @@ class Sequence:
                 step.arrival_time += self._instance.lunch_break_duration
             step.end_time = step.start_time + step.activity.duration
         if update_coming_back_times:
-            if self._steps[-1].arrival_time <= self.employee.end_time_UB:
+            if self._steps[-1].arrival_time <= self.employee.end_time_ub:
                 self._steps[-1].start_time = self._steps[-1].arrival_time
                 self._steps[-1].end_time = self._steps[-1].start_time
 

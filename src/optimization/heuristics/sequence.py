@@ -21,10 +21,10 @@ class SequenceForHeuristics(Sequence):
         super().__init__(instance, employee, None)
         if steps is None:
             steps = \
-                [StepForHeuristics(Departure(employee), employee.start_time_LB,
-                                   employee.start_time_LB, employee.start_time_LB),
-                 StepForHeuristics(ComeBack(employee), employee.start_time_LB,
-                                   employee.start_time_LB, employee.start_time_LB)]
+                [StepForHeuristics(Departure(employee), employee.start_time_lb,
+                                   employee.start_time_lb, employee.start_time_lb),
+                 StepForHeuristics(ComeBack(employee), employee.start_time_lb,
+                                   employee.start_time_lb, employee.start_time_lb)]
         self._steps = steps
         self.update_time_slacks()
 
@@ -183,13 +183,13 @@ class SequenceForHeuristics(Sequence):
         :param step_index: (int)
         """
         if step_index == 0:
-            self[0].BTS = self[0].start_time - self.employee.start_time_LB
+            self[0].BTS = self[0].start_time - self.employee.start_time_lb
             step_index += 1
         for previous_step_index in range(step_index - 1, self.nb_steps - 1):
             step = self[previous_step_index + 1]
             previous_step = self[previous_step_index]
             step.BTS = min(
-                step.start_time - step.activity.start_time_LB,
+                step.start_time - step.activity.start_time_lb,
                 step.start_time - (previous_step.start_time - previous_step.BTS + previous_step.activity.duration +
                                    self.instance.compute_traveling_duration(previous_step.activity, step.activity))
             )
@@ -203,13 +203,13 @@ class SequenceForHeuristics(Sequence):
         :param step_index: (int)
         """
         if step_index == self.nb_steps - 1:
-            self[-1].FTS = self.employee.end_time_UB - self[-1].start_time
+            self[-1].FTS = self.employee.end_time_ub - self[-1].start_time
             step_index -= 1
         for next_step_index in range(step_index + 1, 0, -1):
             step = self[next_step_index - 1]
             next_step = self[next_step_index]
             step.FTS = min(
-                step.activity.end_time_UB - (step.start_time + step.activity.duration),
+                step.activity.end_time_ub - (step.start_time + step.activity.duration),
                 next_step.start_time + next_step.FTS -
                 (step.start_time + step.activity.duration +
                  self.instance.compute_traveling_duration(step.activity, next_step.activity))
@@ -292,14 +292,14 @@ class SequenceForHeuristics(Sequence):
     #     traveling_duration_from_step_before_placement_to_entering_task = \
     #         self.instance.compute_traveling_duration(step_before.activity, entering_task)
     #     earliest_start_time_of_entering_task = max(
-    #         entering_task.start_time_LB,
+    #         entering_task.start_time_lb,
     #         step_before.start_time - step_before.BTS + step_before.activity.duration +
     #         traveling_duration_from_step_before_placement_to_entering_task
     #     )
     #     traveling_duration_from_entering_task_to_step_after_placement = \
     #         self.instance.compute_traveling_duration(entering_task, step_after.activity)
     #     latest_start_time_of_entering_task = min(
-    #         entering_task.end_time_UB,
+    #         entering_task.end_time_ub,
     #         step_after.start_time + step_after.FTS -
     #         traveling_duration_from_entering_task_to_step_after_placement
     #     ) - entering_task.duration
@@ -315,8 +315,8 @@ class SequenceForHeuristics(Sequence):
     #     # Compute two booleans indicating whether the entering task can be placed while guaranteeing
     #     # the consistency of the times of respectively the upstream and the downstream portions of the sequence
     #     upstream_portion_is_feasible = (earliest_start_time_of_entering_task + entering_task.duration <=
-    #                                     entering_task.end_time_UB)
-    #     downstream_portion_is_feasible = (latest_start_time_of_entering_task >= entering_task.start_time_LB)
+    #                                     entering_task.end_time_ub)
+    #     downstream_portion_is_feasible = (latest_start_time_of_entering_task >= entering_task.start_time_lb)
     #     is_feasible = (
     #             upstream_portion_is_feasible and downstream_portion_is_feasible and
     #             earliest_start_time_of_entering_task < latest_start_time_of_entering_task
@@ -396,14 +396,14 @@ class SequenceForHeuristics(Sequence):
         traveling_duration_from_step_before_insertion_to_entering_task = \
             self.instance.compute_traveling_duration(step_before.activity, task)
         earliest_start_time_of_entering_task = max(
-            task.start_time_LB,
+            task.start_time_lb,
             step_before.start_time - step_before.BTS + step_before.activity.duration +
             traveling_duration_from_step_before_insertion_to_entering_task
         )
         traveling_duration_from_entering_task_to_step_after_insertion = \
             self.instance.compute_traveling_duration(task, step_after.activity)
         latest_start_time_of_entering_task = min(
-            task.end_time_UB,
+            task.end_time_ub,
             step_after.start_time + step_after.FTS -
             traveling_duration_from_entering_task_to_step_after_insertion
         ) - task.duration
@@ -416,12 +416,12 @@ class SequenceForHeuristics(Sequence):
         # Compute two booleans indicating whether the entering task can be inserted while guaranteeing
         # the consistency of the times of respectively the upstream and the downstream portions of the sequence
         upstream_portion_is_feasible = (earliest_start_time_of_entering_task + task.duration <=
-                                        task.end_time_UB)
-        downstream_portion_is_feasible = (latest_start_time_of_entering_task >= task.start_time_LB)
+                                        task.end_time_ub)
+        downstream_portion_is_feasible = (latest_start_time_of_entering_task >= task.start_time_lb)
         if upstream_portion_is_feasible:
             late = max(earliest_start_time_of_entering_task - latest_start_time_of_entering_task, 0)
         else:
-            late = earliest_start_time_of_entering_task + task.duration - task.end_time_UB
+            late = earliest_start_time_of_entering_task + task.duration - task.end_time_ub
         is_time_feasible = upstream_portion_is_feasible and downstream_portion_is_feasible and late == 0
 
         # Initialize the artificial start times
@@ -679,14 +679,14 @@ class SequenceForHeuristics(Sequence):
         traveling_duration_from_step_before_insertion_to_entering_task = \
             self.instance.compute_traveling_duration(step_before.activity, replacing_task)
         earliest_start_time_of_entering_task = max(
-            replacing_task.start_time_LB,
+            replacing_task.start_time_lb,
             step_before.start_time - step_before.BTS + step_before.activity.duration +
             traveling_duration_from_step_before_insertion_to_entering_task
         )
         traveling_duration_from_entering_task_to_step_after_insertion = \
             self.instance.compute_traveling_duration(replacing_task, step_after.activity)
         latest_start_time_of_entering_task = min(
-            replacing_task.end_time_UB,
+            replacing_task.end_time_ub,
             step_after.start_time + step_after.FTS -
             traveling_duration_from_entering_task_to_step_after_insertion
         ) - replacing_task.duration
@@ -700,12 +700,12 @@ class SequenceForHeuristics(Sequence):
         # Compute two booleans indicating whether the entering task can be inserted while guaranteeing
         # the consistency of the times of respectively the upstream and the downstream portions of the sequence
         upstream_portion_is_feasible = (earliest_start_time_of_entering_task + replacing_task.duration <=
-                                        replacing_task.end_time_UB)
-        downstream_portion_is_feasible = (latest_start_time_of_entering_task >= replacing_task.start_time_LB)
+                                        replacing_task.end_time_ub)
+        downstream_portion_is_feasible = (latest_start_time_of_entering_task >= replacing_task.start_time_lb)
         if upstream_portion_is_feasible:
             late = max(earliest_start_time_of_entering_task - latest_start_time_of_entering_task, 0)
         else:
-            late = earliest_start_time_of_entering_task + replacing_task.duration - replacing_task.end_time_UB
+            late = earliest_start_time_of_entering_task + replacing_task.duration - replacing_task.end_time_ub
         is_time_feasible = upstream_portion_is_feasible and downstream_portion_is_feasible and late == 0
 
         # Initialize the artificial start times
@@ -1056,7 +1056,7 @@ class SequenceForHeuristics(Sequence):
         :return: the index of the first critical step found
         """
         step = self[step_index]
-        while step.BTS < step.start_time - step.activity.start_time_LB:
+        while step.BTS < step.start_time - step.activity.start_time_lb:
             step_index -= 1
             step = self[step_index]
         return step_index
@@ -1073,7 +1073,7 @@ class SequenceForHeuristics(Sequence):
         :return: the index of the first critical step found
         """
         step = self[step_index]
-        while step.FTS < step.activity.end_time_UB - (step.start_time + step.activity.duration):
+        while step.FTS < step.activity.end_time_ub - (step.start_time + step.activity.duration):
             step_index += 1
             step = self[step_index]
         return step_index

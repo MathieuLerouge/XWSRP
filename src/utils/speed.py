@@ -6,11 +6,17 @@ KM_PER_H_STRING = 'km/h'
 
 def convert_speed_to_m_per_s(speed: float, unit: str):
     """
-    Convert a speed in another unit to m/s
+    Converts a speed from the given unit to m/s.
 
-    :param speed: speed in the given unit (float)
-    :param unit: unit of the speed (str)
-    :return: speed in m/s (float)
+    Args:
+        speed: Speed value expressed in unit.
+        unit: Unit speed is currently expressed in.
+
+    Returns:
+        The speed converted to m/s.
+
+    Raises:
+        ValueError: If unit isn't a known speed unit.
     """
     if unit == M_PER_S_STRING:
         return speed
@@ -19,16 +25,22 @@ def convert_speed_to_m_per_s(speed: float, unit: str):
     elif unit == KM_PER_H_STRING:
         return speed * 1000 / 3600
     else:
-        raise ValueError("Unknown unit: " + unit)
+        raise ValueError(f"Unknown unit: {unit}")
 
 
 def convert_speed_in_m_per_s(speed: float, unit: str):
     """
-    Convert a speed in m/s to another unit
+    Converts a speed from m/s to the given unit.
 
-    :param speed: speed in m/s (float)
-    :param unit: unit to convert to (str)
-    :return: speed in the given unit (float)
+    Args:
+        speed: Speed value expressed in m/s.
+        unit: Unit to convert the speed to.
+
+    Returns:
+        The speed converted to unit.
+
+    Raises:
+        ValueError: If unit isn't a known speed unit.
     """
     if unit == M_PER_S_STRING:
         return speed
@@ -37,17 +49,23 @@ def convert_speed_in_m_per_s(speed: float, unit: str):
     elif unit == KM_PER_H_STRING:
         return speed * 3600 / 1000
     else:
-        raise ValueError("Unknown unit: " + unit)
+        raise ValueError(f"Unknown unit: {unit}")
 
 
 def convert_speed_from_to(speed: float, unit_from: str, unit_to: str):
     """
-    Convert a speed in a unit to another unit
+    Converts a speed from one unit to another.
 
-    :param speed: speed in the given unit (float)
-    :param unit_from: unit of the speed (str)
-    :param unit_to: unit to convert to (str)
-    :return: speed in the given unit (float)
+    Args:
+        speed: Speed value expressed in unit_from.
+        unit_from: Unit speed is currently expressed in.
+        unit_to: Unit to convert the speed to.
+
+    Returns:
+        The speed converted to unit_to.
+
+    Raises:
+        ValueError: If unit_from or unit_to isn't a known speed unit.
     """
     if unit_from == unit_to:
         return speed

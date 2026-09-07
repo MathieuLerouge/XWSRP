@@ -101,7 +101,7 @@ class IPModelForSequencePrescribing(IPModelForSequenceOptimization):
                     [self.vars_U[(j, k)]
                      for k in self.get_activities_keys(including_departure=False, including_comeback=True)
                      if k != j]
-                ) * self.get_candidate_task_by_key(j).start_time_LB,
+                ) * self.get_candidate_task_by_key(j).start_time_lb,
                 sense=GRB.GREATER_EQUAL, rhs=0,
                 name=f"TimeWindowLBConstraint[{j}]"
             )
@@ -109,7 +109,7 @@ class IPModelForSequencePrescribing(IPModelForSequenceOptimization):
         # Add time windows lower bounds constraints for prescribed tasks
         for j in self.get_prescribed_tasks_keys():
             self._GRB_model.addLConstr(
-                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB,
+                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb,
                 sense=GRB.GREATER_EQUAL, rhs=0,
                 name=f"TimeWindowLBConstraint[{j}]"
             )
@@ -121,7 +121,7 @@ class IPModelForSequencePrescribing(IPModelForSequenceOptimization):
                     [self.vars_U[(j, k)]
                      for k in self.get_activities_keys(including_departure=False, including_comeback=True)
                      if k != j]
-                ) * (self.get_candidate_task_by_key(j).end_time_UB - self.get_candidate_task_by_key(j).duration),
+                ) * (self.get_candidate_task_by_key(j).end_time_ub - self.get_candidate_task_by_key(j).duration),
                 sense=GRB.LESS_EQUAL, rhs=0,
                 name=f"TimeWindowUBConstraint[{j}]"
             )
@@ -130,7 +130,7 @@ class IPModelForSequencePrescribing(IPModelForSequenceOptimization):
         for j in self.get_prescribed_tasks_keys():
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration
-                - self.get_candidate_task_by_key(j).end_time_UB,
+                - self.get_candidate_task_by_key(j).end_time_ub,
                 sense=GRB.LESS_EQUAL, rhs=0,
                 name=f"TimeWindowUBConstraint[{j}]"
             )

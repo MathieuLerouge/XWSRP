@@ -96,8 +96,8 @@ if GUROBI_IS_ENABLED:
                 sequence = support_solution.get_sequence(key_employee)
                 upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(step_index - 1)
                 downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(step_index + 1)
-                upstream_feasible = earliest_start_time_for_upstream + key_task.duration <= key_task.end_time_UB
-                downstream_feasible = latest_start_time_for_downstream >= key_task.start_time_LB
+                upstream_feasible = earliest_start_time_for_upstream + key_task.duration <= key_task.end_time_ub
+                downstream_feasible = latest_start_time_for_downstream >= key_task.start_time_lb
                 infeasibility = TimeInfeasibility(
                     key_employee, key_task, upstream_feasible, downstream_feasible,
                     earliest_start_time_for_upstream, latest_start_time_for_downstream,

@@ -275,17 +275,17 @@ class Solution:
                 sequence.insert(index + 1,
                                 Step(activity=task, start_time=start_time, end_time=start_time + task.duration))
             sequence[-1] = Step(activity=ComeBack(employee=employee),
-                                start_time=employee.end_time_UB, end_time=employee.end_time_UB)
+                                start_time=employee.end_time_ub, end_time=employee.end_time_ub)
 
             # Add employee's unavailabilities
             for unavailability in employee.unavailabilities:
                 insertion_index = len(sequence) - 1
                 for j, step in enumerate(sequence.get_steps(index_start=1, index_end=-1)):
-                    if unavailability.start_time_LB < step.start_time:
+                    if unavailability.start_time_lb < step.start_time:
                         insertion_index = j + 1
                         break
-                step = Step(activity=unavailability, start_time=unavailability.start_time_LB,
-                            end_time=unavailability.end_time_UB)
+                step = Step(activity=unavailability, start_time=unavailability.start_time_lb,
+                            end_time=unavailability.end_time_ub)
                 sequence.insert(insertion_index, step)
 
             self._sequences[employee.name] = sequence
@@ -368,10 +368,10 @@ class Solution:
 
             # Case where the employee does not move
             if len(sequence) == 2:
-                sequence[0].arrival_time = employee.start_time_LB
+                sequence[0].arrival_time = employee.start_time_lb
                 sequence[0].start_time = sequence[0].arrival_time
                 sequence[0].end_time = sequence[0].arrival_time
-                sequence[1].arrival_time = employee.start_time_LB + lunch_break_duration
+                sequence[1].arrival_time = employee.start_time_lb + lunch_break_duration
                 sequence[1].start_time = sequence[1].arrival_time
                 sequence[1].end_time = sequence[1].arrival_time
 
@@ -434,12 +434,12 @@ class Solution:
     def compute_sequences_based_on_ordered_tasks(self, ordered_tasks: dict[str, list[str]]):
         for employee_name in ordered_tasks:
             employee = self.instance.get_employee_by_name(employee_name)
-            steps = [Step(Departure(employee), employee.start_time_LB, employee.start_time_LB, employee.start_time_LB)]
+            steps = [Step(Departure(employee), employee.start_time_lb, employee.start_time_lb, employee.start_time_lb)]
             for task_name in ordered_tasks[employee_name]:
                 task = self._instance.get_task_by_name(task_name)
                 start_time = self.get_task_start_time(task)
                 steps.append(Step(task, start_time=start_time, end_time=start_time + task.duration))
-            steps.append(Step(ComeBack(employee), start_time=employee.end_time_UB, end_time=employee.end_time_UB))
+            steps.append(Step(ComeBack(employee), start_time=employee.end_time_ub, end_time=employee.end_time_ub))
             self._sequences[employee_name] = Sequence(self._instance, employee, steps)
         self._compute_departure_and_comeback_times()
         self._compute_steps_arrival_times()

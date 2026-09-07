@@ -56,8 +56,8 @@ def complete_instance_from_xlsx_file(instance: Instance, file_path: str,
     for _, employee_data in instance_data['Employees'].iterrows():
         instance.add_employee(
             name=employee_data['EmployeeName'],
-            start_time_LB=convert_time_string_to_nb_minutes(employee_data['WorkingStartTime']),
-            end_time_UB=convert_time_string_to_nb_minutes(employee_data['WorkingEndTime']),
+            start_time_lb=convert_time_string_to_nb_minutes(employee_data['WorkingStartTime']),
+            end_time_ub=convert_time_string_to_nb_minutes(employee_data['WorkingEndTime']),
             location=Location(employee_data['Latitude'], employee_data['Longitude']),
             skill_level=employee_data['Level']
         )
@@ -79,8 +79,8 @@ def complete_instance_from_xlsx_file(instance: Instance, file_path: str,
     for _, task_data in instance_data['Tasks'].iterrows():
         instance.add_task(
             name=task_data['TaskId'],
-            start_time_LB=convert_time_string_to_nb_minutes(task_data['OpeningTime']),
-            end_time_UB=convert_time_string_to_nb_minutes(task_data['ClosingTime']),
+            start_time_lb=convert_time_string_to_nb_minutes(task_data['OpeningTime']),
+            end_time_ub=convert_time_string_to_nb_minutes(task_data['ClosingTime']),
             duration=int(task_data['TaskDuration']),
             location=Location(
                 first_coordinate=task_data['Latitude'],
@@ -150,8 +150,8 @@ def extract_instance_from_xlsx_file(file_path: str, ignore_employees_unavailabil
     for _, employee_data in instance_data['Employees'].iterrows():
         instance.add_employee(
             name=employee_data['EmployeeName'],
-            start_time_LB=convert_time_string_to_nb_minutes(employee_data['WorkingStartTime']),
-            end_time_UB=convert_time_string_to_nb_minutes(employee_data['WorkingEndTime']),
+            start_time_lb=convert_time_string_to_nb_minutes(employee_data['WorkingStartTime']),
+            end_time_ub=convert_time_string_to_nb_minutes(employee_data['WorkingEndTime']),
             location=Location(employee_data['Latitude'], employee_data['Longitude']),
             skill_level=employee_data['Level']
         )
@@ -173,8 +173,8 @@ def extract_instance_from_xlsx_file(file_path: str, ignore_employees_unavailabil
     for _, task_data in instance_data['Tasks'].iterrows():
         instance.add_task(
             name=task_data['TaskId'],
-            start_time_LB=convert_time_string_to_nb_minutes(task_data['OpeningTime']),
-            end_time_UB=convert_time_string_to_nb_minutes(task_data['ClosingTime']),
+            start_time_lb=convert_time_string_to_nb_minutes(task_data['OpeningTime']),
+            end_time_ub=convert_time_string_to_nb_minutes(task_data['ClosingTime']),
             duration=int(task_data['TaskDuration']),
             location=Location(
                 first_coordinate=task_data['Latitude'],

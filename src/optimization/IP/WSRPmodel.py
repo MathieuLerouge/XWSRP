@@ -345,14 +345,14 @@ class WSRPIPModel:
                 # Lower bound on task's performance time
                 self._model.addLConstr(
                     self.vars_T[j],
-                    sense=GRB.GREATER_EQUAL, rhs=self._data.get_task_by_index(j).start_time_LB,
+                    sense=GRB.GREATER_EQUAL, rhs=self._data.get_task_by_index(j).start_time_lb,
                     name=f"TaskTWLBConstraint[{j}]"
                 )
 
                 # Upper bound on task's performance time
                 self._model.addLConstr(
                     self.vars_T[j] + self._data.get_task_by_index(j).duration,
-                    sense=GRB.LESS_EQUAL, rhs=self._data.get_task_by_index(j).end_time_UB,
+                    sense=GRB.LESS_EQUAL, rhs=self._data.get_task_by_index(j).end_time_ub,
                     name=f"TaskTWUBConstraint[{j}]"
                 )
 
@@ -423,7 +423,7 @@ class WSRPIPModel:
         for k in self._data.tasks_indices:
             self._model.addLConstr(
                 grb.quicksum([self.vars_U[(i, LEAVING_HOME_INDEX, k, n)] * (
-                                self._data.get_employee_by_index(i).start_time_LB +
+                                self._data.get_employee_by_index(i).start_time_lb +
                                 self._data.get_traveling_duration(i, LEAVING_HOME_INDEX, k)) +
                               (0 if not self.is_considering_lunch_break else
                                self.vars_V[(i, LEAVING_HOME_INDEX, k)] * self._data.instance.lunch_break_duration)
@@ -442,7 +442,7 @@ class WSRPIPModel:
                                   (0 if not self.is_considering_lunch_break else
                                    self.vars_V[(i, LEAVING_HOME_INDEX, k)] * self._data.instance.lunch_break_duration)
                                   for n in self._data.get_hyp_activities_TW_indices(i, LEAVING_HOME_INDEX)]) -
-                    self._data.get_hyp_activity_by_indices(i, k).start_time_LB,
+                    self._data.get_hyp_activity_by_indices(i, k).start_time_lb,
                     sense=GRB.LESS_EQUAL, rhs=0,
                     name=f"DepartureToFirstTaskIfUnavailabilityTimeSequenceConstraint[{i},{k}]"
                 )
@@ -456,12 +456,12 @@ class WSRPIPModel:
                             grb.quicksum([self.vars_U[(i, j, k, n)] 
                                           for n in self._data.get_hyp_activities_TW_indices(i, j)]) * 
                             (self._data.get_task_by_index(j).duration + self._data.get_traveling_duration(i, j, k) +
-                             self._data.get_task_by_index(j).end_time_UB) +
+                             self._data.get_task_by_index(j).end_time_ub) +
                             (0 if not self.is_considering_lunch_break else
                              self.vars_V[(i, j, k)] * self._data.instance.lunch_break_duration)
                             for i in self._data.employees_indices
                         ]) - self.vars_T[k],
-                        sense=GRB.LESS_EQUAL, rhs=self._data.get_task_by_index(j).end_time_UB,
+                        sense=GRB.LESS_EQUAL, rhs=self._data.get_task_by_index(j).end_time_ub,
                         name=f"TaskToTaskTimeSequenceConstraint[{j},{k}]"
                     )
         # Task-to-unavailability time sequence
@@ -473,12 +473,12 @@ class WSRPIPModel:
                         grb.quicksum([self.vars_U[(i, j, k, n)]
                                       for n in self._data.get_hyp_activities_TW_indices(i, j)]) *
                         (self._data.get_task_by_index(j).duration + self._data.get_traveling_duration(i, j, k) +
-                         self._data.get_task_by_index(j).end_time_UB) +
+                         self._data.get_task_by_index(j).end_time_ub) +
                         (0 if not self.is_considering_lunch_break else
                          self.vars_V[(i, j, k)] * self._data.instance.lunch_break_duration),
                         sense=GRB.LESS_EQUAL,
-                        rhs=(self._data.get_employee_unavailability_by_indices(i, k).start_time_LB +
-                             self._data.get_task_by_index(j).end_time_UB),
+                        rhs=(self._data.get_employee_unavailability_by_indices(i, k).start_time_lb +
+                             self._data.get_task_by_index(j).end_time_ub),
                         name=f"TaskToUnavailabilityTimeSequenceConstraint[{i},{j},{k}]"
                     )
         # Unavailability-to-task time sequence
@@ -488,7 +488,7 @@ class WSRPIPModel:
                     self._model.addLConstr(
                         grb.quicksum([self.vars_U[(i, j, k, n)]
                                       for n in self._data.get_hyp_activities_TW_indices(i, j)]) *
-                        (self._data.get_employee_unavailability_by_indices(i, j).end_time_UB +
+                        (self._data.get_employee_unavailability_by_indices(i, j).end_time_ub +
                          self._data.get_traveling_duration(i, j, k)) +
                         (0 if not self.is_considering_lunch_break else
                          self.vars_V[(i, j, k)] * self._data.instance.lunch_break_duration) -
@@ -504,11 +504,11 @@ class WSRPIPModel:
                         self._model.addLConstr(
                             grb.quicksum([self.vars_U[(i, j, k, n)]
                                           for n in self._data.get_hyp_activities_TW_indices(i, j)]) *
-                            (self._data.get_employee_unavailability_by_indices(i, j).end_time_UB +
+                            (self._data.get_employee_unavailability_by_indices(i, j).end_time_ub +
                              self._data.get_traveling_duration(i, j, k)) +
                             (0 if not self.is_considering_lunch_break else
                              self.vars_V[(i, j, k)] * self._data.instance.lunch_break_duration) -
-                            self._data.get_employee_unavailability_by_indices(i, k).start_time_LB,
+                            self._data.get_employee_unavailability_by_indices(i, k).start_time_lb,
                             sense=GRB.LESS_EQUAL, rhs=0,
                             name=f"UnavailabilityToUnavailabilityTimeSequenceConstraint[{i},{j},{k}]"
                         )
@@ -521,12 +521,12 @@ class WSRPIPModel:
                                   for n in self._data.get_hyp_activities_TW_indices(i, j)]) *
                     (self._data.get_task_by_index(j).duration +
                      self._data.get_traveling_duration(i, j, COMING_BACK_HOME_INDEX) +
-                     self._data.get_task_by_index(j).end_time_UB - self._data.get_employee_by_index(i).end_time_UB) +
+                     self._data.get_task_by_index(j).end_time_ub - self._data.get_employee_by_index(i).end_time_ub) +
                     (0 if not self.is_considering_lunch_break else
                      self.vars_V[(i, j, COMING_BACK_HOME_INDEX)] * self._data.instance.lunch_break_duration)
                     for i in self._data.employees_indices
                 ]),
-                sense=GRB.LESS_EQUAL, rhs=self._data.get_task_by_index(j).end_time_UB,
+                sense=GRB.LESS_EQUAL, rhs=self._data.get_task_by_index(j).end_time_ub,
                 name=f"TaskToComebackTimeSequenceConstraint[{j}]"
             )
         # # Last-task-if-unavailability-to-comeback time sequence
@@ -539,8 +539,8 @@ class WSRPIPModel:
                         if k != j:
                             self._model.addLConstr(
                                 self.vars_T[j] + self._data.get_task_by_index(j).duration - self.vars_L[i] +
-                                self.vars_V[(i, j, k)] * self._data.get_task_by_index(j).end_time_UB,
-                                sense=GRB.LESS_EQUAL, rhs=self._data.get_task_by_index(j).end_time_UB,
+                                self.vars_V[(i, j, k)] * self._data.get_task_by_index(j).end_time_ub,
+                                sense=GRB.LESS_EQUAL, rhs=self._data.get_task_by_index(j).end_time_ub,
                                 name=f"TaskBeforeLunchTimeSequenceConstraint[{i},{j},{k}]"
                             )
         # Unavailability-before-lunch time sequence
@@ -551,7 +551,7 @@ class WSRPIPModel:
                         if j != k:
                             self._model.addLConstr(
                                 (self.vars_V[(i, j, k)] *
-                                 self._data.get_employee_unavailability_by_indices(i, j).end_time_UB - self.vars_L[i]),
+                                 self._data.get_employee_unavailability_by_indices(i, j).end_time_ub - self.vars_L[i]),
                                 sense=GRB.LESS_EQUAL, rhs=0,
                                 name=f"UnavailabilityBeforeLunchTimeSequenceConstraint[{i},{j},{k}]"
                             )
@@ -577,7 +577,7 @@ class WSRPIPModel:
                         if j != k:
                             self._model.addLConstr(
                                 self.vars_L[i] + self._data.instance.lunch_break_duration -
-                                self._data.get_employee_unavailability_by_indices(i, k).start_time_LB +
+                                self._data.get_employee_unavailability_by_indices(i, k).start_time_lb +
                                 self.vars_V[(i, j, k)] * self._data.instance.lunch_break_time_UB,
                                 sense=GRB.LESS_EQUAL, rhs=self._data.instance.lunch_break_time_UB,
                                 name=f"UnavailabilityAfterLunchTimeSequenceConstraint[{i},{j},{k}]"

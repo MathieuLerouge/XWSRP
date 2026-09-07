@@ -7,14 +7,14 @@ from src.utils.timeset import TimeInterval, TimeIntervalUnion
 # Class Activity
 class Activity:
 
-    def __init__(self, name: str, duration: int = 0, start_time_LB: int = None, end_time_UB: int = None,
+    def __init__(self, name: str, duration: int = 0, start_time_lb: int = None, end_time_ub: int = None,
                  skill_level: int = 0, location: Location = None):
         self._name = name
         self._employee = None
         self._duration = duration
-        self._start_time_LB = start_time_LB
-        self._end_time_UB = end_time_UB
-        self._TWs = TimeIntervalUnion([TimeInterval(lower_bound=start_time_LB, upper_bound=end_time_UB)])
+        self._start_time_lb = start_time_lb
+        self._end_time_ub = end_time_ub
+        self._TWs = TimeIntervalUnion([TimeInterval(lower_bound=start_time_lb, upper_bound=end_time_ub)])
         self._skill_level = skill_level
         self._location = location
 
@@ -37,24 +37,24 @@ class Activity:
             return str(self._duration) + "min"
 
     @property
-    def start_time_LB(self):
-        return self._start_time_LB
+    def start_time_lb(self):
+        return self._start_time_lb
 
-    def get_start_time_LB(self, as_integer: bool = True, hour_format: str = TWELVE_HOURS_FORMAT):
+    def get_start_time_lb(self, as_integer: bool = True, hour_format: str = TWELVE_HOURS_FORMAT):
         if as_integer:
-            return self._start_time_LB
+            return self._start_time_lb
         else:
-            return convert_nb_minutes_to_time_string(self._start_time_LB, hour_format)
+            return convert_nb_minutes_to_time_string(self._start_time_lb, hour_format)
 
     @property
-    def end_time_UB(self):
-        return self._end_time_UB
+    def end_time_ub(self):
+        return self._end_time_ub
 
-    def get_end_time_UB(self, as_integer: bool = True, hour_format: str = TWELVE_HOURS_FORMAT):
+    def get_end_time_ub(self, as_integer: bool = True, hour_format: str = TWELVE_HOURS_FORMAT):
         if as_integer:
-            return self._end_time_UB
+            return self._end_time_ub
         else:
-            return convert_nb_minutes_to_time_string(self._end_time_UB, hour_format)
+            return convert_nb_minutes_to_time_string(self._end_time_ub, hour_format)
 
     @property
     def TWs(self):

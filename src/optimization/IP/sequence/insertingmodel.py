@@ -82,7 +82,7 @@ class IPModelForSequenceInserting(IPModelForSequenceOptimization):
         # Add time windows lower bounds constraints for old tasks
         for j in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
-                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_LB,
+                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb,
                 sense=GRB.GREATER_EQUAL, rhs=0,
                 name=f"TimeWindowLBConstraint[{j}]"
             )
@@ -95,7 +95,7 @@ class IPModelForSequenceInserting(IPModelForSequenceOptimization):
                 [self.vars_U[(j, k)]
                  for k in self.get_activities_keys(including_departure=False, including_comeback=True)
                  if k != j]
-            ) * self.get_candidate_task_by_key(j).start_time_LB,
+            ) * self.get_candidate_task_by_key(j).start_time_lb,
             sense=GRB.GREATER_EQUAL, rhs=0,
             name=f"TimeWindowLBConstraint[{j}]"
         )
@@ -104,7 +104,7 @@ class IPModelForSequenceInserting(IPModelForSequenceOptimization):
         for j in self._get_candidate_tasks_keys(including_new_task=False):
             self._GRB_model.addLConstr(
                 self.vars_T[j] + self.get_candidate_task_by_key(j).duration
-                - self.get_candidate_task_by_key(j).end_time_UB,
+                - self.get_candidate_task_by_key(j).end_time_ub,
                 sense=GRB.LESS_EQUAL, rhs=0,
                 name=f"TimeWindowUBConstraint[{j}]"
             )
@@ -117,7 +117,7 @@ class IPModelForSequenceInserting(IPModelForSequenceOptimization):
                 [self.vars_U[(j, k)]
                  for k in self.get_activities_keys(including_departure=False, including_comeback=True)
                  if k != j]
-            ) * (self.get_candidate_task_by_key(j).end_time_UB - self.get_candidate_task_by_key(j).duration),
+            ) * (self.get_candidate_task_by_key(j).end_time_ub - self.get_candidate_task_by_key(j).duration),
             sense=GRB.LESS_EQUAL, rhs=0,
             name=f"TimeWindowUBConstraint[{j}]"
         )

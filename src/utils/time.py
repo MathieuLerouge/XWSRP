@@ -21,10 +21,16 @@ TWENTY_FOUR_HOURS_FORMAT_WITH_DOTS = '24:'
 
 def get_hour_format(time_string: str):
     """
-    Get the hour format of a given time string.
+    Returns the hour format used by the given time string.
 
-    :param time_string: time string (str)
-    :return: hour format (str)
+    Args:
+        time_string: Time string to inspect.
+
+    Returns:
+        One of TWELVE_HOURS_FORMAT, TWENTY_FOUR_HOURS_FORMAT_WITH_H, or TWENTY_FOUR_HOURS_FORMAT_WITH_DOTS.
+
+    Raises:
+        ValueError: If time_string doesn't match any known hour format.
     """
     if 'M' in time_string or 'm' in time_string:
         return TWELVE_HOURS_FORMAT
@@ -33,21 +39,25 @@ def get_hour_format(time_string: str):
     elif ':' in time_string:
         return TWENTY_FOUR_HOURS_FORMAT_WITH_DOTS
     else:
-        raise ValueError("Unknown hour format of: " + time_string)
+        raise ValueError(f"Unknown hour format for: {time_string}")
 
 
 def convert_time_string_to_nb_minutes(time_string: str):
     """
-    Convert a given time as string to a number of minutes.
+    Converts a given time string to a number of minutes since midnight.
 
-    :param time_string: time string with format HH:MMam or HH:MMpm (str)
-    :return: number of minutes (int)
+    Args:
+        time_string: Time string with format HH:MMam, HH:MMpm, HHhMM, or HH:MM.
+
+    Returns:
+        The number of minutes since midnight, as an int.
+
+    Raises:
+        ValueError: If time_string doesn't match any known hour format.
     """
     if get_hour_format(time_string) == TWELVE_HOURS_FORMAT:
-        if time_string[-3] == ':':
-            time_string = time_string[-2] + "00" + time_string[:-2]
         return int((dt.datetime.strptime(time_string, '%I:%M%p') -
-                    dt.datetime.strptime("00:00am", '%H:%M%p')).total_seconds()/60)
+                    dt.datetime.strptime("00:00am", '%H:%M%p')).total_seconds() / 60)
     elif get_hour_format(time_string) == TWENTY_FOUR_HOURS_FORMAT_WITH_H:
         if time_string[-1] == 'h':
             time_string += "00"
@@ -57,19 +67,25 @@ def convert_time_string_to_nb_minutes(time_string: str):
         return int((dt.datetime.strptime(time_string, '%H:%M') -
                     dt.datetime.strptime("00:00", '%H:%M')).total_seconds() / 60)
     else:
-        raise ValueError("Unknown hour format: " + time_string)
+        raise ValueError(f"Unknown hour format for: {time_string}")
 
 
 def convert_nb_minutes_to_time_string(nb_minutes: int, hour_format: str = TWELVE_HOURS_FORMAT):
     """
-    Convert a given number of minutes to a time string.
+    Converts a given number of minutes since midnight to a time string.
 
-    :param nb_minutes: number of minutes (int)
-    :param hour_format: hour format (str)
-    :return: time string (str)
+    Args:
+        nb_minutes: Number of minutes since midnight.
+        hour_format: Hour format to use for the returned string.
+
+    Returns:
+        The corresponding time string.
+
+    Raises:
+        ValueError: If hour_format isn't a known hour format.
     """
     midnight = dt.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    time = midnight + dt.timedelta(0, 60*nb_minutes)
+    time = midnight + dt.timedelta(0, 60 * nb_minutes)
     if hour_format == TWELVE_HOURS_FORMAT:
         return time.strftime('%I:%M%p')
     elif hour_format == TWENTY_FOUR_HOURS_FORMAT_WITH_H:
@@ -77,16 +93,19 @@ def convert_nb_minutes_to_time_string(nb_minutes: int, hour_format: str = TWELVE
     elif hour_format == TWENTY_FOUR_HOURS_FORMAT_WITH_DOTS:
         return time.strftime('%H:%M')
     else:
-        raise ValueError("Unknown hour format: " + hour_format)
+        raise ValueError(f"Unknown hour format for: {hour_format}")
 
 
 def convert_time_string_in_given_format(time_string: str, hour_format: str):
     """
-    Convert a given time string to a time string in a given format.
+    Converts a given time string to an equivalent time string in another hour format.
 
-    :param time_string: time string (str)
-    :param hour_format: hour format (str)
-    :return: time string (str)
+    Args:
+        time_string: Time string to convert.
+        hour_format: Hour format to convert time_string to.
+
+    Returns:
+        The time string converted to hour_format (or unchanged if it's already in that format).
     """
     if get_hour_format(time_string) == hour_format:
         return time_string
@@ -96,34 +115,20 @@ def convert_time_string_in_given_format(time_string: str, hour_format: str):
 
 def get_hour_format_associated_with_language(language: str):
     """
-    Get the hour format associated with a given language.
+    Returns the hour format conventionally associated with a given language.
 
-    :param language: language (str)
-    :return: hour format (str)
+    Args:
+        language: Language key to look up.
+
+    Returns:
+        TWELVE_HOURS_FORMAT for English, TWENTY_FOUR_HOURS_FORMAT_WITH_H for French.
+
+    Raises:
+        NotImplementedError: If language isn't a supported language key.
     """
     if language == LANGUAGE_ENGLISH_KEY:
         return TWELVE_HOURS_FORMAT
     elif language == LANGUAGE_FRENCH_KEY:
         return TWENTY_FOUR_HOURS_FORMAT_WITH_H
     else:
-        raise NotImplementedError("Unknown language: " + language)
-
-
-if __name__ == '__main__':
-    print(convert_time_string_to_nb_minutes("11:59AM"))
-    print(convert_time_string_to_nb_minutes("12:00PM"))
-    print(convert_time_string_to_nb_minutes("12:01PM"))
-    print(convert_time_string_to_nb_minutes("01:00PM"))
-    print(convert_time_string_to_nb_minutes("11h59"))
-    print(convert_time_string_to_nb_minutes("12h00"))
-    print(convert_time_string_to_nb_minutes("12h01"))
-    print(convert_time_string_to_nb_minutes("13h00"))
-    print(convert_nb_minutes_to_time_string(719, TWELVE_HOURS_FORMAT))
-    print(convert_nb_minutes_to_time_string(720, TWELVE_HOURS_FORMAT))
-    print(convert_nb_minutes_to_time_string(721, TWELVE_HOURS_FORMAT))
-    print(convert_nb_minutes_to_time_string(719, TWENTY_FOUR_HOURS_FORMAT_WITH_H))
-    print(convert_nb_minutes_to_time_string(720, TWENTY_FOUR_HOURS_FORMAT_WITH_H))
-    print(convert_nb_minutes_to_time_string(721, TWENTY_FOUR_HOURS_FORMAT_WITH_H))
-    print(convert_time_string_in_given_format("11:59AM", TWELVE_HOURS_FORMAT))
-    print(convert_time_string_in_given_format("11:59AM", TWENTY_FOUR_HOURS_FORMAT_WITH_H))
-    print(convert_time_string_in_given_format("11:59PM", TWENTY_FOUR_HOURS_FORMAT_WITH_H))
+        raise NotImplementedError(f"Unknown language: {language}")

@@ -57,8 +57,8 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
                 support_sequence.find_first_critical_step_index_backward_from(step_index - 1)
             downstream_critical_step_index = \
                 support_sequence.find_first_critical_step_index_forward_from(step_index + 1)
-            upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_UB
-            downstream_feasible = latest_start_time_for_downstream >= task.start_time_LB
+            upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_ub
+            downstream_feasible = latest_start_time_for_downstream >= task.start_time_lb
             infeasibility = TimeInfeasibility(
                 employee, task, upstream_feasible, downstream_feasible,
                 earliest_start_time_for_upstream, latest_start_time_for_downstream,

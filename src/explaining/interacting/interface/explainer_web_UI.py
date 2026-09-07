@@ -507,7 +507,7 @@ class ExplainerWebGUI:
                 panel_text += f"The tables and maps below describe the data of the {self._current_instance_in_text()}" \
                               f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                 panel_text += f"• Each employee has a first name (in the table, e.g. {first_employee.name}), " \
-                              f"working hours (e.g. {str(first_employee.TW.as_string(hour_format))}), " \
+                              f"working hours (e.g. {str(first_employee.time_window.as_string(hour_format))}), " \
                               f"a skill level described by an integer (e.g. {str(first_employee.skill_level)}, " \
                               f"with {str(min_skill_level)} corresponding to a junior level and " \
                               f"{str(max_skill_level)} to a senior level) " \
@@ -541,7 +541,7 @@ class ExplainerWebGUI:
                               f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                 panel_text += f"• Chaque employé possède un prénom " \
                               f"(dans le tableau, par ex. {first_employee.name}), " \
-                              f"des horaires de travail (par ex. {str(first_employee.TW.as_string(hour_format))}), " \
+                              f"des horaires de travail (par ex. {str(first_employee.time_window.as_string(hour_format))}), " \
                               f"un niveau de compétence décrit par un entier " \
                               f"(par ex. {str(first_employee.skill_level)}, " \
                               f"sachant que {str(min_skill_level)} correspondant un niveau junior et " \
@@ -1982,14 +1982,14 @@ class ExplainerWebGUI:
                 if what_if_button_click is None:
                     for row in employees_data:
                         employee = current_instance.get_employee_by_name(row['name'])
-                        if (convert_time_string_to_nb_minutes(row['start']) != employee.start_time_LB or
-                                convert_time_string_to_nb_minutes(row['end']) != employee.end_time_UB):
+                        if (convert_time_string_to_nb_minutes(row['start']) != employee.start_time_lb or
+                                convert_time_string_to_nb_minutes(row['end']) != employee.end_time_ub):
                             return (build_employees_data(current_instance, self.language),
                                     build_tasks_data(current_instance, self.language), reset_button_click)
                     for row in tasks_data:
                         task = current_instance.get_task_by_name(row['name'])
-                        if (convert_time_string_to_nb_minutes(row['start']) != task.start_time_LB or
-                                convert_time_string_to_nb_minutes(row['end']) != task.end_time_UB or
+                        if (convert_time_string_to_nb_minutes(row['start']) != task.start_time_lb or
+                                convert_time_string_to_nb_minutes(row['end']) != task.end_time_ub or
                                 row['duration'] != task.duration):
                             return (build_employees_data(current_instance, self.language),
                                     build_tasks_data(current_instance, self.language), reset_button_click)
@@ -2006,7 +2006,7 @@ class ExplainerWebGUI:
                                 row['start'] = data_in_right_format
                                 corrected = True
                         except ValueError:
-                            row['start'] = convert_nb_minutes_to_time_string(employee.start_time_LB, hour_format)
+                            row['start'] = convert_nb_minutes_to_time_string(employee.start_time_lb, hour_format)
                             corrected = True
                         try:
                             data_in_right_format = convert_nb_minutes_to_time_string(
@@ -2015,7 +2015,7 @@ class ExplainerWebGUI:
                                 row['end'] = data_in_right_format
                                 corrected = True
                         except ValueError:
-                            row['end'] = convert_nb_minutes_to_time_string(employee.end_time_UB, hour_format)
+                            row['end'] = convert_nb_minutes_to_time_string(employee.end_time_ub, hour_format)
                             corrected = True
                     if corrected:
                         return employees_data, tasks_data, reset_button_click
@@ -2028,7 +2028,7 @@ class ExplainerWebGUI:
                                 row['start'] = data_in_right_format
                                 corrected = True
                         except ValueError:
-                            row['start'] = convert_nb_minutes_to_time_string(task.start_time_LB, hour_format)
+                            row['start'] = convert_nb_minutes_to_time_string(task.start_time_lb, hour_format)
                             corrected = True
                         try:
                             data_in_right_format = convert_nb_minutes_to_time_string(
@@ -2037,7 +2037,7 @@ class ExplainerWebGUI:
                                 row['end'] = data_in_right_format
                                 corrected = True
                         except ValueError:
-                            row['end'] = convert_nb_minutes_to_time_string(task.end_time_UB, hour_format)
+                            row['end'] = convert_nb_minutes_to_time_string(task.end_time_ub, hour_format)
                             corrected = True
                         try:
                             row['duration'] = int(row['duration'])
@@ -2074,23 +2074,23 @@ class ExplainerWebGUI:
                 instance_alterations = InstanceChanges()
                 for row in employees_data:
                     employee = current_instance.get_employee_by_name(row['name'])
-                    start_time_LB = convert_time_string_to_nb_minutes(row['start'])
-                    end_time_UB = convert_time_string_to_nb_minutes(row['end'])
+                    start_time_lb = convert_time_string_to_nb_minutes(row['start'])
+                    end_time_ub = convert_time_string_to_nb_minutes(row['end'])
                     instance_alterations.add_employee_change(
                         employee,
-                        start_time_LB=(None if employee.start_time_LB == start_time_LB else start_time_LB),
-                        end_time_UB=(None if employee.end_time_UB == end_time_UB else end_time_UB),
+                        start_time_lb=(None if employee.start_time_lb == start_time_lb else start_time_lb),
+                        end_time_ub=(None if employee.end_time_ub == end_time_ub else end_time_ub),
                         hour_format=get_hour_format_associated_with_language(self.language)
                     )
                 for row in tasks_data:
                     task = current_instance.get_task_by_name(row['name'])
-                    start_time_LB = convert_time_string_to_nb_minutes(row['start'])
-                    end_time_UB = convert_time_string_to_nb_minutes(row['end'])
+                    start_time_lb = convert_time_string_to_nb_minutes(row['start'])
+                    end_time_ub = convert_time_string_to_nb_minutes(row['end'])
                     duration = int(row['duration'])
                     instance_alterations.add_task_change(
                         task,
-                        start_time_LB=(None if task.start_time_LB == start_time_LB else start_time_LB),
-                        end_time_UB=(None if task.end_time_UB == end_time_UB else end_time_UB),
+                        start_time_lb=(None if task.start_time_lb == start_time_lb else start_time_lb),
+                        end_time_ub=(None if task.end_time_ub == end_time_ub else end_time_ub),
                         duration=(None if task.duration == duration else duration),
                         hour_format=get_hour_format_associated_with_language(self.language)
                     )
