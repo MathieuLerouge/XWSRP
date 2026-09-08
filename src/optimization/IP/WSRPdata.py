@@ -127,7 +127,7 @@ class WSRPIPModelData:
                              "a hypothetical activity")
 
     def get_hyp_activities_TW_indices(self, employee_index: int, activity_index: int):
-        return range(len(self._hypothetical_activities[employee_index][activity_index].TWs))
+        return range(len(self._hypothetical_activities[employee_index][activity_index].time_windows))
 
     def get_traveling_duration(self, employee_index: int, activity_index1: int, activity_index2: int):
         return self._instance.compute_traveling_duration(

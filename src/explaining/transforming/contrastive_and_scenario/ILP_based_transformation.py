@@ -41,7 +41,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
     if support_solution.get_task_performance_status(task):
         support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
     if transformation_is_feasible:
-        support_sequence.compute_KPIs()
+        support_sequence.compute_kpis()
     support_solution.replace_sequence_by_another(employee, support_sequence, transformation_is_feasible)
     # Create infeasibility if any
     step_index = support_sequence.get_step_index_of(task)

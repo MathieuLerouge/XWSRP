@@ -84,7 +84,7 @@ if GUROBI_IS_ENABLED:
             if support_solution.get_task_performance_status(key_task):
                 support_solution.remove_task(key_task, transformation_is_feasible, transformation_is_feasible)
         if transformation_is_feasible:
-            support_sequence.compute_KPIs()
+            support_sequence.compute_kpis()
         support_solution.replace_sequence_by_another(key_employee, support_sequence, transformation_is_feasible)
         # Build infeasibility (if any)
         step_index = support_sequence.get_step_index_of(key_task)

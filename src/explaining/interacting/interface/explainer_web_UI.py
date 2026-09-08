@@ -516,7 +516,7 @@ class ExplainerWebGUI:
                               f"{LINE_BREAK_STRING}{LINE_BREAK_STRING}"
                 panel_text += f"• Each customer task has an identifier (in the table, e.g. {first_task.name}), " \
                               f"availability hours during which the task can be performed by an employee " \
-                              f"(e.g. {str(first_task.TWs.as_string(hour_format))}, " \
+                              f"(e.g. {str(first_task.time_windows.as_string(hour_format))}, " \
                               f"a minimum skill level to have in order to be able to perform the task " \
                               f"(e.g. {str(first_task.skill_level)}), " \
                               f"a duration (e.g. {str(first_task.duration)}min) " \
@@ -552,7 +552,7 @@ class ExplainerWebGUI:
                 panel_text += f"• Chaque tâche client possède un identifiant " \
                               f"(dans le tableau, par ex. {first_task.name}), " \
                               f"des horaires de disponibilité pendant lesquels elle peut être réalisée par " \
-                              f"un employé (par ex. {str(first_task.TWs.as_string(hour_format))}), " \
+                              f"un employé (par ex. {str(first_task.time_windows.as_string(hour_format))}), " \
                               f"un niveau de compétence minimum à avoir pour pouvoir réaliser la tâche " \
                               f"(par ex. {str(first_task.skill_level)}), " \
                               f"une durée de réalisation (par ex. {str(first_task.duration)}min) " \

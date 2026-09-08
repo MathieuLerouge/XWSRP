@@ -33,8 +33,8 @@ def write_solution_analysis(solution: Solution, outputs_directory_relative_path:
     file = open(file_path, "w")
 
     # Write solution performances indicators
-    if not solution.has_KPIs:
-        solution.compute_KPIs()
+    if not solution.has_kpis:
+        solution.compute_kpis()
     file.write("Number of performed tasks: " + str(solution.nb_performed_tasks) + LINE_BREAK_STRING)
     file.write("Total working duration (in min): " + str(solution.total_working_duration) + LINE_BREAK_STRING)
     file.write("Total traveling duration (in min): " + str(solution.total_traveling_duration) + LINE_BREAK_STRING)

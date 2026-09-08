@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     if process_to_run == HEURISTIC_OPTIMIZATION:
         solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
-        solution.compute_KPIs()
+        solution.compute_kpis()
         print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
         solution = SolutionForHeuristics.from_Solution(solution)
         solution = run_simulated_annealing(solution)

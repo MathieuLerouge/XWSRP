@@ -47,12 +47,12 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                 return (f"<b>{task_to_describe.name}</b><br>"
                         f"Skill level: {task_to_describe.skill_level}<br>"
                         f"Duration: {task_to_describe.get_duration(as_integer=False)}<br>"
-                        f"Availability: {task_to_describe.TWs.as_string(hour_format)}<br>")
+                        f"Availability: {task_to_describe.time_windows.as_string(hour_format)}<br>")
             elif check_if_language_is_french(language):
                 return (f"<b>{task_to_describe.name}</b><br>"
                         f"Niveau : {task_to_describe.skill_level}<br>"
                         f"Durée : {task_to_describe.get_duration(as_integer=False)}<br>"
-                        f"Disponibilité : {task_to_describe.TWs.as_string(hour_format)}<br>")
+                        f"Disponibilité : {task_to_describe.time_windows.as_string(hour_format)}<br>")
             else:
                 raise ValueError(f"Unknown language: {language}")
         elif is_performed:
@@ -60,12 +60,12 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                 return (f"<b>Performing {task_to_describe.name}</b> <br>"
                         f"Task skill level: {task_to_describe.skill_level}<br>"
                         f"Task duration: {task_to_describe.get_duration(as_integer=False)}<br>"
-                        f"Availability: {task_to_describe.TWs.as_string(hour_format)}")
+                        f"Availability: {task_to_describe.time_windows.as_string(hour_format)}")
             elif check_if_language_is_french(language):
                 return (f"<b>Réalisation de {task_to_describe.name}</b> <br>"
                         f"Niveau de la tâche : {task_to_describe.skill_level}<br>"
                         f"Durée de la tâche : {task_to_describe.get_duration(as_integer=False)}<br>"
-                        f"Disponibilité : {task_to_describe.TWs.as_string(hour_format)}")
+                        f"Disponibilité : {task_to_describe.time_windows.as_string(hour_format)}")
             else:
                 raise ValueError(f"Unknown language: {language}")
         else:
@@ -73,12 +73,12 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                 return (f"<b>{task_to_describe.name} not performed</b><br>"
                         f"Skill level: {task_to_describe.skill_level}<br>"
                         f"Duration: {task_to_describe.get_duration(as_integer=False)}<br>"
-                        f"Availability: {task_to_describe.TWs.as_string(hour_format)}")
+                        f"Availability: {task_to_describe.time_windows.as_string(hour_format)}")
             elif check_if_language_is_french(language):
                 return (f"<b>{task_to_describe.name} non-réalisée</b><br>"
                         f"Niveau : {task_to_describe.skill_level}<br>"
                         f"Durée : {task_to_describe.get_duration(as_integer=False)}<br>"
-                        f"Disponibilité : {task_to_describe.TWs.as_string(hour_format)}")
+                        f"Disponibilité : {task_to_describe.time_windows.as_string(hour_format)}")
             else:
                 raise ValueError(f"Unknown language: {language}")
 
@@ -309,13 +309,13 @@ def create_task_description_in_schedules_figure(task: Task, start_time_as_string
                 f"Start time: <b>{start_time_as_string}</b><br>"
                 f"End time: <b>{end_time_as_string}</b><br>"
                 f"Duration: {task.get_duration(as_integer=False)}<br>"
-                f"Task availability: {task.TWs.as_string(hour_format)}<br>")
+                f"Task availability: {task.time_windows.as_string(hour_format)}<br>")
     elif check_if_language_is_french(language):
         return (f"<b>Réalisation de {task.name}</b><br>"
                 f"Heure de début : <b>{start_time_as_string}</b><br>"
                 f"Heure de fin : <b>{end_time_as_string}</b><br>"
                 f"Durée : {task.get_duration(as_integer=False)}<br>"
-                f"Disponibilité de la tâche : <br>{task.TWs.as_string(hour_format)}<br>")
+                f"Disponibilité de la tâche : <br>{task.time_windows.as_string(hour_format)}<br>")
     else:
         raise ValueError(f"Unknown language: {language}")
 

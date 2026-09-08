@@ -161,7 +161,7 @@ class QuestionTemplate:
         if assumptions.this_field_must_refer_to_an_employee:
             if assumptions.this_field_must_refer_to_an_employee_performing_more_than_one_task:
                 return [employee.name for employee in instance.employees
-                        if solution.get_sequence(employee).nb_realized_tasks > 1]
+                        if solution.get_sequence(employee).nb_performed_tasks > 1]
             elif assumptions.this_field_must_refer_to_a_performing_employee:
                 return [employee.name for employee in solution.performing_employees]
             else:

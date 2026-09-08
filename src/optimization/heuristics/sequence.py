@@ -1,7 +1,5 @@
 # Local libraries modules
 from src.modeling.comeback import ComeBack
-from src.modeling.constants import NB_PERFORMED_TASKS_KEY, TOTAL_TRAVELING_DURATION_KEY, TOTAL_WORKING_DURATION_KEY, \
-    TOTAL_TRAVELING_DISTANCE_KEY, TOTAL_IDLE_TIME_KEY
 from src.modeling.departure import Departure
 from src.modeling.employee import Employee
 from src.modeling.instance import Instance
@@ -38,47 +36,43 @@ class SequenceForHeuristics(Sequence):
 
     @property
     def _nb_realized_tasks(self) -> int:
-        return self._KPIs[NB_PERFORMED_TASKS_KEY]
+        return self._kpis.nb_performed_tasks
 
     @_nb_realized_tasks.setter
     def _nb_realized_tasks(self, nb_realized_tasks: int):
-        self._KPIs[NB_PERFORMED_TASKS_KEY] = nb_realized_tasks
+        self._kpis.nb_performed_tasks = nb_realized_tasks
 
     @property
     def _total_traveling_duration(self) -> int:
-        return self._KPIs[TOTAL_TRAVELING_DURATION_KEY]
+        return self._kpis.total_traveling_duration
 
     @_total_traveling_duration.setter
     def _total_traveling_duration(self, total_traveling_duration: int):
-        self._KPIs[TOTAL_TRAVELING_DURATION_KEY] = total_traveling_duration
+        self._kpis.total_traveling_duration = total_traveling_duration
 
     @property
     def _total_working_duration(self) -> int:
-        return self._KPIs[TOTAL_WORKING_DURATION_KEY]
+        return self._kpis.total_working_duration
 
     @_total_working_duration.setter
     def _total_working_duration(self, total_working_duration: int):
-        self._KPIs[TOTAL_WORKING_DURATION_KEY] = total_working_duration
+        self._kpis.total_working_duration = total_working_duration
 
     @property
-    def _total_traveling_distance(self) -> int:
-        return self._KPIs[TOTAL_TRAVELING_DISTANCE_KEY]
+    def _total_traveling_distance(self) -> float:
+        return self._kpis.total_traveling_distance
 
     @_total_traveling_distance.setter
-    def _total_traveling_distance(self, total_traveling_distance: int):
-        self._KPIs[TOTAL_TRAVELING_DISTANCE_KEY] = total_traveling_distance
+    def _total_traveling_distance(self, total_traveling_distance: float):
+        self._kpis.total_traveling_distance = total_traveling_distance
 
     @property
     def _total_idle_time(self) -> int:
-        return self._KPIs[TOTAL_IDLE_TIME_KEY]
+        return self._kpis.total_idle_time
 
     @_total_idle_time.setter
     def _total_idle_time(self, total_idle_time: int):
-        self._KPIs[TOTAL_IDLE_TIME_KEY] = total_idle_time
-
-    @property
-    def KPIs(self):
-        return self._copy_KPIs()
+        self._kpis.total_idle_time = total_idle_time
 
     ########
     # Copy #
@@ -86,7 +80,7 @@ class SequenceForHeuristics(Sequence):
 
     def copy(self):
         sequence = SequenceForHeuristics(self._instance, self._employee, self._copy_steps())
-        sequence._KPIs = self._copy_KPIs()
+        sequence._kpis = self._copy_kpis()
         return sequence
 
     ########
@@ -1212,7 +1206,7 @@ class SequenceForHeuristics(Sequence):
         for step_index in reversed(step_indices):
             self._feasibly_remove_step(step_index, False, False)
         if update_KPIs:
-            self.compute_KPIs()
+            self.compute_kpis()
         if tighten_times:
             self.tighten_times(update_KPIs)
 

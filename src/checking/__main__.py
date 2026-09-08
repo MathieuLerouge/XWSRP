@@ -38,7 +38,7 @@ def analysis_main():
         print_title_frame(f"Checking feasibility of {solution.name}")
         print("")
         feasible = check_feasibility(solution, covering=False)[0]
-        solution.compute_KPIs()
+        solution.compute_kpis()
         print("Checking: done")
         print("")
 

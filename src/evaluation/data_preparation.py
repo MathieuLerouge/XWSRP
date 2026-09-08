@@ -72,7 +72,7 @@ def compute_solution_for_evaluation_by_ILP_optimization(instance: Instance, solv
     solution = model.solution
     if not check_feasibility(solution)[0]:
         raise ValueError(f"The solution {solution.name} is not feasible")
-    solution.compute_KPIs()
+    solution.compute_kpis()
     solution.tighten_times()
     return solution
 

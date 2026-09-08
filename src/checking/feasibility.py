@@ -53,7 +53,7 @@ def check_time_windows_constraints(solution: Solution):
             end_time = start_time + task.duration
             # - Task
             task_available_when_performed = False
-            for availability_TW in task.TWs.intervals:
+            for availability_TW in task.time_windows.intervals:
                 if availability_TW.contain_all([start_time, end_time]):
                     task_available_when_performed = True
                     break
@@ -61,7 +61,7 @@ def check_time_windows_constraints(solution: Solution):
                 satisfaction = False
                 checking_text += f"In the provided solution, the task {task.name} is supposed to be performed over "\
                                  f"{TimeInterval(start_time, end_time)} while it is available only over " \
-                                 f"{task.TWs.as_string()}. {LINE_BREAK_STRING}"
+                                 f"{task.time_windows.as_string()}. {LINE_BREAK_STRING}"
             # - Employee
             employee = solution.get_task_assignee(task)
             if start_time < employee.start_time_lb:
@@ -78,11 +78,12 @@ def check_time_windows_constraints(solution: Solution):
                                  f"{convert_nb_minutes_to_time_string(employee.end_time_ub)}."\
                                  f"{LINE_BREAK_STRING}"
             for unavailability in employee.unavailabilities:
-                if unavailability.TWs[0].contain(start_time) or unavailability.TWs[0].contain(end_time):
+                if (unavailability.time_windows[0].contain(start_time) or
+                        unavailability.time_windows[0].contain(end_time)):
                     satisfaction = False
                     checking_text += f"In the provided solution, the task {task.name} is supposed to be performed " \
                                      f"over {TimeInterval(start_time, end_time)} by employee {employee.name} " \
-                                     f"while he/she is unavailable over {unavailability.TWs[0]} " \
+                                     f"while he/she is unavailable over {unavailability.time_windows[0]} " \
                                      f"due to his/her unavailability {unavailability.name}.{LINE_BREAK_STRING}"
 
     # Check that lunch breaks are taken within dedicated time windows
@@ -90,11 +91,11 @@ def check_time_windows_constraints(solution: Solution):
         for employee in solution.instance.employees:
             lunch_break_start_time = solution.get_employee_lunch_break_start_time(employee)
             lunch_break_end_time = lunch_break_start_time + solution.instance.lunch_break_duration
-            if (lunch_break_start_time < solution.instance.lunch_break_time_LB or
-                    solution.instance.lunch_break_time_UB < lunch_break_end_time):
+            if (lunch_break_start_time < solution.instance.lunch_break_time_lb or
+                    solution.instance.lunch_break_time_ub < lunch_break_end_time):
                 satisfaction = False
-                lunch_break_TW = TimeInterval(solution.instance.lunch_break_time_LB,
-                                              solution.instance.lunch_break_time_UB)
+                lunch_break_TW = TimeInterval(solution.instance.lunch_break_time_lb,
+                                              solution.instance.lunch_break_time_ub)
                 checking_text += f"In the provided solution, {employee.name} is supposed to have a lunch break over "\
                                  f"{TimeInterval(lunch_break_start_time, lunch_break_end_time)} " \
                                  f"while lunch break must be within {lunch_break_TW}.{LINE_BREAK_STRING}"

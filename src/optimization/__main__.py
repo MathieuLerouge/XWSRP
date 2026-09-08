@@ -127,7 +127,7 @@ def optimization_main():
 
             # Extract each solution data
             initial_solution = extract_solution_from_file(solution_file_path)
-            initial_solution.compute_KPIs()
+            initial_solution.compute_kpis()
             print_title_frame(f"Extraction of {initial_solution.name}")
             print("")
             print(f"File path: {solution_file_path}")

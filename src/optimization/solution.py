@@ -37,7 +37,7 @@ class SolutionOpti(Solution):
     def from_Solution(cls, solution: Solution):
         solution_for_optimization = cls(solution.instance, solution.name, solution._copy_sequences(),
                                         solution._copy_tasks_realizations(), solution._copy_lunch_breaks_realizations())
-        solution_for_optimization._KPIs = solution._copy_KPIs()
+        solution_for_optimization._kpis = solution._copy_kpis()
         return solution_for_optimization
 
     ########

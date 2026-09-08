@@ -36,7 +36,7 @@ class EditableSequence(SequenceForHeuristics):
                                          start_time=step.start_time) for step in self._steps]
         self.compute_times_based_on_fixed_start_times()
         self.update_time_slacks()
-        self.compute_KPIs()
+        self.compute_kpis()
 
     ########
     # Copy #
@@ -44,5 +44,5 @@ class EditableSequence(SequenceForHeuristics):
 
     def copy(self):
         sequence = EditableSequence(self._instance, self._employee, self._copy_steps())
-        sequence._KPIs = self._copy_KPIs()
+        sequence._kpis = self._copy_kpis()
         return sequence

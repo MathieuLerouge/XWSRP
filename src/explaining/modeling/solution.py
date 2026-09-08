@@ -25,7 +25,7 @@ class EditableSolution(SolutionForHeuristics):
                  tasks_performances: dict = None):
         super().__init__(instance, name, sequences, tasks_performances)
         self._name = name
-        self.compute_KPIs()
+        self.compute_kpis()
 
     @classmethod
     def from_Solution(cls, solution: Solution, instance: EditableInstance = None):
@@ -48,13 +48,13 @@ class EditableSolution(SolutionForHeuristics):
                 sequence.instance = instance
             else:
                 raise TypeError(f"The sequence {sequence} should be of type EditableSequence")
-        self.compute_KPIs()
+        self.compute_kpis()
 
     def copy(self, name: str = None):
         name = self._name + "_copy" if name is None else name
         solution = EditableSolution(self._instance, name, self._copy_sequences(), self._copy_tasks_realizations())
         solution.name = name
-        solution._KPIs = self._copy_KPIs()
+        solution._kpis = self._copy_kpis()
         return solution
 
     def replace_sequence_by_another(self, employee: EditableEmployee, new_sequence: EditableSequence,

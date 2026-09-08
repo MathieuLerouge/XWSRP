@@ -80,7 +80,7 @@ def run_IP_optimization_on_teaching_instances(solving_process_time_limit_in_seco
         # Solution writing
         print_title_frame("Solution writing")
         print("")
-        solution.compute_KPIs()
+        solution.compute_kpis()
         # solution.tighten_times()
         write_solution(solution)
         write_solution_analysis(solution)
@@ -122,7 +122,7 @@ def run_feasibility_check_on_provided_solutions(save_solutions_feasibility_check
     solutions_checking_text = ""
     for solution_file_path in solutions_files_paths:
         solution = extract_solution_for_teaching_from_file(solution_file_path)
-        solution.compute_KPIs()
+        solution.compute_kpis()
         feasible, checking_text = check_feasibility(solution, tolerance_in_minutes=tolerance_in_minutes)
         title_frame = create_title_frame(f"Checking of {solution.name}")
         checking_text = (title_frame + LINE_BREAK_STRING + LINE_BREAK_STRING +

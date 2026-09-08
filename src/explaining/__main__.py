@@ -65,7 +65,7 @@ def explaining_main():
                 solution = extract_solution_from_file(solution_file_path)
                 feasible = check_feasibility(solution, covering=False)[0]
                 if feasible:
-                    solution.compute_KPIs()
+                    solution.compute_kpis()
                 print_title_frame(f"Extraction of {solution.name}")
                 print("")
                 print(f"File path: {solution_file_path}")

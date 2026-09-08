@@ -1,11 +1,9 @@
 # Local libraries
 from src.modeling.activity import Activity
 from src.modeling.comeback import ComeBack
-from src.modeling.constants import NB_PERFORMED_TASKS_KEY, TOTAL_TRAVELING_DURATION_KEY, TOTAL_WORKING_DURATION_KEY, \
-    TOTAL_TRAVELING_DISTANCE_KEY, TOTAL_IDLE_TIME_KEY
 from src.modeling.employee import Employee
 from src.modeling.instance import Instance
-from src.modeling.solution import Solution, TASK_PERFORMANCE_STATUS_KEY, TASK_ASSIGNEE_KEY, TASK_START_TIME_KEY
+from src.modeling.solution import Solution
 from src.modeling.task import Task
 from src.optimization.heuristics.examination import ReassigningExamination
 from src.optimization.heuristics.sequence import SequenceForHeuristics
@@ -38,7 +36,7 @@ class SolutionForHeuristics(SolutionOpti):
             for employee in self._instance.employees:
                 sequences[employee.name] = SequenceForHeuristics(instance, employee)
         self._sequences = sequences
-        self.compute_KPIs()
+        self.compute_kpis()
 
     @classmethod
     def from_SolutionOpti(cls, solution: SolutionOpti, heuristic_ID: str = None):
@@ -58,43 +56,43 @@ class SolutionForHeuristics(SolutionOpti):
 
     @property
     def _nb_realized_tasks(self) -> int:
-        return self._KPIs[NB_PERFORMED_TASKS_KEY]
+        return self._kpis.nb_performed_tasks
 
     @_nb_realized_tasks.setter
     def _nb_realized_tasks(self, nb_realized_tasks: int):
-        self._KPIs[NB_PERFORMED_TASKS_KEY] = nb_realized_tasks
+        self._kpis.nb_performed_tasks = nb_realized_tasks
 
     @property
     def _total_traveling_duration(self) -> int:
-        return self._KPIs[TOTAL_TRAVELING_DURATION_KEY]
+        return self._kpis.total_traveling_duration
 
     @_total_traveling_duration.setter
     def _total_traveling_duration(self, total_traveling_duration: int):
-        self._KPIs[TOTAL_TRAVELING_DURATION_KEY] = total_traveling_duration
+        self._kpis.total_traveling_duration = total_traveling_duration
 
     @property
     def _total_working_duration(self) -> int:
-        return self._KPIs[TOTAL_WORKING_DURATION_KEY]
+        return self._kpis.total_working_duration
 
     @_total_working_duration.setter
     def _total_working_duration(self, total_working_duration: int):
-        self._KPIs[TOTAL_WORKING_DURATION_KEY] = total_working_duration
+        self._kpis.total_working_duration = total_working_duration
 
     @property
     def _total_traveling_distance(self) -> float:
-        return self._KPIs[TOTAL_TRAVELING_DISTANCE_KEY]
+        return self._kpis.total_traveling_distance
 
     @_total_traveling_distance.setter
-    def _total_traveling_distance(self, total_traveling_distance: int):
-        self._KPIs[TOTAL_TRAVELING_DISTANCE_KEY] = total_traveling_distance
+    def _total_traveling_distance(self, total_traveling_distance: float):
+        self._kpis.total_traveling_distance = total_traveling_distance
 
     @property
     def _total_idle_time(self) -> int:
-        return self._KPIs[TOTAL_IDLE_TIME_KEY]
+        return self._kpis.total_idle_time
 
     @_total_idle_time.setter
     def _total_idle_time(self, total_idle_time: int):
-        self._KPIs[TOTAL_IDLE_TIME_KEY] = total_idle_time
+        self._kpis.total_idle_time = total_idle_time
 
     ########
     # Copy #
@@ -105,7 +103,7 @@ class SolutionForHeuristics(SolutionOpti):
         solution = SolutionForHeuristics(self._instance, name, self._copy_sequences(),
                                          self._copy_tasks_realizations(), self._copy_lunch_breaks_realizations())
         solution.name = name
-        solution._KPIs = self._copy_KPIs()
+        solution._kpis = self._copy_kpis()
         return solution
 
     ############
@@ -590,15 +588,15 @@ class SolutionForHeuristics(SolutionOpti):
 
     def _set_task_performance_to_non_performed(self, task: Task):
         task_performance = self._tasks_performances[task.name]
-        task_performance[TASK_PERFORMANCE_STATUS_KEY] = False
-        del task_performance[TASK_ASSIGNEE_KEY]
-        del task_performance[TASK_START_TIME_KEY]
+        task_performance.performed = False
+        task_performance.assignee_name = None
+        task_performance.start_time = None
 
     def _set_task_performance_to_performed(self, task: Task, employee: Employee, startTime: int):
         task_performance = self._tasks_performances[task.name]
-        task_performance[TASK_PERFORMANCE_STATUS_KEY] = True
-        task_performance[TASK_ASSIGNEE_KEY] = employee.name
-        task_performance[TASK_START_TIME_KEY] = startTime
+        task_performance.performed = True
+        task_performance.assignee_name = employee.name
+        task_performance.start_time = startTime
 
     def _update_tasks_realizations_based_on_sequences(self, employee: Employee,
                                                       start_step_index: int, end_step_index: int):
@@ -622,7 +620,7 @@ class SolutionForHeuristics(SolutionOpti):
     def _replace_sequence_by_another(self, employee: Employee, new_sequence: SequenceForHeuristics,
                                      update_KPIs: bool = True):
         former_sequence = self.get_sequence(employee)
-        former_sequence_KPIs = former_sequence.KPIs
+        former_sequence_kpis = former_sequence.kpis
         for task in former_sequence.get_contained_tasks():
             self._set_task_performance_to_non_performed(task)
         self._sequences[employee.name] = new_sequence
@@ -630,8 +628,7 @@ class SolutionForHeuristics(SolutionOpti):
             if isinstance(step.activity, Task):
                 self._set_task_performance_to_performed(step.activity, employee, step.start_time)
         if update_KPIs:
-            for key, value in former_sequence_KPIs.items():
-                self._KPIs[key] += new_sequence.get_KPI(key) - value
+            self._kpis = self._kpis + (new_sequence.kpis - former_sequence_kpis)
 
     #############################
     # Local change - Infeasible #
@@ -661,7 +658,7 @@ class SolutionForHeuristics(SolutionOpti):
 
         # Get the sequence and the step index of the given task
         sequence = self.get_sequence(self.get_task_assignee(task))
-        sequence_former_KPIs = sequence.KPIs
+        sequence_former_kpis = sequence.kpis
         step_index = sequence.get_step_index_of(task)
 
         # Remove the task from its assigned employee's sequence (and update tasks realizations)
@@ -671,8 +668,7 @@ class SolutionForHeuristics(SolutionOpti):
 
         # Update KPIs if needed
         if update_KPIs:
-            for key, former_value in sequence_former_KPIs.items():
-                self._KPIs[key] += sequence.get_KPI(key) - former_value
+            self._kpis = self._kpis + (sequence.kpis - sequence_former_kpis)
 
         # Return a boolean True as the change is feasible
         return True
@@ -731,7 +727,7 @@ class SolutionForHeuristics(SolutionOpti):
 
         # Get the sequence and the step index of the given activity
         sequence = self.get_sequence(employee)
-        sequence_former_KPIs = sequence.KPIs
+        sequence_former_kpis = sequence.kpis
         step_index = self.get_sequence(employee).get_step_index_of(activity)
 
         # Insert the given task in the sequence (and update tasks realizations)
@@ -750,8 +746,7 @@ class SolutionForHeuristics(SolutionOpti):
 
         # Update the solution's KPIs if needed
         if update_KPIs:
-            for key, value in sequence_former_KPIs.items():
-                self._KPIs[key] += sequence.get_KPI(key) - value
+            self._kpis = self._kpis + (sequence.kpis - sequence_former_kpis)
 
         # Return whether the insertion has given a feasible solution
         return is_feasible
@@ -808,7 +803,7 @@ class SolutionForHeuristics(SolutionOpti):
 
         # Get the sequence and the step index of the given leaving task
         sequence = self.get_sequence(employee)
-        sequence_former_KPIs = sequence.KPIs
+        sequence_former_kpis = sequence.kpis
         step_index = self.get_sequence(employee).get_step_index_of(leaving_task)
 
         # Replace the given leaving task by the replacing task in the sequence (and update tasks realizations)
@@ -827,8 +822,7 @@ class SolutionForHeuristics(SolutionOpti):
 
         # Update the solution's KPIs if needed
         if update_KPIs:
-            for key, value in sequence_former_KPIs.items():
-                self._KPIs[key] += sequence.get_KPI(key) - value
+            self._kpis = self._kpis + (sequence.kpis - sequence_former_kpis)
 
         # Return whether the insertion has given a feasible solution
         return is_feasible
@@ -999,7 +993,7 @@ class SolutionForHeuristics(SolutionOpti):
 
             # Replace sequence
             if update_KPIs:
-                new_sequence.compute_KPIs()
+                new_sequence.compute_kpis()
             if tighten_times:
                 new_sequence.tighten_times(update_KPIs)
             self._replace_sequence_by_another(employee, new_sequence, update_KPIs)
@@ -1036,7 +1030,7 @@ class SolutionForHeuristics(SolutionOpti):
                             f"in {employee}'s sequence is infeasible")
         new_sequence = SequenceForHeuristics.from_Sequence(model.solution_sequence)
         if update_KPIs:
-            new_sequence.compute_KPIs()
+            new_sequence.compute_kpis()
         if tighten_times:
             new_sequence.tighten_times(update_KPIs)
 
@@ -1057,7 +1051,7 @@ class SolutionForHeuristics(SolutionOpti):
             raise Exception(f"Reordering the tasks in {employee}'s sequence is infeasible")
         new_sequence = SequenceForHeuristics.from_Sequence(model.solution_sequence)
         if update_KPIs:
-            new_sequence.compute_KPIs()
+            new_sequence.compute_kpis()
         if tighten_times:
             new_sequence.tighten_times(update_KPIs)
 
