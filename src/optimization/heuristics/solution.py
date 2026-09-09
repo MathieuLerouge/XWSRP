@@ -7,14 +7,10 @@ from src.modeling.solution import Solution
 from src.modeling.task import Task
 from src.optimization.heuristics.examination import ReassigningExamination
 from src.optimization.heuristics.sequence import SequenceForHeuristics
+from src.optimization.milp.subproblems.sequenceinsertingmodel import SequenceInsertingModel
+from src.optimization.milp.subproblems.sequenceprescribingmodel import SequencePrescribingModel
+from src.optimization.milp.subproblems.sequencereorderingmodel import SequenceReorderingModel
 from src.optimization.solution import SolutionOpti
-
-# Local libraries under conditions
-from main_configuration import GUROBI_IS_ENABLED
-if GUROBI_IS_ENABLED:
-    from src.optimization.IP.sequence.insertingmodel import IPModelForSequenceInserting
-    from src.optimization.IP.sequence.prescribingmodel import IPModelForSequencePrescribing
-    from src.optimization.IP.sequence.reorderingmodel import IPModelForSequenceReordering
 
 
 # Global variables
@@ -982,8 +978,8 @@ class SolutionForHeuristics(SolutionOpti):
             self.remove_task(task, False, update_KPIs)
 
         # Create and run the IP model for sequence optimization with attempt to insert new task
-        model = IPModelForSequenceInserting(self.get_sequence(employee), task)
-        model.optimize(mute=True)
+        model = SequenceInsertingModel(self.get_sequence(employee), task)
+        model.solve(mute=True)
 
         # Get the sequence obtained by solving the IP model
         new_sequence = SequenceForHeuristics.from_Sequence(model.solution_sequence)
@@ -1021,8 +1017,8 @@ class SolutionForHeuristics(SolutionOpti):
         # Create and run the IP model for sequence optimization with assigned tasks
         candidate_tasks = self.get_sequence(employee).get_contained_tasks() + [task]
         prescribed_tasks = [task]
-        model = IPModelForSequencePrescribing(self._instance, employee, candidate_tasks, prescribed_tasks)
-        model.optimize(mute=True)
+        model = SequencePrescribingModel(self._instance, employee, candidate_tasks, prescribed_tasks)
+        model.solve(mute=True)
 
         # Save the sequence obtained by solving the IP model
         if not model.has_solution_sequence:
@@ -1043,8 +1039,8 @@ class SolutionForHeuristics(SolutionOpti):
     def reorder(self, employee: Employee, tighten_times: bool = True, update_KPIs: bool = True):
 
         # Create and run the IP model for sequence reordering optimization
-        model = IPModelForSequenceReordering(self.get_sequence(employee))
-        model.optimize(mute=True)
+        model = SequenceReorderingModel(self.get_sequence(employee))
+        model.solve(mute=True)
 
         # Save the sequence obtained by solving the IP model
         if not model.has_solution_sequence:

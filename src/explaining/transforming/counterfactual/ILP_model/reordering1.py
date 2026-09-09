@@ -1,19 +1,18 @@
-# Third party libraries
-import gurobipy as grb
-from gurobipy import GRB
+# Third-party library
+import pyomo.environ as pyo
 
-from src.explaining.modeling.instance_changes import InstanceChanges
 # Local libraries
+from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.transforming.counterfactual.ILP_model.reordering_with_alterations import \
     IPModelForReorderingWithInstanceAlterations
 from src.modeling.task import Task
-from src.optimization.IP.sequence.basemodel import create_activity_key
 from src.optimization.heuristics.sequence import SequenceForHeuristics
+from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-#######################################################
-# Class IPModelForReordering1aWithInstanceAlterations #
-#######################################################
+#################################################
+# IPModelForReordering1aWithInstanceAlterations #
+#################################################
 
 class IPModelForReordering1aWithInstanceAlterations(IPModelForReorderingWithInstanceAlterations):
     """
@@ -62,50 +61,61 @@ class IPModelForReordering1aWithInstanceAlterations(IPModelForReorderingWithInst
         activities = self._sequence.get_contained_activities()
         # Add constraints that ensure that the order of the activities before the moving task remains unchanged
         for j in range(moving_task_step_index - 1):
-            self._GRB_model.addLConstr(
-                self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))],
-                sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activities[j]},{activities[j + 1]}]"
+            self._model.add_component(
+                f"FixedArc[{activities[j]},{activities[j + 1]}]",
+                pyo.Constraint(expr=(
+                    self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))] == 1
+                ))
             )
         # Add a constraint which ensures that the employee moves
         # from the activity before the moving task to the activity after the moving task
         activity_before_moving_task = activities[moving_task_step_index - 1]
         activity_after_moving_task = activities[moving_task_step_index + 1]
-        self._GRB_model.addLConstr(
-            self.vars_U[(create_activity_key(activity_before_moving_task),
-                         create_activity_key(activity_after_moving_task))],
-            sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activity_before_moving_task},{activity_after_moving_task}]"
+        self._model.add_component(
+            f"FixedArc[{activity_before_moving_task},{activity_after_moving_task}]",
+            pyo.Constraint(expr=(
+                self.vars_U[(create_activity_key(activity_before_moving_task),
+                             create_activity_key(activity_after_moving_task))] == 1
+            ))
         )
         # Add constraints that ensure that the order of the activities
         # after the moving task to the fixed task remains unchanged
         for j in range(moving_task_step_index + 1, fixed_task_step_index):
-            self._GRB_model.addLConstr(
-                self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))],
-                sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activities[j]},{activities[j + 1]}]"
+            self._model.add_component(
+                f"FixedArc[{activities[j]},{activities[j + 1]}]",
+                pyo.Constraint(expr=(
+                    self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))] == 1
+                ))
             )
         # Add constraint which ensures that the employee moves from the fixed task to the moving task
         # and from the moving task to the activity after the fixed task
-        self._GRB_model.addLConstr(
-            self.vars_U[(create_activity_key(self._fixed_task), self._moving_task_key)],
-            sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{self._fixed_task},{self.moving_task}]"
+        self._model.add_component(
+            f"FixedArc[{self._fixed_task},{self.moving_task}]",
+            pyo.Constraint(expr=(
+                self.vars_U[(create_activity_key(self._fixed_task), self._moving_task_key)] == 1
+            ))
         )
         activity_after_fixed_task = self._sequence.get_activity_after(self._fixed_task)
-        self._GRB_model.addLConstr(
-            self.vars_U[(self._moving_task_key, create_activity_key(activity_after_fixed_task))],
-            sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{self.moving_task},{activity_after_fixed_task}]"
+        self._model.add_component(
+            f"FixedArc[{self.moving_task},{activity_after_fixed_task}]",
+            pyo.Constraint(expr=(
+                self.vars_U[(self._moving_task_key, create_activity_key(activity_after_fixed_task))] == 1
+            ))
         )
         # Add constraints that ensure that the order of the activities
         # after the fixed task to the end of the sequence remains unchanged
         for j in range(fixed_task_step_index + 1, len(activities) - 1):
-            self._GRB_model.addLConstr(
-                self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))],
-                sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activities[j]},{activities[j + 1]}]"
+            self._model.add_component(
+                f"FixedArc[{activities[j]},{activities[j + 1]}]",
+                pyo.Constraint(expr=(
+                    self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))] == 1
+                ))
             )
-        self._GRB_model.update()
 
 
-#######################################################
-# Class IPModelForReordering1bWithInstanceAlterations #
-#######################################################
+#################################################
+# IPModelForReordering1bWithInstanceAlterations #
+#################################################
 
 class IPModelForReordering1bWithInstanceAlterations(IPModelForReorderingWithInstanceAlterations):
     """
@@ -154,43 +164,54 @@ class IPModelForReordering1bWithInstanceAlterations(IPModelForReorderingWithInst
         activities = self._sequence.get_contained_activities()
         # Add constraints that ensure that the order of the activities before the fixed task remains unchanged
         for j in range(fixed_task_step_index - 1):
-            self._GRB_model.addLConstr(
-                self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))],
-                sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activities[j]},{activities[j + 1]}]"
+            self._model.add_component(
+                f"FixedArc[{activities[j]},{activities[j + 1]}]",
+                pyo.Constraint(expr=(
+                    self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))] == 1
+                ))
             )
         # Add a constraint which ensures that the employee moves
         # from the activity before the fixed task to the moving task
         # and from the moving task to the fixed task
         activity_before_fixed_task = activities[fixed_task_step_index - 1]
-        self._GRB_model.addLConstr(
-            self.vars_U[(create_activity_key(activity_before_fixed_task), self._moving_task_key)],
-            sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activity_before_fixed_task},{self.moving_task}]"
+        self._model.add_component(
+            f"FixedArc[{activity_before_fixed_task},{self.moving_task}]",
+            pyo.Constraint(expr=(
+                self.vars_U[(create_activity_key(activity_before_fixed_task), self._moving_task_key)] == 1
+            ))
         )
-        self._GRB_model.addLConstr(
-            self.vars_U[(self._moving_task_key, create_activity_key(self._fixed_task))],
-            sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{self.moving_task},{self._fixed_task}]"
+        self._model.add_component(
+            f"FixedArc[{self.moving_task},{self._fixed_task}]",
+            pyo.Constraint(expr=(
+                self.vars_U[(self._moving_task_key, create_activity_key(self._fixed_task))] == 1
+            ))
         )
         # Add constraints that ensure that the order of the activities
         # from the fixed task to before the moving task remains unchanged
         for j in range(fixed_task_step_index, moving_task_step_index - 1):
-            self._GRB_model.addLConstr(
-                self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))],
-                sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activities[j]},{activities[j + 1]}]"
+            self._model.add_component(
+                f"FixedArc[{activities[j]},{activities[j + 1]}]",
+                pyo.Constraint(expr=(
+                    self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))] == 1
+                ))
             )
         # Add a constraint which ensures that the employee moves
         # from the activity before the moving task to the activity after the moving task
         activity_before_moving_task = activities[moving_task_step_index - 1]
         activity_after_moving_task = activities[moving_task_step_index + 1]
-        self._GRB_model.addLConstr(
-            self.vars_U[(create_activity_key(activity_before_moving_task),
-                         create_activity_key(activity_after_moving_task))],
-            sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activity_before_moving_task},{activity_after_moving_task}]"
+        self._model.add_component(
+            f"FixedArc[{activity_before_moving_task},{activity_after_moving_task}]",
+            pyo.Constraint(expr=(
+                self.vars_U[(create_activity_key(activity_before_moving_task),
+                             create_activity_key(activity_after_moving_task))] == 1
+            ))
         )
         # Add constraints that ensure that the order of the activities
         # after the moving task to the end of the sequence remains unchanged
         for j in range(moving_task_step_index + 1, len(activities) - 1):
-            self._GRB_model.addLConstr(
-                self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))],
-                sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activities[j]},{activities[j + 1]}]"
+            self._model.add_component(
+                f"FixedArc[{activities[j]},{activities[j + 1]}]",
+                pyo.Constraint(expr=(
+                    self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))] == 1
+                ))
             )
-        self._GRB_model.update()

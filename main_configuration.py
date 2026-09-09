@@ -1,4 +1,5 @@
 # Local libraries
+from src.optimization.milp.solver.solver import SOLVER_HIGHS, SOLVER_GUROBI
 from src.utils.constants import *
 
 
@@ -17,6 +18,20 @@ MAIN_PROCESS = RUN_EXPLANATION_PROCESS
 # MAIN_PROCESS = RUN_REOPTIMIZATION_PROCESS
 # MAIN_PROCESS = RUN_ANALYSIS_PROCESS
 # MAIN_PROCESS = RUN_TEACHING_PROCESS
+
+
+##########################
+# Solver - Configuration #
+##########################
+
+# Choose which MILP backend is used to solve models built with MILPModel
+# by activating one of the following lines
+#
+# NB: SOLVER_GUROBI requires gurobipy to be installed and a valid Gurobi license;
+# see src/optimization/milp/solver/solver.py for the solver-selection logic
+#
+SOLVER_NAME = SOLVER_HIGHS
+# SOLVER_NAME = SOLVER_GUROBI
 
 
 #####################################
@@ -111,15 +126,3 @@ WRITE_TEACHING_SOLUTIONS_ANALYSIS_INTO_FILES = False
 # NB: instances files to solve must be in the folder inputs, all the instances files will be solved
 SOLVING_TIME_LIMIT_IN_SECONDS = 30 * 60
 MUTE_SOLVING_PROCESS = False
-
-
-#################
-# Do not change #
-#################
-
-# Fix whether Gurobi can be used in the project (wherever it is executed)
-# NB: this is not a configuration parameter to set, do not change
-if MAIN_PROCESS == RUN_EVALUATION_PROCESS:
-    GUROBI_IS_ENABLED = False
-else:
-    GUROBI_IS_ENABLED = True

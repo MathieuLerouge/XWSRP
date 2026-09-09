@@ -1,5 +1,5 @@
-# Third-party libraries
-from gurobipy import GRB
+# Third-party library
+import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
@@ -7,13 +7,13 @@ from src.explaining.transforming.counterfactual.ILP_model.insertion_with_alterat
     import IPModelForInsertionWithInstanceAlterations
 from src.modeling.activity import Activity
 from src.modeling.task import Task
-from src.optimization.IP.sequence.basemodel import create_activity_key
 from src.optimization.heuristics.sequence import SequenceForHeuristics
+from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-#####################################################
-# Class IPModelForInsertion1WithInstanceAlterations #
-#####################################################
+###############################################
+# IPModelForInsertion1WithInstanceAlterations #
+###############################################
 
 class IPModelForInsertion1WithInstanceAlterations(IPModelForInsertionWithInstanceAlterations):
     """
@@ -81,18 +81,23 @@ class IPModelForInsertion1WithInstanceAlterations(IPModelForInsertionWithInstanc
         activities = self._sequence.get_contained_activities()
         for j in range(len(activities) - 1):
             if activities[j] != self._activity_before_insertion:
-                self._GRB_model.addLConstr(
-                    self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))],
-                    sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{activities[j]},{activities[j + 1]}]"
+                self._model.add_component(
+                    f"FixedArc[{activities[j]},{activities[j + 1]}]",
+                    pyo.Constraint(expr=(
+                        self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))] == 1
+                    ))
                 )
         # Add new constraints ensuring that the task is inserted at the right position
-        self._GRB_model.addLConstr(
-            self.vars_U[(create_activity_key(self._activity_before_insertion), self._pivot_task_key)],
-            sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{self._activity_before_insertion},{self._pivot_task}]"
+        self._model.add_component(
+            f"FixedArc[{self._activity_before_insertion},{self._pivot_task}]",
+            pyo.Constraint(expr=(
+                self.vars_U[(create_activity_key(self._activity_before_insertion), self._pivot_task_key)] == 1
+            ))
         )
         activity_after_insertion = self._sequence.get_activity_after(self._activity_before_insertion)
-        self._GRB_model.addLConstr(
-            self.vars_U[(self._pivot_task_key, create_activity_key(activity_after_insertion))],
-            sense=GRB.EQUAL, rhs=1, name=f"FixedArc[{self._pivot_task},{activity_after_insertion}]"
+        self._model.add_component(
+            f"FixedArc[{self._pivot_task},{activity_after_insertion}]",
+            pyo.Constraint(expr=(
+                self.vars_U[(self._pivot_task_key, create_activity_key(activity_after_insertion))] == 1
+            ))
         )
-        self._GRB_model.update()

@@ -2,7 +2,6 @@
 from os import path
 
 # Local libraries
-from main_configuration import GUROBI_IS_ENABLED
 from src.checking.feasibility import check_feasibility
 from src.evaluation.constants import INSTANCES_FOR_EVALUATION_NAMES, SOLUTIONS_FOR_EVALUATION_NAMES, \
     ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION
@@ -13,13 +12,10 @@ from src.explaining.writing.explanation import export_multiple_contrastive_expla
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.optimization.heuristics.solution import SolutionForHeuristics
+from src.optimization.milp.milpmodel import MILPModel
 from src.reading.instance import extract_instance_from_file
 from src.reading.solution import extract_solution_from_file
 from src.utils.files import get_default_inputs_directory_path
-
-# Local libraries (if Gurobi is enabled)
-if GUROBI_IS_ENABLED:
-    from src.optimization.IP.WSRPmodel import WSRPIPModel
 
 
 #############################################
@@ -64,11 +60,10 @@ def compute_solution_for_evaluation_by_ILP_optimization(instance: Instance, solv
     :param mute_process: if True, the process is muted (bool)
     :return: a solution of the instance for evaluation
     """
-    model = WSRPIPModel(instance)
-    model.update()
+    model = MILPModel(instance)
     if solving_time_limit is not None:
         model.solving_time_limit = solving_time_limit
-    model.optimize(mute=mute_process)
+    model.solve(mute=mute_process)
     solution = model.solution
     if not check_feasibility(solution)[0]:
         raise ValueError(f"The solution {solution.name} is not feasible")

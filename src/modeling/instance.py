@@ -48,6 +48,7 @@ class Instance:
         self._lunch_break_rules: Optional[LunchBreakRules] = None
         self._hypothetical_activities: dict[str, dict[str, Activity]] = dict()
         self._speed = speed
+        self._must_cover_all_tasks = False
 
     def __repr__(self):
         representation = self._name + LINE_BREAK_STRING
@@ -123,6 +124,19 @@ class Instance:
             return SOLUTION_NAME_PREFIX_BIS + self.core_name
         else:
             raise ValueError(f"The name case type is neither {SNAKE_CASE} nor {CAMEL_CASE}")
+
+    #######################
+    # Solving assumptions #
+    #######################
+
+    @property
+    def must_cover_all_tasks(self):
+        """Whether every task of this instance must be covered by an exact-solving process."""
+        return self._must_cover_all_tasks
+
+    @must_cover_all_tasks.setter
+    def must_cover_all_tasks(self, must_cover_all_tasks: bool):
+        self._must_cover_all_tasks = must_cover_all_tasks
 
     #############
     # Employees #
@@ -478,6 +492,7 @@ class Instance:
             raise NotImplementedError("Instance copy for instance having task unavailabilities is not implemented")
         instance_name = self._name + "_copy" if name is None else name
         instance = Instance(instance_name, self._speed)
+        instance.must_cover_all_tasks = self._must_cover_all_tasks
         for employee in self.employees:
             instance.add_employee(employee.name, employee.start_time_lb, employee.end_time_ub,
                                    employee.location, employee.skill_level)

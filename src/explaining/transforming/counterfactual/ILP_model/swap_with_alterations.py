@@ -1,6 +1,5 @@
-# Third party libraries
-import gurobipy as grb
-from gurobipy import GRB
+# Third-party library
+import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
@@ -10,9 +9,9 @@ from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
-###############################################
-# Class IPModelForSwapWithInstanceAlterations #
-###############################################
+#########################################
+# IPModelForSwapWithInstanceAlterations #
+#########################################
 
 class IPModelForSwapWithInstanceAlterations(IPModelForTransformationWithInstanceAlterations):
     """
@@ -109,7 +108,7 @@ class IPModelForSwapWithInstanceAlterations(IPModelForTransformationWithInstance
     # Objective function #
     ######################
 
-    # Objective function is unchanged
+    # Objective function is unchanged (lexicographic, see the base class)
 
     #####################
     # Constraints - All #
@@ -134,27 +133,32 @@ class IPModelForSwapWithInstanceAlterations(IPModelForTransformationWithInstance
         """
         # Constraint ensuring that the replacing task is performed
         j = self._pivot_task_key
-        self._GRB_model.addLConstr(
-            grb.quicksum([self.vars_U[(j, k)]
-                          for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                          if k != j]),
-            sense=GRB.EQUAL, rhs=1, name=f"TaskCoveringConstraint[{j}]"
+        self._model.add_component(
+            f"TaskCoveringConstraint[{j}]",
+            pyo.Constraint(expr=(
+                pyo.quicksum([self.vars_U[(j, k)]
+                              for k in self.get_activities_keys(including_departure=False, including_comeback=True)
+                              if k != j]) == 1
+            ))
         )
         # Constraints ensuring that all other tasks are performed at most once
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                grb.quicksum([self.vars_U[(j, k)]
-                              for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                              if k != j]),
-                sense=GRB.LESS_EQUAL, rhs=1, name=f"TaskCoveringConstraint[{j}]"
+            self._model.add_component(
+                f"TaskCoveringConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    pyo.quicksum([self.vars_U[(j, k)]
+                                  for k in self.get_activities_keys(including_departure=False, including_comeback=True)
+                                  if k != j]) <= 1
+                ))
             )
         # Constraint ensuring that there must be as many task performed as there are tasks in the sequence
         # before the transformation
-        self._GRB_model.addLConstr(
-            grb.quicksum([self.vars_U[(j, k)]
-                          for j in self.get_activities_keys(including_departure=True, including_comeback=False)
-                          for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                          if k != j]),
-            sense=GRB.EQUAL, rhs=self._sequence.nb_steps - 1, name=f"GeneralCoveringConstraint"
+        self._model.add_component(
+            "GeneralCoveringConstraint",
+            pyo.Constraint(expr=(
+                pyo.quicksum([self.vars_U[(j, k)]
+                              for j in self.get_activities_keys(including_departure=True, including_comeback=False)
+                              for k in self.get_activities_keys(including_departure=False, including_comeback=True)
+                              if k != j]) == self._sequence.nb_steps - 1
+            ))
         )
-        self._GRB_model.update()

@@ -13,6 +13,13 @@ class InstanceForTeaching(Instance):
     def __init__(self, name: str):
         super().__init__(name)
         self._version = get_instance_version_in_instance_file_name(name)
+        if self._version == 1:
+            self.must_cover_all_tasks = True
+        elif self._version in [2, 3]:
+            self.must_cover_all_tasks = False
+        else:
+            raise ValueError(f"Given instance has a version {self._version} "
+                             f"but its version must be either 1, 2 or 3")
 
     ###########
     # Version #

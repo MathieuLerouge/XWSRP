@@ -1,19 +1,18 @@
-# Third party libraries
-import gurobipy as grb
-from gurobipy import GRB
+# Third-party library
+import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.transforming.counterfactual.ILP_model.swap_with_alterations import \
     IPModelForSwapWithInstanceAlterations
 from src.modeling.task import Task
-from src.optimization.IP.sequence.basemodel import create_activity_key, LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 from src.optimization.heuristics.sequence import SequenceForHeuristics
+from src.optimization.milp.subproblems.sequencemodel import create_activity_key, LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 
 
-#################################################
-# Class IPModelForSwap2aWithInstanceAlterations #
-#################################################
+###########################################
+# IPModelForSwap2aWithInstanceAlterations #
+###########################################
 
 class IPModelForSwap2aWithInstanceAlterations(IPModelForSwapWithInstanceAlterations):
     """
@@ -63,17 +62,20 @@ class IPModelForSwap2aWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         # Add a new flow constraint which ensures that the sequence of activities remains the same
         # except that one task is replaced by the replacing task
         activities = self._sequence.get_contained_activities()
-        self._GRB_model.addLConstr(
-            grb.quicksum([self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))]
-                          for j in range(len(activities) - 1)]),
-            sense=GRB.EQUAL, rhs=len(activities) - 3, name=f"ReplacementBetweenConsecutiveActivities"
+        self._model.add_component(
+            "ReplacementBetweenConsecutiveActivities",
+            pyo.Constraint(expr=(
+                pyo.quicksum(
+                    [self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))]
+                     for j in range(len(activities) - 1)]
+                ) == len(activities) - 3
+            ))
         )
-        self._GRB_model.update()
 
 
-#################################################
-# Class IPModelForSwap2bWithInstanceAlterations #
-#################################################
+###########################################
+# IPModelForSwap2bWithInstanceAlterations #
+###########################################
 
 class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterations):
     """
@@ -162,12 +164,15 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         # Add a new flow constraint which ensures that the sequence of activities remains the same
         # except that a task is inserted in the sequence
         activities = self._sequence.get_contained_activities()
-        self._GRB_model.addLConstr(
-            grb.quicksum([self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))]
-                          for j in range(len(activities) - 1)]),
-            sense=GRB.EQUAL, rhs=len(activities) - 3, name=f"SwapBetweenConsecutiveActivities"
+        self._model.add_component(
+            "SwapBetweenConsecutiveActivities",
+            pyo.Constraint(expr=(
+                pyo.quicksum(
+                    [self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))]
+                     for j in range(len(activities) - 1)]
+                ) == len(activities) - 3
+            ))
         )
-        self._GRB_model.update()
 
     ##########################
     # Constraints - Covering #
@@ -180,19 +185,23 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         :return: None
         """
         activities = self._sequence.get_contained_activities()
-        self._GRB_model.addLConstr(
-            grb.quicksum([self.vars_U[(j, k)]
-                          for j in self._get_candidate_tasks_keys(including_pivot_task=False)
-                          for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                          if k != j]),
-            sense=GRB.EQUAL, rhs=len(activities) - 3, name=f"PerformedTaskCoveringConstraint"
+        self._model.add_component(
+            "PerformedTaskCoveringConstraint",
+            pyo.Constraint(expr=(
+                pyo.quicksum([self.vars_U[(j, k)]
+                              for j in self._get_candidate_tasks_keys(including_pivot_task=False)
+                              for k in self.get_activities_keys(including_departure=False, including_comeback=True)
+                              if k != j]) == len(activities) - 3
+            ))
         )
-        self._GRB_model.addLConstr(
-            grb.quicksum([self.vars_U[(create_activity_key(task), k)]
-                          for task in self._non_performed_tasks
-                          for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                          if k != create_activity_key(task)]),
-            sense=GRB.EQUAL, rhs=1, name=f"TaskCoveringConstraintPotentialPivots"
+        self._model.add_component(
+            "TaskCoveringConstraintPotentialPivots",
+            pyo.Constraint(expr=(
+                pyo.quicksum([self.vars_U[(create_activity_key(task), k)]
+                              for task in self._non_performed_tasks
+                              for k in self.get_activities_keys(including_departure=False, including_comeback=True)
+                              if k != create_activity_key(task)]) == 1
+            ))
         )
 
     #############################
@@ -206,33 +215,41 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         :return: None
         """
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb +
-                (self.vars_D_LB_t[j] if self.vars_X_LB_t[j] is not None else 0),
-                sense=GRB.GREATER_EQUAL, rhs=0, name=f"TimeWindowLBConstraint[{j}]"
+            self._model.add_component(
+                f"TimeWindowLBConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb +
+                    (self.vars_D_LB_t[j] if self.vars_X_LB_t[j] is not None else 0) >= 0
+                ))
             )
-            self._GRB_model.addLConstr(
-                self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
-                (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) -
-                self.get_candidate_task_by_key(j).end_time_ub -
-                (self.vars_D_UB_t[j] if self.vars_X_UB_t[j] is not None else 0),
-                sense=GRB.LESS_EQUAL, rhs=0, name=f"TimeWindowUBConstraint[{j}]"
+            self._model.add_component(
+                f"TimeWindowUBConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
+                    (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) -
+                    self.get_candidate_task_by_key(j).end_time_ub -
+                    (self.vars_D_UB_t[j] if self.vars_X_UB_t[j] is not None else 0) <= 0
+                ))
             )
         for task in self._non_performed_tasks:
             j = create_activity_key(task)
-            self._GRB_model.addLConstr(
-                self.var_T_backward -
-                self._task_performances_expressions[j]*self.get_candidate_task_by_key(j).start_time_lb +
-                (self.vars_D_LB_t[j] if self.vars_X_LB_t[j] is not None else 0),
-                sense=GRB.GREATER_EQUAL, rhs=0, name=f"TimeWindowLBConstraint[{j}]"
+            self._model.add_component(
+                f"TimeWindowLBConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    self.var_T_backward -
+                    self._task_performances_expressions[j] * self.get_candidate_task_by_key(j).start_time_lb +
+                    (self.vars_D_LB_t[j] if self.vars_X_LB_t[j] is not None else 0) >= 0
+                ))
             )
-            self._GRB_model.addLConstr(
-                self.var_T_forward + self.get_candidate_task_by_key(j).duration -
-                (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) -
-                self._task_performances_expressions[j]*self.get_candidate_task_by_key(j).end_time_ub -
-                (self.vars_D_UB_t[j] if self.vars_X_UB_t[j] is not None else 0) -
-                (1 - self._task_performances_expressions[j])*(24*60),
-                sense=GRB.LESS_EQUAL, rhs=0, name=f"TimeWindowUBConstraint[{j}]"
+            self._model.add_component(
+                f"TimeWindowUBConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    self.var_T_forward + self.get_candidate_task_by_key(j).duration -
+                    (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) -
+                    self._task_performances_expressions[j] * self.get_candidate_task_by_key(j).end_time_ub -
+                    (self.vars_D_UB_t[j] if self.vars_X_UB_t[j] is not None else 0) -
+                    (1 - self._task_performances_expressions[j]) * (24 * 60) <= 0
+                ))
             )
 
     ################################
@@ -247,71 +264,85 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         """
         # Add departure-to-first-task time sequence constraints
         for k in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                self.vars_T[k] - self.get_traveling_duration(LEAVING_HOME_KEY, k) - self.employee.start_time_lb +
-                (self.var_D_LB_e if self.var_X_LB_e is not None else 0),
-                sense=GRB.GREATER_EQUAL, rhs=0, name=f"SequenceDepartureToTaskConstraint[{k}]"
+            self._model.add_component(
+                f"SequenceDepartureToTaskConstraint[{k}]",
+                pyo.Constraint(expr=(
+                    self.vars_T[k] - self.get_traveling_duration(LEAVING_HOME_KEY, k) - self.employee.start_time_lb +
+                    (self.var_D_LB_e if self.var_X_LB_e is not None else 0) >= 0
+                ))
             )
         for task in self._non_performed_tasks:
             k = create_activity_key(task)
-            self._GRB_model.addLConstr(
-                self.var_T_backward -
-                self._task_performances_expressions[k]*self.get_traveling_duration(LEAVING_HOME_KEY, k) -
-                self.employee.start_time_lb +
-                (self.var_D_LB_e if self.var_X_LB_e is not None else 0),
-                sense=GRB.GREATER_EQUAL, rhs=0, name=f"SequenceDepartureToTaskConstraint[{k}]"
+            self._model.add_component(
+                f"SequenceDepartureToTaskConstraint[{k}]",
+                pyo.Constraint(expr=(
+                    self.var_T_backward -
+                    self._task_performances_expressions[k] * self.get_traveling_duration(LEAVING_HOME_KEY, k) -
+                    self.employee.start_time_lb +
+                    (self.var_D_LB_e if self.var_X_LB_e is not None else 0) >= 0
+                ))
             )
         # Add last-task-to-comeback time sequence constraints
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
-                (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
-                self.get_traveling_duration(j, COMING_BACK_HOME_KEY) - self.employee.end_time_ub -
-                (self.var_D_UB_e if self.var_X_UB_e is not None else 0),
-                sense=GRB.LESS_EQUAL, rhs=0, name=f"SequenceTaskToComebackConstraint[{j}]"
+            self._model.add_component(
+                f"SequenceTaskToComebackConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
+                    (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
+                    self.get_traveling_duration(j, COMING_BACK_HOME_KEY) - self.employee.end_time_ub -
+                    (self.var_D_UB_e if self.var_X_UB_e is not None else 0) <= 0
+                ))
             )
         for task in self._non_performed_tasks:
             j = create_activity_key(task)
-            self._GRB_model.addLConstr(
-                self.var_T_forward + self.get_candidate_task_by_key(j).duration -
-                (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
-                self._task_performances_expressions[j]*self.get_traveling_duration(j, COMING_BACK_HOME_KEY) -
-                self.employee.end_time_ub -
-                (self.var_D_UB_e if self.var_X_UB_e is not None else 0),
-                sense=GRB.LESS_EQUAL, rhs=0, name=f"SequenceTaskToComebackConstraint[{j}]"
+            self._model.add_component(
+                f"SequenceTaskToComebackConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    self.var_T_forward + self.get_candidate_task_by_key(j).duration -
+                    (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
+                    self._task_performances_expressions[j] * self.get_traveling_duration(j, COMING_BACK_HOME_KEY) -
+                    self.employee.end_time_ub -
+                    (self.var_D_UB_e if self.var_X_UB_e is not None else 0) <= 0
+                ))
             )
         # Add task-to-task time sequence constraints
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
             for k in self._get_candidate_tasks_keys(including_pivot_task=False):
                 if k != j:
-                    self._GRB_model.addLConstr(
-                        self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
-                        (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
-                        self.vars_U[(j, k)] * self.get_traveling_duration(j, k) - self.vars_T[k] -
-                        (1 - self.vars_U[(j, k)]) * 24 * 60,
-                        sense=GRB.LESS_EQUAL, rhs=0, name=f"SequenceTaskToTaskConstraint[{j, k}]"
+                    self._model.add_component(
+                        f"SequenceTaskToTaskConstraint[{j, k}]",
+                        pyo.Constraint(expr=(
+                            self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
+                            (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
+                            self.vars_U[(j, k)] * self.get_traveling_duration(j, k) - self.vars_T[k] -
+                            (1 - self.vars_U[(j, k)]) * 24 * 60 <= 0
+                        ))
                     )
         for task in self._non_performed_tasks:
             j = create_activity_key(task)
             for k in self._get_candidate_tasks_keys(including_pivot_task=False):
                 if k != j:
-                    self._GRB_model.addLConstr(
-                        self.var_T_forward + self.get_candidate_task_by_key(j).duration -
-                        (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
-                        self.vars_U[(j, k)] * self.get_traveling_duration(j, k) - self.vars_T[k] -
-                        (1 - self.vars_U[(j, k)]) * 24 * 60,
-                        sense=GRB.LESS_EQUAL, rhs=0, name=f"SequenceTaskToTaskConstraint[{j, k}]"
+                    self._model.add_component(
+                        f"SequenceTaskToTaskConstraint[{j, k}]",
+                        pyo.Constraint(expr=(
+                            self.var_T_forward + self.get_candidate_task_by_key(j).duration -
+                            (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
+                            self.vars_U[(j, k)] * self.get_traveling_duration(j, k) - self.vars_T[k] -
+                            (1 - self.vars_U[(j, k)]) * 24 * 60 <= 0
+                        ))
                     )
         for task in self._non_performed_tasks:
             k = create_activity_key(task)
             for j in self._get_candidate_tasks_keys(including_pivot_task=False):
                 if k != j:
-                    self._GRB_model.addLConstr(
-                        self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
-                        (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
-                        self.vars_U[(j, k)] * self.get_traveling_duration(j, k) - self.var_T_backward -
-                        (1 - self.vars_U[(j, k)]) * 24 * 60,
-                        sense=GRB.LESS_EQUAL, rhs=0, name=f"SequenceTaskToTaskConstraint[{j, k}]"
+                    self._model.add_component(
+                        f"SequenceTaskToTaskConstraint[{j, k}]",
+                        pyo.Constraint(expr=(
+                            self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
+                            (self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0) +
+                            self.vars_U[(j, k)] * self.get_traveling_duration(j, k) - self.var_T_backward -
+                            (1 - self.vars_U[(j, k)]) * 24 * 60 <= 0
+                        ))
                     )
 
     #################################################

@@ -57,11 +57,10 @@ def run_IP_optimization_on_teaching_instances(solving_process_time_limit_in_seco
         print_title_frame(f"IP optimization of {instance.name}")
         print("")
         model = WSRPIPModelForTeaching(instance)
-        model.update()
         model.solving_time_limit = solving_process_time_limit_in_seconds
         print(f"IP model name: {model.name}")
         print(f"IP model version: {model.version}")
-        model.optimize(mute_solving_process)
+        model.solve(mute_solving_process)
         print("Optimization: done")
         print("")
 

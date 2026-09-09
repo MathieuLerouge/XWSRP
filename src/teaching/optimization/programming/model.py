@@ -1,5 +1,5 @@
 # Local libraries
-from src.optimization.IP.WSRPmodel import WSRPIPModel
+from src.optimization.milp.milpmodel import MILPModel
 from src.teaching.modeling.instance import InstanceForTeaching
 from src.teaching.optimization.solution import SolutionForTeaching
 from src.utils.constants import SOLUTION_SOLVING_METHOD_SYMBOL_BIS
@@ -8,28 +8,18 @@ from src.utils.constants import SOLUTION_SOLVING_METHOD_SYMBOL_BIS
 IP_MODEL_VERSION_SYMBOL = 'M'
 
 
-################################
-# Class WSRPIPModelForTeaching #
-################################
+##########################
+# WSRPIPModelForTeaching #
+##########################
 
 
-class WSRPIPModelForTeaching(WSRPIPModel):
+class WSRPIPModelForTeaching(MILPModel):
 
     def __init__(self, instance: InstanceForTeaching):
-        if instance.version == 1:
-            self._version = 1
-        elif instance.version in [2, 3]:
-            self._version = 2
-        else:
-            raise ValueError(f"Given instance has a version {instance.version} "
-                             f"but its version must be either 1, 2 or 3")
+        # NB: instance.version is already validated to be 1, 2 or 3 by InstanceForTeaching.__init__,
+        # which also derives must_cover_all_tasks from it
+        self._version = 1 if instance.version == 1 else 2
         super().__init__(instance)
-        if self._version == 1:
-            self.is_making_all_tasks_covered = True
-        elif self._version == 2:
-            self.is_making_all_tasks_covered = False
-        else:
-            raise ValueError(f"Given model has a version {self._version} but its version must be either 1 or 2")
         self._name = f"{instance.core_name_with_version}{SOLUTION_SOLVING_METHOD_SYMBOL_BIS}{self._solving_method_id}"
 
     ####################

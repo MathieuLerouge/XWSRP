@@ -1,9 +1,8 @@
 # Standard library
 from abc import abstractmethod
 
-# Third party libraries
-import gurobipy as grb
-from gurobipy import GRB
+# Third-party library
+import pyomo.environ as pyo
 
 # Local libraries
 from src.modeling.comeback import ComeBack
@@ -11,21 +10,20 @@ from src.modeling.departure import Departure
 from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
-from src.optimization.IP.sequence.basemodel import IPModelForSequenceOptimization, \
+from src.optimization.milp.solver.solver import Solver
+from src.optimization.milp.subproblems.sequencemodel import SequenceModel, \
     LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 
 
-#############################
-# Class IPModelForCategory3 #
-#############################
+#######################
+# IPModelForCategory3 #
+#######################
 
-
-class IPModelForCategory3(IPModelForSequenceOptimization):
+class IPModelForCategory3(SequenceModel):
 
     def __init__(self, sequence: Sequence, pivot_task: Task):
         self._pivot_task = pivot_task
         self._sequence = sequence
-        self._time_limit = None
         super().__init__(sequence.instance, sequence.employee, self._compute_candidate_tasks())
 
     @abstractmethod
@@ -46,14 +44,14 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     @property
     def pivot_task_time_gap(self):
         if self.has_solution_sequence:
-            return int(self.var_T_backward.x - self.var_T_forward.x)
+            return round(pyo.value(self.var_T_backward) - pyo.value(self.var_T_forward))
         else:
             raise AttributeError("There is no solution sequence stored")
 
     @property
     def pivot_task_start_time(self):
         if self.has_solution_sequence:
-            return int(self.var_T_backward.x)
+            return round(pyo.value(self.var_T_backward))
             # return int((self.var_T_backward.x + self.var_T_forward.x)/2)
         else:
             raise AttributeError("There is no solution sequence stored")
@@ -61,14 +59,14 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     @property
     def pivot_task_start_time_for_backward(self):
         if self.has_solution_sequence:
-            return int(self.var_T_backward.x)
+            return round(pyo.value(self.var_T_backward))
         else:
             raise AttributeError("There is no solution sequence stored")
 
     @property
     def pivot_task_start_time_for_forward(self):
         if self.has_solution_sequence:
-            return int(self.var_T_forward.x)
+            return round(pyo.value(self.var_T_forward))
         else:
             raise AttributeError("There is no solution sequence stored")
 
@@ -84,13 +82,11 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
 
     @property
     def time_limit(self):
-        return self._time_limit
+        return self.solving_time_limit
 
     @time_limit.setter
     def time_limit(self, time_limit: int):
-        self._time_limit = time_limit
-        self._GRB_model.setParam('OutputFlag', 0)
-        self._GRB_model.setParam('TimeLimit', time_limit)
+        self.solving_time_limit = time_limit
 
     ######################
     # Decision variables #
@@ -100,16 +96,18 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
         self._add_decision_variables_T()
         self._add_decision_variables_split_T()
         self._add_decision_variables_U()
-        self._GRB_model.update()
 
     def _add_decision_variables_T(self):
-        self.vars_T = self._GRB_model.addVars(
-            self._get_candidate_tasks_keys(including_pivot_task=False), vtype=GRB.INTEGER, lb=0, name="T"
+        self._model.T = pyo.Var(
+            self._get_candidate_tasks_keys(including_pivot_task=False), domain=pyo.NonNegativeIntegers
         )
+        self.vars_T = self._model.T
 
     def _add_decision_variables_split_T(self):
-        self.var_T_backward = self._GRB_model.addVar(vtype=GRB.INTEGER, lb=0, name="Tb")
-        self.var_T_forward = self._GRB_model.addVar(vtype=GRB.INTEGER, lb=0, name="Ta")
+        self._model.Tb = pyo.Var(domain=pyo.NonNegativeIntegers)
+        self._model.Ta = pyo.Var(domain=pyo.NonNegativeIntegers)
+        self.var_T_backward = self._model.Tb
+        self.var_T_forward = self._model.Ta
 
     ##################
     # Key quantities #
@@ -120,7 +118,7 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
 
     def _compute_tasks_performances_expressions(self):
         self.tasks_performances_expressions = dict([
-            (j, grb.quicksum([self.vars_U[j, k]
+            (j, pyo.quicksum([self.vars_U[j, k]
                               for k in self.get_activities_keys(including_departure=False, including_comeback=True)
                               if k != j]))
             for j in self._get_candidate_tasks_keys()
@@ -128,14 +126,14 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
 
     def _compute_working_duration_expression(self):
         self.working_duration_expression = \
-            grb.quicksum(
+            pyo.quicksum(
                 [self.tasks_performances_expressions[j] * self.get_candidate_task_by_key(j).duration
                  for j in self._get_candidate_tasks_keys()]
             )
 
     def _compute_traveling_duration_expression(self):
         self.traveling_duration_expression = \
-            grb.quicksum(
+            pyo.quicksum(
                 [self.vars_U[indices] *
                  self.get_traveling_duration(activity_key1=indices[0], activity_key2=indices[1])
                  for indices in self.vars_U.keys()]
@@ -152,12 +150,20 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     ######################
 
     def _add_objective_function(self):
+        """
+        Build the objectives that will be minimized according to a lexicographic order, highest priority first:
+        the time gap, the working duration, then the traveling duration. Solved lexicographically (one solve per
+        objective, see _solve) since Pyomo/HiGHS have no equivalent of Gurobi's setObjectiveN hierarchical
+        multi-objective feature.
+        """
         self._compute_key_quantities()
-        self._GRB_model.ModelSense = GRB.MINIMIZE
-        objectives = [self.time_gap_expression, self.working_duration_expression, self.traveling_duration_expression]
-        for index, objective in enumerate(objectives):
-            self._GRB_model.setObjectiveN(objective, index, len(objectives) - 1 - index)
-        self._GRB_model.update()
+        self._objectives_in_priority_order = [
+            self.time_gap_expression, self.working_duration_expression, self.traveling_duration_expression
+        ]
+
+    def _solve(self, mute: bool, solver_name: str):
+        solver = Solver(solver_name, mute=mute, time_limit=self._solving_time_limit)
+        return solver.solve_lexicographically(self._model, self._objectives_in_priority_order)
 
     ###############
     # Constraints #
@@ -171,7 +177,6 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
         self._add_split_time_constraint()
         self._add_no_sub_loops_around_pivot_task_constraints()
         # No skill constraints
-        self._GRB_model.update()
 
     ##########################
     # Constraints - Covering #
@@ -186,14 +191,15 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
         self._add_tasks_covering_constraints()
         # Add constraints about employees unavailabilities covering
         for j in self.get_unavailabilities_keys():
-            self._GRB_model.addLConstr(
-                grb.quicksum(
-                    [self.vars_U[(j, k)]
-                     for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                     if k != j]
-                ),
-                sense=GRB.EQUAL, rhs=1,
-                name=f"UnavailabilityCoveringConstraint[{j}]"
+            self._model.add_component(
+                f"UnavailabilityCoveringConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    pyo.quicksum(
+                        [self.vars_U[(j, k)]
+                         for k in self.get_activities_keys(including_departure=False, including_comeback=True)
+                         if k != j]
+                    ) == 1
+                ))
             )
 
     #############################
@@ -203,33 +209,33 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     def _add_time_window_constraints(self):
         # Add time window lower bound constraint for pivot task
         j = self.get_pivot_task_key()
-        self._GRB_model.addLConstr(
-            self.var_T_backward - self.get_candidate_task_by_key(j).start_time_lb,
-            sense=GRB.GREATER_EQUAL, rhs=0,
-            name=f"TimeWindowLBConstraint[{j}]"
+        self._model.add_component(
+            f"TimeWindowLBConstraint[{j}]",
+            pyo.Constraint(expr=(self.var_T_backward - self.get_candidate_task_by_key(j).start_time_lb >= 0))
         )
         # Add time windows lower bounds constraints for all other tasks
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb,
-                sense=GRB.GREATER_EQUAL, rhs=0,
-                name=f"TimeWindowLBConstraint[{j}]"
+            self._model.add_component(
+                f"TimeWindowLBConstraint[{j}]",
+                pyo.Constraint(expr=(self.vars_T[j] - self.get_candidate_task_by_key(j).start_time_lb >= 0))
             )
         # Add time window upper bound constraint for pivot task
         j = self.get_pivot_task_key()
-        self._GRB_model.addLConstr(
-            self.var_T_forward + self.get_candidate_task_by_key(j).duration
-            - self.get_candidate_task_by_key(j).end_time_ub,
-            sense=GRB.LESS_EQUAL, rhs=0,
-            name=f"TimeWindowUBConstraint[{j}]"
+        self._model.add_component(
+            f"TimeWindowUBConstraint[{j}]",
+            pyo.Constraint(expr=(
+                self.var_T_forward + self.get_candidate_task_by_key(j).duration
+                - self.get_candidate_task_by_key(j).end_time_ub <= 0
+            ))
         )
         # Add time windows upper bounds constraints for all other tasks
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                self.vars_T[j] + self.get_candidate_task_by_key(j).duration
-                - self.get_candidate_task_by_key(j).end_time_ub,
-                sense=GRB.LESS_EQUAL, rhs=0,
-                name=f"TimeWindowUBConstraint[{j}]"
+            self._model.add_component(
+                f"TimeWindowUBConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    self.vars_T[j] + self.get_candidate_task_by_key(j).duration
+                    - self.get_candidate_task_by_key(j).end_time_ub <= 0
+                ))
             )
 
     ################################
@@ -239,131 +245,143 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     def _add_sequence_times_constraints(self):
         # Add departure-to-first-task time sequence constraints - for pivot task
         k = self.get_pivot_task_key()
-        self._GRB_model.addLConstr(
-            self.var_T_backward -
-            (self.employee.start_time_lb + self.get_traveling_duration(LEAVING_HOME_KEY, k)) *
-            self.vars_U[(LEAVING_HOME_KEY, k)],
-            sense=GRB.GREATER_EQUAL, rhs=0,
-            name=f"SequenceDepartureToTaskConstraint[{k}]"
+        self._model.add_component(
+            f"SequenceDepartureToTaskConstraint[{k}]",
+            pyo.Constraint(expr=(
+                self.var_T_backward -
+                (self.employee.start_time_lb + self.get_traveling_duration(LEAVING_HOME_KEY, k)) *
+                self.vars_U[(LEAVING_HOME_KEY, k)] >= 0
+            ))
         )
         # Add departure-to-first-task time sequence constraints - for all other tasks
         for k in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                self.vars_T[k] -
-                (self.employee.start_time_lb + self.get_traveling_duration(LEAVING_HOME_KEY, k)) *
-                self.vars_U[(LEAVING_HOME_KEY, k)],
-                sense=GRB.GREATER_EQUAL, rhs=0,
-                name=f"SequenceDepartureToTaskConstraint[{k}]"
+            self._model.add_component(
+                f"SequenceDepartureToTaskConstraint[{k}]",
+                pyo.Constraint(expr=(
+                    self.vars_T[k] -
+                    (self.employee.start_time_lb + self.get_traveling_duration(LEAVING_HOME_KEY, k)) *
+                    self.vars_U[(LEAVING_HOME_KEY, k)] >= 0
+                ))
             )
         # Add last-task-to-comeback time sequence constraints - for pivot task
         j = self.get_pivot_task_key()
-        self._GRB_model.addLConstr(
-            self.var_T_forward + self.get_candidate_task_by_key(j).duration -
-            self.vars_U[(j, COMING_BACK_HOME_KEY)] *
-            (self.employee.end_time_ub - self.get_traveling_duration(j, COMING_BACK_HOME_KEY)) -
-            (1 - self.vars_U[(j, COMING_BACK_HOME_KEY)]) * self.get_candidate_task_by_key(j).end_time_ub,
-            sense=GRB.LESS_EQUAL, rhs=0,
-            name=f"SequenceTaskToComebackConstraint[{j}]"
+        self._model.add_component(
+            f"SequenceTaskToComebackConstraint[{j}]",
+            pyo.Constraint(expr=(
+                self.var_T_forward + self.get_candidate_task_by_key(j).duration -
+                self.vars_U[(j, COMING_BACK_HOME_KEY)] *
+                (self.employee.end_time_ub - self.get_traveling_duration(j, COMING_BACK_HOME_KEY)) -
+                (1 - self.vars_U[(j, COMING_BACK_HOME_KEY)]) * self.get_candidate_task_by_key(j).end_time_ub <= 0
+            ))
         )
         # Add last-task-to-comeback time sequence constraints - for all other tasks
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
-                self.vars_U[(j, COMING_BACK_HOME_KEY)] *
-                (self.employee.end_time_ub - self.get_traveling_duration(j, COMING_BACK_HOME_KEY)) -
-                (1 - self.vars_U[(j, COMING_BACK_HOME_KEY)]) * self.get_candidate_task_by_key(j).end_time_ub,
-                sense=GRB.LESS_EQUAL, rhs=0,
-                name=f"SequenceTaskToComebackConstraint[{j}]"
+            self._model.add_component(
+                f"SequenceTaskToComebackConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    self.vars_T[j] + self.get_candidate_task_by_key(j).duration -
+                    self.vars_U[(j, COMING_BACK_HOME_KEY)] *
+                    (self.employee.end_time_ub - self.get_traveling_duration(j, COMING_BACK_HOME_KEY)) -
+                    (1 - self.vars_U[(j, COMING_BACK_HOME_KEY)]) * self.get_candidate_task_by_key(j).end_time_ub <= 0
+                ))
             )
         # Add task-to-task time sequence constraints
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
             # - with j and k prior tasks
             for k in self._get_candidate_tasks_keys(including_pivot_task=False):
                 if k != j:
-                    self._GRB_model.addLConstr(
-                        self.vars_T[j] + self.get_candidate_task_by_key(j).duration +
-                        self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
-                        self.vars_T[k] -
-                        (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub,
-                        sense=GRB.LESS_EQUAL, rhs=0,
-                        name=f"SequenceTaskToTaskConstraint[{j, k}]"
+                    self._model.add_component(
+                        f"SequenceTaskToTaskConstraint[{j, k}]",
+                        pyo.Constraint(expr=(
+                            self.vars_T[j] + self.get_candidate_task_by_key(j).duration +
+                            self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
+                            self.vars_T[k] -
+                            (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub <= 0
+                        ))
                     )
             # - with j prior task and k pivot task
             k = self.get_pivot_task_key()
-            self._GRB_model.addLConstr(
-                self.vars_T[j] + self.get_candidate_task_by_key(j).duration +
-                self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
-                self.var_T_backward -
-                (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub,
-                sense=GRB.LESS_EQUAL, rhs=0,
-                name=f"SequenceTaskToTaskConstraint[{j, k}]"
+            self._model.add_component(
+                f"SequenceTaskToTaskConstraint[{j, k}]",
+                pyo.Constraint(expr=(
+                    self.vars_T[j] + self.get_candidate_task_by_key(j).duration +
+                    self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
+                    self.var_T_backward -
+                    (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub <= 0
+                ))
             )
         # - with j pivot task and k other task
         j = self.get_pivot_task_key()
         for k in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                self.var_T_forward + self.get_candidate_task_by_key(j).duration +
-                self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
-                self.vars_T[k] -
-                (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub,
-                sense=GRB.LESS_EQUAL, rhs=0,
-                name=f"SequenceTaskToTaskConstraint[{j, k}]"
+            self._model.add_component(
+                f"SequenceTaskToTaskConstraint[{j, k}]",
+                pyo.Constraint(expr=(
+                    self.var_T_forward + self.get_candidate_task_by_key(j).duration +
+                    self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
+                    self.vars_T[k] -
+                    (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub <= 0
+                ))
             )
         # Add task-to-unavailability time sequence constraints - for pivot task
         j = self.get_pivot_task_key()
         for k in self.get_unavailabilities_keys():
-            self._GRB_model.addLConstr(
-                self.var_T_forward + self.get_candidate_task_by_key(j).duration +
-                self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
-                self.get_unavailability_by_key(k).start_time_lb -
-                (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub,
-                sense=GRB.LESS_EQUAL, rhs=0,
-                name=f"SequenceTaskToUnavailabilityConstraint[{j, k}]"
+            self._model.add_component(
+                f"SequenceTaskToUnavailabilityConstraint[{j, k}]",
+                pyo.Constraint(expr=(
+                    self.var_T_forward + self.get_candidate_task_by_key(j).duration +
+                    self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
+                    self.get_unavailability_by_key(k).start_time_lb -
+                    (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub <= 0
+                ))
             )
         # Add task-to-unavailability time sequence constraints - for all other tasks
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
             for k in self.get_unavailabilities_keys():
-                self._GRB_model.addLConstr(
-                    self.vars_T[j] + self.get_candidate_task_by_key(j).duration +
-                    self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
-                    self.get_unavailability_by_key(k).start_time_lb -
-                    (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub,
-                    sense=GRB.LESS_EQUAL, rhs=0,
-                    name=f"SequenceTaskToUnavailabilityConstraint[{j, k}]"
+                self._model.add_component(
+                    f"SequenceTaskToUnavailabilityConstraint[{j, k}]",
+                    pyo.Constraint(expr=(
+                        self.vars_T[j] + self.get_candidate_task_by_key(j).duration +
+                        self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
+                        self.get_unavailability_by_key(k).start_time_lb -
+                        (1 - self.vars_U[(j, k)]) * self.get_candidate_task_by_key(j).end_time_ub <= 0
+                    ))
                 )
         # Add unavailability-to-task time sequence constraints - for new task
         k = self.get_pivot_task_key()
         for j in self.get_unavailabilities_keys():
-            self._GRB_model.addLConstr(
-                self.get_unavailability_by_key(j).end_time_ub +
-                self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
-                self.var_T_backward -
-                (1 - self.vars_U[(j, k)]) * self.get_unavailability_by_key(j).end_time_ub,
-                sense=GRB.LESS_EQUAL, rhs=0,
-                name=f"SequenceUnavailabilityToTaskConstraint[{j, k}]"
+            self._model.add_component(
+                f"SequenceUnavailabilityToTaskConstraint[{j, k}]",
+                pyo.Constraint(expr=(
+                    self.get_unavailability_by_key(j).end_time_ub +
+                    self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
+                    self.var_T_backward -
+                    (1 - self.vars_U[(j, k)]) * self.get_unavailability_by_key(j).end_time_ub <= 0
+                ))
             )
         # Add unavailability-to-task time sequence constraints - for all other tasks
         for j in self.get_unavailabilities_keys():
             for k in self._get_candidate_tasks_keys(including_pivot_task=False):
-                self._GRB_model.addLConstr(
-                    self.get_unavailability_by_key(j).end_time_ub +
-                    self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
-                    self.vars_T[k] -
-                    (1 - self.vars_U[(j, k)]) * self.get_unavailability_by_key(j).end_time_ub,
-                    sense=GRB.LESS_EQUAL, rhs=0,
-                    name=f"SequenceUnavailabilityToTaskConstraint[{j, k}]"
+                self._model.add_component(
+                    f"SequenceUnavailabilityToTaskConstraint[{j, k}]",
+                    pyo.Constraint(expr=(
+                        self.get_unavailability_by_key(j).end_time_ub +
+                        self.vars_U[(j, k)] * self.get_traveling_duration(j, k) -
+                        self.vars_T[k] -
+                        (1 - self.vars_U[(j, k)]) * self.get_unavailability_by_key(j).end_time_ub <= 0
+                    ))
                 )
         # Add unavailability-to-unavailability time sequence constraints
         for j in self.get_unavailabilities_keys():
             for k in self.get_unavailabilities_keys():
                 if j != k:
-                    self._GRB_model.addLConstr(
-                        self.vars_U[(j, k)],
-                        sense=GRB.LESS_EQUAL,
-                        rhs=int(self.get_unavailability_by_key(j).end_time_ub +
+                    self._model.add_component(
+                        f"SequenceUnavailabilityToUnavailabilityConstraint[{j, k}]",
+                        pyo.Constraint(expr=(
+                            self.vars_U[(j, k)] <=
+                            int(self.get_unavailability_by_key(j).end_time_ub +
                                 self.get_traveling_duration(j, k) <=
-                                self.get_unavailability_by_key(k).start_time_lb),
-                        name=f"SequenceUnavailabilityToUnavailabilityConstraint[{j, k}]"
+                                self.get_unavailability_by_key(k).start_time_lb)
+                        ))
                     )
 
     ############################
@@ -371,12 +389,10 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     ############################
 
     def _add_split_time_constraint(self):
-        self._GRB_model.addLConstr(
-            self.var_T_backward - self.var_T_forward,
-            sense=GRB.GREATER_EQUAL, rhs=0,
-            name=f"TimeSplit[{self.get_pivot_task_key()}]"
+        self._model.add_component(
+            f"TimeSplit[{self.get_pivot_task_key()}]",
+            pyo.Constraint(expr=(self.var_T_backward - self.var_T_forward >= 0))
         )
-        self._GRB_model.update()
 
     ###########################
     # Constraints - Sub-loops #
@@ -385,19 +401,17 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
     def _add_no_sub_loops_around_pivot_task_constraints(self):
         j = self.get_pivot_task_key()
         for k in self._get_candidate_tasks_keys(including_pivot_task=False):
-            self._GRB_model.addLConstr(
-                self.vars_U[(j, k)] + self.vars_U[(k, j)],
-                sense=GRB.LESS_EQUAL, rhs=1,
-                name=f"NoSubLoops[{k}]"
+            self._model.add_component(
+                f"NoSubLoops[{k}]",
+                pyo.Constraint(expr=(self.vars_U[(j, k)] + self.vars_U[(k, j)] <= 1))
             )
-        self._GRB_model.update()
 
     ############
     # Solution #
     ############
 
     def _check_task_is_performed_by_key(self, task_key: str):
-        return self.tasks_performances_expressions[task_key].getValue()
+        return round(pyo.value(self.tasks_performances_expressions[task_key])) == 1
 
     def _extract_ordered_steps(self):
         start_times_and_steps = [
@@ -407,16 +421,16 @@ class IPModelForCategory3(IPModelForSequenceOptimization):
         j = LEAVING_HOME_KEY
         while j != COMING_BACK_HOME_KEY:
             for (k, l) in self.vars_U.keys():
-                if k == j and int(self.vars_U[(k, l)].x) == 1:
+                if k == j and round(pyo.value(self.vars_U[(k, l)])) == 1:
                     j = l
                     if j == COMING_BACK_HOME_KEY:
                         break
                     else:
                         task = self.get_candidate_task_by_key(j)
                         if j == self.get_pivot_task_key():
-                            start_time = int(self.var_T_backward.x)
+                            start_time = round(pyo.value(self.var_T_backward))
                         else:
-                            start_time = int(self.vars_T[j].x)
+                            start_time = round(pyo.value(self.vars_T[j]))
                         start_times_and_steps.append((start_time, Step(activity=task, start_time=start_time)))
                         break
         start_times_and_steps.append(

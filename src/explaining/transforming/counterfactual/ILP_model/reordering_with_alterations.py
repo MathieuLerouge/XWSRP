@@ -1,19 +1,18 @@
-# Third party libraries
-import gurobipy as grb
-from gurobipy import GRB
+# Third-party library
+import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.transforming.counterfactual.ILP_model.transformation_with_alterations import \
     IPModelForTransformationWithInstanceAlterations
 from src.modeling.task import Task
-from src.optimization.IP.sequence.basemodel import create_activity_key
 from src.optimization.heuristics.sequence import SequenceForHeuristics
+from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-#####################################################
-# Class IPModelForReorderingWithInstanceAlterations #
-#####################################################
+###############################################
+# IPModelForReorderingWithInstanceAlterations #
+###############################################
 
 class IPModelForReorderingWithInstanceAlterations(IPModelForTransformationWithInstanceAlterations):
     """
@@ -110,26 +109,7 @@ class IPModelForReorderingWithInstanceAlterations(IPModelForTransformationWithIn
     # Objective function #
     ######################
 
-    # def _add_objective_function(self):
-    #     """
-    #     Add the objective function to the model, which minimizes according to a lexicographic order:
-    #
-    #     - the time gap between backward and forward start times of the replacing task
-    #     - the total sum of task duration alterations
-    #     - the largest time alteration
-    #     - the number of instance parameter alterations
-    #     - the total traveling time
-    #
-    #     :return: None
-    #     """
-    #     self._build_key_expressions()
-    #     self._GRB_model.ModelSense = GRB.MINIMIZE
-    #     objectives = [self._time_gap_expression,
-    #                   self._total_altered_task_duration_expression, self.var_D_max, self._nb_alterations_expression,
-    #                   self._total_traveling_time_expression]
-    #     for index, objective in enumerate(objectives):
-    #         self._GRB_model.setObjectiveN(objective, index, len(objectives)-1-index)
-    #     self._GRB_model.update()
+    # Objective function is unchanged (lexicographic, see the base class)
 
     #####################
     # Constraints - All #
@@ -164,9 +144,11 @@ class IPModelForReorderingWithInstanceAlterations(IPModelForTransformationWithIn
         :return: None
         """
         sequence = self._sequence
-        self._GRB_model.addLConstr(
-            grb.quicksum([self.vars_U[(create_activity_key(sequence[j].activity),
-                                       create_activity_key(sequence[j + 1].activity))]
-                          for j in range(sequence.nb_steps - 1)]),
-            sense=GRB.LESS_EQUAL, rhs=sequence.nb_steps - 3, name=f"SequenceOrderConstraint"
+        self._model.add_component(
+            "SequenceOrderConstraint",
+            pyo.Constraint(expr=(
+                pyo.quicksum([self.vars_U[(create_activity_key(sequence[j].activity),
+                                           create_activity_key(sequence[j + 1].activity))]
+                              for j in range(sequence.nb_steps - 1)]) <= sequence.nb_steps - 3
+            ))
         )

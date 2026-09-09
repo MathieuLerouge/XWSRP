@@ -11,16 +11,16 @@ from src.modeling.departure import Departure
 from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
-from src.optimization.IP.sequence.basemodel import IPModelForSequenceOptimization, \
-    LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 from src.optimization.heuristics.sequence import SequenceForHeuristics
+from src.optimization.milp.subproblems.sequencemodel import SequenceModel, \
+    LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 
 
 ####################################################
 # Class IPModelForInsertionWithInstanceAlterations #
 ####################################################
 
-class IPModelForInsertionWithInstanceAlterations(IPModelForSequenceOptimization):
+class IPModelForInsertionWithInstanceAlterations(SequenceModel):
 
     def __init__(self, sequence: Sequence, task_to_insert: Task, instance_slacks: InstanceChanges = None):
         candidate_tasks = sequence.get_contained_tasks() + [task_to_insert]

@@ -1,7 +1,3 @@
-#! /usr/bin/env python3
-# coding: utf-8
-
-
 # Local libraries
 from src.modeling.activity import Activity
 from src.modeling.comeback import ComeBack
@@ -16,31 +12,42 @@ LEAVING_HOME_INDEX = 0
 COMING_BACK_HOME_INDEX = -1
 
 
-# Class WSRPIPModelData
-class WSRPIPModelData:
+##################
+# MILPModelIndex #
+##################
+
+class MILPModelIndex:
+    """
+    Index-translation layer between an Instance's domain objects and the small integer indices
+    that MILPModel's decision variables and constraints are built around.
+    """
 
     def __init__(self, instance: Instance):
+        """
+        Args:
+            instance: the instance to build the index for.
+        """
 
         # Instance
         self._instance = instance
 
         # Employees
-        self._employees = dict()
-        self._employees_indices = []
+        self._employees: dict[int, Employee] = dict()
+        self._employees_indices: list[int] = []
         for i, employee in enumerate(instance.employees):
             self._employees[i + 1] = employee
             self._employees_indices.append(i + 1)
 
         # Tasks
-        self._tasks = dict()
-        self._tasks_indices = []
+        self._tasks: dict[int, Task] = dict()
+        self._tasks_indices: list[int] = []
         for j, task in enumerate(instance.tasks):
             self._tasks[j + 1] = task
             self._tasks_indices.append(j + 1)
 
         # Hypothetical activities
-        self._hypothetical_activities = dict()
-        self._hypothetical_activities_indices = dict()
+        self._hypothetical_activities: dict[int, dict[int, Activity]] = dict()
+        self._hypothetical_activities_indices: dict[int, list[int]] = dict()
         for i in self._employees_indices:
             self._hypothetical_activities[i] = dict()
             self._hypothetical_activities_indices[i] = []
@@ -72,6 +79,7 @@ class WSRPIPModelData:
 
     @property
     def instance(self) -> Instance:
+        """The instance this index is built for."""
         return self._instance
 
     #############
@@ -80,12 +88,22 @@ class WSRPIPModelData:
 
     @property
     def employees_indices(self):
+        """The indices of all employees of the instance."""
         return self._employees_indices
 
     def get_employee_by_index(self, employee_index: int) -> Employee:
+        """
+        Return the employee corresponding to the given index.
+
+        Args:
+            employee_index: the index of the employee.
+
+        Raises:
+            IndexError: if the given index does not correspond to an employee.
+        """
         try:
             return self._employees[employee_index]
-        except IndexError:
+        except KeyError:
             raise IndexError(f"The given index {employee_index} does not correspond to an employee")
 
     #########
@@ -94,12 +112,22 @@ class WSRPIPModelData:
 
     @property
     def tasks_indices(self):
+        """The indices of all tasks of the instance."""
         return self._tasks_indices
 
     def get_task_by_index(self, task_index: int) -> Task:
+        """
+        Return the task corresponding to the given index.
+
+        Args:
+            task_index: the index of the task.
+
+        Raises:
+            IndexError: if the given index does not correspond to a task.
+        """
         try:
             return self._tasks[task_index]
-        except IndexError:
+        except KeyError:
             raise IndexError(f"The given index {task_index} does not correspond to a task")
 
     ###########################
@@ -108,6 +136,21 @@ class WSRPIPModelData:
 
     def get_hyp_activities_indices(self, employee_index: int, including_departure=True,
                                    including_comeback=True, including_unavailabilities=True):
+        """
+        Return the indices of the given employee's hypothetical activities,
+        i.e. the ordered list of activities (departure, tasks, unavailabilities, comeback)
+        that this MILP considers when deciding that employee's sequence,
+        optionally excluding some of its ends.
+
+        Args:
+            employee_index: the index of the employee.
+            including_departure: if True, include the departure index (LEAVING_HOME_INDEX).
+            including_comeback: if True, include the comeback index (COMING_BACK_HOME_INDEX).
+            including_unavailabilities: if True, include the employee's unavailabilities' indices.
+
+        Returns:
+            the list of hypothetical activities' indices, in departure/tasks/unavailabilities/comeback order.
+        """
         first_index = 0
         if not including_departure:
             first_index = 1
@@ -120,36 +163,83 @@ class WSRPIPModelData:
         return indices
 
     def get_hyp_activity_by_indices(self, employee_index: int, activity_index: int) -> Activity:
+        """
+        Return the hypothetical activity corresponding to the given employee/activity indices.
+
+        Args:
+            employee_index: the index of the employee.
+            activity_index: the index of the activity, among that employee's hypothetical activities.
+
+        Raises:
+            IndexError: if the given indices do not correspond to a hypothetical activity.
+        """
         try:
             return self._hypothetical_activities[employee_index][activity_index]
-        except IndexError:
-            raise IndexError(f"The given indices {employee_index, activity_index} does not correspond to"
-                             "a hypothetical activity")
+        except KeyError:
+            raise IndexError(
+                f"The given indices {employee_index, activity_index} does not correspond to a hypothetical activity"
+            )
 
     def get_hyp_activities_TW_indices(self, employee_index: int, activity_index: int):
+        """
+        Return the range of time-window indices of the given hypothetical activity,
+        i.e. the valid values for the U decision variable's time-window index.
+
+        Args:
+            employee_index: the index of the employee.
+            activity_index: the index of the activity, among that employee's hypothetical activities.
+        """
         return range(len(self._hypothetical_activities[employee_index][activity_index].time_windows))
 
     def get_traveling_duration(self, employee_index: int, activity_index1: int, activity_index2: int):
+        """
+        Return the given employee's traveling duration between two of their hypothetical activities.
+
+        Args:
+            employee_index: the index of the employee.
+            activity_index1: the index of the first activity, among that employee's hypothetical activities.
+            activity_index2: the index of the second activity, among that employee's hypothetical activities.
+        """
         return self._instance.compute_traveling_duration(
             activity1=self.get_hyp_activity_by_indices(employee_index, activity_index1),
             activity2=self.get_hyp_activity_by_indices(employee_index, activity_index2)
-            )
+        )
 
     ####################
     # Unavailabilities #
     ####################
 
     def get_employee_unavailability_by_indices(self, employee_index: int, unavailability_index: int) -> Activity:
+        """
+        Return the unavailability corresponding to the given employee/unavailability indices.
+
+        Args:
+            employee_index: the index of the employee.
+            unavailability_index: the index of the unavailability, among that employee's hypothetical activities.
+
+        Raises:
+            IndexError: if the given indices do not correspond to an unavailability.
+        """
         try:
             return self.get_hyp_activity_by_indices(employee_index, unavailability_index)
         except IndexError:
-            raise IndexError(f"The given indices {employee_index, unavailability_index} does not correspond to"
-                             "a unavailability")
+            raise IndexError(
+                f"The given indices {employee_index, unavailability_index} does not correspond to a unavailability"
+            )
 
     def get_employee_unavailabilities_indices(self, employee_index: int):
+        """
+        Return the indices of the given employee's unavailabilities, among their hypothetical activities.
+
+        Args:
+            employee_index: the index of the employee.
+
+        Raises:
+            IndexError: if the given index does not correspond to an employee.
+        """
         try:
             first_index = len(self._tasks_indices) + 1
             second_index = len(self._hypothetical_activities_indices[employee_index]) - 1
             return self._hypothetical_activities_indices[employee_index][first_index:second_index]
-        except IndexError:
+        except KeyError:
             raise IndexError(f"The given index {employee_index} does not correspond to an employee")
