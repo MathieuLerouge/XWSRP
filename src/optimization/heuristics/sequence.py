@@ -412,10 +412,7 @@ class SequenceForHeuristics(Sequence):
         upstream_portion_is_feasible = (earliest_start_time_of_entering_task + task.duration <=
                                         task.end_time_ub)
         downstream_portion_is_feasible = (latest_start_time_of_entering_task >= task.start_time_lb)
-        if upstream_portion_is_feasible:
-            late = max(earliest_start_time_of_entering_task - latest_start_time_of_entering_task, 0)
-        else:
-            late = earliest_start_time_of_entering_task + task.duration - task.end_time_ub
+        late = max(earliest_start_time_of_entering_task - latest_start_time_of_entering_task, 0)
         is_time_feasible = upstream_portion_is_feasible and downstream_portion_is_feasible and late == 0
 
         # Initialize the artificial start times
@@ -500,12 +497,8 @@ class SequenceForHeuristics(Sequence):
     def find_best_insertion_between_consecutive_activities_among_tasks_set(
             self, tasks: list[Task], compute_times_only_if_skill_constraints_satisfied: bool = True):
         """
-        Among all tasks of given set, find the best insertion of a task in this sequence, that is to say:
-
-        - if there is any feasible insertion,
-          the best insertion is the feasible one that engenders the smallest additional traveling duration;
-        - if there are no feasible insertions,
-          the best insertion is the infeasible one that is the closest to be feasible duration-wise.
+        Among all tasks of given set, find the best insertion of a task in this sequence: see
+        InsertionExamination.is_better_insertion_than for the exact ranking criteria.
 
         Assumptions (only checked in debug):
         The times of this sequence are consistent.
@@ -521,51 +514,12 @@ class SequenceForHeuristics(Sequence):
         best_insertion_examination = self.find_best_insertion_between_consecutive_activities(
             tasks[0], None, compute_times_only_if_skill_constraints_satisfied
         )
-        best_task = tasks[0]
         for task in tasks[1:]:
             examination = self.find_best_insertion_between_consecutive_activities(
                 task, None, compute_times_only_if_skill_constraints_satisfied
             )
-            # Case where the current insertion is feasible
-            if examination.is_feasible:
-                if not best_insertion_examination.is_feasible or \
-                    (examination.travel_time_increase <
-                     best_insertion_examination.travel_time_increase):
-                    best_insertion_examination = examination
-                    # TODO remove if not necessary
-                    # best_task = task
-            # Case where both the current insertion and the best currently known one are infeasible
-            elif not best_insertion_examination.is_feasible:
-                # Case where the current insertion is infeasible skill-wise
-                if not examination.is_skill_feasible:
-                    if not best_insertion_examination.is_skill_feasible and \
-                            task.skill_level < best_task.skill_level:
-                        best_insertion_examination = examination
-                        # best_task = task
-                # Case where the current insertion is feasible skill-wise
-                else:
-                    if not best_insertion_examination.is_skill_feasible:
-                        best_insertion_examination = examination
-                        # best_task = task
-                    # Case where both the current insertion and the best currently known one are feasible skill-wise
-                    else:
-                        # Case where the current insertion is infeasible upstream-wise
-                        if not examination.is_upstream_feasible:
-                            if not best_insertion_examination.is_upstream_feasible and \
-                                    examination.late < best_insertion_examination.late:
-                                best_insertion_examination = examination
-                                # best_task = task
-                        # Case where the current insertion is feasible upstream-wise
-                        else:
-                            if not best_insertion_examination.is_upstream_feasible:
-                                best_insertion_examination = examination
-                                # best_task = task
-                            # Case where both the current insertion and the best currently known one
-                            # are feasible upstream-wise
-                            elif examination.late < best_insertion_examination.late:
-                                best_insertion_examination = examination
-                                # best_task = task
-        # best_insertion_examination.inserted_task = best_task
+            if examination.is_better_insertion_than(best_insertion_examination):
+                best_insertion_examination = examination
         return best_insertion_examination
 
     ####################################################
@@ -696,10 +650,7 @@ class SequenceForHeuristics(Sequence):
         upstream_portion_is_feasible = (earliest_start_time_of_entering_task + replacing_task.duration <=
                                         replacing_task.end_time_ub)
         downstream_portion_is_feasible = (latest_start_time_of_entering_task >= replacing_task.start_time_lb)
-        if upstream_portion_is_feasible:
-            late = max(earliest_start_time_of_entering_task - latest_start_time_of_entering_task, 0)
-        else:
-            late = earliest_start_time_of_entering_task + replacing_task.duration - replacing_task.end_time_ub
+        late = max(earliest_start_time_of_entering_task - latest_start_time_of_entering_task, 0)
         is_time_feasible = upstream_portion_is_feasible and downstream_portion_is_feasible and late == 0
 
         # Initialize the artificial start times

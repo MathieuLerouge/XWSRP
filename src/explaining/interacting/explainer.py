@@ -8,7 +8,7 @@ from src.explaining.questioning.question import ContrastiveQuestion, Counterfact
 from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.reading.explanation import import_single_explanation_from_json_file, \
     import_multiple_explanations_from_json_file
-from src.explaining.transforming.transformation import \
+from src.explaining.computing.templates.transformation import \
     apply_transformation_induced_by_contrastive_or_scenario_question, \
     apply_transformation_induced_by_counterfactual_question
 from src.explaining.writing.explanation import define_single_contrastive_explanation_json_file_name, \

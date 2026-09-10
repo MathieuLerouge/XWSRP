@@ -230,42 +230,8 @@ class SolutionForHeuristics(SolutionOpti):
             examination = sequence.find_best_insertion_between_consecutive_activities_among_tasks_set(
                 tasks, compute_times_only_if_skill_constraints_satisfied
             )
-            # Case where the current insertion is feasible
-            if examination.is_feasible:
-                if not best_insertion_examination.is_feasible or \
-                        (examination.travel_time_increase < best_insertion_examination.travel_time_increase):
-                    best_insertion_examination = examination
-            # Case where both the current insertion and the best currently known one are infeasible
-            elif not best_insertion_examination.is_feasible:
-                # Case where the current insertion is infeasible skill-wise
-                if not examination.is_skill_feasible:
-                    # task = self.instance.get_task_by_name(examination['task_name'])
-                    # best_task = self.instance.get_task_by_name(best_insertion_examination['task_name'])
-                    best_task = best_insertion_examination.inserted_task
-                    best_employee = best_insertion_examination.employee
-                    if not best_insertion_examination.is_skill_feasible and \
-                            (examination.inserted_task.skill_level - employee.skill_level <
-                             best_task.skill_level - best_employee.skill_level):
-                        best_insertion_examination = examination
-                # Case where the current insertion is feasible skill-wise
-                else:
-                    if not best_insertion_examination.is_skill_feasible:
-                        best_insertion_examination = examination
-                    # Case where both the current insertion and the best currently known one are feasible skill-wise
-                    else:
-                        # Case where the current insertion is infeasible upstream-wise
-                        if not examination.is_upstream_feasible:
-                            if not best_insertion_examination.is_upstream_feasible and \
-                                    examination.late < best_insertion_examination.late:
-                                best_insertion_examination = examination
-                        # Case where the current insertion is feasible upstream-wise
-                        else:
-                            if not best_insertion_examination.is_upstream_feasible:
-                                best_insertion_examination = examination
-                            # Case where both the current insertion and the best currently known one
-                            # are feasible upstream-wise
-                            elif examination.late < best_insertion_examination.late:
-                                best_insertion_examination = examination
+            if examination.is_better_insertion_than(best_insertion_examination):
+                best_insertion_examination = examination
         return best_insertion_examination
 
     ####################################################

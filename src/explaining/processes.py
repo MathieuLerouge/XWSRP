@@ -13,7 +13,7 @@ from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
 from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import *
-from src.explaining.transforming.exceptions import ImpossibleTransformationException
+from src.explaining.computing.templates.exceptions import ImpossibleTransformationException
 from src.explaining.writing.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.modeling.solution import Solution
 from src.optimization.milp.solver.exceptions import TimeLimitReachedWithSolutionException, \

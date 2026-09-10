@@ -37,6 +37,8 @@ class MILPModelIndex:
         for i, employee in enumerate(instance.employees):
             self._employees[i + 1] = employee
             self._employees_indices.append(i + 1)
+        self._employee_indices_by_employee: dict[Employee, int] = \
+            dict([(employee, index) for index, employee in self._employees.items()])
 
         # Tasks
         self._tasks: dict[int, Task] = dict()
@@ -44,6 +46,8 @@ class MILPModelIndex:
         for j, task in enumerate(instance.tasks):
             self._tasks[j + 1] = task
             self._tasks_indices.append(j + 1)
+        self._task_indices_by_task: dict[Task, int] = \
+            dict([(task, index) for index, task in self._tasks.items()])
 
         # Hypothetical activities
         self._hypothetical_activities: dict[int, dict[int, Activity]] = dict()
@@ -106,6 +110,21 @@ class MILPModelIndex:
         except KeyError:
             raise IndexError(f"The given index {employee_index} does not correspond to an employee")
 
+    def get_employee_index_by_employee(self, employee: Employee) -> int:
+        """
+        Return the index corresponding to the given employee.
+
+        Args:
+            employee: the employee to look up.
+
+        Raises:
+            IndexError: if the given employee is not indexed.
+        """
+        try:
+            return self._employee_indices_by_employee[employee]
+        except KeyError:
+            raise IndexError(f"The given employee {employee} is not indexed")
+
     #########
     # Tasks #
     #########
@@ -129,6 +148,21 @@ class MILPModelIndex:
             return self._tasks[task_index]
         except KeyError:
             raise IndexError(f"The given index {task_index} does not correspond to a task")
+
+    def get_task_index_by_task(self, task: Task) -> int:
+        """
+        Return the index corresponding to the given task.
+
+        Args:
+            task: the task to look up.
+
+        Raises:
+            IndexError: if the given task is not indexed.
+        """
+        try:
+            return self._task_indices_by_task[task]
+        except KeyError:
+            raise IndexError(f"The given task {task} is not indexed")
 
     ###########################
     # Hypothetical activities #
@@ -179,6 +213,32 @@ class MILPModelIndex:
             raise IndexError(
                 f"The given indices {employee_index, activity_index} does not correspond to a hypothetical activity"
             )
+
+    def get_hyp_activity_index_by_activity(self, employee_index: int, activity: Activity) -> int:
+        """
+        Return the index of the given activity among the given employee's hypothetical activities.
+
+        A Departure/ComeBack always indexes to LEAVING_HOME_INDEX/COMING_BACK_HOME_INDEX regardless of
+        which employee constructed it, since MILPModelIndex builds one afresh per employee at __init__
+        time rather than reusing the instance's own Departure/ComeBack objects.
+
+        Args:
+            employee_index: the index of the employee.
+            activity: the activity to look up (a Departure, ComeBack, Task or Unavailability).
+
+        Raises:
+            IndexError: if the given employee has no hypothetical activity equal to the given activity.
+        """
+        if isinstance(activity, Departure):
+            return LEAVING_HOME_INDEX
+        if isinstance(activity, ComeBack):
+            return COMING_BACK_HOME_INDEX
+        if isinstance(activity, Task):
+            return self.get_task_index_by_task(activity)
+        for index, candidate in self._hypothetical_activities[employee_index].items():
+            if candidate is activity:
+                return index
+        raise IndexError(f"Employee {employee_index} has no hypothetical activity equal to {activity}")
 
     def get_hyp_activities_TW_indices(self, employee_index: int, activity_index: int):
         """

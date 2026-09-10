@@ -49,7 +49,7 @@ class SolutionOpti(Solution):
             return f"{SOLUTION_NAME_PREFIX}{self.instance.core_name}_" \
                    f"{SOLUTION_SOLVING_METHOD_SYMBOL}_{self.solving_method_id}"
         elif self.instance.name_case_type_is_camel_case:
-            return f"{SOLUTION_NAME_PREFIX_BIS}{self.instance.core_name_with_version}" \
+            return f"{SOLUTION_NAME_PREFIX_BIS}{self.instance.core_name}" \
                    f"{SOLUTION_SOLVING_METHOD_SYMBOL_BIS}{self.solving_method_id}"
         else:
             raise ValueError(f"The instance name case type must be either {SNAKE_CASE} or {CAMEL_CASE}")

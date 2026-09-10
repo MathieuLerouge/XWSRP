@@ -144,24 +144,12 @@ class Examination:
                 return True
             if self._skill_gap() > other._skill_gap():
                 return False
-        if self.is_upstream_feasible:
-            if not other.is_upstream_feasible:
-                return True
-            elif self.late < other.late:
-                return True
-            elif self.late > other.late:
-                return False
-            else:
-                return self.travel_time_increase < other.travel_time_increase
-        elif other.is_upstream_feasible:
+        if self.late < other.late:
+            return True
+        elif self.late > other.late:
             return False
         else:
-            if self.late < other.late:
-                return True
-            elif self.late > other.late:
-                return False
-            else:
-                return self.travel_time_increase < other.travel_time_increase
+            return self.travel_time_increase < other.travel_time_increase
 
     def _string_about_examination_type(self):
         return "Examination"
@@ -282,6 +270,55 @@ class InsertionExamination(Examination):
 
     def _skill_gap(self):
         return self.inserted_task.skill_level - self.employee.skill_level
+
+    def is_better_insertion_than(self, other):
+        """
+        Whether this examination is a better insertion than other,
+        when the two may be insertions of different candidate tasks
+        (unlike Examination.is_better_than, which only compares different positions/orderings of the same task,
+        and so has no notion of the inserted task's own duration).
+
+        Priority order, mirroring the (target feasibility gap, working duration, traveling duration)
+        order used elsewhere: feasibility, then (while infeasible) skill feasibility and skill gap,
+        then (once skill-wise tied) how far from feasible it is (late), then the inserted task's own duration,
+        then the additional traveling duration.
+
+        Raises:
+            TypeError: if other is not an InsertionExamination.
+        """
+        if not isinstance(other, InsertionExamination):
+            raise TypeError(f"Cannot compare InsertionExamination with {type(other)}")
+        if self.is_feasible:
+            if not other.is_feasible:
+                return True
+            return self._is_better_insertion_among_equally_feasible(other)
+        elif other.is_feasible:
+            return False
+        elif not self.is_skill_feasible and other.is_skill_feasible:
+            return False
+        elif self.is_skill_feasible and not other.is_skill_feasible:
+            return True
+        elif not self.is_skill_feasible and not other.is_skill_feasible:
+            if self._skill_gap() < other._skill_gap():
+                return True
+            if self._skill_gap() > other._skill_gap():
+                return False
+        if self.late < other.late:
+            return True
+        elif self.late > other.late:
+            return False
+        else:
+            return self._is_better_insertion_among_equally_feasible(other)
+
+    def _is_better_insertion_among_equally_feasible(self, other):
+        """
+        Whether this examination is a better insertion than other, among two examinations already known
+        to be tied on feasibility (both fully feasible, or both infeasible by the same late amount):
+        prefer the smaller inserted task's own duration, then the smaller additional traveling duration.
+        """
+        if self.inserted_task.duration != other.inserted_task.duration:
+            return self.inserted_task.duration < other.inserted_task.duration
+        return self.travel_time_increase < other.travel_time_increase
 
     def __str__(self):
         return f"Insertion examination: " \

@@ -162,6 +162,33 @@ class MILPModel:
                 domain=pyo.Binary)
             self.vars_V = self._model.V
 
+    #########################################
+    # Decision variables - Start Time LB/UB #
+    #########################################
+
+    def _get_start_time_lb_linear_expression(self, task_index: int):
+        """
+        Return the expression standing for task_index's start time wherever it is being lower-bounded
+        (the task is arrived at, i.e. it is the successor/k side of a sequencing or time-window
+        constraint).
+
+        Defaults to the task's own T decision variable. A subclass that needs to relax one specific
+        task's lower-bound-side constraints (e.g. to measure infeasibility as a gap instead of
+        rejecting it outright) overrides this to substitute a different expression for that task,
+        leaving every other task's constraints, and every other MILPModel caller, unchanged.
+        """
+        return self.vars_T[task_index]
+
+    def _get_start_time_ub_linear_expression(self, task_index: int):
+        """
+        Return the expression standing for task_index's start time wherever it is being upper-bounded
+        (the task is departed from, i.e. it is the predecessor/j side of a sequencing or time-window
+        constraint).
+
+        Defaults to the task's own T decision variable; see _get_start_time_lb_linear_expression.
+        """
+        return self.vars_T[task_index]
+
     ######################
     # Objective function #
     ######################
@@ -393,14 +420,16 @@ class MILPModel:
                 # Lower bound on task's performance time
                 self._model.add_component(
                     f"TaskTWLBConstraint[{j}]",
-                    pyo.Constraint(expr=(self.vars_T[j] >= self._data.get_task_by_index(j).start_time_lb))
+                    pyo.Constraint(expr=(
+                        self._get_start_time_lb_linear_expression(j) >= self._data.get_task_by_index(j).start_time_lb
+                    ))
                 )
 
                 # Upper bound on task's performance time
                 self._model.add_component(
                     f"TaskTWUBConstraint[{j}]",
                     pyo.Constraint(expr=(
-                        self.vars_T[j] + self._data.get_task_by_index(j).duration <=
+                        self._get_start_time_ub_linear_expression(j) + self._data.get_task_by_index(j).duration <=
                         self._data.get_task_by_index(j).end_time_ub
                     ))
                 )
@@ -414,7 +443,7 @@ class MILPModel:
                 self._model.add_component(
                     f"TaskTWLBConstraint[{j}]",
                     pyo.Constraint(expr=(
-                        self.vars_T[j] -
+                        self._get_start_time_lb_linear_expression(j) -
                         pyo.quicksum([
                             self.vars_U[(i, j, k, n)] * self._data.get_task_by_index(j).time_windows[n].lower_bound
                             for i in self._data.employees_indices
@@ -430,7 +459,8 @@ class MILPModel:
                 self._model.add_component(
                     f"TaskTWUBConstraint[{j}]",
                     pyo.Constraint(expr=(
-                        self.vars_T[j] + self.vars_X[j] * self._data.get_task_by_index(j).duration -
+                        self._get_start_time_ub_linear_expression(j) +
+                        self.vars_X[j] * self._data.get_task_by_index(j).duration -
                         pyo.quicksum([
                             self.vars_U[(i, j, k, n)] * self._data.get_task_by_index(j).time_windows[n].upper_bound
                             for i in self._data.employees_indices
@@ -479,7 +509,7 @@ class MILPModel:
                         for i in self._data.employees_indices
                         for n in self._data.get_hyp_activities_TW_indices(i, LEAVING_HOME_INDEX)
                     ]) -
-                    self.vars_T[k] <= 0
+                    self._get_start_time_lb_linear_expression(k) <= 0
                 ))
             )
         # Departure-to-first-task-if-unavailability time sequence
@@ -505,7 +535,7 @@ class MILPModel:
                     self._model.add_component(
                         f"TaskToTaskTimeSequenceConstraint[{j},{k}]",
                         pyo.Constraint(expr=(
-                            self.vars_T[j] +
+                            self._get_start_time_ub_linear_expression(j) +
                             pyo.quicksum([
                                 pyo.quicksum([
                                     self.vars_U[(i, j, k, n)]
@@ -517,7 +547,8 @@ class MILPModel:
                                 (0 if not self.is_considering_lunch_break else
                                  self.vars_V[(i, j, k)] * self._data.instance.lunch_break_duration)
                                 for i in self._data.employees_indices
-                            ]) - self.vars_T[k] <= self._data.get_task_by_index(j).end_time_ub
+                            ]) - self._get_start_time_lb_linear_expression(k) <=
+                            self._data.get_task_by_index(j).end_time_ub
                         ))
                     )
         # Task-to-unavailability time sequence
@@ -527,7 +558,7 @@ class MILPModel:
                     self._model.add_component(
                         f"TaskToUnavailabilityTimeSequenceConstraint[{i},{j},{k}]",
                         pyo.Constraint(expr=(
-                            self.vars_T[j] +
+                            self._get_start_time_ub_linear_expression(j) +
                             pyo.quicksum([
                                 self.vars_U[(i, j, k, n)]
                                 for n in self._data.get_hyp_activities_TW_indices(i, j)
@@ -555,7 +586,7 @@ class MILPModel:
                              self._data.get_traveling_duration(i, j, k)) +
                             (0 if not self.is_considering_lunch_break else
                              self.vars_V[(i, j, k)] * self._data.instance.lunch_break_duration) -
-                            self.vars_T[k] <= 0
+                            self._get_start_time_lb_linear_expression(k) <= 0
                         ))
                     )
         # Unavailability-to-unavailability time sequence
@@ -582,7 +613,7 @@ class MILPModel:
             self._model.add_component(
                 f"TaskToComebackTimeSequenceConstraint[{j}]",
                 pyo.Constraint(expr=(
-                    self.vars_T[j] +
+                    self._get_start_time_ub_linear_expression(j) +
                     pyo.quicksum([
                         pyo.quicksum([
                             self.vars_U[(i, j, COMING_BACK_HOME_INDEX, n)]
@@ -700,6 +731,17 @@ class MILPModel:
     def _initialize_solution(self):
         self._solution = SolutionOpti(self._data.instance, solving_method_id=self._solving_method_id)
 
+    def _solve(self, mute: bool, solver_name: str) -> Outcome:
+        """
+        Run the solver against the model and return its normalized outcome.
+
+        Subclasses whose objective function is a lexicographic priority list (built via
+        Solver.solve_lexicographically instead of a single pyo.Objective) override this method
+        to call that instead.
+        """
+        solver = Solver(solver_name, mute=mute, time_limit=self._solving_time_limit)
+        return solver.solve(self._model)
+
     def solve(self, mute=True, solver_name: str = SOLVER_NAME) -> Outcome:
         """
         Solve the model with the configured MILP backend.
@@ -713,8 +755,7 @@ class MILPModel:
             the Outcome describing the solve, with its solution set if a feasible solution
             (an incumbent) was found.
         """
-        solver = Solver(solver_name, mute=mute, time_limit=self._solving_time_limit)
-        self._solve_outcome = solver.solve(self._model)
+        self._solve_outcome = self._solve(mute=mute, solver_name=solver_name)
         if self._solve_outcome.is_infeasible:
             print("IP model is infeasible")
             print("")
@@ -757,7 +798,13 @@ class MILPModel:
                 performed = pyo.value(self.vars_X[j]) > 0.99
             self.solution.set_task_performance_status(task, performed)
             if performed:
-                self.solution.set_task_start_time(task, round(pyo.value(self.vars_T[j])))
+                # Reported through _get_start_time_lb_linear_expression rather than the raw T variable:
+                # identical for every normal task, but the canonical reported value for a task whose
+                # constraints a subclass has relaxed via _get_start_time_lb_linear_expression /
+                # _get_start_time_ub_linear_expression, since its raw T variable is otherwise
+                # unconstrained and its value alone would be meaningless.
+                start_time_expression = self._get_start_time_lb_linear_expression(j)
+                self.solution.set_task_start_time(task, round(pyo.value(start_time_expression)))
         for i in self._data.employees_indices:
             for j in self._data.tasks_indices:
                 for k in self._data.get_hyp_activities_indices(i, False, True):

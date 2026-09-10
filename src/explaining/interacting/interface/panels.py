@@ -7,7 +7,7 @@ from src.explaining.interacting.interface.figures import build_routes_figure, bu
     build_instance_metrics_figures, build_solution_metrics_figures
 from src.explaining.interacting.interface.tables import build_tasks_data_table, build_employees_data_table
 from src.explaining.interacting.interface.tools import convert_from_string_to_html
-from src.explaining.transforming.infeasibility import Infeasibility
+from src.explaining.computing.templates.infeasibility import Infeasibility
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.utils.constants import LINE_BREAK_STRING

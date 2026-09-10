@@ -8,7 +8,7 @@ from src.explaining.questioning.questions_templates_bank import \
 from src.modeling.solution import Solution
 from src.explaining.questioning.question import Question, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
 from src.explaining.answering.explanations_templates_bank import EXPLANATIONS_TEMPLATES
-from src.explaining.transforming.infeasibility import Infeasibility, SkillInfeasibility, TimeInfeasibility
+from src.explaining.computing.templates.infeasibility import Infeasibility, SkillInfeasibility, TimeInfeasibility
 from src.utils.constants import LINE_BREAK_STRING
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.utils.time import convert_nb_minutes_to_time_string, get_hour_format_associated_with_language

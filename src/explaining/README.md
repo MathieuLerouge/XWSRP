@@ -17,7 +17,7 @@ over every solution found in the default inputs directory.
 In both cases, a `Solution` (read from the `instances`/`solutions` data) is wrapped into an `Explainer`
 (from `interacting`), which orchestrates the rest of the pipeline for each question asked of it:
 - a `Question` is built from `questioning`'s template bank;
-- `transforming` applies the transformation induced by that question to an editable copy
+- `computing/templates` applies the transformation induced by that question to an editable copy
 of the solution/instance (defined in `modeling`), and returns a support solution together
 with feasibility information;
 - `answering` turns that result into a typed `Explanation`;
@@ -36,26 +36,26 @@ The directory `modeling` contains editable mirror classes of the core domain mod
 (`EditableInstance`, `EditableSolution`, `EditableEmployee`, `EditableSequence`, `EditableTask`),
 along with `InstanceChanges`, which tracks the alterations applied to an instance. \
 These classes let transformations be applied to a hypothetical copy of a solution/instance
-without mutating the original one, and are used throughout `transforming`, `answering` and `interacting`.
+without mutating the original one, and are used throughout `computing/templates`, `answering` and
+`interacting`.
 
 The directory `questioning` contains the question layer: the `Question` base class and its subclasses
 (`ContrastiveQuestion`, `ScenarioQuestion`, `CounterfactualQuestion`), each parameterized by a
 `QuestionTemplate`. \
 `questions_templates_bank.py` instantiates every template (in English and French) into the
 `QUESTIONS_TEMPLATES` dictionary, which is the "why not" question catalogue used by `interacting`
-and mapped to transformation functions in `transforming`.
+and mapped to transformation functions in `computing/templates`.
 
-The directory `transforming` contains the computational core that answers a question by attempting
-to modify the solution. \
-`transformation.py` dispatches each question template to a dedicated transformation function,
-implemented in one of two subpackages: `contrastive_and_scenario` (local-search-based single-move
-insertions/swaps/reorderings, with an ILP-based fallback for harder cases) and `counterfactual`
-(ILP-based search for minimal instance alterations that would make the requested action feasible,
-gated behind Gurobi availability). \
+The directory `computing` contains the computational core that answers a question by attempting to
+modify the solution. Its `templates` subdirectory dispatches each question template to a dedicated
+transformation function, implemented in one of two subpackages: `contrastive_and_scenario`
+(local-search-based single-move insertions/swaps/reorderings, with an ILP-based fallback for harder
+cases) and `counterfactual` (ILP-based search for minimal instance alterations that would make the
+requested action feasible, gated behind Gurobi availability). \
 Its outputs (support solution, infeasibility, instance alterations) feed directly into `answering`.
 
-The directory `answering` turns a `Question` and the result of `transforming` into a human-facing
-`Explanation`. \
+The directory `answering` turns a `Question` and the result of `computing/templates` into a
+human-facing `Explanation`. \
 `create_explanation(...)` selects the appropriate subclass (`PositiveExplanation`,
 `NonImprovingNegativeExplanation`, `InfeasibleNegativeExplanation`, `SkillNegativeExplanation`,
 `TimeNegativeExplanation`) depending on whether the support solution improves on the original solution
@@ -70,7 +70,7 @@ The directory `interacting` contains the orchestration and user interface layer,
 `Explainer` class. \
 `Explainer` owns the root `EditableSolution`, an optional `History` of visited instances/solutions,
 and the methods (`get_contrastive_explanation`, `compute_scenario_explanation`,
-`compute_counterfactual_explanation`) tying `questioning`, `transforming` and `answering` together,
-optionally short-circuiting via the `reading`/`writing` caches. \
+`compute_counterfactual_explanation`) tying `questioning`, `computing/templates` and `answering`
+together, optionally short-circuiting via the `reading`/`writing` caches. \
 `explainer_terminal.py` provides a terminal interaction mode, while `interface` implements the
 Dash-based `ExplainerWebGUI` used by end users.
