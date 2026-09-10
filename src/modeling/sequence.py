@@ -52,6 +52,26 @@ class Sequence:
     def __len__(self):
         return len(self._steps)
 
+    def __eq__(self, other):
+        """
+        Returns whether this sequence belongs to the same employee as other and has the same ordered steps.
+
+        instance and any computed KPIs are intentionally excluded:
+        only the employee and the steps describe whose working day this is and what is actually scheduled in it,
+        so two sequences with the same employee and identical steps are considered equal,
+        even if they belong to different instances.
+
+        Args:
+            other: Object to compare this sequence to.
+
+        Returns:
+            bool: True if other is a Sequence for the same employee with the same ordered list of steps.
+        """
+        return (
+            isinstance(other, Sequence) and self.employee == other.employee and
+            self.get_steps() == other.get_steps()
+        )
+
     def __repr__(self):
         return self._steps.__repr__()
 

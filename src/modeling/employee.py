@@ -33,6 +33,18 @@ class Employee:
         self._unavailabilities: dict[str, Unavailability] = dict()
 
     def __eq__(self, employee):
+        """
+        Returns whether this employee has the same name as employee.
+
+        Every other field (time window, location, skill_level, unavailabilities) is intentionally excluded:
+        name is this employee's unique identifier, so it alone determines identity.
+
+        Args:
+            employee: Object to compare this employee to.
+
+        Returns:
+            bool: True if employee is an Employee with the same name.
+        """
         if isinstance(employee, Employee):
             return self.name == employee._name
         else:

@@ -86,6 +86,21 @@ class Solution:
         except KeyError:
             raise ValueError(f"{employee_name} is not one of the employees of the instance")
 
+    def __eq__(self, other):
+        """
+        Returns whether this solution has exactly the same sequence of steps as other, per employee.
+
+        instance, name, computed KPIs, and task/lunch-break performance records are intentionally excluded.
+        The latter are derivable from the sequences themselves, so only the sequences determine equality.
+
+        Args:
+            other: Object to compare this solution to.
+
+        Returns:
+            bool: True if other is a Solution with the same Sequence (by employee name).
+        """
+        return isinstance(other, Solution) and self._sequences == other._sequences
+
     def __repr__(self):
         representation = ""
         if self._sequences is not None:

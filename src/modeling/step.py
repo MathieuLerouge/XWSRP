@@ -38,6 +38,19 @@ class Step:
         self._end_time = end_time
 
     def __eq__(self, step):
+        """
+        Returns whether this step has the same activity and start/end times as step.
+
+        arrival_time is intentionally excluded: it only reflects travel/waiting timing,
+        not what is actually scheduled to happen (which activity, and when it starts/ends),
+        so two steps that differ only in arrival_time are still considered equal.
+
+        Args:
+            step: Object to compare this step to.
+
+        Returns:
+            bool: True if step is a Step with the same activity name, start_time and end_time.
+        """
         return (
             isinstance(step, Step) and self.activity.name == step.activity.name and
             self.start_time == step.start_time and self.end_time == step.end_time
