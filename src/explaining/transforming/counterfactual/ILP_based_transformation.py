@@ -29,6 +29,7 @@ from src.explaining.transforming.counterfactual.ILP_model.reordering2 import \
     IPModelForReordering2cWithInstanceAlterations
 from src.explaining.transforming.counterfactual.ILP_model.reordering3 import \
     IPModelForReordering3WithInstanceAlterations
+from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExceptionMapper
 
 
 ##################################################################################
@@ -167,7 +168,10 @@ def apply_ctf_ins_1(solution: EditableSolution, employee_name: str, task_name: s
     sequence = solution.get_sequence(employee)
     model = IPModelForInsertion1WithInstanceAlterations(sequence, task, activity, instance_parameter_alteration_bounds,
                                                         solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -193,7 +197,10 @@ def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: 
     sequence = solution.get_sequence(employee)
     model = IPModelForInsertion2aWithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
                                                          solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -225,7 +232,10 @@ def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
     model = IPModelForInsertion2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
                                                          instance_parameter_alteration_bounds,
                                                          solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -249,7 +259,10 @@ def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: s
     task = solution.instance.get_task_by_name(task_name)
     model = IPModelForInsertion3WithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
                                                         solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -278,7 +291,10 @@ def apply_ctf_swp_1(solution: EditableSolution, employee_name: str, task1_name: 
     replaced_task = solution.instance.get_task_by_name(task2_name)
     model = IPModelForSwap1WithInstanceAlterations(sequence, replacing_task, replaced_task,
                                                    instance_parameter_alteration_bounds, solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -301,7 +317,10 @@ def apply_ctf_swp_2a(solution: EditableSolution, employee_name: str, task_name: 
     replacing_task = solution.instance.get_task_by_name(task_name)
     model = IPModelForSwap2aWithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
                                                     solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -331,7 +350,10 @@ def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
     model = IPModelForSwap2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
                                                     instance_parameter_alteration_bounds,
                                                     solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -354,7 +376,10 @@ def apply_ctf_swp_3(solution: EditableSolution, employee_name: str, task_name: s
     replacing_task = solution.instance.get_task_by_name(task_name)
     model = IPModelForSwap3WithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
                                                    solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -384,7 +409,10 @@ def apply_ctf_ord_1a(solution: EditableSolution, employee_name: str, task1_name:
     fixed_task = solution.instance.get_task_by_name(task2_name)
     model = IPModelForReordering1aWithInstanceAlterations(sequence, moving_task, fixed_task,
                                                           instance_parameter_alteration_bounds, solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -410,7 +438,10 @@ def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name:
     fixed_task = solution.instance.get_task_by_name(task2_name)
     model = IPModelForReordering1bWithInstanceAlterations(sequence, moving_task, fixed_task,
                                                           instance_parameter_alteration_bounds, solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -435,7 +466,10 @@ def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: 
     moving_task = solution.instance.get_task_by_name(task_name)
     model = IPModelForReordering2aWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                           solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -460,7 +494,10 @@ def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: 
     moving_task = solution.instance.get_task_by_name(task_name)
     model = IPModelForReordering2bWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                           solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -485,7 +522,10 @@ def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: 
     moving_task = solution.instance.get_task_by_name(task_name)
     model = IPModelForReordering2cWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                           solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)
 
 
@@ -508,5 +548,8 @@ def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
         raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
     model = IPModelForReordering3WithInstanceAlterations(sequence, instance_parameter_alteration_bounds,
                                                          solving_time_limit)
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     return extract_explanation_content_from_ILP_model_results(solution, model)

@@ -16,8 +16,6 @@ from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
 from src.modeling.unavailability import Unavailability
-from src.optimization.milp.solver.exceptions import TimeLimitReachedWithSolutionException, \
-    TimeLimitReachedWithoutSolutionException
 from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.solver.solver import Solver
 
@@ -477,8 +475,8 @@ class SequenceModel:
         """
         Solve the model with the configured MILP backend.
 
-        Whether a plain failure (infeasible/unbounded) is worth raising as an exception is left to
-        the caller to decide, via OutcomeToExceptionMapper, since this model isn't in a position to
+        Whether a failure (infeasible/unbounded/time limit) is worth raising as an exception is left
+        to the caller to decide, via OutcomeToExceptionMapper, since this model isn't in a position to
         know whether that's exceptional for its particular caller.
 
         Args:
@@ -489,20 +487,11 @@ class SequenceModel:
         Returns:
             the Outcome describing the solving, with its solution set if a feasible solution
             (an incumbent) was found.
-
-        Raises:
-            TimeLimitReachedWithSolutionException: if the time limit is reached with a feasible solution found.
-            TimeLimitReachedWithoutSolutionException: if the time limit is reached with no feasible solution found.
         """
         self._solve_outcome = self._solve(mute=mute, solver_name=solver_name)
         if self._solve_outcome.has_incumbent:
             self._extract_data_from_IP_solving()
             self._solve_outcome.solution = self.solution_sequence
-        if self._solve_outcome.is_time_limit:
-            if self._solve_outcome.has_incumbent:
-                raise TimeLimitReachedWithSolutionException(self._solve_outcome)
-            else:
-                raise TimeLimitReachedWithoutSolutionException()
         return self._solve_outcome
 
     def _solve(self, mute: bool, solver_name: str):

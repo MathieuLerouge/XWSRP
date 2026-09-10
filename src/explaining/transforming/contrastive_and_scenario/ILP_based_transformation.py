@@ -8,6 +8,7 @@ from src.explaining.transforming.infeasibility import SkillInfeasibility, TimeIn
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
+from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExceptionMapper
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
@@ -90,7 +91,10 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
         if time_limit is not None:
             model.time_limit = time_limit
         # model.warm_start()
-        model.solve(mute=True)
+        solve_outcome = model.solve(mute=True)
+        exception = OutcomeToExceptionMapper.map(solve_outcome)
+        if exception is not None:
+            raise exception
         support_solution, infeasibility, description_of_support_sequence = \
             extract_explanation_content_from_ILP_model_results(solution, employee, task, model)
     else:
@@ -132,7 +136,10 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
         model = IPModelForSwap3(sequence, task)
         if time_limit is not None:
             model.time_limit = time_limit
-        model.solve(mute=True)
+        solve_outcome = model.solve(mute=True)
+        exception = OutcomeToExceptionMapper.map(solve_outcome)
+        if exception is not None:
+            raise exception
         support_solution, infeasibility, description_of_support_sequence = \
             extract_explanation_content_from_ILP_model_results(solution, employee, task, model)
         leaving_task = model.leaving_task
@@ -172,7 +179,10 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
     model = IPModelForReordering3(sequence)
     if time_limit is not None:
         model.time_limit = time_limit
-    model.solve(mute=True)
+    solve_outcome = model.solve(mute=True)
+    exception = OutcomeToExceptionMapper.map(solve_outcome)
+    if exception is not None:
+        raise exception
     pivot_task = model.pivot_task
     support_solution, infeasibility, description_of_support_sequence = \
         extract_explanation_content_from_ILP_model_results(solution, employee, pivot_task, model)

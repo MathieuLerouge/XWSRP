@@ -19,15 +19,13 @@ returns a backend-independent `Outcome`. \
 `MILPModel.solve(...)` reads that outcome and, when a feasible solution was found, extracts it into a
 `SolutionOpti`, stored on the outcome's `solution` attribute; it then returns the outcome itself.
 
-Deciding whether a plain failure (infeasible/unbounded) is worth raising as an exception is left to
+Deciding whether a failure (infeasible/unbounded/time limit) is worth raising as an exception is left to
 whichever code calls `solve(...)`, not to the model itself — different callers want different things from
-the same outcome, and `MILPModel.solve(...)` itself never raises on one. `solver.exceptions` defines the
-`SolveException` hierarchy, and `OutcomeToExceptionMapper` (`solver.outcometoexceptionmapper`) turns a
-failing outcome into the exception it warrants, for callers that want one. `SequenceModel.solve(...)` (see
-`subproblems/README.md`) also returns its outcome the same way, but additionally raises directly on a time
-limit (whether or not a solution was found), since that signal needs to propagate across several call layers
-(through `explaining/transforming`) where threading a return value through every intermediate function would
-be far more invasive.
+the same outcome, and neither `MILPModel.solve(...)` nor `SequenceModel.solve(...)` (see
+`subproblems/README.md`) ever raises on one. `solver.exceptions` defines the `SolveException` hierarchy, and
+`OutcomeToExceptionMapper` (`solver.outcometoexceptionmapper`) turns a failing outcome — infeasible,
+unbounded, or a reached time limit (with or without a solution) — into the exception it warrants, for
+callers that want one.
 
 The `subproblems` subpackage (see its own README) contains a separate family of MILP models, each scoped to
 a single employee's sequence of activities rather than the whole workforce.
@@ -64,8 +62,8 @@ independently of which model built it (`__init__.py` is just the package marker,
   `InfeasibleModelException`, `UnboundedModelException`, `TimeLimitReachedWithSolutionException` (carries
   the timed-out `Outcome`), and `TimeLimitReachedWithoutSolutionException`.
 - `outcometoexceptionmapper.py` contains `OutcomeToExceptionMapper`, whose `map(outcome)` static method
-  turns an infeasible/unbounded `Outcome` into the matching exception instance (or returns `None` for any
-  other outcome), for callers of `solve(...)` that want to raise on a plain failure without duplicating that
-  mapping logic themselves.
+  turns a failing `Outcome` — infeasible, unbounded, or a reached time limit (with or without a solution) —
+  into the matching exception instance (or returns `None` for a successful outcome), for callers of
+  `solve(...)` that want to raise on a failure without duplicating that mapping logic themselves.
 
 `subproblems` contains the single-employee sequence sub-models; see `subproblems/README.md`.
