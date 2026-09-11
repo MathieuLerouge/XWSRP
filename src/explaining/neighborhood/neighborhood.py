@@ -50,9 +50,10 @@ class Neighborhood:
                 transformed.
 
         Raises:
-            ValueError: If employees is empty, if an operator or a constraint concerns an employee not
-                listed in employees, if an employee targeted by an operator also carries a SequenceFixed
-                constraint, or if an employee carries more than one constraint.
+            ValueError: If employees is empty,
+                if an operator or a constraint concerns an employee not listed in employees,
+                if an employee targeted by an operator also carries a SequenceFixed constraint,
+                or if an employee carrying a SequenceFixed constraint also carries another constraint.
         """
         if len(employees) == 0:
             raise ValueError("employees must not be empty")
@@ -68,26 +69,33 @@ class Neighborhood:
         """
         Check that:
         - every operator and constraint concerns an employee listed in this neighborhood's employees;
-        - no employee carries more than one constraint;
+        - no employee carrying a SequenceFixed constraint also carries another constraint,
+          since SequenceFixed already pins their sequence entirely;
         - and that no employee is both targeted by an operator and restricted by a SequenceFixed constraint.
+        Constraints are otherwise composable: an employee may carry any number of them
+        (e.g. one SequenceOrderFixed together with one or more ImmediatePrecedence).
 
         Raises:
             ValueError: If any of the above checks fails.
         """
-        constraints_by_employee: dict[Employee, NeighborhoodConstraint] = dict()
+        constraints_by_employee: dict[Employee, list[NeighborhoodConstraint]] = dict()
         for constraint in self._constraints:
             if constraint.employee not in self._employees:
                 raise ValueError(f"Constraint on employee {constraint.employee.name} "
                                  f"who is not listed in this neighborhood's employees")
-            if constraint.employee in constraints_by_employee:
-                raise ValueError(f"Employee {constraint.employee.name} carries more than one constraint")
-            constraints_by_employee[constraint.employee] = constraint
+            constraints_by_employee.setdefault(constraint.employee, []).append(constraint)
+        for employee, employee_constraints in constraints_by_employee.items():
+            if len(employee_constraints) > 1 and any(
+                    isinstance(constraint, SequenceFixed) for constraint in employee_constraints):
+                raise ValueError(f"Employee {employee.name} carries a SequenceFixed constraint "
+                                 f"together with another constraint")
         for operator in self._operators:
             for employee in operator.employees:
                 if employee not in self._employees:
                     raise ValueError(f"Operator on employee {employee.name} "
                                      f"who is not listed in this neighborhood's employees")
-                if isinstance(constraints_by_employee.get(employee), SequenceFixed):
+                if any(isinstance(constraint, SequenceFixed)
+                       for constraint in constraints_by_employee.get(employee, [])):
                     raise ValueError(f"Employee {employee.name} is targeted by an operator "
                                      f"but also carries a SequenceFixed constraint")
 

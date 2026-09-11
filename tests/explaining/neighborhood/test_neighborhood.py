@@ -2,7 +2,7 @@
 import pytest
 
 # Local libraries
-from src.explaining.neighborhood.constraint import SequenceFixed, SequenceOrderFixed
+from src.explaining.neighborhood.constraint import ImmediatePrecedence, SequenceFixed, SequenceOrderFixed
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskDeletion, TaskInsertion
 from src.modeling.solution import Solution
@@ -37,13 +37,24 @@ def test_neighborhood_with_constraint_on_employee_not_listed_raises():
                      constraints=[SequenceOrderFixed(employee)])
 
 
-def test_neighborhood_with_employee_carrying_two_constraints_raises():
+def test_neighborhood_with_employee_carrying_sequence_fixed_and_another_constraint_raises():
     instance = build_instance()
     solution = Solution(instance)
     employee = build_employee(instance)
     with pytest.raises(ValueError):
         Neighborhood(solution=solution, employees=[employee], operators=[],
                      constraints=[SequenceOrderFixed(employee), SequenceFixed(employee)])
+
+
+def test_neighborhood_with_employee_carrying_several_non_sequence_fixed_constraints_is_accepted():
+    instance = build_instance()
+    solution = Solution(instance)
+    employee = build_employee(instance)
+    predecessor = build_task(instance, 0)
+    successor = build_task(instance, 1)
+    constraints = [SequenceOrderFixed(employee), ImmediatePrecedence(employee, predecessor, successor)]
+    neighborhood = Neighborhood(solution=solution, employees=[employee], operators=[], constraints=constraints)
+    assert neighborhood.constraints == constraints
 
 
 def test_neighborhood_with_operator_on_sequence_fixed_employee_raises():

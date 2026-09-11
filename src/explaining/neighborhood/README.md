@@ -21,9 +21,15 @@ or `TaskRelocation` (move a single target task from an origin employee's sequenc
 A `NeighborhoodConstraint` (`constraint.py`) restricts a single employee's sequence: 
 `SequenceOrderFixed` keeps the relative order of their already-performed tasks unchanged 
 (only tasks targeted by an operator may be added/removed/repositioned), 
-while `SequenceFixed` pins their sequence entirely. 
-An in-scope employee carrying neither constraint has their sequence fully free to be reordered. 
+`SequenceFixed` pins their sequence entirely, 
+and `ImmediatePrecedence` pins one activity to occur immediately after another. 
+An in-scope employee carrying none of these has their sequence fully free to be reordered. 
 An employee not listed in `employees` at all is out of scope and reproduced unchanged.
+
+Constraints are composable: an employee may carry several of them at once 
+(e.g. `SequenceOrderFixed` together with one or more `ImmediatePrecedence`), 
+except that `SequenceFixed` must be an employee's only constraint, 
+since it already pins their sequence entirely.
 
 The `templates` subpackage maps a `Question` to the `Neighborhood` it induces: `Mapper` (`mapper.py`)
 dispatches on the question's template id to a dedicated mapping function, implemented per question family
@@ -38,7 +44,7 @@ dispatches on the question's template id to a dedicated mapping function, implem
 `TaskInsertion`, `TaskDeletion` and `TaskRelocation`, described above.
 
 `constraint.py` contains `NeighborhoodConstraint` and its subclasses: 
-`SequenceOrderFixed` and `SequenceFixed`, described above.
+`SequenceOrderFixed`, `SequenceFixed` and `ImmediatePrecedence`, described above.
 
 `neighborhood.py` contains `Neighborhood`, described above.
 
@@ -53,16 +59,17 @@ whose `map(question)` method dispatches a `ContrastiveQuestion` to its matching 
 
 Each `(Ins,*)` question asks why a task isn't inserted somewhere. 
 Every mapping below therefore induces a `Neighborhood` with a single `TaskInsertion` operator, 
-differing in which employees are in scope, what the operator's candidates are, whether the insertion point is anchored, 
-and which `SequenceOrderFixed` constraints keep the rest of each in-scope employee's sequence untouched.
+differing in which employees are in scope, what the operator's candidates are, 
+and which constraints keep the rest of each in-scope employee's sequence untouched — 
+`(Ins,1)` additionally pins the insertion point via an `ImmediatePrecedence` constraint.
 
-| Template   | Question                                                                                                                                         | Scope          | Operator                                               | Anchor                          | Constraints                      |
-|------------|--------------------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------------------------------|---------------------------------|----------------------------------|
-| `(Ins,1)`  | Why is employee {Employee} not performing task {Task} just after activity {Activity}?                                                            | `{employee}`   | `TaskInsertion({employee}, {task}, {activity}, AFTER)` | just after `{activity}`         | `SequenceOrderFixed({employee})` |
-| `(Ins,2a)` | Why is employee {Employee} not performing task {Task} between two consecutive activities of their route?                                         | `{employee}`   | `TaskInsertion({employee}, {task})`                    | none (anywhere in the sequence) | `SequenceOrderFixed({employee})` |
-| `(Ins,2b)` | Why is employee {Employee} not performing any non-performed task between two consecutive activities of their route?                              | `{employee}`   | `TaskInsertion({employee}, non_performed_tasks)`       | none                            | `SequenceOrderFixed({employee})` |
-| `(Ins,2c)` | Why is any employee not performing task {Task} between two consecutive activities of their route?                                                | every employee | `TaskInsertion(employees, {task})`                     | none                            | `SequenceOrderFixed(employees)`  |
-| `(Ins,3)`  | Why is employee {Employee} not performing task {Task} in addition to their already-performed activities (even if it means changing their order)? | `{employee}`   | `TaskInsertion({employee}, {task})`                    | none                            | none — order left free           |
+| Template   | Question                                                                                                                                         | Scope          | Operator                                         | Constraints                                                                             |
+|------------|--------------------------------------------------------------------------------------------------------------------------------------------------|----------------|--------------------------------------------------|-----------------------------------------------------------------------------------------|
+| `(Ins,1)`  | Why is employee {Employee} not performing task {Task} just after activity {Activity}?                                                            | `{employee}`   | `TaskInsertion({employee}, {task})`              | `SequenceOrderFixed({employee})`, `ImmediatePrecedence({employee}, {activity}, {task})` |
+| `(Ins,2a)` | Why is employee {Employee} not performing task {Task} between two consecutive activities of their route?                                         | `{employee}`   | `TaskInsertion({employee}, {task})`              | `SequenceOrderFixed({employee})`                                                        |
+| `(Ins,2b)` | Why is employee {Employee} not performing any non-performed task between two consecutive activities of their route?                              | `{employee}`   | `TaskInsertion({employee}, non_performed_tasks)` | `SequenceOrderFixed({employee})`                                                        |
+| `(Ins,2c)` | Why is any employee not performing task {Task} between two consecutive activities of their route?                                                | every employee | `TaskInsertion(employees, {task})`               | `SequenceOrderFixed(employees)`                                                         |
+| `(Ins,3)`  | Why is employee {Employee} not performing task {Task} in addition to their already-performed activities (even if it means changing their order)? | `{employee}`   | `TaskInsertion({employee}, {task})`              | none — order left free                                                                  |
 
 `(Ins,2b)` additionally raises `ImpossibleTransformationException` when the solution already performs every task, 
 since there is then no non-performed task left to offer as a candidate.

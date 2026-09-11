@@ -1,6 +1,6 @@
 # Local libraries
-from src.explaining.neighborhood.constraint import SequenceOrderFixed
-from src.explaining.neighborhood.operator import POSITION_SIDE_AFTER, TaskInsertion
+from src.explaining.neighborhood.constraint import ImmediatePrecedence, SequenceOrderFixed
+from src.explaining.neighborhood.operator import TaskInsertion
 from src.explaining.neighborhood.templates import insertion
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.explaining.questioning.questions_templates_bank import (
@@ -39,11 +39,14 @@ def test_map_ins_1_anchors_the_target_task_right_after_the_named_activity():
     assert isinstance(operator, TaskInsertion)
     assert operator.candidate_employees == frozenset({employee})
     assert operator.candidate_tasks == frozenset({target_task})
-    assert operator.anchor_activity == anchor
-    assert operator.anchor_side == POSITION_SIDE_AFTER
-    assert len(neighborhood.constraints) == 1
-    assert isinstance(neighborhood.constraints[0], SequenceOrderFixed)
-    assert neighborhood.constraints[0].employee == employee
+    assert len(neighborhood.constraints) == 2
+    order_fixed = [c for c in neighborhood.constraints if isinstance(c, SequenceOrderFixed)]
+    immediate_precedence = [c for c in neighborhood.constraints if isinstance(c, ImmediatePrecedence)]
+    assert len(order_fixed) == 1 and order_fixed[0].employee == employee
+    assert len(immediate_precedence) == 1
+    assert immediate_precedence[0].employee == employee
+    assert immediate_precedence[0].predecessor == anchor
+    assert immediate_precedence[0].successor == target_task
 
 
 #############
@@ -59,7 +62,6 @@ def test_map_ins_2a_targets_the_named_task_with_no_anchor():
     operator = neighborhood.operators[0]
     assert operator.candidate_employees == frozenset({employee})
     assert operator.candidate_tasks == frozenset({target_task})
-    assert operator.anchor_activity is None
     assert len(neighborhood.constraints) == 1
     assert isinstance(neighborhood.constraints[0], SequenceOrderFixed)
 

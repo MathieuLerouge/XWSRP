@@ -40,36 +40,21 @@ class TaskInsertion(NeighborhoodOperator):
     A NeighborhoodOperator that inserts a target task into an employee's sequence.
     """
 
-    def __init__(self, candidate_employees: frozenset[Employee], candidate_tasks: frozenset[Task],
-                 anchor_activity: Optional[Activity] = None, anchor_side: Optional[str] = None):
+    def __init__(self, candidate_employees: frozenset[Employee], candidate_tasks: frozenset[Task]):
         """
         Args:
             candidate_employees: The employees among which the one to perform the inserted task is chosen.
             candidate_tasks: The tasks among which the one to insert is chosen.
-            anchor_activity: The activity the inserted task must be positioned immediately next to, if the
-                insertion point is pinned rather than searched for freely.
-            anchor_side: The side of anchor_activity (POSITION_SIDE_AFTER or POSITION_SIDE_BEFORE) the
-                inserted task is positioned at. Required if and only if anchor_activity is set: insertion has
-                no current position to be directional about without a pinned anchor.
 
         Raises:
-            ValueError: If candidate_employees or candidate_tasks is empty, if exactly one of anchor_activity
-                and anchor_side is set, or if anchor_side is set to something other than POSITION_SIDE_AFTER
-                or POSITION_SIDE_BEFORE.
+            ValueError: If candidate_employees or candidate_tasks is empty.
         """
         if len(candidate_employees) == 0:
             raise ValueError("candidate_employees must not be empty")
         if len(candidate_tasks) == 0:
             raise ValueError("candidate_tasks must not be empty")
-        if (anchor_activity is None) != (anchor_side is None):
-            raise ValueError("anchor_activity and anchor_side must be either both set or both unset "
-                             "for TaskInsertion, which has no current position to be directional about")
-        if anchor_side is not None and anchor_side not in POSITION_SIDES:
-            raise ValueError(f"anchor_side must be one of {POSITION_SIDES}, got {anchor_side}")
         self._candidate_employees = candidate_employees
         self._candidate_tasks = candidate_tasks
-        self._anchor_activity = anchor_activity
-        self._anchor_side = anchor_side
 
     @property
     def candidate_employees(self):
@@ -80,16 +65,6 @@ class TaskInsertion(NeighborhoodOperator):
     def candidate_tasks(self):
         """The tasks among which the one to insert is chosen, as a frozenset."""
         return self._candidate_tasks
-
-    @property
-    def anchor_activity(self):
-        """The activity the inserted task must be positioned immediately next to, if any."""
-        return self._anchor_activity
-
-    @property
-    def anchor_side(self):
-        """The side of anchor_activity the inserted task is positioned at, if anchor_activity is set."""
-        return self._anchor_side
 
     @property
     def employees(self):

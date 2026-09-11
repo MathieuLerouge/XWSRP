@@ -1,7 +1,7 @@
 # Local libraries
-from src.explaining.neighborhood.constraint import SequenceOrderFixed
+from src.explaining.neighborhood.constraint import ImmediatePrecedence, SequenceOrderFixed
 from src.explaining.neighborhood.neighborhood import Neighborhood
-from src.explaining.neighborhood.operator import POSITION_SIDE_AFTER, TaskInsertion
+from src.explaining.neighborhood.operator import TaskInsertion
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.explaining.computing.templates.exceptions import ImpossibleTransformationException
 
@@ -25,10 +25,9 @@ def map_ins_1(question: ContrastiveQuestion) -> Neighborhood:
     employee = instance.get_employee_by_name(employee_name)
     task = instance.get_task_by_name(task_name)
     anchor_activity = instance.get_hypothetical_activity_by_names(activity_name, employee_name)
-    operator = TaskInsertion(frozenset({employee}), frozenset({task}),
-                             anchor_activity=anchor_activity, anchor_side=POSITION_SIDE_AFTER)
-    return Neighborhood(solution=solution, employees=[employee], operators=[operator],
-                        constraints=[SequenceOrderFixed(employee)])
+    operator = TaskInsertion(frozenset({employee}), frozenset({task}))
+    constraints = [SequenceOrderFixed(employee), ImmediatePrecedence(employee, anchor_activity, task)]
+    return Neighborhood(solution=solution, employees=[employee], operators=[operator], constraints=constraints)
 
 
 def map_ins_2a(question: ContrastiveQuestion) -> Neighborhood:

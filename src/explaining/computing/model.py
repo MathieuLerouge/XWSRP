@@ -2,9 +2,9 @@
 import pyomo.environ as pyo
 
 # Local libraries
-from src.explaining.neighborhood.constraint import SequenceOrderFixed
+from src.explaining.neighborhood.constraint import ImmediatePrecedence, SequenceOrderFixed
 from src.explaining.neighborhood.neighborhood import Neighborhood
-from src.explaining.neighborhood.operator import POSITION_SIDE_AFTER, TaskInsertion
+from src.explaining.neighborhood.operator import TaskInsertion
 from src.optimization.milp.milpmodel import MILPModel
 from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.solver.solver import Solver
@@ -38,8 +38,8 @@ class NeighborhoodFeasibilityMILP(MILPModel):
     Its candidate employees and candidate tasks may each be one or several
     (covering, respectively, the (Ins,1)/(Ins,2a)/(Ins,3)-style single-candidate shapes
     and the (Ins,2b)/(Ins,2c)-style candidate-set shapes),
-    except that a pinned anchor position is only supported when both candidate sets are singletons,
-    since an anchor is always relative to one specific employee's sequence and one specific target task.
+    except that an ImmediatePrecedence constraint is only supported when both candidate sets are
+    singletons, since it always pins one specific employee's sequence around one specific target task.
     """
 
     def __init__(self, neighborhood: Neighborhood):
@@ -49,8 +49,8 @@ class NeighborhoodFeasibilityMILP(MILPModel):
 
         Raises:
             NotImplementedError: if the neighborhood is not targeted by a single TaskInsertion operator,
-                if the operator pins an anchor position while having more than one candidate employee or
-                candidate task, or if the instance has a lunch break.
+                if it carries an ImmediatePrecedence constraint while having more than one candidate
+                employee or candidate task, or if the instance has a lunch break.
         """
         self._neighborhood = neighborhood
         self._candidate_employees, self._operator, self._candidate_tasks = self._extract_scope(neighborhood)
@@ -63,8 +63,8 @@ class NeighborhoodFeasibilityMILP(MILPModel):
 
         Raises:
             NotImplementedError: if the neighborhood is not targeted by a single TaskInsertion operator,
-                if the operator pins an anchor position while having more than one candidate employee or
-                candidate task, or if the instance has a lunch break.
+                if it carries an ImmediatePrecedence constraint while having more than one candidate
+                employee or candidate task, or if the instance has a lunch break.
         """
         if neighborhood.solution.instance.has_lunch_break:
             raise NotImplementedError(
@@ -76,11 +76,14 @@ class NeighborhoodFeasibilityMILP(MILPModel):
                 "TaskInsertion operator"
             )
         operator = neighborhood.operators[0]
-        if operator.anchor_activity is not None and (
+        has_immediate_precedence = any(
+            isinstance(constraint, ImmediatePrecedence) for constraint in neighborhood.constraints
+        )
+        if has_immediate_precedence and (
                 len(operator.candidate_employees) > 1 or len(operator.candidate_tasks) > 1):
             raise NotImplementedError(
-                "NeighborhoodFeasibilityMILP does not support a pinned anchor position together with "
-                "more than one candidate employee or candidate task"
+                "NeighborhoodFeasibilityMILP does not support an ImmediatePrecedence constraint together "
+                "with more than one candidate employee or candidate task"
             )
         return operator.candidate_employees, operator, operator.candidate_tasks
 
@@ -156,7 +159,7 @@ class NeighborhoodFeasibilityMILP(MILPModel):
         super()._add_constraints()
         self._add_neighborhood_freeze_constraints()
         self._add_neighborhood_candidate_selection_constraints()
-        self._add_neighborhood_anchor_constraint()
+        self._add_neighborhood_immediate_precedence_constraints()
         self._add_neighborhood_order_fixed_constraints()
 
     def _add_neighborhood_freeze_constraints(self):
@@ -220,29 +223,34 @@ class NeighborhoodFeasibilityMILP(MILPModel):
                 ))
             )
 
-    def _add_neighborhood_anchor_constraint(self):
+    def _add_neighborhood_immediate_precedence_constraints(self):
         """
-        Pin the target task's insertion point immediately before/after the operator's anchor activity.
-        Only reachable with singleton candidate sets (_extract_scope rejects any other combination).
+        For every ImmediatePrecedence constraint, pin its successor's insertion point immediately after
+        its predecessor. Only reachable with singleton candidate sets (_extract_scope rejects any other
+        combination), so each constraint unambiguously targets the chosen (employee, task) pair.
         """
-        if self._operator.anchor_activity is None:
-            return
-        employee_index = self._data.get_employee_index_by_employee(next(iter(self._candidate_employees)))
-        target_index = self._data.get_task_index_by_task(next(iter(self._candidate_tasks)))
-        anchor_index = self._data.get_hyp_activity_index_by_activity(employee_index, self._operator.anchor_activity)
-        if self._operator.anchor_side == POSITION_SIDE_AFTER:
-            from_index, to_index = anchor_index, target_index
-        else:
-            from_index, to_index = target_index, anchor_index
-        self._model.add_component(
-            "NeighborhoodAnchorConstraint",
-            pyo.Constraint(expr=(
-                pyo.quicksum([
-                    self.vars_U[indices] for indices in self.vars_U.keys()
-                    if indices[0] == employee_index and indices[1] == from_index and indices[2] == to_index
-                ]) == 1
-            ))
-        )
+        immediate_precedence_constraints = [
+            constraint for constraint in self._neighborhood.constraints
+            if isinstance(constraint, ImmediatePrecedence)
+        ]
+        for constraint in immediate_precedence_constraints:
+            employee_index = self._data.get_employee_index_by_employee(constraint.employee)
+            predecessor_index = self._data.get_hyp_activity_index_by_activity(
+                employee_index, constraint.predecessor
+            )
+            successor_index = self._data.get_hyp_activity_index_by_activity(
+                employee_index, constraint.successor
+            )
+            self._model.add_component(
+                f"NeighborhoodImmediatePrecedenceConstraint[{employee_index},{predecessor_index},{successor_index}]",
+                pyo.Constraint(expr=(
+                    pyo.quicksum([
+                        self.vars_U[indices] for indices in self.vars_U.keys()
+                        if indices[0] == employee_index and indices[1] == predecessor_index
+                        and indices[2] == successor_index
+                    ]) == 1
+                ))
+            )
 
     def _add_neighborhood_order_fixed_constraints(self):
         """

@@ -2,9 +2,7 @@
 import pytest
 
 # Local libraries
-from src.explaining.neighborhood.operator import (
-    POSITION_SIDE_AFTER, POSITION_SIDE_BEFORE, TaskDeletion, TaskInsertion, TaskRelocation
-)
+from src.explaining.neighborhood.operator import POSITION_SIDE_BEFORE, TaskDeletion, TaskInsertion, TaskRelocation
 from tests.modeling.helpers import build_employee, build_instance, build_task
 
 
@@ -33,43 +31,6 @@ def test_task_insertion_with_empty_candidate_tasks_raises():
     employee = build_employee(instance)
     with pytest.raises(ValueError):
         TaskInsertion(frozenset({employee}), frozenset())
-
-
-def test_task_insertion_with_anchor_activity_and_no_side_raises():
-    instance = build_instance()
-    employee = build_employee(instance)
-    task = build_task(instance, 0)
-    anchor = build_task(instance, 1)
-    with pytest.raises(ValueError):
-        TaskInsertion(frozenset({employee}), frozenset({task}), anchor_activity=anchor)
-
-
-def test_task_insertion_with_side_and_no_anchor_activity_raises():
-    instance = build_instance()
-    employee = build_employee(instance)
-    task = build_task(instance)
-    with pytest.raises(ValueError):
-        TaskInsertion(frozenset({employee}), frozenset({task}), anchor_side=POSITION_SIDE_AFTER)
-
-
-def test_task_insertion_with_invalid_anchor_side_raises():
-    instance = build_instance()
-    employee = build_employee(instance)
-    task = build_task(instance, 0)
-    anchor = build_task(instance, 1)
-    with pytest.raises(ValueError):
-        TaskInsertion(frozenset({employee}), frozenset({task}), anchor_activity=anchor, anchor_side="sideways")
-
-
-def test_task_insertion_with_anchor_activity_and_side_is_accepted():
-    instance = build_instance()
-    employee = build_employee(instance)
-    task = build_task(instance, 0)
-    anchor = build_task(instance, 1)
-    operator = TaskInsertion(frozenset({employee}), frozenset({task}),
-                             anchor_activity=anchor, anchor_side=POSITION_SIDE_AFTER)
-    assert operator.anchor_activity == anchor
-    assert operator.anchor_side == POSITION_SIDE_AFTER
 
 
 ################
