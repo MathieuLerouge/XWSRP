@@ -14,9 +14,9 @@ POSITION_SIDE_BEFORE = "before"
 POSITION_SIDES = [POSITION_SIDE_AFTER, POSITION_SIDE_BEFORE]
 
 
-#######################
+########################
 # NeighborhoodOperator #
-#######################
+########################
 
 class NeighborhoodOperator(NeighborhoodPrimitive):
     """
@@ -31,9 +31,9 @@ class NeighborhoodOperator(NeighborhoodPrimitive):
         pass
 
 
-################
+#################
 # TaskInsertion #
-################
+#################
 
 class TaskInsertion(NeighborhoodOperator):
     """
@@ -102,9 +102,9 @@ class TaskInsertion(NeighborhoodOperator):
         return self.candidate_tasks
 
 
-###############
+################
 # TaskDeletion #
-###############
+################
 
 class TaskDeletion(NeighborhoodOperator):
     """
@@ -149,9 +149,9 @@ class TaskDeletion(NeighborhoodOperator):
         return self.candidate_tasks
 
 
-#################
+##################
 # TaskRelocation #
-#################
+##################
 
 class TaskRelocation(NeighborhoodOperator):
     """
