@@ -85,7 +85,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
     def _compute_map_zoom_and_center(locations_longitudes: list[float], locations_latitudes: list[float],
                                      projection: str = 'mercator', width_to_height: float = 2.0):
         """
-        Compute proper zoom and center for a plotly mapbox.
+        Compute proper zoom and center for a plotly map.
 
         :param locations_longitudes: list of longitudes in degrees of the locations
         :param locations_latitudes: list of latitudes in degrees of the locations
@@ -127,7 +127,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
     zoom, center = _compute_map_zoom_and_center(longitudes, latitudes)
 
     colors = compute_employees_colors(instance)
-    fig = px.scatter_mapbox(lat=[], lon=[], hover_name=[], zoom=zoom, center=center)
+    fig = px.scatter_map(lat=[], lon=[], hover_name=[], zoom=zoom, center=center)
 
     # Case where the map figure is supposed to display information about the instance
     if solution is None:
@@ -143,7 +143,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                 latitudes.append(task.location.get_latitude(radians=False))
                 longitudes.append(task.location.get_longitude(radians=False))
                 descriptions.append(_create_task_description_in_routes_figure(task))
-            fig.add_trace(go.Scattermapbox(
+            fig.add_trace(go.Scattermap(
                 mode="markers+text", marker=dict(color=colors[0], size=9),
                 lat=latitudes, lon=longitudes, hoverinfo='text', hovertext=descriptions, text=texts,
                 showlegend=False
@@ -166,8 +166,8 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                                   f"Horaires de l'employé : <br>{employee.time_window.as_string(hour_format)}"
                 else:
                     raise ValueError(f"Unknown language: {language}")
-                # NB: Scattermapbox can not handle marker symbol other than circles
-                fig.add_trace(go.Scattermapbox(
+                # NB: Scattermap can not handle marker symbol other than circles
+                fig.add_trace(go.Scattermap(
                     mode='markers+text', marker=dict(color=colors[i], size=12),
                     lat=[latitude], lon=[longitude],
                     hoverinfo='text', hovertext=[description], text=[label],
@@ -188,7 +188,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                 non_performed_tasks_descriptions.append(
                     _create_task_description_in_routes_figure(task, is_performed=False)
                 )
-        fig.add_trace(go.Scattermapbox(
+        fig.add_trace(go.Scattermap(
             name="None", mode='markers+text', marker=dict(color='grey', size=9),
             opacity=(1 if infeasibility is None else OPACITY_DEGREE),
             lat=non_performed_tasks_latitudes, lon=non_performed_tasks_longitudes,
@@ -226,7 +226,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                 raise ValueError(f"Unknown language: {language}")
             route_steps_marker_sizes.append(12)
             if infeasibility is None:
-                fig.add_trace(go.Scattermapbox(
+                fig.add_trace(go.Scattermap(
                     name=employee.name, mode='markers+lines+text',
                     marker=dict(color=colors[i], size=route_steps_marker_sizes),
                     lat=route_steps_latitudes, lon=route_steps_longitudes,
@@ -235,7 +235,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                 ))
             else:
                 if employee.name == infeasibility.conflicting_employee.name:
-                    fig.add_trace(go.Scattermapbox(
+                    fig.add_trace(go.Scattermap(
                         name=employee.name, mode='markers+lines+text',
                         line=dict(width=2),
                         marker=dict(color=colors[i], size=route_steps_marker_sizes),
@@ -244,7 +244,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                         text=[name + "<br><br> " for name in route_steps_names]
                     ))
                 else:
-                    fig.add_trace(go.Scattermapbox(
+                    fig.add_trace(go.Scattermap(
                         name=employee.name, mode='markers+lines+text', opacity=OPACITY_DEGREE,
                         marker=dict(color=colors[i], size=route_steps_marker_sizes),
                         lat=route_steps_latitudes, lon=route_steps_longitudes,
@@ -253,12 +253,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                     ))
 
     fig.update_layout(
-        mapbox_style="mapbox://styles/mathieu-lerouge/cl2nlkbiz002v14rvw77fv32q",
-        mapbox_accesstoken='pk.eyJ1IjoibWF0aGlldS1sZXJvdWdlIiwiYSI6ImNsMm5sajY4bDIxZGIzaXA5MDNscjFoa2UifQ'
-                           '.SHh5_g--Pv6LEy6P3mk7eQ',
-        # Another possible map box style is the open street map one, which does not require any access token.
-        # However, with this style, names do not show up, then it should be used only if the token is an issue.
-        # mapbox_style="open-street-map"
+        map_style="open-street-map", # carto-positron, carto-voyager, open-street-map
         margin={"r": 10, "t": 0, "l": 10, "b": 10},
         legend=dict(traceorder='normal', orientation='h', xanchor='center', x=0.5, y=1.15,
                     font=dict(family='Arial', size=14, color=UI_FONT_COLOR)),

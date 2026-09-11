@@ -1147,13 +1147,13 @@ class ExplainerWebGUI:
                                          placeholder=template_question_dropdown_placeholder),
                             dcc.Dropdown(id='template-input-1', className='dropdown',
                                          style=dict(width='15rem', paddingLeft='1rem'),
-                                         placeholder=input_1_placeholder),
+                                         options=[], placeholder=input_1_placeholder),
                             dcc.Dropdown(id='template-input-2', className='dropdown',
                                          style=dict(width='15rem', paddingLeft='1rem'),
-                                         placeholder=input_2_placeholder),
+                                         options=[], placeholder=input_2_placeholder),
                             dcc.Dropdown(id='template-input-3', className='dropdown',
                                          style=dict(width='15rem', paddingLeft='1rem'),
-                                         placeholder=input_3_placeholder),
+                                         options=[], placeholder=input_3_placeholder),
                         ]
                     )
                     second_line = html.Div(
@@ -1603,10 +1603,10 @@ class ExplainerWebGUI:
             solution = self.current_solution
             question_template = self._questions_templates[question_template_id]
             relevant_inputs_search_values = \
-                [input_1_search, input_2_search, input_3_search][:question_template.nb_fields]
-            is_searching = not np.alltrue([value == "" for value in relevant_inputs_search_values])
+                [(input_1_search or ""), (input_2_search or ""), (input_3_search or "")][:question_template.nb_fields]
+            is_searching = not np.all([value == "" for value in relevant_inputs_search_values])
             relevant_inputs_values = [input_1_value, input_2_value, input_3_value][:question_template.nb_fields]
-            has_chosen_input_value = not np.alltrue([value is None for value in relevant_inputs_values])
+            has_chosen_input_value = not np.all([value is None for value in relevant_inputs_values])
             inputs_options = [input_1_options, input_2_options, input_3_options]
             # ... and an input value has been chosen by the end-user
             if has_chosen_input_value:
@@ -2437,7 +2437,7 @@ class ExplainerWebGUI:
         """
         Launch the web Graphic User Interface of the explainer.
         """
-        self._application.run_server(debug=False)
+        self._application.run(debug=False)
 
     #################
     # Configuration #

@@ -103,225 +103,34 @@ button[disabled]{
 
 /* Dropdown */
 
-#current-instance-dropdown .Select,
-#current-solution-dropdown .Select {
-  border-radius: 4px;
-  display: grid;
-  align-items: center;
-  line-height: 1.2;
-  font-size: 1.4rem;
+.dash-dropdown-wrapper:has(#current-instance-dropdown),
+.dash-dropdown-wrapper:has(#current-solution-dropdown) {
+  --Dash-Fill-Inverse-Strong: #BFBFBF;
+  --Dash-Text-Strong: #111111;
+  --Dash-Stroke-Strong: #4B5460;
+  --Dash-Fill-Interactive-Strong: #316499;
+  --Dash-Text-Disabled: grey;
   color: #111111;
-  cursor: pointer;
-}
-#other-instance-dropdown .Select,
-#other-solution-dropdown .Select,
-#template-question-dropdown .Select,
-#template-input-1 .Select,
-#template-input-2 .Select,
-#template-input-3 .Select,
-#contrastive-statistics-template-question-dropdown .Select {
-  border-radius: 4px;
-  display: grid;
-  align-items: center;
-  line-height: 1.2;
   font-size: 1.4rem;
+}
+.dash-dropdown-wrapper:has(#other-instance-dropdown),
+.dash-dropdown-wrapper:has(#other-solution-dropdown),
+.dash-dropdown-wrapper:has(#template-question-dropdown),
+.dash-dropdown-wrapper:has(#template-input-1),
+.dash-dropdown-wrapper:has(#template-input-2),
+.dash-dropdown-wrapper:has(#template-input-3),
+.dash-dropdown-wrapper:has(#contrastive-statistics-template-question-dropdown) {
+  --Dash-Fill-Inverse-Strong: #353535;
+  --Dash-Text-Strong: #f3f5f4;
+  --Dash-Stroke-Strong: #4B5460;
+  --Dash-Fill-Interactive-Strong: #316499;
+  --Dash-Text-Disabled: grey;
   color: #f3f5f4;
-  cursor: pointer;
+  font-size: 1.4rem;
 }
 
-#current-instance-dropdown .Select-control,
-#current-solution-dropdown .Select-control {
-  background-color: #BFBFBF;
-  background-image: linear-gradient(to top, #959595, #BFBFBF 33%);
-  border: 1px solid #4B5460;
-  cursor: pointer;
-}
-#other-instance-dropdown .Select-control,
-#other-solution-dropdown .Select-control,
-#template-question-dropdown .Select-control,
-#template-input-1 .Select-control,
-#template-input-2 .Select-control,
-#template-input-3 .Select-control,
-#contrastive-statistics-template-question-dropdown .Select-control {
-  background-color: #353535;
-  background-image: linear-gradient(to top, #252525, #353535 33%);
-  border: 1px solid #4B5460;
-  cursor: pointer;
-}
-
-#current-instance-dropdown .Select-control:hover,
-#current-solution-dropdown .Select-control:hover,
-#other-instance-dropdown .Select-control:hover,
-#other-solution-dropdown .Select-control:hover,
-#template-question-dropdown .Select-control:hover,
-#template-input-1 .Select-control:hover,
-#template-input-2 .Select-control:hover,
-#template-input-3 .Select-control:hover,
-#contrastive-statistics-template-question-dropdown .Select-control:hover {
-  border-color: #316499;
-}
-
-#current-instance-dropdown .Select-placeholder,
-#current-solution-dropdown .Select-placeholder,
-#other-instance-dropdown .Select-placeholder,
-#other-solution-dropdown .Select-placeholder,
-#template-question-dropdown .Select-placeholder,
-#template-input-1 .Select-placeholder,
-#template-input-2 .Select-placeholder,
-#template-input-3 .Select-placeholder,
-#contrastive-statistics-template-question-dropdown .Select-placeholder {
-  color: grey;
+.dash-dropdown-placeholder {
   font-style: italic;
-  cursor: pointer;
-}
-
-#current-instance-dropdown .Select-control > span,
-#current-solution-dropdown .Select-control > span,
-#other-instance-dropdown .Select-control > span,
-#other-solution-dropdown .Select-control > span,
-#template-question-dropdown .Select-control > span,
-#template-input-1 .Select-control > span,
-#template-input-2 .Select-control > span,
-#template-input-3 .Select-control > span,
-#contrastive-statistics-template-question-dropdown .Select-control > span {
-  background: #194572;
-  background-image: linear-gradient(to top, #252525, #194572 33%);
-}
-
-#current-instance-dropdown .Select.is-focused > .Select-control,
-#current-solution-dropdown .Select.is-focused > .Select-control {
-  background-color: #BFBFBF;
-  border-color: #316499;
-  color: #111111;
-}
-#other-instance-dropdown .Select.is-focused > .Select-control,
-#other-solution-dropdown .Select.is-focused > .Select-control,
-#template-question-dropdown .Select.is-focused > .Select-control,
-#template-input-1 .Select.is-focused > .Select-control,
-#template-input-2 .Select.is-focused > .Select-control,
-#template-input-3 .Select.is-focused > .Select-control,
-#contrastive-statistics-template-question-dropdown .Select.is-focused > .Select-control {
-  background-color: #353535;
-  border-color: #316499;
-  color: #f3f5f4;
-}
-
-#current-instance-dropdown .Select.is-focused > .Select-control > span,
-#current-solution-dropdown .Select.is-focused > .Select-control > span,
-#other-instance-dropdown .Select.is-focused > .Select-control > span,
-#other-solution-dropdown .Select.is-focused > .Select-control > span,
-#template-question-dropdown .Select.is-focused > .Select-control > span,
-#template-input-1 .Select.is-focused > .Select-control > span,
-#template-input-2 .Select.is-focused > .Select-control > span,
-#template-input-3 .Select.is-focused > .Select-control > span,
-#contrastive-statistics-template-question-dropdown .Select.is-focused > .Select-control > span {
-  background-color: #194572;
-  background-image: none;
-}
-
-#current-instance-dropdown .Select-menu-outer,
-#current-solution-dropdown .Select-menu-outer {
-  background-color: #BFBFBF;
-  border-color: #316499;
-}
-#other-instance-dropdown .Select-menu-outer,
-#other-solution-dropdown .Select-menu-outer,
-#template-question-dropdown .Select-menu-outer,
-#template-input-1 .Select-menu-outer,
-#template-input-2 .Select-menu-outer,
-#template-input-3 .Select-menu-outer,
-#contrastive-statistics-template-question-dropdown .Select-menu-outer {
-  background-color: #353535;
-  border-color: #316499;
-}
-
-#current-instance-dropdown .Select.is-focused:not(.is-open) > .Select-control,
-#current-solution-dropdown .Select.is-focused:not(.is-open) > .Select-control,
-#other-instance-dropdown .Select.is-focused:not(.is-open) > .Select-control,
-#other-solution-dropdown .Select.is-focused:not(.is-open) > .Select-control,
-#template-question-dropdown .Select.is-focused:not(.is-open) > .Select-control,
-#template-input-1 .Select.is-focused:not(.is-open) > .Select-control,
-#template-input-2 .Select.is-focused:not(.is-open) > .Select-control,
-#template-input-3 .Select.is-focused:not(.is-open) > .Select-control,
-#contrastive-statistics-template-question-dropdown .Select.is-focused:not(.is-open) > .Select-control {
-  border-color: #316499;
-}
-
-/* Does not work
-.Select.is-focused:not(.is-open) > .Select-control > span {
-  background-color: #194572;
-  background-image: none;
-}
-*/
-
-#current-instance-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
-#current-solution-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label {
-  color: #111111;
-}
-#other-instance-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
-#other-solution-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
-#template-question-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
-#template-input-1 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
-#template-input-2 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
-#template-input-3 .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label,
-#contrastive-statistics-template-question-dropdown .Select.has-value.Select--single > .Select-control .Select-value .Select-value-label {
-  color: #f3f5f4;
-}
-
-#current-instance-dropdown .Select.is-disabled .Select-control,
-#current-solution-dropdown .Select.is-disabled .Select-control {
-  background-color: #AFAFAF;
-  background-image: none;
-  cursor: not-allowed;
-}
-#other-instance-dropdown .Select.is-disabled .Select-control,
-#other-solution-dropdown .Select.is-disabled .Select-control,
-#template-question-dropdown .Select.is-disabled .Select-control,
-#template-input-1 .Select.is-disabled .Select-control,
-#template-input-2 .Select.is-disabled .Select-control,
-#template-input-3 .Select.is-disabled .Select-control,
-#contrastive-statistics-template-question-dropdown .Select.is-disabled .Select-control {
-  background-color: #252525;
-  background-image: none;
-  cursor: not-allowed;
-}
-
-#current-instance-dropdown .Select.is-disabled .Select-control:hover,
-#current-solution-dropdown .Select.is-disabled .Select-control:hover,
-#other-instance-dropdown .Select.is-disabled .Select-control:hover,
-#other-solution-dropdown .Select.is-disabled .Select-control:hover,
-#template-question-dropdown .Select.is-disabled .Select-control:hover,
-#template-input-1 .Select.is-disabled .Select-control:hover,
-#template-input-2 .Select.is-disabled .Select-control:hover,
-#template-input-3 .Select.is-disabled .Select-control:hover,
-#contrastive-statistics-template-question-dropdown .Select.is-disabled .Select-control:hover {
-  border-color: #4B5460;
-  cursor: not-allowed;
-}
-
-#current-instance-dropdown .Select.is-disabled .Select-control > span,
-#current-solution-dropdown .Select.is-disabled .Select-control > span,
-#other-instance-dropdown .Select.is-disabled .Select-control > span,
-#other-solution-dropdown .Select.is-disabled .Select-control > span,
-#template-question-dropdown .Select.is-disabled .Select-control > span,
-#template-input-1 .Select.is-disabled .Select-control > span,
-#template-input-2 .Select.is-disabled .Select-control > span,
-#template-input-3 .Select.is-disabled .Select-control > span,
-#contrastive-statistics-template-question-dropdown .Select.is-disabled .Select-control > span {
-  background-color: #194572;
-  background-image: none;
-}
-
-#current-instance-dropdown .Select.is-disabled .Select-placeholder,
-#current-solution-dropdown .Select.is-disabled .Select-placeholder,
-#other-instance-dropdown .Select.is-disabled .Select-placeholder,
-#other-solution-dropdown .Select.is-disabled .Select-placeholder,
-#template-question-dropdown .Select.is-disabled .Select-placeholder,
-#template-input-1 .Select.is-disabled .Select-placeholder,
-#template-input-2 .Select.is-disabled .Select-placeholder,
-#template-input-3 .Select.is-disabled .Select-placeholder,
-#contrastive-statistics-template-question-dropdown .Select.is-disabled .Select-placeholder {
-  cursor: not-allowed;
 }
 
 .automated-text, .empty-automated-text {
