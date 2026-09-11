@@ -26,8 +26,8 @@ class NeighborhoodConstraint(NeighborhoodPrimitive):
         return self._employee
 
     @property
-    def employees(self):
-        """The employee this constraint restricts, as a single-element set."""
+    def scope(self):
+        """The employee this constraint restricts, as a single-element frozenset."""
         return frozenset({self._employee})
 
 

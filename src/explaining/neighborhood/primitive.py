@@ -1,5 +1,10 @@
 # Standard library
 from abc import abstractmethod, ABC
+from typing import Union
+
+# Local libraries
+from src.modeling.employee import Employee
+from src.modeling.task import Task
 
 
 #########################
@@ -13,6 +18,6 @@ class NeighborhoodPrimitive(ABC):
 
     @property
     @abstractmethod
-    def employees(self):
-        """The employees whose sequences this primitive concerns."""
+    def scope(self) -> frozenset[Union[Employee, Task]]:
+        """The employees' sequences and tasks this primitive frees from being fixed to their current state."""
         pass

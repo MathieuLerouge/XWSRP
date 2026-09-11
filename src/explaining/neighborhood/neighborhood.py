@@ -15,52 +15,44 @@ from src.modeling.solution import Solution
 class Neighborhood:
     """
     A search space around a solution, defined by:
-    - the employees whose sequences are in scope;
-    - the elementary operators that may transform those sequences;
+    - the elementary operators that may transform its scope's employees' sequences;
     - and the elementary constraints that restrict how they may be transformed.
 
-    An employee is in scope exactly when they appear in employees:
-    their sequence is eligible to be examined and modified by the solvable model obtained from this Neighborhood.
-    How much of it can vary is then governed by their own operators and constraint:
-    • When neither is present (e.g. the neighborhood related to "why not perform this route in another order"
-    has one employee in scope but no operator or constraint) the sequence is fully free to be reordered;
+    The neighborhood's scope is deduced from the operators' and constraints' own scopes.
+    An employee in scope has their sequence eligible to be modified by the model obtained from this Neighborhood;
+    a task in scope is individually free to be added/removed/relocated,
+    even if its current employee (if any) is not itself in scope.
+
+    How much an in-scope employee's sequence can vary is governed by their own operators and constraints:
+    • With no constraint (e.g. an employee solely targeted by a TaskInsertion/TaskDeletion/TaskRelocation operator),
+      the sequence is fully free to be reordered;
     • Under SequenceOrderFixed, the sequence is order-preserving but open to the operators' insertions/deletions/relocations;
-    • under SequenceFixed, it is entirely pinned despite being in scope.
+    • Under SequenceFixed, it is entirely pinned despite being in scope.
 
-    An employee not listed in employees is out of scope:
-    their entire sequence, which tasks they perform, in what order, and at what times, is treated as fixed,
-    and is reproduced unchanged rather than searched at all.
-    An employee should simply be left out of employees whenever there is no need to reason about them at all.
-
-    Two operators within the same Neighborhood that must resolve a shared candidate dimension to the same value
-    (e.g. an insertion and a deletion that must act on the same, otherwise-unspecified employee)
-    are expected to be given the identical frozenset object for that dimension, not merely an equal one:
-    the MILP builder that later turns this Neighborhood into a solvable model relies on that object identity to
-    detect the link.
+    An employee or task not in scope is fixed:
+    • for an employee, their entire sequence, which tasks they perform, in what order, and at what times,
+    is reproduced unchanged rather than searched at all;
+    • for a task belonging to an out-of-scope employee, it stays exactly where and when it currently is.
     """
 
-    def __init__(self, solution: Solution, employees: list[Employee], operators: list[NeighborhoodOperator],
+    def __init__(self, solution: Solution, operators: list[NeighborhoodOperator],
                  constraints: Optional[list[NeighborhoodConstraint]] = None):
         """
         Args:
             solution: The solution this neighborhood is defined relative to.
-            employees: The employees whose sequences are in scope for this neighborhood.
             operators: The elementary operators that may transform the in-scope sequences.
-            constraints: The elementary constraints that restrict how the in-scope sequences may be
-                transformed.
+            constraints: The elementary constraints that restrict how the in-scope sequences may be transformed.
 
         Raises:
-            ValueError: If employees is empty,
-                if an operator or a constraint concerns an employee not listed in employees,
+            ValueError: If operators and constraints are both empty (there would be nothing to deduce a scope from),
                 if an employee targeted by an operator also carries a SequenceFixed constraint,
                 or if an employee carrying a SequenceFixed constraint also carries another constraint.
         """
-        if len(employees) == 0:
-            raise ValueError("employees must not be empty")
         if constraints is None:
             constraints = []
+        if len(operators) == 0 and len(constraints) == 0:
+            raise ValueError("operators and constraints must not both be empty")
         self._solution = solution
-        self._employees: frozenset[Employee] = frozenset(employees)
         self._operators: list[NeighborhoodOperator] = operators
         self._constraints: list[NeighborhoodConstraint] = constraints
         self._check_consistency()
@@ -68,7 +60,6 @@ class Neighborhood:
     def _check_consistency(self):
         """
         Check that:
-        - every operator and constraint concerns an employee listed in this neighborhood's employees;
         - no employee carrying a SequenceFixed constraint also carries another constraint,
           since SequenceFixed already pins their sequence entirely;
         - and that no employee is both targeted by an operator and restricted by a SequenceFixed constraint.
@@ -80,23 +71,18 @@ class Neighborhood:
         """
         constraints_by_employee: dict[Employee, list[NeighborhoodConstraint]] = dict()
         for constraint in self._constraints:
-            if constraint.employee not in self._employees:
-                raise ValueError(f"Constraint on employee {constraint.employee.name} "
-                                 f"who is not listed in this neighborhood's employees")
             constraints_by_employee.setdefault(constraint.employee, []).append(constraint)
         for employee, employee_constraints in constraints_by_employee.items():
-            if len(employee_constraints) > 1 and any(
-                    isinstance(constraint, SequenceFixed) for constraint in employee_constraints):
+            if (len(employee_constraints) > 1 and
+                any(isinstance(constraint, SequenceFixed) for constraint in employee_constraints)):
                 raise ValueError(f"Employee {employee.name} carries a SequenceFixed constraint "
                                  f"together with another constraint")
         for operator in self._operators:
-            for employee in operator.employees:
-                if employee not in self._employees:
-                    raise ValueError(f"Operator on employee {employee.name} "
-                                     f"who is not listed in this neighborhood's employees")
-                if any(isinstance(constraint, SequenceFixed)
-                       for constraint in constraints_by_employee.get(employee, [])):
-                    raise ValueError(f"Employee {employee.name} is targeted by an operator "
+            for entity in operator.scope:
+                if (isinstance(entity, Employee) and
+                    any(isinstance(constraint, SequenceFixed)
+                        for constraint in constraints_by_employee.get(entity, []))):
+                    raise ValueError(f"Employee {entity.name} is targeted by an operator "
                                      f"but also carries a SequenceFixed constraint")
 
     @property
@@ -105,9 +91,14 @@ class Neighborhood:
         return self._solution
 
     @property
+    def scope(self):
+        """The employees and tasks in scope for this neighborhood, deduced from its operators and constraints."""
+        return frozenset().union(*[primitive.scope for primitive in self._operators + self._constraints])
+
+    @property
     def employees(self):
-        """The employees whose sequences are in scope for this neighborhood."""
-        return self._employees
+        """The employees in scope for this neighborhood, as a frozenset."""
+        return frozenset(entity for entity in self.scope if isinstance(entity, Employee))
 
     @property
     def operators(self):

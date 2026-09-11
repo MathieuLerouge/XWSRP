@@ -10,13 +10,13 @@ from tests.modeling.helpers import build_employee, build_instance, build_task
 # TaskInsertion #
 #################
 
-def test_task_insertion_employees_and_target_tasks_return_the_candidate_sets():
+def test_task_insertion_target_tasks_and_scope_return_the_candidate_sets():
     instance = build_instance()
     employee = build_employee(instance)
     task = build_task(instance)
     operator = TaskInsertion(frozenset({employee}), frozenset({task}))
-    assert operator.employees == frozenset({employee})
     assert operator.target_tasks == frozenset({task})
+    assert operator.scope == frozenset({employee, task})
 
 
 def test_task_insertion_with_empty_candidate_employees_raises():
@@ -37,13 +37,13 @@ def test_task_insertion_with_empty_candidate_tasks_raises():
 # TaskDeletion #
 ################
 
-def test_task_deletion_employees_and_target_tasks_return_the_candidate_sets():
+def test_task_deletion_target_tasks_and_scope_return_the_candidate_sets():
     instance = build_instance()
     employee = build_employee(instance)
     task = build_task(instance)
     operator = TaskDeletion(frozenset({employee}), frozenset({task}))
-    assert operator.employees == frozenset({employee})
     assert operator.target_tasks == frozenset({task})
+    assert operator.scope == frozenset({employee, task})
 
 
 def test_task_deletion_with_empty_candidate_employees_raises():
@@ -64,21 +64,21 @@ def test_task_deletion_with_empty_candidate_tasks_raises():
 # TaskRelocation #
 ##################
 
-def test_task_relocation_employees_deduplicates_when_origin_equals_destination():
+def test_task_relocation_scope_deduplicates_when_origin_equals_destination():
     instance = build_instance()
     employee = build_employee(instance)
     task = build_task(instance)
     operator = TaskRelocation(employee, employee, task)
-    assert operator.employees == frozenset({employee})
+    assert operator.scope == frozenset({employee, task})
 
 
-def test_task_relocation_employees_includes_both_when_origin_and_destination_differ():
+def test_task_relocation_scope_includes_both_when_origin_and_destination_differ():
     instance = build_instance()
     origin = build_employee(instance, 0)
     destination = build_employee(instance, 1)
     task = build_task(instance)
     operator = TaskRelocation(origin, destination, task)
-    assert operator.employees == frozenset({origin, destination})
+    assert operator.scope == frozenset({origin, destination, task})
 
 
 def test_task_relocation_target_tasks_returns_a_single_element_frozenset():

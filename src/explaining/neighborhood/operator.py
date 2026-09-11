@@ -27,7 +27,7 @@ class NeighborhoodOperator(NeighborhoodPrimitive):
     @property
     @abstractmethod
     def target_tasks(self):
-        """The tasks this operator may act on, as a frozenset."""
+        """The tasks this operator may act on."""
         pass
 
 
@@ -58,23 +58,23 @@ class TaskInsertion(NeighborhoodOperator):
 
     @property
     def candidate_employees(self):
-        """The employees among which the one to perform the inserted task is chosen, as a frozenset."""
+        """The employees among which the one to perform the inserted task is chosen."""
         return self._candidate_employees
 
     @property
     def candidate_tasks(self):
-        """The tasks among which the one to insert is chosen, as a frozenset."""
+        """The tasks among which the one to insert is chosen."""
         return self._candidate_tasks
 
     @property
-    def employees(self):
-        """The employees among which the one to perform the inserted task is chosen, as a frozenset."""
-        return self.candidate_employees
+    def target_tasks(self):
+        """The tasks among which the one to insert is chosen."""
+        return self.candidate_tasks
 
     @property
-    def target_tasks(self):
-        """The tasks among which the one to insert is chosen, as a frozenset."""
-        return self.candidate_tasks
+    def scope(self):
+        """The candidate employees and candidate tasks."""
+        return self._candidate_employees | self._candidate_tasks
 
 
 ################
@@ -105,23 +105,23 @@ class TaskDeletion(NeighborhoodOperator):
 
     @property
     def candidate_employees(self):
-        """The employees among which the one currently performing the removed task is chosen, as a frozenset."""
+        """The employees among which the one currently performing the removed task is chosen."""
         return self._candidate_employees
 
     @property
     def candidate_tasks(self):
-        """The tasks among which the one to remove is chosen, as a frozenset."""
+        """The tasks among which the one to remove is chosen."""
         return self._candidate_tasks
 
     @property
-    def employees(self):
-        """The employees among which the one currently performing the removed task is chosen, as a frozenset."""
-        return self.candidate_employees
+    def target_tasks(self):
+        """The tasks among which the one to remove is chosen."""
+        return self.candidate_tasks
 
     @property
-    def target_tasks(self):
-        """The tasks among which the one to remove is chosen, as a frozenset."""
-        return self.candidate_tasks
+    def scope(self):
+        """The candidate employees and candidate tasks."""
+        return self._candidate_employees | self._candidate_tasks
 
 
 ##################
@@ -189,11 +189,11 @@ class TaskRelocation(NeighborhoodOperator):
         return self._anchor_side
 
     @property
-    def employees(self):
-        """The origin and destination employees, as a frozenset."""
-        return frozenset({self._origin_employee, self._destination_employee})
-
-    @property
     def target_tasks(self):
         """The relocated task, as a single-element frozenset."""
         return frozenset({self._target_task})
+
+    @property
+    def scope(self):
+        """The origin and destination employees and the relocated task."""
+        return frozenset({self._origin_employee, self._destination_employee}) | self.target_tasks

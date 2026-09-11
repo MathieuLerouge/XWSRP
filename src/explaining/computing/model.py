@@ -164,17 +164,16 @@ class NeighborhoodFeasibilityMILP(MILPModel):
 
     def _add_neighborhood_freeze_constraints(self):
         """
-        Pin every task other than the operator's candidate tasks to reproduce the given solution exactly:
-        its performance status, its assignee (via a same-assignee constraint, since MILPModel's own
-        covering constraints only guarantee someone covers a task, not that it stays with its current
-        employee), and, for tasks not assigned to one of the operator's candidate employees, its exact
-        start time too (tasks belonging to a candidate employee are left free in time so
-        SequenceOrderFixed's pairwise precedence constraints, added separately, can shift them to make
-        room for whichever candidate task ends up inserted).
+        Pin every task outside the neighborhood's scope to reproduce the given solution exactly:
+        its performance status, its assignee (via a same-assignee constraint), and,
+        for tasks whose assignee is outside the neighborhood's scope, its exact start time too
+        (tasks belonging to an in-scope employee are left free in time so SequenceOrderFixed's pairwise constraints,
+        added separately, can shift them to make room for whichever candidate task ends up inserted).
         """
         solution = self._neighborhood.solution
+        scope = self._neighborhood.scope
         for task in self._data.instance.tasks:
-            if task in self._candidate_tasks:
+            if task in scope:
                 continue
             task_index = self._data.get_task_index_by_task(task)
             performed = solution.get_task_performance_status(task)
@@ -192,15 +191,15 @@ class NeighborhoodFeasibilityMILP(MILPModel):
                         ]) == 1
                     ))
                 )
-                if assignee not in self._candidate_employees:
+                if assignee not in scope:
                     self.vars_T[task_index].fix(solution.get_task_start_time(task))
 
     def _add_neighborhood_candidate_selection_constraints(self):
         """
-        Force exactly one of the operator's candidate tasks to be performed, and, for each candidate
-        task, tie its assignee to one of the operator's candidate employees exactly when it is the one
-        performed. Both reduce to the original mandatory-coverage-by-one-fixed-employee behavior when the
-        operator has exactly one candidate task and one candidate employee.
+        Force exactly one of the operator's candidate tasks to be performed, and, for each candidate task,
+        tie its assignee to one of the operator's candidate employees exactly when it is the one performed.
+        Both reduce to the original mandatory-coverage-by-one-fixed-employee behavior
+        when the operator has exactly one candidate task and one candidate employee.
         """
         if not self._data.instance.must_cover_all_tasks:
             self._model.add_component(
@@ -225,9 +224,9 @@ class NeighborhoodFeasibilityMILP(MILPModel):
 
     def _add_neighborhood_immediate_precedence_constraints(self):
         """
-        For every ImmediatePrecedence constraint, pin its successor's insertion point immediately after
-        its predecessor. Only reachable with singleton candidate sets (_extract_scope rejects any other
-        combination), so each constraint unambiguously targets the chosen (employee, task) pair.
+        For every ImmediatePrecedence constraint, pin its successor's insertion point immediately after its predecessor.
+        Only reachable with singleton candidate sets (_extract_scope rejects any other combination),
+        so each constraint unambiguously targets the chosen (employee, task) pair.
         """
         immediate_precedence_constraints = [
             constraint for constraint in self._neighborhood.constraints
@@ -255,19 +254,21 @@ class NeighborhoodFeasibilityMILP(MILPModel):
     def _add_neighborhood_order_fixed_constraints(self):
         """
         For every employee carrying a SequenceOrderFixed constraint,
-        force every pair of their already-performed tasks to keep their current relative order
+        force every pair of their already-performed, out-of-scope tasks to keep their current relative order
         (T[earlier] + duration <= T[later]), while leaving each task's exact start time free to shift
-        to make room for whichever candidate task ends up inserted into their sequence.
-        None of these tasks is ever a candidate task (candidate tasks aren't performed yet in the given solution),
-        so this never needs the lb/ub hooks.
+        to make room for whichever in-scope task ends up added/removed/relocated in their sequence.
+        Scope-freed tasks are excluded from this pairwise order-fixing since a task an operator may
+        remove/relocate is exactly the kind this constraint must not pin in place;
+        this never needs the lb/ub hooks since none of the remaining tasks is ever itself in scope.
         """
+        scope = self._neighborhood.scope
         order_fixed_employees = [
             constraint.employee for constraint in self._neighborhood.constraints
             if isinstance(constraint, SequenceOrderFixed)
         ]
         for employee in order_fixed_employees:
             sequence = self._neighborhood.solution.get_sequence(employee)
-            original_tasks = sequence.get_contained_tasks()
+            original_tasks = [task for task in sequence.get_contained_tasks() if task not in scope]
             for earlier_position in range(len(original_tasks)):
                 for later_position in range(earlier_position + 1, len(original_tasks)):
                     earlier_task = original_tasks[earlier_position]

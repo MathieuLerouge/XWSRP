@@ -27,7 +27,7 @@ def map_ins_1(question: ContrastiveQuestion) -> Neighborhood:
     anchor_activity = instance.get_hypothetical_activity_by_names(activity_name, employee_name)
     operator = TaskInsertion(frozenset({employee}), frozenset({task}))
     constraints = [SequenceOrderFixed(employee), ImmediatePrecedence(employee, anchor_activity, task)]
-    return Neighborhood(solution=solution, employees=[employee], operators=[operator], constraints=constraints)
+    return Neighborhood(solution=solution, operators=[operator], constraints=constraints)
 
 
 def map_ins_2a(question: ContrastiveQuestion) -> Neighborhood:
@@ -48,8 +48,7 @@ def map_ins_2a(question: ContrastiveQuestion) -> Neighborhood:
     employee = instance.get_employee_by_name(employee_name)
     task = instance.get_task_by_name(task_name)
     operator = TaskInsertion(frozenset({employee}), frozenset({task}))
-    return Neighborhood(solution=solution, employees=[employee], operators=[operator],
-                        constraints=[SequenceOrderFixed(employee)])
+    return Neighborhood(solution=solution, operators=[operator], constraints=[SequenceOrderFixed(employee)])
 
 
 def map_ins_2b(question: ContrastiveQuestion) -> Neighborhood:
@@ -77,8 +76,7 @@ def map_ins_2b(question: ContrastiveQuestion) -> Neighborhood:
             "Inserting any non-performed task is impossible given a solution performing all the tasks"
         )
     operator = TaskInsertion(frozenset({employee}), candidate_tasks)
-    return Neighborhood(solution=solution, employees=[employee], operators=[operator],
-                        constraints=[SequenceOrderFixed(employee)])
+    return Neighborhood(solution=solution, operators=[operator], constraints=[SequenceOrderFixed(employee)])
 
 
 def map_ins_2c(question: ContrastiveQuestion) -> Neighborhood:
@@ -100,8 +98,7 @@ def map_ins_2c(question: ContrastiveQuestion) -> Neighborhood:
     candidate_employees = frozenset(solution.instance.employees)
     operator = TaskInsertion(candidate_employees, frozenset({task}))
     constraints = [SequenceOrderFixed(employee) for employee in candidate_employees]
-    return Neighborhood(solution=solution, employees=list(candidate_employees), operators=[operator],
-                        constraints=constraints)
+    return Neighborhood(solution=solution, operators=[operator], constraints=constraints)
 
 
 def map_ins_3(question: ContrastiveQuestion) -> Neighborhood:
@@ -124,4 +121,4 @@ def map_ins_3(question: ContrastiveQuestion) -> Neighborhood:
     employee = instance.get_employee_by_name(employee_name)
     task = instance.get_task_by_name(task_name)
     operator = TaskInsertion(frozenset({employee}), frozenset({task}))
-    return Neighborhood(solution=solution, employees=[employee], operators=[operator])
+    return Neighborhood(solution=solution, operators=[operator])
