@@ -22,3 +22,4 @@ src/optimization/tests.py
 
 todo.txt
 .DS_Store
+uv.lock
