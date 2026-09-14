@@ -29,27 +29,24 @@ each alteration is also recorded in an `InstanceChanges`.
 
 ## 1.2. Neighborhood-based computation pipeline (WIP)
 
-### WIP:
-
-An alternative to the tailored pipeline, currently covering only the `(Ins,*)` contrastive question family.
+An alternative to the tailored pipeline, covering the `(Ins,*)`, `(Swp,*)` and `(Ord,*)` contrastive question families.
 For a `ContrastiveQuestion`, `neighborhood/templates`'s `Mapper` maps it to the `Neighborhood` it induces, 
 then `computing/model.py`'s `NeighborhoodFeasibilityMILP` turns that `Neighborhood` into a solvable MILP, 
 in place of `computing/templates`' per-template transformation function.
 
-### Done: 
-`Mapper` covers `(Ins,1)/(Ins,2a)/(Ins,2b)/(Ins,2c)/(Ins,3)`. 
-`NeighborhoodFeasibilityMILP` supports a single `TaskInsertion` operator, 
-and matches the tailored pipeline's outcome on parity tests 
-(`tests/explaining/computing/test_parity.py`, `test_parity_random.py`).
-
 NB: The neighborhood pipeline is able to accept inputs the tailored one doesn't handle 
 (e.g. a candidate task that happens to already be performed by someone else). 
 What parity tests check is that every question the tailored pipeline can answer, 
-the neighborhood pipeline can also answer it and gets the same support solution.
+the neighborhood pipeline can also answer it and gets the same (or a strictly better-fitting) support
+solution.
+
+### Done:
+
+`Mapper` covers `(Ins,*)` and `(Ord,*)`.
 
 ### Next steps: 
-Extend `Mapper`/`NeighborhoodFeasibilityMILP` to the `(Swp,*)` and `(Ord,*)` families 
-(`TaskDeletion`/`TaskRelocation` operators, multi-operator neighborhoods). \ 
+Extend `Mapper`/`NeighborhoodFeasibilityMILP` to the `(Swp,*)` family 
+(`TaskDeletion` operator, multi-operator neighborhoods). \ 
 Handle skill mismatches, unsupported by `NeighborhoodFeasibilityMILP`.
 
 

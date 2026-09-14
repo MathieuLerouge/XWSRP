@@ -2,7 +2,9 @@
 import pytest
 
 # Local libraries
-from src.explaining.neighborhood.operator import POSITION_SIDE_BEFORE, TaskDeletion, TaskInsertion, TaskRelocation
+from src.explaining.neighborhood.operator import (
+    SequenceReordering, TaskDeletion, TaskInsertion, TaskRelocation, TaskRepositioning
+)
 from tests.modeling.helpers import build_employee, build_instance, build_task
 
 
@@ -89,29 +91,26 @@ def test_task_relocation_target_tasks_returns_a_single_element_frozenset():
     assert operator.target_tasks == frozenset({task})
 
 
-def test_task_relocation_with_anchor_side_alone_is_accepted_as_directional():
-    # Unlike TaskInsertion, a relocated task has a current position to be directional about, so
-    # anchor_side alone (no anchor_activity) is a valid, non-pinned direction.
+#####################
+# TaskRepositioning #
+#####################
+
+def test_task_repositioning_target_tasks_and_scope_return_the_employee_and_task():
     instance = build_instance()
     employee = build_employee(instance)
     task = build_task(instance)
-    operator = TaskRelocation(employee, employee, task, anchor_side=POSITION_SIDE_BEFORE)
-    assert operator.anchor_activity is None
-    assert operator.anchor_side == POSITION_SIDE_BEFORE
+    operator = TaskRepositioning(employee, task)
+    assert operator.target_tasks == frozenset({task})
+    assert operator.scope == frozenset({employee, task})
 
 
-def test_task_relocation_with_anchor_activity_and_no_side_raises():
+######################
+# SequenceReordering #
+######################
+
+def test_sequence_reordering_target_tasks_is_empty_and_scope_is_the_employee():
     instance = build_instance()
     employee = build_employee(instance)
-    task = build_task(instance, 0)
-    anchor = build_task(instance, 1)
-    with pytest.raises(ValueError):
-        TaskRelocation(employee, employee, task, anchor_activity=anchor)
-
-
-def test_task_relocation_with_invalid_anchor_side_raises():
-    instance = build_instance()
-    employee = build_employee(instance)
-    task = build_task(instance)
-    with pytest.raises(ValueError):
-        TaskRelocation(employee, employee, task, anchor_side="sideways")
+    operator = SequenceReordering(employee)
+    assert operator.target_tasks == frozenset()
+    assert operator.scope == frozenset({employee})

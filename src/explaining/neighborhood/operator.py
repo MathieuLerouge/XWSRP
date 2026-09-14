@@ -1,17 +1,11 @@
 # Standard library
 from abc import abstractmethod
-from typing import Optional, Union
+from typing import Union
 
 # Local libraries
 from src.explaining.neighborhood.primitive import Primitive
-from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
-
-# Global variables
-POSITION_SIDE_AFTER = "after"
-POSITION_SIDE_BEFORE = "before"
-POSITION_SIDES = [POSITION_SIDE_AFTER, POSITION_SIDE_BEFORE]
 
 
 ############
@@ -20,8 +14,8 @@ POSITION_SIDES = [POSITION_SIDE_AFTER, POSITION_SIDE_BEFORE]
 
 class Operator(Primitive):
     """
-    An elementary transformation (inserting, deleting or relocating a task) applied to a solution to
-    compose a Neighborhood.
+    An elementary transformation (inserting, deleting, relocating or repositioning a task,
+    or reordering an employee's whole sequence) applied to a solution to compose a Neighborhood.
     """
 
     @property
@@ -136,38 +130,20 @@ class TaskDeletion(Operator):
 
 class TaskRelocation(Operator):
     """
-    An Operator that moves a target task from an origin employee's sequence to a destination
-    employee's sequence: the same employee for a within-sequence reorder, or a different one for a
-    cross-employee move.
+    An Operator that moves a target task from an origin employee's sequence to a destination employee's
+    sequence. See TaskRepositioning for the more specific, same-employee, within-sequence special case.
     """
 
-    def __init__(self, origin_employee: Employee, destination_employee: Employee, target_task: Task,
-                 anchor_activity: Optional[Activity] = None, anchor_side: Optional[str] = None):
+    def __init__(self, origin_employee: Employee, destination_employee: Employee, target_task: Task):
         """
         Args:
             origin_employee: The employee whose sequence loses the target task.
             destination_employee: The employee whose sequence gains the target task.
             target_task: The task to relocate.
-            anchor_activity: The activity the relocated task must be positioned immediately next to, if the
-                position is pinned rather than searched for freely.
-            anchor_side: If anchor_activity is set, the side of anchor_activity (POSITION_SIDE_AFTER or
-                POSITION_SIDE_BEFORE) the relocated task is positioned at. If anchor_activity is None, the
-                direction (POSITION_SIDE_AFTER or POSITION_SIDE_BEFORE) relative to the task's current
-                position its new position must be searched in, or None to search freely in both directions.
-
-        Raises:
-            ValueError: If anchor_activity is set without anchor_side, or if anchor_side is set to something
-                other than POSITION_SIDE_AFTER or POSITION_SIDE_BEFORE.
         """
-        if anchor_activity is not None and anchor_side is None:
-            raise ValueError("anchor_side must be set when anchor_activity is set")
-        if anchor_side is not None and anchor_side not in POSITION_SIDES:
-            raise ValueError(f"anchor_side must be one of {POSITION_SIDES}, got {anchor_side}")
         self._origin_employee = origin_employee
         self._destination_employee = destination_employee
         self._target_task = target_task
-        self._anchor_activity = anchor_activity
-        self._anchor_side = anchor_side
 
     @property
     def origin_employee(self):
@@ -185,16 +161,6 @@ class TaskRelocation(Operator):
         return self._target_task
 
     @property
-    def anchor_activity(self):
-        """The activity the relocated task must be positioned immediately next to, if any."""
-        return self._anchor_activity
-
-    @property
-    def anchor_side(self):
-        """The side of, or direction from (if anchor_activity is unset), the relocated task's new position."""
-        return self._anchor_side
-
-    @property
     def target_tasks(self):
         """The relocated task, as a single-element frozenset."""
         return frozenset({self._target_task})
@@ -203,3 +169,76 @@ class TaskRelocation(Operator):
     def scope(self):
         """The origin and destination employees and the relocated task."""
         return frozenset({self._origin_employee, self._destination_employee}) | self.target_tasks
+
+
+#####################
+# TaskRepositioning #
+#####################
+
+class TaskRepositioning(Operator):
+    """
+    An Operator that moves a target task to a different position within its own employee's sequence.
+    The special case of TaskRelocation where the origin and destination employee are the same.
+    """
+
+    def __init__(self, employee: Employee, target_task: Task):
+        """
+        Args:
+            employee: The employee whose sequence the target task is repositioned within.
+            target_task: The task to reposition.
+        """
+        self._employee = employee
+        self._target_task = target_task
+
+    @property
+    def employee(self):
+        """The employee whose sequence the target task is repositioned within."""
+        return self._employee
+
+    @property
+    def target_task(self):
+        """The task to reposition."""
+        return self._target_task
+
+    @property
+    def target_tasks(self):
+        """The repositioned task, as a single-element frozenset."""
+        return frozenset({self._target_task})
+
+    @property
+    def scope(self):
+        """The employee and the repositioned task."""
+        return frozenset({self._employee}) | self.target_tasks
+
+
+######################
+# SequenceReordering #
+######################
+
+class SequenceReordering(Operator):
+    """
+    An Operator that frees an employee's entire sequence to be reordered,
+    without adding, removing or reassigning any of their tasks.
+    """
+
+    def __init__(self, employee: Employee):
+        """
+        Args:
+            employee: The employee whose sequence is freed to be reordered.
+        """
+        self._employee = employee
+
+    @property
+    def employee(self):
+        """The employee whose sequence is freed to be reordered."""
+        return self._employee
+
+    @property
+    def target_tasks(self):
+        """No specific task is targeted: the whole sequence is, as a single unit."""
+        return frozenset()
+
+    @property
+    def scope(self):
+        """The employee, as a single-element frozenset."""
+        return frozenset({self._employee})

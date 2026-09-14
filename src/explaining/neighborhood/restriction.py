@@ -1,6 +1,7 @@
 # Local libraries
 from src.explaining.neighborhood.primitive import Primitive
 from src.modeling.activity import Activity
+from src.modeling.employee import Employee
 from src.modeling.task import Task
 
 
@@ -51,6 +52,41 @@ class ImmediatePrecedence(Restriction):
         return self._successor
 
 
+##############
+# Precedence #
+##############
+
+class Precedence(Restriction):
+    """
+    A Restriction requiring that successor starts no earlier than predecessor finishes,
+    without requiring immediate adjacency (see ImmediatePrecedence for that stronger requirement).
+    """
+
+    def __init__(self, predecessor: Task, successor: Task):
+        """
+        Args:
+            predecessor: The task that must finish no later than successor starts.
+            successor: The task that must start no earlier than predecessor finishes.
+
+        Raises:
+            ValueError: If predecessor and successor are the same task.
+        """
+        if predecessor is successor:
+            raise ValueError("predecessor and successor must not be the same task")
+        self._predecessor = predecessor
+        self._successor = successor
+
+    @property
+    def predecessor(self):
+        """The task that must finish no later than successor starts."""
+        return self._predecessor
+
+    @property
+    def successor(self):
+        """The task that must start no earlier than predecessor finishes."""
+        return self._successor
+
+
 ######################
 # SequenceOrderFixed #
 ######################
@@ -71,3 +107,38 @@ class SequenceOrderFixed(Restriction):
     def tasks(self):
         """The tasks, in the relative order they must keep."""
         return self._tasks
+
+
+#####################
+# ForbiddenSequence #
+#####################
+
+class ForbiddenSequence(Restriction):
+    """
+    A Restriction forbidding a specific employee's sequence from containing a given,
+    explicit, ordered chain of activities as a contiguous run.
+    """
+
+    def __init__(self, employee: Employee, activities: list[Activity]):
+        """
+        Args:
+            employee: The employee whose sequence must not contain the forbidden chain.
+            activities: The forbidden chain of activities, in the order they must not appear contiguously in.
+
+        Raises:
+            ValueError: If activities has fewer than 2 elements (there would be no arc left to forbid).
+        """
+        if len(activities) < 2:
+            raise ValueError("activities must contain at least 2 elements")
+        self._employee = employee
+        self._activities = activities
+
+    @property
+    def employee(self):
+        """The employee whose sequence must not contain the forbidden chain."""
+        return self._employee
+
+    @property
+    def activities(self):
+        """The forbidden chain of activities, in the order they must not appear contiguously in."""
+        return self._activities
