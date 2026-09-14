@@ -42,6 +42,11 @@ in place of `computing/templates`' per-template transformation function.
 and matches the tailored pipeline's outcome on parity tests 
 (`tests/explaining/computing/test_parity.py`, `test_parity_random.py`).
 
+NB: The neighborhood pipeline is able to accept inputs the tailored one doesn't handle 
+(e.g. a candidate task that happens to already be performed by someone else). 
+What parity tests check is that every question the tailored pipeline can answer, 
+the neighborhood pipeline can also answer it and gets the same support solution.
+
 ### Next steps: 
 Extend `Mapper`/`NeighborhoodFeasibilityMILP` to the `(Swp,*)` and `(Ord,*)` families 
 (`TaskDeletion`/`TaskRelocation` operators, multi-operator neighborhoods). \ 
@@ -66,9 +71,9 @@ which is the "why not" question catalogue used by `interacting`
 and mapped to transformation functions in `computing/templates`.
 
 `neighborhood` contains a vocabulary for describing a search space around a solution: 
-`Neighborhood` i.e. the employees in scope, together with 
-the `NeighborhoodOperator`s that may transform their sequences 
-and the `NeighborhoodConstraint`s that restrict how. \
+`Neighborhood` i.e. the employees and tasks in scope, together with 
+the `Operator`s that may transform their sequences 
+and the `Restriction`s that narrow how (scope restrictions). \
 Its `templates` subdirectory's `Mapper` translates a `ContrastiveQuestion` into the `Neighborhood` it induces.
 
 `computing` contains the computational core that answers a question by attempting to modify the solution. 

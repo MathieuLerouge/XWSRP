@@ -1,9 +1,9 @@
 # Standard library
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
 # Local libraries
-from src.explaining.neighborhood.primitive import NeighborhoodPrimitive
+from src.explaining.neighborhood.primitive import Primitive
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
@@ -14,11 +14,11 @@ POSITION_SIDE_BEFORE = "before"
 POSITION_SIDES = [POSITION_SIDE_AFTER, POSITION_SIDE_BEFORE]
 
 
-########################
-# NeighborhoodOperator #
-########################
+############
+# Operator #
+############
 
-class NeighborhoodOperator(NeighborhoodPrimitive):
+class Operator(Primitive):
     """
     An elementary transformation (inserting, deleting or relocating a task) applied to a solution to
     compose a Neighborhood.
@@ -30,14 +30,20 @@ class NeighborhoodOperator(NeighborhoodPrimitive):
         """The tasks this operator may act on."""
         pass
 
+    @property
+    @abstractmethod
+    def scope(self) -> frozenset[Union[Employee, Task]]:
+        """The employees' sequences and tasks this operator frees from being fixed to their current state."""
+        pass
+
 
 #################
 # TaskInsertion #
 #################
 
-class TaskInsertion(NeighborhoodOperator):
+class TaskInsertion(Operator):
     """
-    A NeighborhoodOperator that inserts a target task into an employee's sequence.
+    An Operator that inserts a target task into an employee's sequence.
     """
 
     def __init__(self, candidate_employees: frozenset[Employee], candidate_tasks: frozenset[Task]):
@@ -81,9 +87,9 @@ class TaskInsertion(NeighborhoodOperator):
 # TaskDeletion #
 ################
 
-class TaskDeletion(NeighborhoodOperator):
+class TaskDeletion(Operator):
     """
-    A NeighborhoodOperator that removes a target task from an employee's sequence.
+    An Operator that removes a target task from an employee's sequence.
     """
 
     def __init__(self, candidate_employees: frozenset[Employee], candidate_tasks: frozenset[Task]):
@@ -128,9 +134,9 @@ class TaskDeletion(NeighborhoodOperator):
 # TaskRelocation #
 ##################
 
-class TaskRelocation(NeighborhoodOperator):
+class TaskRelocation(Operator):
     """
-    A NeighborhoodOperator that moves a target task from an origin employee's sequence to a destination
+    An Operator that moves a target task from an origin employee's sequence to a destination
     employee's sequence: the same employee for a within-sequence reorder, or a different one for a
     cross-employee move.
     """

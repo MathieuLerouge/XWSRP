@@ -1,6 +1,6 @@
 # Local libraries
-from src.explaining.neighborhood.constraint import ImmediatePrecedence, SequenceOrderFixed
 from src.explaining.neighborhood.operator import TaskInsertion
+from src.explaining.neighborhood.restriction import ImmediatePrecedence, SequenceOrderFixed
 from src.explaining.neighborhood.templates import insertion
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.explaining.questioning.questions_templates_bank import (
@@ -30,6 +30,7 @@ def test_map_ins_1_anchors_the_target_task_right_after_the_named_activity():
     employee = instance.get_employee_by_name("Valentin")
     target_task = instance.get_task_by_name("T4")
     anchor = instance.get_task_by_name("T1")
+    t2 = instance.get_task_by_name("T2")
     question = ContrastiveQuestion(solution, WHY_NOT_INS_1, ["Valentin", "T4", "T1"])
     neighborhood = insertion.map_ins_1(question)
     assert neighborhood.solution == solution
@@ -39,12 +40,11 @@ def test_map_ins_1_anchors_the_target_task_right_after_the_named_activity():
     assert isinstance(operator, TaskInsertion)
     assert operator.candidate_employees == frozenset({employee})
     assert operator.candidate_tasks == frozenset({target_task})
-    assert len(neighborhood.constraints) == 2
-    order_fixed = [c for c in neighborhood.constraints if isinstance(c, SequenceOrderFixed)]
-    immediate_precedence = [c for c in neighborhood.constraints if isinstance(c, ImmediatePrecedence)]
-    assert len(order_fixed) == 1 and order_fixed[0].employee == employee
+    assert len(neighborhood.restrictions) == 2
+    order_fixed = [r for r in neighborhood.restrictions if isinstance(r, SequenceOrderFixed)]
+    immediate_precedence = [r for r in neighborhood.restrictions if isinstance(r, ImmediatePrecedence)]
+    assert len(order_fixed) == 1 and order_fixed[0].tasks == [anchor, t2]
     assert len(immediate_precedence) == 1
-    assert immediate_precedence[0].employee == employee
     assert immediate_precedence[0].predecessor == anchor
     assert immediate_precedence[0].successor == target_task
 
@@ -62,8 +62,8 @@ def test_map_ins_2a_targets_the_named_task_with_no_anchor():
     operator = neighborhood.operators[0]
     assert operator.candidate_employees == frozenset({employee})
     assert operator.candidate_tasks == frozenset({target_task})
-    assert len(neighborhood.constraints) == 1
-    assert isinstance(neighborhood.constraints[0], SequenceOrderFixed)
+    assert len(neighborhood.restrictions) == 1
+    assert isinstance(neighborhood.restrictions[0], SequenceOrderFixed)
 
 
 #############
@@ -90,6 +90,8 @@ def test_map_ins_2b_targets_every_non_performed_task_regardless_of_skill():
 def test_map_ins_2c_targets_every_employee_regardless_of_skill():
     instance, solution = _build_solution_with_valentin_performing_t1_and_t2()
     target_task = instance.get_task_by_name("T4")
+    t1 = instance.get_task_by_name("T1")
+    t2 = instance.get_task_by_name("T2")
     all_employees = frozenset(instance.employees)
     question = ContrastiveQuestion(solution, WHY_NOT_INS_2C, ["T4"])
     neighborhood = insertion.map_ins_2c(question)
@@ -97,8 +99,11 @@ def test_map_ins_2c_targets_every_employee_regardless_of_skill():
     assert operator.candidate_employees == all_employees
     assert operator.candidate_tasks == frozenset({target_task})
     assert neighborhood.employees == all_employees
-    assert {constraint.employee for constraint in neighborhood.constraints} == all_employees
-    assert all(isinstance(constraint, SequenceOrderFixed) for constraint in neighborhood.constraints)
+    assert all(isinstance(restriction, SequenceOrderFixed) for restriction in neighborhood.restrictions)
+    assert len(neighborhood.restrictions) == len(all_employees)
+    restriction_tasks = [restriction.tasks for restriction in neighborhood.restrictions]
+    assert restriction_tasks.count([t1, t2]) == 1
+    assert restriction_tasks.count([]) == len(all_employees) - 1
 
 
 ############
@@ -114,4 +119,4 @@ def test_map_ins_3_leaves_the_order_free():
     operator = neighborhood.operators[0]
     assert operator.candidate_employees == frozenset({employee})
     assert operator.candidate_tasks == frozenset({target_task})
-    assert neighborhood.constraints == []
+    assert neighborhood.restrictions == []

@@ -13,7 +13,7 @@ from src.explaining.questioning.questions_templates_bank import \
 class Mapper:
     """
     Maps a contrastive question to the Neighborhood it induces,
-    using each question template's hand-wired mapping to elementary operators and constraints.
+    using each question template's hand-wired mapping to elementary operators and scope restrictions.
     """
 
     @staticmethod

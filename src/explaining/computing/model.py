@@ -2,9 +2,9 @@
 import pyomo.environ as pyo
 
 # Local libraries
-from src.explaining.neighborhood.constraint import ImmediatePrecedence, SequenceOrderFixed
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskInsertion
+from src.explaining.neighborhood.restriction import ImmediatePrecedence, SequenceOrderFixed
 from src.optimization.milp.milpmodel import MILPModel
 from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.solver.solver import Solver
@@ -38,8 +38,9 @@ class NeighborhoodFeasibilityMILP(MILPModel):
     Its candidate employees and candidate tasks may each be one or several
     (covering, respectively, the (Ins,1)/(Ins,2a)/(Ins,3)-style single-candidate shapes
     and the (Ins,2b)/(Ins,2c)-style candidate-set shapes),
-    except that an ImmediatePrecedence constraint is only supported when both candidate sets are
-    singletons, since it always pins one specific employee's sequence around one specific target task.
+    except that an ImmediatePrecedence restriction is only supported when both candidate sets are
+    singletons, since it always pins one specific target task's insertion point, which must align with
+    the operator's own (also singleton) candidates.
     """
 
     def __init__(self, neighborhood: Neighborhood):
@@ -49,7 +50,7 @@ class NeighborhoodFeasibilityMILP(MILPModel):
 
         Raises:
             NotImplementedError: if the neighborhood is not targeted by a single TaskInsertion operator,
-                if it carries an ImmediatePrecedence constraint while having more than one candidate
+                if it carries an ImmediatePrecedence restriction while having more than one candidate
                 employee or candidate task, or if the instance has a lunch break.
         """
         self._neighborhood = neighborhood
@@ -63,7 +64,7 @@ class NeighborhoodFeasibilityMILP(MILPModel):
 
         Raises:
             NotImplementedError: if the neighborhood is not targeted by a single TaskInsertion operator,
-                if it carries an ImmediatePrecedence constraint while having more than one candidate
+                if it carries an ImmediatePrecedence restriction while having more than one candidate
                 employee or candidate task, or if the instance has a lunch break.
         """
         if neighborhood.solution.instance.has_lunch_break:
@@ -77,12 +78,12 @@ class NeighborhoodFeasibilityMILP(MILPModel):
             )
         operator = neighborhood.operators[0]
         has_immediate_precedence = any(
-            isinstance(constraint, ImmediatePrecedence) for constraint in neighborhood.constraints
+            isinstance(restriction, ImmediatePrecedence) for restriction in neighborhood.restrictions
         )
         if has_immediate_precedence and (
                 len(operator.candidate_employees) > 1 or len(operator.candidate_tasks) > 1):
             raise NotImplementedError(
-                "NeighborhoodFeasibilityMILP does not support an ImmediatePrecedence constraint together "
+                "NeighborhoodFeasibilityMILP does not support an ImmediatePrecedence restriction together "
                 "with more than one candidate employee or candidate task"
             )
         return operator.candidate_employees, operator, operator.candidate_tasks
@@ -224,63 +225,59 @@ class NeighborhoodFeasibilityMILP(MILPModel):
 
     def _add_neighborhood_immediate_precedence_constraints(self):
         """
-        For every ImmediatePrecedence constraint, pin its successor's insertion point immediately after its predecessor.
-        Only reachable with singleton candidate sets (_extract_scope rejects any other combination),
-        so each constraint unambiguously targets the chosen (employee, task) pair.
+        For every ImmediatePrecedence restriction, pin its successor's performance immediately after its predecessor.
+        Whichever employee ends up performing both that's constrained, not a specific one
+        (other neighborhood constraints - typically the operator's own singleton candidates -
+        are what actually pin down which employee that is).
+        Only reachable with singleton candidate sets (_extract_scope rejects any other combination).
         """
-        immediate_precedence_constraints = [
-            constraint for constraint in self._neighborhood.constraints
-            if isinstance(constraint, ImmediatePrecedence)
+        immediate_precedence_restrictions = [
+            restriction for restriction in self._neighborhood.restrictions
+            if isinstance(restriction, ImmediatePrecedence)
         ]
-        for constraint in immediate_precedence_constraints:
-            employee_index = self._data.get_employee_index_by_employee(constraint.employee)
+        any_employee_index = next(iter(self._data.employees_indices))
+        for restriction in immediate_precedence_restrictions:
             predecessor_index = self._data.get_hyp_activity_index_by_activity(
-                employee_index, constraint.predecessor
+                any_employee_index, restriction.predecessor
             )
             successor_index = self._data.get_hyp_activity_index_by_activity(
-                employee_index, constraint.successor
+                any_employee_index, restriction.successor
             )
             self._model.add_component(
-                f"NeighborhoodImmediatePrecedenceConstraint[{employee_index},{predecessor_index},{successor_index}]",
+                f"NeighborhoodImmediatePrecedenceConstraint[{predecessor_index},{successor_index}]",
                 pyo.Constraint(expr=(
                     pyo.quicksum([
                         self.vars_U[indices] for indices in self.vars_U.keys()
-                        if indices[0] == employee_index and indices[1] == predecessor_index
-                        and indices[2] == successor_index
+                        if indices[1] == predecessor_index and indices[2] == successor_index
                     ]) == 1
                 ))
             )
 
     def _add_neighborhood_order_fixed_constraints(self):
         """
-        For every employee carrying a SequenceOrderFixed constraint,
-        force every pair of their already-performed, out-of-scope tasks to keep their current relative order
-        (T[earlier] + duration <= T[later]), while leaving each task's exact start time free to shift
-        to make room for whichever in-scope task ends up added/removed/relocated in their sequence.
-        Scope-freed tasks are excluded from this pairwise order-fixing since a task an operator may
-        remove/relocate is exactly the kind this constraint must not pin in place;
-        this never needs the lb/ub hooks since none of the remaining tasks is ever itself in scope.
+        For every SequenceOrderFixed restriction, force each consecutive pair of its own declared,
+        ordered tasks to keep that order (T[earlier] + duration <= T[later]),
+        while leaving each task's exact start time free to shift.
+        Only consecutive pairs are needed: with non-negative durations,
+        locking each one transitively implies the same bound for every non-consecutive pair down the chain.
+        The task list is the restriction's own, self-contained definition of what it locks
+        - no lookup into the given solution is needed here at all.
         """
-        scope = self._neighborhood.scope
-        order_fixed_employees = [
-            constraint.employee for constraint in self._neighborhood.constraints
-            if isinstance(constraint, SequenceOrderFixed)
+        order_fixed_restrictions = [
+            restriction for restriction in self._neighborhood.restrictions
+            if isinstance(restriction, SequenceOrderFixed)
         ]
-        for employee in order_fixed_employees:
-            sequence = self._neighborhood.solution.get_sequence(employee)
-            original_tasks = [task for task in sequence.get_contained_tasks() if task not in scope]
-            for earlier_position in range(len(original_tasks)):
-                for later_position in range(earlier_position + 1, len(original_tasks)):
-                    earlier_task = original_tasks[earlier_position]
-                    later_task = original_tasks[later_position]
-                    earlier_index = self._data.get_task_index_by_task(earlier_task)
-                    later_index = self._data.get_task_index_by_task(later_task)
-                    self._model.add_component(
-                        f"NeighborhoodOrderFixedConstraint[{earlier_index},{later_index}]",
-                        pyo.Constraint(expr=(
-                            self.vars_T[earlier_index] + earlier_task.duration <= self.vars_T[later_index]
-                        ))
-                    )
+        for restriction in order_fixed_restrictions:
+            tasks = restriction.tasks
+            for earlier_task, later_task in zip(tasks, tasks[1:]):
+                earlier_index = self._data.get_task_index_by_task(earlier_task)
+                later_index = self._data.get_task_index_by_task(later_task)
+                self._model.add_component(
+                    f"NeighborhoodOrderFixedConstraint[{earlier_index},{later_index}]",
+                    pyo.Constraint(expr=(
+                        self.vars_T[earlier_index] + earlier_task.duration <= self.vars_T[later_index]
+                    ))
+                )
 
     ###########
     # Solving #
