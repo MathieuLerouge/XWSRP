@@ -25,7 +25,7 @@ stating precisely:
 An `Operator` (`operator.py`) is an elementary transformation: 
 `TaskInsertion` (insert a candidate task into a candidate employee's sequence), 
 `TaskDeletion` (remove between a minimum and a maximum number of candidate tasks, freeing the other 
-already-performed tasks of the employees they were removed from to shift in time/order), 
+already-performed tasks of a given set of employees to shift in time/order to close the gap left behind), 
 `TaskRelocation` (move a single target task from an origin employee's sequence to a destination one), 
 `TaskRepositioning` (the same-employee special case of `TaskRelocation`), 
 or `SequenceReordering` (free an employee's entire sequence to be reordered, without adding, removing or 

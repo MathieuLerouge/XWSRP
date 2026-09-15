@@ -12,12 +12,11 @@ from tests.modeling.helpers import build_employee, build_instance, build_task
 # TaskInsertion #
 #################
 
-def test_task_insertion_target_tasks_and_scope_return_the_candidate_sets():
+def test_task_insertion_scope_returns_the_candidate_sets():
     instance = build_instance()
     employee = build_employee(instance)
     task = build_task(instance)
     operator = TaskInsertion(frozenset({employee}), frozenset({task}))
-    assert operator.target_tasks == frozenset({task})
     assert operator.scope == frozenset({employee, task})
 
 
@@ -39,12 +38,11 @@ def test_task_insertion_with_empty_candidate_tasks_raises():
 # TaskDeletion #
 ################
 
-def test_task_deletion_target_tasks_and_scope_return_the_freed_employees_and_candidate_tasks():
+def test_task_deletion_scope_returns_the_freed_employees_and_candidate_tasks():
     instance = build_instance()
     employee = build_employee(instance)
     task = build_task(instance)
     operator = TaskDeletion(frozenset({employee}), frozenset({task}))
-    assert operator.target_tasks == frozenset({task})
     assert operator.scope == frozenset({employee, task})
 
 
@@ -126,24 +124,15 @@ def test_task_relocation_scope_includes_both_when_origin_and_destination_differ(
     assert operator.scope == frozenset({origin, destination, task})
 
 
-def test_task_relocation_target_tasks_returns_a_single_element_frozenset():
-    instance = build_instance()
-    employee = build_employee(instance)
-    task = build_task(instance)
-    operator = TaskRelocation(employee, employee, task)
-    assert operator.target_tasks == frozenset({task})
-
-
 #####################
 # TaskRepositioning #
 #####################
 
-def test_task_repositioning_target_tasks_and_scope_return_the_employee_and_task():
+def test_task_repositioning_scope_returns_the_employee_and_task():
     instance = build_instance()
     employee = build_employee(instance)
     task = build_task(instance)
     operator = TaskRepositioning(employee, task)
-    assert operator.target_tasks == frozenset({task})
     assert operator.scope == frozenset({employee, task})
 
 
@@ -151,9 +140,8 @@ def test_task_repositioning_target_tasks_and_scope_return_the_employee_and_task(
 # SequenceReordering #
 ######################
 
-def test_sequence_reordering_target_tasks_is_empty_and_scope_is_the_employee():
+def test_sequence_reordering_scope_is_the_employee():
     instance = build_instance()
     employee = build_employee(instance)
     operator = SequenceReordering(employee)
-    assert operator.target_tasks == frozenset()
     assert operator.scope == frozenset({employee})

@@ -34,7 +34,6 @@ def test_map_ins_1_anchors_the_target_task_right_after_the_named_activity():
     question = ContrastiveQuestion(solution, WHY_NOT_INS_1, ["Valentin", "T4", "T1"])
     neighborhood = insertion.map_ins_1(question)
     assert neighborhood.solution == solution
-    assert neighborhood.employees == frozenset({employee})
     assert len(neighborhood.operators) == 1
     operator = neighborhood.operators[0]
     assert isinstance(operator, TaskInsertion)
@@ -98,7 +97,6 @@ def test_map_ins_2c_targets_every_employee_regardless_of_skill():
     operator = neighborhood.operators[0]
     assert operator.candidate_employees == all_employees
     assert operator.candidate_tasks == frozenset({target_task})
-    assert neighborhood.employees == all_employees
     assert all(isinstance(restriction, PrecedenceChain) for restriction in neighborhood.restrictions)
     assert len(neighborhood.restrictions) == len(all_employees)
     restriction_tasks = [restriction.tasks for restriction in neighborhood.restrictions]

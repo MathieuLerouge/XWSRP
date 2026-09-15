@@ -4,7 +4,6 @@ from typing import Optional
 # Local libraries
 from src.explaining.neighborhood.operator import Operator
 from src.explaining.neighborhood.restriction import Restriction
-from src.modeling.employee import Employee
 from src.modeling.solution import Solution
 
 
@@ -67,11 +66,6 @@ class Neighborhood:
         return frozenset().union(*[operator.scope for operator in self._operators])
 
     @property
-    def employees(self):
-        """The employees in scope for this neighborhood, as a frozenset."""
-        return frozenset(entity for entity in self.scope if isinstance(entity, Employee))
-
-    @property
     def operators(self):
         """The elementary operators that may transform the in-scope sequences."""
         return self._operators
@@ -80,8 +74,3 @@ class Neighborhood:
     def restrictions(self):
         """The elementary scope restrictions that narrow how the in-scope sequences may be transformed."""
         return self._restrictions
-
-    @property
-    def target_tasks(self):
-        """The tasks targeted by this neighborhood's operators."""
-        return frozenset().union(*[operator.target_tasks for operator in self._operators])

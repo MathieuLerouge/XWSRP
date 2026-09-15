@@ -20,12 +20,6 @@ class Operator(Primitive):
 
     @property
     @abstractmethod
-    def target_tasks(self):
-        """The tasks this operator may act on."""
-        pass
-
-    @property
-    @abstractmethod
     def scope(self) -> frozenset[Union[Employee, Task]]:
         """The employees' sequences and tasks this operator frees from being fixed to their current state."""
         pass
@@ -65,11 +59,6 @@ class TaskInsertion(Operator):
     def candidate_tasks(self):
         """The tasks among which the one to insert is chosen."""
         return self._candidate_tasks
-
-    @property
-    def target_tasks(self):
-        """The tasks among which the one to insert is chosen."""
-        return self.candidate_tasks
 
     @property
     def scope(self):
@@ -138,11 +127,6 @@ class TaskDeletion(Operator):
         return self._max_nb_removals
 
     @property
-    def target_tasks(self):
-        """The tasks among which the ones to remove are chosen."""
-        return self.candidate_tasks
-
-    @property
     def scope(self):
         """The freed employees and candidate tasks."""
         return self._freed_employees | self._candidate_tasks
@@ -185,14 +169,9 @@ class TaskRelocation(Operator):
         return self._target_task
 
     @property
-    def target_tasks(self):
-        """The relocated task, as a single-element frozenset."""
-        return frozenset({self._target_task})
-
-    @property
     def scope(self):
         """The origin and destination employees and the relocated task."""
-        return frozenset({self._origin_employee, self._destination_employee}) | self.target_tasks
+        return frozenset({self._origin_employee, self._destination_employee, self._target_task})
 
 
 #####################
@@ -225,14 +204,9 @@ class TaskRepositioning(Operator):
         return self._target_task
 
     @property
-    def target_tasks(self):
-        """The repositioned task, as a single-element frozenset."""
-        return frozenset({self._target_task})
-
-    @property
     def scope(self):
         """The employee and the repositioned task."""
-        return frozenset({self._employee}) | self.target_tasks
+        return frozenset({self._employee, self._target_task})
 
 
 ######################
@@ -256,11 +230,6 @@ class SequenceReordering(Operator):
     def employee(self):
         """The employee whose sequence is freed to be reordered."""
         return self._employee
-
-    @property
-    def target_tasks(self):
-        """No specific task is targeted: the whole sequence is, as a single unit."""
-        return frozenset()
 
     @property
     def scope(self):

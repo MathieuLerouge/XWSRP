@@ -32,5 +32,6 @@ def test_map_routes_ins_2a_to_the_neighborhood_targeting_the_named_task():
     solution = build_solution_with_task_performances(instance, "solution", {"T1": ("Valentin", 480)})
     question = ContrastiveQuestion(solution, WHY_NOT_INS_2A, ["Valentin", "T4"])
     neighborhood = Mapper.map(question)
-    assert neighborhood.target_tasks == frozenset({instance.get_task_by_name("T4")})
-    assert neighborhood.employees == frozenset({instance.get_employee_by_name("Valentin")})
+    assert neighborhood.scope == frozenset({
+        instance.get_employee_by_name("Valentin"), instance.get_task_by_name("T4")
+    })
