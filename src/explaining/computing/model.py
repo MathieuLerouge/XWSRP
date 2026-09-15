@@ -23,41 +23,42 @@ class NeighborhoodFeasibilityMILP(MILPModel):
     """
     MILP model exploring a Neighborhood.
     Every employee and task outside the neighborhood's scope is pinned to reproduce the given solution exactly.
-    Among the operator's candidate employees and candidate tasks,
+    Among the feasibility-shortfall operator's candidate employees and candidate tasks,
     the model searches for the (employee, task) pairing and insertion point minimizing, lexicographically:
-    the target feasibility gap, then working duration, then traveling duration.
+    the feasibility shortfall, then working duration, then traveling duration.
 
-    Regarding the target feasibility gap: each candidate task gets its own pair of slack variables, so that
-    candidate_start_time + slack_upstream[task] stands in for that candidate's start time wherever it is lower-bounded,
-    and candidate_start_time - slack_downstream[task] stands in wherever it is upper-bounded.
-    Whenever a candidate genuinely fits, both its slacks are 0,
+    Regarding the feasibility shortfall: each feasibility-shortfall task gets its own pair of slack
+    variables, so that candidate_start_time + slack_upstream[task] stands in for that task's start time
+    wherever it is lower-bounded, and candidate_start_time - slack_downstream[task] stands in wherever it
+    is upper-bounded. Whenever a feasibility-shortfall task genuinely fits, both its slacks are 0,
     and the model behaves exactly as if its start time were an ordinary decision variable.
-    The gap objective sums every candidate's slacks: for whichever candidate ends up NOT performed,
-    every constraint touching it is vacuous, so its slacks are unconstrained and minimization drives them to 0 for free
-    - only the chosen candidate's slacks end up contributing to the sum.
+    The feasibility-shortfall objective sums every such task's slacks: for whichever one ends up NOT
+    performed, every constraint touching it is vacuous, so its slacks are unconstrained and minimization
+    drives them to 0 for free - only the chosen task's slacks end up contributing to the sum.
 
     For TaskRepositioning and SequenceReordering, which have no candidate set of their own (a single
-    already-performed target task, or none at all), "candidate employees/tasks" instead means: the
-    operator's own employee, and either its target task (TaskRepositioning) or a pivot task chosen from
-    the employee's own given-solution sequence (SequenceReordering, see _extract_scope). The same
-    slack/gap machinery then applies unchanged, since with singleton candidate sets
-    _add_neighborhood_candidate_selection_constraints already reduces to exactly the constraint each of
-    them needs (see their Comments in neighborhood/README.md section 3.2).
+    already-performed target task, or none at all), feasibility_shortfall_employees/feasibility_shortfall_tasks
+    instead mean: the operator's own employee, and either its target task (TaskRepositioning) or a pivot
+    task chosen from the employee's own given-solution sequence (SequenceReordering, see _extract_scope).
+    The same slack/feasibility-shortfall machinery then applies unchanged, since with singleton candidate
+    sets _add_neighborhood_candidate_selection_constraints already reduces to exactly the constraint each
+    of them needs (see their Comments in neighborhood/README.md section 3.2).
 
-    A neighborhood may optionally also carry a TaskDeletion operator alongside its gap-bearing operator
-    (TaskInsertion/TaskRepositioning/SequenceReordering): deletion never has a "does it fit" question of
-    its own (removing a task is always time-feasible in isolation), so it never gets slack variables or
-    contributes to the gap objective - it's handled entirely by _add_neighborhood_deletion_constraints.
+    A neighborhood may optionally also carry a TaskDeletion operator alongside its feasibility-shortfall
+    operator (TaskInsertion/TaskRepositioning/SequenceReordering): deletion never has a "does it fit"
+    question of its own (removing a task is always time-feasible in isolation), so it never gets slack
+    variables or contributes to the feasibility-shortfall objective - it's handled entirely by
+    _add_neighborhood_deletion_constraints.
 
     NB: In this part of the code, we assume that instance does not consider lunch breaks.
 
-    WIP: This implementation supports a Neighborhood targeted by one gap-bearing operator - a
+    WIP: This implementation supports a Neighborhood targeted by one feasibility-shortfall operator - a
     TaskInsertion, TaskRepositioning or SequenceReordering - optionally paired with one TaskDeletion (no
-    TaskRelocation, no more than one operator of either kind, no TaskDeletion without a gap-bearing
+    TaskRelocation, no more than one operator of either kind, no TaskDeletion without a feasibility-shortfall
     operator alongside it). A TaskInsertion's candidate employees and candidate tasks may each be one or
     several (covering, respectively, the (Ins,1)/(Ins,2a)/(Ins,3)-style single-candidate shapes and the
     (Ins,2b)/(Ins,2c)-style candidate-set shapes); TaskRepositioning/SequenceReordering are always
-    singleton. An ImmediatePrecedence restriction is only supported when both of the gap-bearing
+    singleton. An ImmediatePrecedence restriction is only supported when both of the feasibility-shortfall
     operator's candidate sets are singletons, since it always pins one specific target task's insertion
     point, which must align with the operator's own (also singleton) candidates.
     """
@@ -68,35 +69,35 @@ class NeighborhoodFeasibilityMILP(MILPModel):
             neighborhood: the neighborhood to search.
 
         Raises:
-            NotImplementedError: if the neighborhood is not targeted by one gap-bearing operator
+            NotImplementedError: if the neighborhood is not targeted by one feasibility-shortfall operator
                 (TaskInsertion, TaskRepositioning or SequenceReordering) optionally paired with one
-                TaskDeletion, if it carries an ImmediatePrecedence restriction while the gap-bearing
+                TaskDeletion, if it carries an ImmediatePrecedence restriction while the feasibility-shortfall
                 operator has more than one candidate employee or candidate task, or if the instance has a
                 lunch break.
         """
         self._neighborhood = neighborhood
-        (self._candidate_employees, self._operator, self._candidate_tasks,
-         self._deletion_operator) = self._extract_scope(neighborhood)
+        (self._feasibility_shortfall_employees, self._feasibility_shortfall_operator,
+         self._feasibility_shortfall_tasks, self._deletion_operator) = self._extract_scope(neighborhood)
         super().__init__(neighborhood.solution.instance)
 
     @staticmethod
     def _extract_scope(neighborhood: Neighborhood):
         """
-        Return the (candidate_employees, operator, candidate_tasks, deletion_operator) this
-        implementation supports, or raise.
+        Return the (feasibility_shortfall_employees, feasibility_shortfall_operator,
+        feasibility_shortfall_tasks, deletion_operator) this implementation supports, or raise.
 
-        candidate_employees/operator/candidate_tasks describe the gap-bearing operator: for a
-        TaskInsertion, these are its own candidate employees/tasks. For a TaskRepositioning, its single
-        employee/target_task. For a SequenceReordering, its single employee and a pivot task chosen from
-        the employee's own given-solution sequence (the middle one - the tailored pipeline's
-        IPModelForReordering3 makes the same arbitrary choice, and for the same reason: the
-        feasibility-gap objective needs some candidate task to attach slack variables to).
+        feasibility_shortfall_employees/feasibility_shortfall_operator/feasibility_shortfall_tasks
+        describe the feasibility-shortfall operator: for a TaskInsertion, these are its own candidate employees/tasks.
+        For a TaskRepositioning, its single employee/target_task. For a SequenceReordering, its single
+        employee and a pivot task chosen from the employee's own given-solution sequence (the middle
+        one - the tailored pipeline's IPModelForReordering3 makes the same arbitrary choice, and for the
+        same reason: the feasibility-shortfall objective needs some task to attach slack variables to).
         deletion_operator is the neighborhood's TaskDeletion operator, or None if it doesn't have one.
 
         Raises:
-            NotImplementedError: if the neighborhood is not targeted by one gap-bearing operator
+            NotImplementedError: if the neighborhood is not targeted by one feasibility-shortfall operator
                 (TaskInsertion, TaskRepositioning or SequenceReordering) optionally paired with one
-                TaskDeletion, if it carries an ImmediatePrecedence restriction while the gap-bearing
+                TaskDeletion, if it carries an ImmediatePrecedence restriction while the feasibility-shortfall
                 operator has more than one candidate employee or candidate task, or if the instance has a
                 lunch break.
         """
@@ -108,7 +109,7 @@ class NeighborhoodFeasibilityMILP(MILPModel):
             raise NotImplementedError(
                 "NeighborhoodFeasibilityMILP currently only supports a neighborhood with one or two operators"
             )
-        gap_operator = None
+        feasibility_shortfall_operator = None
         deletion_operator = None
         for candidate_operator in neighborhood.operators:
             if isinstance(candidate_operator, TaskDeletion):
@@ -118,44 +119,48 @@ class NeighborhoodFeasibilityMILP(MILPModel):
                     )
                 deletion_operator = candidate_operator
             elif isinstance(candidate_operator, (TaskInsertion, TaskRepositioning, SequenceReordering)):
-                if gap_operator is not None:
+                if feasibility_shortfall_operator is not None:
                     raise NotImplementedError(
                         "NeighborhoodFeasibilityMILP does not support more than one TaskInsertion, "
                         "TaskRepositioning or SequenceReordering operator"
                     )
-                gap_operator = candidate_operator
+                feasibility_shortfall_operator = candidate_operator
             else:
                 raise NotImplementedError(
                     "NeighborhoodFeasibilityMILP currently only supports TaskInsertion, TaskDeletion, "
                     "TaskRepositioning or SequenceReordering operators"
                 )
-        if gap_operator is None:
+        if feasibility_shortfall_operator is None:
             raise NotImplementedError(
                 "NeighborhoodFeasibilityMILP requires a TaskInsertion, TaskRepositioning or "
                 "SequenceReordering operator alongside TaskDeletion"
             )
-        if isinstance(gap_operator, TaskInsertion):
-            candidate_employees = gap_operator.candidate_employees
-            candidate_tasks = gap_operator.candidate_tasks
-        elif isinstance(gap_operator, TaskRepositioning):
-            candidate_employees = frozenset({gap_operator.employee})
-            candidate_tasks = frozenset({gap_operator.target_task})
+        if isinstance(feasibility_shortfall_operator, TaskInsertion):
+            feasibility_shortfall_employees = feasibility_shortfall_operator.candidate_employees
+            feasibility_shortfall_tasks = feasibility_shortfall_operator.candidate_tasks
+        elif isinstance(feasibility_shortfall_operator, TaskRepositioning):
+            feasibility_shortfall_employees = frozenset({feasibility_shortfall_operator.employee})
+            feasibility_shortfall_tasks = frozenset({feasibility_shortfall_operator.target_task})
         else:
             employee_tasks = list(
-                neighborhood.solution.get_sequence(gap_operator.employee).get_contained_tasks()
+                neighborhood.solution.get_sequence(feasibility_shortfall_operator.employee).get_contained_tasks()
             )
             pivot_task = employee_tasks[len(employee_tasks) // 2]
-            candidate_employees = frozenset({gap_operator.employee})
-            candidate_tasks = frozenset({pivot_task})
+            feasibility_shortfall_employees = frozenset({feasibility_shortfall_operator.employee})
+            feasibility_shortfall_tasks = frozenset({pivot_task})
         has_immediate_precedence = any(
             isinstance(restriction, ImmediatePrecedence) for restriction in neighborhood.restrictions
         )
-        if has_immediate_precedence and (len(candidate_employees) > 1 or len(candidate_tasks) > 1):
+        if has_immediate_precedence and (
+                len(feasibility_shortfall_employees) > 1 or len(feasibility_shortfall_tasks) > 1):
             raise NotImplementedError(
                 "NeighborhoodFeasibilityMILP does not support an ImmediatePrecedence restriction together "
                 "with more than one candidate employee or candidate task"
             )
-        return candidate_employees, gap_operator, candidate_tasks, deletion_operator
+        return (
+            feasibility_shortfall_employees, feasibility_shortfall_operator, feasibility_shortfall_tasks,
+            deletion_operator
+        )
 
     ######################
     # Decision variables #
@@ -163,14 +168,19 @@ class NeighborhoodFeasibilityMILP(MILPModel):
 
     def _add_decision_variables(self):
         super()._add_decision_variables()
-        self._candidate_employee_indices = frozenset(
-            self._data.get_employee_index_by_employee(employee) for employee in self._candidate_employees
+        self._feasibility_shortfall_employee_indices = frozenset(
+            self._data.get_employee_index_by_employee(employee)
+            for employee in self._feasibility_shortfall_employees
         )
-        self._candidate_task_indices = frozenset(
-            self._data.get_task_index_by_task(task) for task in self._candidate_tasks
+        self._feasibility_shortfall_task_indices = frozenset(
+            self._data.get_task_index_by_task(task) for task in self._feasibility_shortfall_tasks
         )
-        self._model.slack_upstream = pyo.Var(self._candidate_task_indices, domain=pyo.NonNegativeIntegers)
-        self._model.slack_downstream = pyo.Var(self._candidate_task_indices, domain=pyo.NonNegativeIntegers)
+        self._model.slack_upstream = pyo.Var(
+            self._feasibility_shortfall_task_indices, domain=pyo.NonNegativeIntegers
+        )
+        self._model.slack_downstream = pyo.Var(
+            self._feasibility_shortfall_task_indices, domain=pyo.NonNegativeIntegers
+        )
         self.var_slack_upstream = self._model.slack_upstream
         self.var_slack_downstream = self._model.slack_downstream
 
@@ -179,12 +189,12 @@ class NeighborhoodFeasibilityMILP(MILPModel):
     ################################
 
     def _get_start_time_lb_linear_expression(self, task_index: int):
-        if task_index in self._candidate_task_indices:
+        if task_index in self._feasibility_shortfall_task_indices:
             return self.vars_T[task_index] + self.var_slack_upstream[task_index]
         return super()._get_start_time_lb_linear_expression(task_index)
 
     def _get_start_time_ub_linear_expression(self, task_index: int):
-        if task_index in self._candidate_task_indices:
+        if task_index in self._feasibility_shortfall_task_indices:
             return self.vars_T[task_index] - self.var_slack_downstream[task_index]
         return super()._get_start_time_ub_linear_expression(task_index)
 
@@ -195,13 +205,13 @@ class NeighborhoodFeasibilityMILP(MILPModel):
     def _add_objective_function(self):
         """
         Build the objectives minimized lexicographically, highest priority first:
-        - the target feasibility gap;
+        - the feasibility shortfall;
         - then working duration;
         - then traveling duration.
         """
-        gap_expression = pyo.quicksum([
+        feasibility_shortfall_expression = pyo.quicksum([
             self.var_slack_upstream[task_index] + self.var_slack_downstream[task_index]
-            for task_index in self._candidate_task_indices
+            for task_index in self._feasibility_shortfall_task_indices
         ])
         if self._data.instance.must_cover_all_tasks:
             working_duration_expression = pyo.quicksum(
@@ -218,7 +228,7 @@ class NeighborhoodFeasibilityMILP(MILPModel):
             for indices in self.vars_U.keys()
         ])
         self._objectives_in_priority_order = [
-            gap_expression, working_duration_expression, traveling_duration_expression
+            feasibility_shortfall_expression, working_duration_expression, traveling_duration_expression
         ]
 
     ###############
@@ -270,19 +280,21 @@ class NeighborhoodFeasibilityMILP(MILPModel):
 
     def _add_neighborhood_candidate_selection_constraints(self):
         """
-        Force exactly one of the operator's candidate tasks to be performed, and, for each candidate task,
-        tie its assignee to one of the operator's candidate employees exactly when it is the one performed.
+        Force exactly one of the feasibility-shortfall tasks to be performed, and, for each one,
+        tie its assignee to one of the feasibility-shortfall employees exactly when it is the one performed.
         Both reduce to the original mandatory-coverage-by-one-fixed-employee behavior
-        when the operator has exactly one candidate task and one candidate employee.
+        when there is exactly one feasibility-shortfall task and one feasibility-shortfall employee.
         """
         if not self._data.instance.must_cover_all_tasks:
             self._model.add_component(
                 "NeighborhoodCandidateTaskSelectionConstraint",
                 pyo.Constraint(expr=(
-                    pyo.quicksum([self.vars_X[task_index] for task_index in self._candidate_task_indices]) == 1
+                    pyo.quicksum(
+                        [self.vars_X[task_index] for task_index in self._feasibility_shortfall_task_indices]
+                    ) == 1
                 ))
             )
-        for task_index in self._candidate_task_indices:
+        for task_index in self._feasibility_shortfall_task_indices:
             is_performed_expression = (
                 self.vars_X[task_index] if not self._data.instance.must_cover_all_tasks else 1
             )
@@ -291,7 +303,7 @@ class NeighborhoodFeasibilityMILP(MILPModel):
                 pyo.Constraint(expr=(
                     pyo.quicksum([
                         self.vars_U[indices] for indices in self.vars_U.keys()
-                        if indices[0] in self._candidate_employee_indices and indices[1] == task_index
+                        if indices[0] in self._feasibility_shortfall_employee_indices and indices[1] == task_index
                     ]) == is_performed_expression
                 ))
             )
@@ -481,10 +493,10 @@ class NeighborhoodFeasibilityMILP(MILPModel):
     ###########
 
     @property
-    def target_feasibility_gap(self) -> int:
+    def feasibility_shortfall(self) -> int:
         """
-        The minimized sum, across every candidate task, of the gap between its start time as constrained
-        from upstream and from downstream: 0 if the chosen candidate fits without conflict,
+        The minimized sum, across every feasibility-shortfall task, of the shortfall between its start
+        time as constrained from upstream and from downstream: 0 if the task fits without conflict,
         strictly positive if it doesn't (the magnitude of the overlap that would need to be resolved for it to fit).
 
         Raises:
@@ -494,5 +506,5 @@ class NeighborhoodFeasibilityMILP(MILPModel):
             raise AttributeError("There is no solution stored")
         return round(sum(
             pyo.value(self.var_slack_upstream[task_index]) + pyo.value(self.var_slack_downstream[task_index])
-            for task_index in self._candidate_task_indices
+            for task_index in self._feasibility_shortfall_task_indices
         ))

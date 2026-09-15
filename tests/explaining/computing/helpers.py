@@ -70,7 +70,7 @@ def get_neighborhood_computation_pipeline_gap_and_solution(
     model = NeighborhoodFeasibilityMILP(neighborhood)
     outcome = model.solve(mute=True)
     assert outcome.has_incumbent, "The neighborhood computation pipeline's MILP should be feasible by construction"
-    return model.target_feasibility_gap, model.solution
+    return model.feasibility_shortfall, model.solution
 
 
 def assert_same_kpis(solution_1: Solution, solution_2: Solution):

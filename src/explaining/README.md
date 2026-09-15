@@ -27,7 +27,7 @@ The transformation is then applied to that editable copy rather than to the orig
 For a counterfactual question, where the transformation also alters instance parameters, 
 each alteration is also recorded in an `InstanceChanges`.
 
-## 1.2. Neighborhood-based computation pipeline (WIP)
+## 1.2. Neighborhood-based computation pipeline
 
 An alternative to the tailored pipeline, covering the `(Ins,*)`, `(Swp,*)` and `(Ord,*)` contrastive question families.
 For a `ContrastiveQuestion`, `neighborhood/templates`'s `Mapper` maps it to the `Neighborhood` it induces, 
@@ -37,18 +37,11 @@ in place of `computing/templates`' per-template transformation function.
 NB: The neighborhood pipeline is able to accept inputs the tailored one doesn't handle 
 (e.g. a candidate task that happens to already be performed by someone else). 
 What parity tests check is that every question the tailored pipeline can answer, 
-the neighborhood pipeline can also answer it and gets the same (or a strictly better-fitting) support
-solution.
-
-### Done:
-
-`Mapper` covers `(Ins,*)`, `(Swp,*)` and `(Ord,*)`. `NeighborhoodFeasibilityMILP` supports one gap-bearing
-operator (`TaskInsertion`/`TaskRepositioning`/`SequenceReordering`), optionally paired with one
-`TaskDeletion` — the only multi-operator shape needed so far.
+the neighborhood pipeline can also answer it and gets the same (or a strictly better-fitting) support solution.
 
 ### Next steps: 
-Handle skill mismatches, unsupported by `NeighborhoodFeasibilityMILP`. `TaskRelocation` still exists only
-as vocabulary, with no MILP formulation.
+Handle skill mismatches, unsupported by `NeighborhoodFeasibilityMILP`. 
+`TaskRelocation` still exists only as vocabulary, with no MILP formulation.
 
 
 # 2. Description of the subdirectories
