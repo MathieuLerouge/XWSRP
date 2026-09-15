@@ -31,7 +31,7 @@ each alteration is also recorded in an `InstanceChanges`.
 
 An alternative to the tailored pipeline, covering the `(Ins,*)`, `(Swp,*)` and `(Ord,*)` contrastive question families.
 For a `ContrastiveQuestion`, `neighborhood/templates`'s `Mapper` maps it to the `Neighborhood` it induces, 
-then `computing/model.py`'s `NeighborhoodFeasibilityMILP` turns that `Neighborhood` into a solvable MILP, 
+then `computing/model.py`'s `NeighborhoodModel` turns that `Neighborhood` into a solvable MILP, 
 in place of `computing/templates`' per-template transformation function.
 
 NB: The neighborhood pipeline is able to accept inputs the tailored one doesn't handle 
@@ -40,7 +40,7 @@ What parity tests check is that every question the tailored pipeline can answer,
 the neighborhood pipeline can also answer it and gets the same (or a strictly better-fitting) support solution.
 
 ### Next steps: 
-Handle skill mismatches, unsupported by `NeighborhoodFeasibilityMILP`. 
+Handle skill mismatches, unsupported by `NeighborhoodModel`. 
 `TaskRelocation` still exists only as vocabulary, with no MILP formulation.
 
 
@@ -73,7 +73,7 @@ implemented in one of two subpackages:
 - `contrastive_and_scenario` (local-search-based insertions/swaps/reorderings, 
 with an ILP-based fallback for harder cases);
 - and `counterfactual` (MILP-based search for minimal instance alterations making the requested action feasible). \
-`model.py`'s `NeighborhoodFeasibilityMILP` offers a generic alternative, 
+`model.py`'s `NeighborhoodModel` offers a generic alternative, 
 turning a `Neighborhood` into a solvable MILP instead of a per-template transformation function. \
 Its outputs (support solution, infeasibility, instance alterations) feed directly into `answering`.
 

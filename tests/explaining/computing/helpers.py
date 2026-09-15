@@ -2,7 +2,7 @@
 from typing import Optional
 
 # Local libraries
-from src.explaining.computing.model import NeighborhoodFeasibilityMILP
+from src.explaining.computing.model import NeighborhoodModel
 from src.explaining.computing.templates.infeasibility import Infeasibility, TimeInfeasibility
 from src.explaining.computing.templates.transformation import \
     apply_transformation_induced_by_contrastive_or_scenario_question
@@ -67,7 +67,7 @@ def get_neighborhood_computation_pipeline_gap_and_solution(
     """
     question = ContrastiveQuestion(solution, template_id, fields_values)
     neighborhood = Mapper.map(question)
-    model = NeighborhoodFeasibilityMILP(neighborhood)
+    model = NeighborhoodModel(neighborhood)
     outcome = model.solve(mute=True)
     assert outcome.has_incumbent, "The neighborhood computation pipeline's MILP should be feasible by construction"
     return model.feasibility_shortfall, model.solution
