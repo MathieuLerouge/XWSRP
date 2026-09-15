@@ -1,0 +1,2 @@
+-r requirements.in
+instructor[anthropic]>=1.17.0
