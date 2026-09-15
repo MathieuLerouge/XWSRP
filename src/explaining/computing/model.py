@@ -10,7 +10,7 @@ from src.explaining.neighborhood.restriction import (
     ForbiddenBackwardSubsequence, ForbiddenSequence, ImmediatePrecedence, Precedence, PrecedenceChain
 )
 from src.modeling.task import Task
-from src.optimization.milp.milpmodel import MILPModel
+from src.optimization.milp.model import Model
 from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.solver.solver import Solver
 
@@ -19,7 +19,7 @@ from src.optimization.milp.solver.solver import Solver
 # NeighborhoodModel #
 #####################
 
-class NeighborhoodModel(MILPModel):
+class NeighborhoodModel(Model):
     """
     MILP model exploring a Neighborhood.
     Every employee and task outside the neighborhood's scope is pinned to reproduce the given solution exactly.

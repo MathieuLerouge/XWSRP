@@ -12,7 +12,7 @@ from src.explaining.writing.explanation import export_multiple_contrastive_expla
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from src.optimization.milp.milpmodel import MILPModel
+from src.optimization.milp.model import Model
 from src.reading.instance import extract_instance_from_file
 from src.reading.solution import extract_solution_from_file
 from src.utils.files import get_default_inputs_directory_path
@@ -60,7 +60,7 @@ def compute_solution_for_evaluation_by_ILP_optimization(instance: Instance, solv
     :param mute_process: if True, the process is muted (bool)
     :return: a solution of the instance for evaluation
     """
-    model = MILPModel(instance)
+    model = Model(instance)
     if solving_time_limit is not None:
         model.solving_time_limit = solving_time_limit
     model.solve(mute=mute_process)

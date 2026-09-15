@@ -24,7 +24,7 @@ MAIN_PROCESS = RUN_EXPLANATION_PROCESS
 # Solver - Configuration #
 ##########################
 
-# Choose which MILP backend is used to solve models built with MILPModel
+# Choose which MILP backend is used to solve models built with Model
 # by activating one of the following lines
 #
 # NB: SOLVER_GUROBI requires gurobipy to be installed and a valid Gurobi license;

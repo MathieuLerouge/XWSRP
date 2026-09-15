@@ -12,14 +12,14 @@ LEAVING_HOME_INDEX = 0
 COMING_BACK_HOME_INDEX = -1
 
 
-##################
-# MILPModelIndex #
-##################
+#########
+# Index #
+#########
 
-class MILPModelIndex:
+class Index:
     """
     Index-translation layer between an Instance's domain objects and the small integer indices
-    that MILPModel's decision variables and constraints are built around.
+    that Model's decision variables and constraints are built around.
     """
 
     def __init__(self, instance: Instance):
@@ -219,7 +219,7 @@ class MILPModelIndex:
         Return the index of the given activity among the given employee's hypothetical activities.
 
         A Departure/ComeBack always indexes to LEAVING_HOME_INDEX/COMING_BACK_HOME_INDEX regardless of
-        which employee constructed it, since MILPModelIndex builds one afresh per employee at __init__
+        which employee constructed it, since Index builds one afresh per employee at __init__
         time rather than reusing the instance's own Departure/ComeBack objects.
 
         Args:

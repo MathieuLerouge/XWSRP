@@ -72,7 +72,7 @@ class Outcome:
         """
         The solution extracted from this outcome, or None if has_incumbent is False or it hasn't
         been extracted yet. Its concrete type depends on which model produced this outcome
-        (e.g. a SolutionOpti for MILPModel, a Sequence for a SequenceModel subclass).
+        (e.g. a SolutionOpti for Model, a Sequence for a SequenceModel subclass).
         """
         return self._solution
 

@@ -1,5 +1,5 @@
 # Local libraries
-from src.optimization.milp.milpmodel import MILPModel
+from src.optimization.milp.model import Model
 from src.teaching.modeling.instance import InstanceForTeaching
 from src.teaching.optimization.solution import SolutionForTeaching
 from src.utils.constants import SOLUTION_SOLVING_METHOD_SYMBOL_BIS
@@ -13,7 +13,7 @@ IP_MODEL_VERSION_SYMBOL = 'M'
 ##########################
 
 
-class WSRPIPModelForTeaching(MILPModel):
+class WSRPIPModelForTeaching(Model):
 
     def __init__(self, instance: InstanceForTeaching):
         # NB: instance.version is already validated to be 1, 2 or 3 by InstanceForTeaching.__init__,

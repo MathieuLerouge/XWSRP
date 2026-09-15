@@ -7,7 +7,7 @@ import pyomo.environ as pyo
 
 # Local libraries
 from main_configuration import SOLVER_NAME
-from src.optimization.milp.milpmodelindex import MILPModelIndex, LEAVING_HOME_INDEX, COMING_BACK_HOME_INDEX
+from src.optimization.milp.index import Index, LEAVING_HOME_INDEX, COMING_BACK_HOME_INDEX
 from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.solver.solver import Solver
 from src.optimization.solution import SolutionOpti
@@ -20,11 +20,11 @@ NB_PERFORMED_TASKS_WEIGHT_KEY = 'nb_performed_tasks'
 SOLVING_METHOD_IP = 'IP'
 
 
-#############
-# MILPModel #
-#############
+#########
+# Model #
+#########
 
-class MILPModel:
+class Model:
     """
     Whole-workforce MILP formulation of the WSRP: assigns tasks to employees and sequences each
     employee's activities, respecting skill, time-window, unavailability and lunch-break constraints.
@@ -36,7 +36,7 @@ class MILPModel:
             instance: the instance to build the model for.
         """
         self._name = f"{instance.core_name}{SOLUTION_SOLVING_METHOD_SYMBOL_BIS}{self._solving_method_id}"
-        self._data = MILPModelIndex(instance)
+        self._data = Index(instance)
         self._weights: dict[str, Optional[int]] = dict()
         if self._data.instance.must_cover_all_tasks:
             self.weight_traveling_duration = 1
@@ -175,7 +175,7 @@ class MILPModel:
         Defaults to the task's own T decision variable. A subclass that needs to relax one specific
         task's lower-bound-side constraints (e.g. to measure infeasibility as a gap instead of
         rejecting it outright) overrides this to substitute a different expression for that task,
-        leaving every other task's constraints, and every other MILPModel caller, unchanged.
+        leaving every other task's constraints, and every other Model caller, unchanged.
         """
         return self.vars_T[task_index]
 
