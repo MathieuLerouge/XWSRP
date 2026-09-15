@@ -4,7 +4,7 @@ import pytest
 # Local libraries
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskDeletion, TaskInsertion
-from src.explaining.neighborhood.restriction import ImmediatePrecedence, SequenceOrderFixed
+from src.explaining.neighborhood.restriction import ImmediatePrecedence, PrecedenceChain
 from src.modeling.solution import Solution
 from tests.modeling.helpers import build_employee, build_instance, build_task
 
@@ -21,7 +21,7 @@ def test_neighborhood_with_employee_carrying_several_restrictions_is_accepted():
     solution = Solution(instance)
     predecessor = build_task(instance, 0)
     successor = build_task(instance, 1)
-    restrictions = [SequenceOrderFixed([]), ImmediatePrecedence(predecessor, successor)]
+    restrictions = [PrecedenceChain([]), ImmediatePrecedence(predecessor, successor)]
     neighborhood = Neighborhood(solution=solution, operators=[], restrictions=restrictions)
     assert neighborhood.restrictions == restrictions
 
@@ -33,7 +33,7 @@ def test_neighborhood_with_operator_on_order_fixed_employee_is_accepted():
     task = build_task(instance)
     operator = TaskInsertion(frozenset({employee}), frozenset({task}))
     neighborhood = Neighborhood(solution=solution, operators=[operator],
-                                restrictions=[SequenceOrderFixed([])])
+                                restrictions=[PrecedenceChain([])])
     assert neighborhood.employees == frozenset({employee})
     assert neighborhood.operators == [operator]
 
@@ -60,5 +60,5 @@ def test_neighborhood_scope_is_deduced_from_operators_only():
     task_2 = build_task(instance, 1)
     operator = TaskInsertion(frozenset({employee}), frozenset({task_1}))
     neighborhood = Neighborhood(solution=solution, operators=[operator],
-                                restrictions=[SequenceOrderFixed([task_1, task_2])])
+                                restrictions=[PrecedenceChain([task_1, task_2])])
     assert neighborhood.scope == operator.scope

@@ -42,12 +42,13 @@ solution.
 
 ### Done:
 
-`Mapper` covers `(Ins,*)` and `(Ord,*)`.
+`Mapper` covers `(Ins,*)`, `(Swp,*)` and `(Ord,*)`. `NeighborhoodFeasibilityMILP` supports one gap-bearing
+operator (`TaskInsertion`/`TaskRepositioning`/`SequenceReordering`), optionally paired with one
+`TaskDeletion` — the only multi-operator shape needed so far.
 
 ### Next steps: 
-Extend `Mapper`/`NeighborhoodFeasibilityMILP` to the `(Swp,*)` family 
-(`TaskDeletion` operator, multi-operator neighborhoods). \ 
-Handle skill mismatches, unsupported by `NeighborhoodFeasibilityMILP`.
+Handle skill mismatches, unsupported by `NeighborhoodFeasibilityMILP`. `TaskRelocation` still exists only
+as vocabulary, with no MILP formulation.
 
 
 # 2. Description of the subdirectories

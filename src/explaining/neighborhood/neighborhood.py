@@ -27,7 +27,8 @@ class Neighborhood:
     How much an in-scope employee's sequence can vary is governed by their own operators and restrictions:
     • With no restriction (e.g. an employee solely targeted by a TaskInsertion/TaskDeletion/TaskRelocation operator),
       the sequence is fully free to be reordered;
-    • Under SequenceOrderFixed, the sequence is order-preserving but open to the operators' insertions/deletions/relocations.
+    • Under PrecedenceChain, the sequence is order-preserving but open to the operators' insertions,
+      deletions and relocations.
 
     An employee or task not in scope is fixed:
     • for an employee, their entire sequence, which tasks they perform, in what order, and at what times,

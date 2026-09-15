@@ -1,11 +1,12 @@
 # Local libraries
 from src.explaining.questioning.questions_templates_bank import (
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
+    WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3,
     WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
 )
 from tests.explaining.computing.helpers import (
-    assert_same_kpis, build_austria_solution, get_neighborhood_computation_pipeline_gap_and_solution,
-    get_tailored_computation_pipeline_gap_and_solution
+    assert_at_least_as_good_kpis, assert_same_kpis, build_austria_solution,
+    get_neighborhood_computation_pipeline_gap_and_solution, get_tailored_computation_pipeline_gap_and_solution
 )
 
 
@@ -97,6 +98,105 @@ def test_ins_3_parity():
     assert tailored_gap == neighborhood_gap
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
+
+
+def test_swp_1_parity():
+    """
+    (Swp,1): why is Ellen not performing T27 rather than T17?
+
+    The neighborhood gap is asserted <= the tailored gap, not ==, and KPIs (when tailored is feasible)
+    are asserted at-least-as-good rather than identical: see assert_at_least_as_good_kpis's docstring in
+    helpers.py for why - here, TaskInsertion is free to place the incoming task anywhere in the
+    order-preserved rest of the sequence, not just in the outgoing task's exact vacated slot, so the
+    neighborhood pipeline's exhaustive search can legitimately do better than the tailored heuristic's
+    in-place replacement.
+    """
+    solution = build_austria_solution()
+    fields_values = ["Ellen", "T27", "T17"]
+
+    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_1, fields_values
+    )
+    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_1, fields_values
+    )
+
+    assert neighborhood_gap <= tailored_gap
+    if tailored_gap == 0:
+        assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
+
+
+def test_swp_2a_parity():
+    """(Swp,2a): why is Ellen not performing T27 rather than any of her already-performed tasks?"""
+    solution = build_austria_solution()
+    fields_values = ["Ellen", "T27"]
+
+    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_2A, fields_values
+    )
+    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_2A, fields_values
+    )
+
+    assert neighborhood_gap <= tailored_gap
+    if tailored_gap == 0:
+        assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
+
+
+def test_swp_2b_parity():
+    """(Swp,2b): why is Ellen not performing any non-performed task rather than any of her
+    already-performed tasks?"""
+    solution = build_austria_solution()
+    fields_values = ["Ellen"]
+
+    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_2B, fields_values
+    )
+    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_2B, fields_values
+    )
+
+    assert neighborhood_gap <= tailored_gap
+    if tailored_gap == 0:
+        assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
+
+
+def test_swp_2c_parity():
+    """(Swp,2c): why is any employee not performing T27 rather than any of their already-performed
+    tasks?"""
+    solution = build_austria_solution()
+    fields_values = ["T27"]
+
+    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_2C, fields_values
+    )
+    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_2C, fields_values
+    )
+
+    assert neighborhood_gap <= tailored_gap
+    if tailored_gap == 0:
+        assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
+
+
+def test_swp_3_parity():
+    """
+    (Swp,3): why is Ellen not performing T27 rather than any of her already-performed tasks (even if it
+    means changing their order)?
+    """
+    solution = build_austria_solution()
+    fields_values = ["Ellen", "T27"]
+
+    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_3, fields_values
+    )
+    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
+        solution, WHY_NOT_SWP_3, fields_values
+    )
+
+    assert neighborhood_gap <= tailored_gap
+    if tailored_gap == 0:
+        assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
 
 
 def test_ord_1a_parity():

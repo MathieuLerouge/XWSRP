@@ -89,3 +89,25 @@ def assert_same_kpis(solution_1: Solution, solution_2: Solution):
                 f"{task.name} assignee differs"
     assert solution_1.total_working_duration == solution_2.total_working_duration
     assert solution_1.total_traveling_duration == solution_2.total_traveling_duration
+
+
+def assert_at_least_as_good_kpis(tailored_solution: Solution, neighborhood_solution: Solution):
+    """
+    Assert the neighborhood pipeline's solution is lexicographically at least as good as the tailored
+    pipeline's: never a higher total working duration, and (once that ties) never a higher total
+    traveling duration either.
+
+    Unlike assert_same_kpis, this doesn't require the two pipelines to have picked the exact same tasks:
+    for candidate-set questions (e.g. (Swp,2a)/(2b)/(2c), where the outgoing/incoming task isn't named),
+    the neighborhood pipeline's exhaustive MILP search can legitimately find a strictly better-optimized
+    swap than the tailored pipeline's heuristic, not just an equally good one.
+
+    NB: tailored_solution and neighborhood_solution are assumed to relate to the same instance.
+    """
+    tailored_solution.compute_kpis()
+    neighborhood_solution.compute_kpis()
+    assert neighborhood_solution.total_working_duration <= tailored_solution.total_working_duration, \
+        "neighborhood pipeline's total working duration exceeds the tailored pipeline's"
+    if neighborhood_solution.total_working_duration == tailored_solution.total_working_duration:
+        assert neighborhood_solution.total_traveling_duration <= tailored_solution.total_traveling_duration, \
+            "neighborhood pipeline's total traveling duration exceeds the tailored pipeline's"

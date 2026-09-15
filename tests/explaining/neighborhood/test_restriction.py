@@ -3,21 +3,21 @@ import pytest
 
 # Local libraries
 from src.explaining.neighborhood.restriction import (
-    ForbiddenSequence, ImmediatePrecedence, Precedence, SequenceOrderFixed
+    ForbiddenBackwardSubsequence, ForbiddenSequence, ImmediatePrecedence, Precedence, PrecedenceChain
 )
 from tests.modeling.helpers import build_employee, build_instance, build_task
 
 
-######################
-# SequenceOrderFixed #
-######################
+###################
+# PrecedenceChain #
+###################
 
-def test_sequence_order_fixed_tasks():
+def test_precedence_chain_tasks():
     instance = build_instance()
     task_1 = build_task(instance, 0)
     task_2 = build_task(instance, 1)
     tasks = [task_1, task_2]
-    restriction = SequenceOrderFixed(tasks)
+    restriction = PrecedenceChain(tasks)
     assert restriction.tasks == tasks
 
 
@@ -82,3 +82,18 @@ def test_forbidden_sequence_with_fewer_than_two_activities_raises():
     task = build_task(instance)
     with pytest.raises(ValueError):
         ForbiddenSequence(employee, [task])
+
+
+################################
+# ForbiddenBackwardSubsequence #
+################################
+
+def test_forbidden_backward_subsequence_employee_and_tasks():
+    instance = build_instance()
+    employee = build_employee(instance)
+    task_1 = build_task(instance, 0)
+    task_2 = build_task(instance, 1)
+    tasks = [task_1, task_2]
+    restriction = ForbiddenBackwardSubsequence(employee, tasks)
+    assert restriction.employee == employee
+    assert restriction.tasks == tasks

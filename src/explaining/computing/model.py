@@ -3,9 +3,11 @@ import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.neighborhood.neighborhood import Neighborhood
-from src.explaining.neighborhood.operator import SequenceReordering, TaskInsertion, TaskRepositioning
+from src.explaining.neighborhood.operator import (
+    SequenceReordering, TaskDeletion, TaskInsertion, TaskRepositioning
+)
 from src.explaining.neighborhood.restriction import (
-    ForbiddenSequence, ImmediatePrecedence, Precedence, SequenceOrderFixed
+    ForbiddenBackwardSubsequence, ForbiddenSequence, ImmediatePrecedence, Precedence, PrecedenceChain
 )
 from src.modeling.task import Task
 from src.optimization.milp.milpmodel import MILPModel
@@ -42,16 +44,22 @@ class NeighborhoodFeasibilityMILP(MILPModel):
     _add_neighborhood_candidate_selection_constraints already reduces to exactly the constraint each of
     them needs (see their Comments in neighborhood/README.md section 3.2).
 
+    A neighborhood may optionally also carry a TaskDeletion operator alongside its gap-bearing operator
+    (TaskInsertion/TaskRepositioning/SequenceReordering): deletion never has a "does it fit" question of
+    its own (removing a task is always time-feasible in isolation), so it never gets slack variables or
+    contributes to the gap objective - it's handled entirely by _add_neighborhood_deletion_constraints.
+
     NB: In this part of the code, we assume that instance does not consider lunch breaks.
 
-    WIP: This implementation only supports a Neighborhood with exactly one operator - a TaskInsertion,
-    TaskRepositioning or SequenceReordering (no TaskDeletion/TaskRelocation, no multi-operator
-    neighborhoods yet). A TaskInsertion's candidate employees and candidate tasks may each be one or
+    WIP: This implementation supports a Neighborhood targeted by one gap-bearing operator - a
+    TaskInsertion, TaskRepositioning or SequenceReordering - optionally paired with one TaskDeletion (no
+    TaskRelocation, no more than one operator of either kind, no TaskDeletion without a gap-bearing
+    operator alongside it). A TaskInsertion's candidate employees and candidate tasks may each be one or
     several (covering, respectively, the (Ins,1)/(Ins,2a)/(Ins,3)-style single-candidate shapes and the
     (Ins,2b)/(Ins,2c)-style candidate-set shapes); TaskRepositioning/SequenceReordering are always
-    singleton. An ImmediatePrecedence restriction is only supported when both candidate sets are
-    singletons, since it always pins one specific target task's insertion point, which must align with
-    the operator's own (also singleton) candidates.
+    singleton. An ImmediatePrecedence restriction is only supported when both of the gap-bearing
+    operator's candidate sets are singletons, since it always pins one specific target task's insertion
+    point, which must align with the operator's own (also singleton) candidates.
     """
 
     def __init__(self, neighborhood: Neighborhood):
@@ -60,57 +68,85 @@ class NeighborhoodFeasibilityMILP(MILPModel):
             neighborhood: the neighborhood to search.
 
         Raises:
-            NotImplementedError: if the neighborhood is not targeted by a single TaskInsertion,
-                TaskRepositioning or SequenceReordering operator, if it carries an ImmediatePrecedence
-                restriction while having more than one candidate employee or candidate task, or if the
-                instance has a lunch break.
+            NotImplementedError: if the neighborhood is not targeted by one gap-bearing operator
+                (TaskInsertion, TaskRepositioning or SequenceReordering) optionally paired with one
+                TaskDeletion, if it carries an ImmediatePrecedence restriction while the gap-bearing
+                operator has more than one candidate employee or candidate task, or if the instance has a
+                lunch break.
         """
         self._neighborhood = neighborhood
-        self._candidate_employees, self._operator, self._candidate_tasks = self._extract_scope(neighborhood)
+        (self._candidate_employees, self._operator, self._candidate_tasks,
+         self._deletion_operator) = self._extract_scope(neighborhood)
         super().__init__(neighborhood.solution.instance)
 
     @staticmethod
     def _extract_scope(neighborhood: Neighborhood):
         """
-        Return the (candidate_employees, operator, candidate_tasks) this implementation supports, or raise.
+        Return the (candidate_employees, operator, candidate_tasks, deletion_operator) this
+        implementation supports, or raise.
 
-        For a TaskInsertion, these are its own candidate employees/tasks. For a TaskRepositioning, its
-        single employee/target_task. For a SequenceReordering, its single employee and a pivot task chosen
-        from the employee's own given-solution sequence (the middle one - the tailored pipeline's
+        candidate_employees/operator/candidate_tasks describe the gap-bearing operator: for a
+        TaskInsertion, these are its own candidate employees/tasks. For a TaskRepositioning, its single
+        employee/target_task. For a SequenceReordering, its single employee and a pivot task chosen from
+        the employee's own given-solution sequence (the middle one - the tailored pipeline's
         IPModelForReordering3 makes the same arbitrary choice, and for the same reason: the
         feasibility-gap objective needs some candidate task to attach slack variables to).
+        deletion_operator is the neighborhood's TaskDeletion operator, or None if it doesn't have one.
 
         Raises:
-            NotImplementedError: if the neighborhood is not targeted by a single TaskInsertion,
-                TaskRepositioning or SequenceReordering operator, if it carries an ImmediatePrecedence
-                restriction while having more than one candidate employee or candidate task, or if the
-                instance has a lunch break.
+            NotImplementedError: if the neighborhood is not targeted by one gap-bearing operator
+                (TaskInsertion, TaskRepositioning or SequenceReordering) optionally paired with one
+                TaskDeletion, if it carries an ImmediatePrecedence restriction while the gap-bearing
+                operator has more than one candidate employee or candidate task, or if the instance has a
+                lunch break.
         """
         if neighborhood.solution.instance.has_lunch_break:
             raise NotImplementedError(
                 "NeighborhoodFeasibilityMILP does not support instances with a lunch break"
             )
-        if len(neighborhood.operators) != 1:
+        if len(neighborhood.operators) not in (1, 2):
             raise NotImplementedError(
-                "NeighborhoodFeasibilityMILP currently only supports a neighborhood with a single operator"
+                "NeighborhoodFeasibilityMILP currently only supports a neighborhood with one or two operators"
             )
-        operator = neighborhood.operators[0]
-        if isinstance(operator, TaskInsertion):
-            candidate_employees = operator.candidate_employees
-            candidate_tasks = operator.candidate_tasks
-        elif isinstance(operator, TaskRepositioning):
-            candidate_employees = frozenset({operator.employee})
-            candidate_tasks = frozenset({operator.target_task})
-        elif isinstance(operator, SequenceReordering):
-            employee_tasks = list(neighborhood.solution.get_sequence(operator.employee).get_contained_tasks())
-            pivot_task = employee_tasks[len(employee_tasks) // 2]
-            candidate_employees = frozenset({operator.employee})
-            candidate_tasks = frozenset({pivot_task})
+        gap_operator = None
+        deletion_operator = None
+        for candidate_operator in neighborhood.operators:
+            if isinstance(candidate_operator, TaskDeletion):
+                if deletion_operator is not None:
+                    raise NotImplementedError(
+                        "NeighborhoodFeasibilityMILP does not support more than one TaskDeletion operator"
+                    )
+                deletion_operator = candidate_operator
+            elif isinstance(candidate_operator, (TaskInsertion, TaskRepositioning, SequenceReordering)):
+                if gap_operator is not None:
+                    raise NotImplementedError(
+                        "NeighborhoodFeasibilityMILP does not support more than one TaskInsertion, "
+                        "TaskRepositioning or SequenceReordering operator"
+                    )
+                gap_operator = candidate_operator
+            else:
+                raise NotImplementedError(
+                    "NeighborhoodFeasibilityMILP currently only supports TaskInsertion, TaskDeletion, "
+                    "TaskRepositioning or SequenceReordering operators"
+                )
+        if gap_operator is None:
+            raise NotImplementedError(
+                "NeighborhoodFeasibilityMILP requires a TaskInsertion, TaskRepositioning or "
+                "SequenceReordering operator alongside TaskDeletion"
+            )
+        if isinstance(gap_operator, TaskInsertion):
+            candidate_employees = gap_operator.candidate_employees
+            candidate_tasks = gap_operator.candidate_tasks
+        elif isinstance(gap_operator, TaskRepositioning):
+            candidate_employees = frozenset({gap_operator.employee})
+            candidate_tasks = frozenset({gap_operator.target_task})
         else:
-            raise NotImplementedError(
-                "NeighborhoodFeasibilityMILP currently only supports a TaskInsertion, TaskRepositioning "
-                "or SequenceReordering operator"
+            employee_tasks = list(
+                neighborhood.solution.get_sequence(gap_operator.employee).get_contained_tasks()
             )
+            pivot_task = employee_tasks[len(employee_tasks) // 2]
+            candidate_employees = frozenset({gap_operator.employee})
+            candidate_tasks = frozenset({pivot_task})
         has_immediate_precedence = any(
             isinstance(restriction, ImmediatePrecedence) for restriction in neighborhood.restrictions
         )
@@ -119,7 +155,7 @@ class NeighborhoodFeasibilityMILP(MILPModel):
                 "NeighborhoodFeasibilityMILP does not support an ImmediatePrecedence restriction together "
                 "with more than one candidate employee or candidate task"
             )
-        return candidate_employees, operator, candidate_tasks
+        return candidate_employees, gap_operator, candidate_tasks, deletion_operator
 
     ######################
     # Decision variables #
@@ -193,17 +229,19 @@ class NeighborhoodFeasibilityMILP(MILPModel):
         super()._add_constraints()
         self._add_neighborhood_freeze_constraints()
         self._add_neighborhood_candidate_selection_constraints()
+        self._add_neighborhood_deletion_constraints()
         self._add_neighborhood_immediate_precedence_constraints()
         self._add_neighborhood_precedence_constraints()
-        self._add_neighborhood_order_fixed_constraints()
+        self._add_neighborhood_precedence_chain_constraints()
         self._add_neighborhood_forbidden_sequence_constraints()
+        self._add_neighborhood_forbidden_backward_subsequence_constraints()
 
     def _add_neighborhood_freeze_constraints(self):
         """
         Pin every task outside the neighborhood's scope to reproduce the given solution exactly:
         its performance status, its assignee (via a same-assignee constraint), and,
         for tasks whose assignee is outside the neighborhood's scope, its exact start time too
-        (tasks belonging to an in-scope employee are left free in time so SequenceOrderFixed's pairwise constraints,
+        (tasks belonging to an in-scope employee are left free in time so PrecedenceChain's pairwise constraints,
         added separately, can shift them to make room for whichever candidate task ends up inserted).
         """
         solution = self._neighborhood.solution
@@ -255,6 +293,41 @@ class NeighborhoodFeasibilityMILP(MILPModel):
                         self.vars_U[indices] for indices in self.vars_U.keys()
                         if indices[0] in self._candidate_employee_indices and indices[1] == task_index
                     ]) == is_performed_expression
+                ))
+            )
+
+    def _add_neighborhood_deletion_constraints(self):
+        """
+        For the neighborhood's TaskDeletion operator, if any, bound how many of its candidate tasks stop
+        being performed, and tie whichever candidates remain performed to their original given-solution
+        assignee (deletion never reassigns a survivor to a different employee - that's what pairing it
+        with a ForbiddenBackwardSubsequence, rather than freeing survivors' assignee outright, is for).
+        """
+        if self._deletion_operator is None:
+            return
+        solution = self._neighborhood.solution
+        candidate_task_indices = [
+            self._data.get_task_index_by_task(task) for task in self._deletion_operator.candidate_tasks
+        ]
+        nb_candidates = len(candidate_task_indices)
+        performed_sum = pyo.quicksum([self.vars_X[task_index] for task_index in candidate_task_indices])
+        self._model.add_component(
+            "NeighborhoodDeletionCountConstraint",
+            pyo.Constraint(expr=(
+                self._deletion_operator.min_nb_removals, nb_candidates - performed_sum,
+                self._deletion_operator.max_nb_removals
+            ))
+        )
+        for task in self._deletion_operator.candidate_tasks:
+            task_index = self._data.get_task_index_by_task(task)
+            assignee_index = self._data.get_employee_index_by_employee(solution.get_task_assignee(task))
+            self._model.add_component(
+                f"NeighborhoodDeletionAssigneeConstraint[{task_index}]",
+                pyo.Constraint(expr=(
+                    pyo.quicksum([
+                        self.vars_U[indices] for indices in self.vars_U.keys()
+                        if indices[0] == assignee_index and indices[1] == task_index
+                    ]) == self.vars_X[task_index]
                 ))
             )
 
@@ -320,9 +393,9 @@ class NeighborhoodFeasibilityMILP(MILPModel):
                 "NeighborhoodPrecedenceConstraint", restriction.predecessor, restriction.successor
             )
 
-    def _add_neighborhood_order_fixed_constraints(self):
+    def _add_neighborhood_precedence_chain_constraints(self):
         """
-        For every SequenceOrderFixed restriction, force each consecutive pair of its own declared,
+        For every PrecedenceChain restriction, force each consecutive pair of its own declared,
         ordered tasks to keep that order (T[earlier] + duration <= T[later]),
         while leaving each task's exact start time free to shift.
         Only consecutive pairs are needed: with non-negative durations,
@@ -330,14 +403,14 @@ class NeighborhoodFeasibilityMILP(MILPModel):
         The task list is the restriction's own, self-contained definition of what it locks
         - no lookup into the given solution is needed here at all.
         """
-        order_fixed_restrictions = [
+        precedence_chain_restrictions = [
             restriction for restriction in self._neighborhood.restrictions
-            if isinstance(restriction, SequenceOrderFixed)
+            if isinstance(restriction, PrecedenceChain)
         ]
-        for restriction in order_fixed_restrictions:
+        for restriction in precedence_chain_restrictions:
             tasks = restriction.tasks
             for earlier_task, later_task in zip(tasks, tasks[1:]):
-                self._add_precedence_constraint("NeighborhoodOrderFixedConstraint", earlier_task, later_task)
+                self._add_precedence_constraint("NeighborhoodPrecedenceChainConstraint", earlier_task, later_task)
 
     def _add_neighborhood_forbidden_sequence_constraints(self):
         """
@@ -363,6 +436,37 @@ class NeighborhoodFeasibilityMILP(MILPModel):
                 f"NeighborhoodForbiddenSequenceConstraint[{employee_index},{activity_indices}]",
                 pyo.Constraint(expr=(arc_sum <= len(activity_indices) - 2))
             )
+
+    def _add_neighborhood_forbidden_backward_subsequence_constraints(self):
+        """
+        For every ForbiddenBackwardSubsequence restriction, forbid its employee's route from ever
+        traveling directly from a later listed task to an earlier one. Whichever of them remain performed
+        keep their original relative order this way; any that become unperformed simply have no arcs at
+        all, so the base routing constraints bridge over them for free, with no extra constraint needed.
+        """
+        forbidden_backward_subsequence_restrictions = [
+            restriction for restriction in self._neighborhood.restrictions
+            if isinstance(restriction, ForbiddenBackwardSubsequence)
+        ]
+        for restriction in forbidden_backward_subsequence_restrictions:
+            employee_index = self._data.get_employee_index_by_employee(restriction.employee)
+            task_indices = [self._data.get_task_index_by_task(task) for task in restriction.tasks]
+            backward_pairs = {
+                (task_indices[j], task_indices[i])
+                for i in range(len(task_indices)) for j in range(i + 1, len(task_indices))
+            }
+            for later_index, earlier_index in backward_pairs:
+                self._model.add_component(
+                    f"NeighborhoodForbiddenBackwardSubsequenceConstraint[{employee_index},"
+                    f"{later_index},{earlier_index}]",
+                    pyo.Constraint(expr=(
+                        pyo.quicksum([
+                            self.vars_U[indices] for indices in self.vars_U.keys()
+                            if indices[0] == employee_index and indices[1] == later_index
+                            and indices[2] == earlier_index
+                        ]) == 0
+                    ))
+                )
 
     ###########
     # Solving #

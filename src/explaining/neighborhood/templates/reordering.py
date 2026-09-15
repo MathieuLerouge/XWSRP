@@ -2,7 +2,7 @@
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import SequenceReordering, TaskRepositioning
 from src.explaining.neighborhood.restriction import (
-    ForbiddenSequence, ImmediatePrecedence, Precedence, SequenceOrderFixed
+    ForbiddenSequence, ImmediatePrecedence, Precedence, PrecedenceChain
 )
 from src.explaining.questioning.question import ContrastiveQuestion
 
@@ -28,7 +28,7 @@ def map_ord_1a(question: ContrastiveQuestion) -> Neighborhood:
     operator = TaskRepositioning(employee, task_1)
     employee_tasks = list(solution.get_sequence(employee).get_contained_tasks())
     employee_tasks.remove(task_1)
-    restrictions = [SequenceOrderFixed(employee_tasks), ImmediatePrecedence(task_2, task_1)]
+    restrictions = [PrecedenceChain(employee_tasks), ImmediatePrecedence(task_2, task_1)]
     return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
 
 
@@ -53,7 +53,7 @@ def map_ord_1b(question: ContrastiveQuestion) -> Neighborhood:
     operator = TaskRepositioning(employee, task_1)
     employee_tasks = list(solution.get_sequence(employee).get_contained_tasks())
     employee_tasks.remove(task_1)
-    restrictions = [SequenceOrderFixed(employee_tasks), ImmediatePrecedence(task_1, task_2)]
+    restrictions = [PrecedenceChain(employee_tasks), ImmediatePrecedence(task_1, task_2)]
     return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
 
 
@@ -79,7 +79,7 @@ def map_ord_2a(question: ContrastiveQuestion) -> Neighborhood:
     next_task = employee_tasks[employee_tasks.index(task) + 1]
     operator = TaskRepositioning(employee, task)
     employee_tasks.remove(task)
-    restrictions = [SequenceOrderFixed(employee_tasks), Precedence(next_task, task)]
+    restrictions = [PrecedenceChain(employee_tasks), Precedence(next_task, task)]
     return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
 
 
@@ -105,7 +105,7 @@ def map_ord_2b(question: ContrastiveQuestion) -> Neighborhood:
     prev_task = employee_tasks[employee_tasks.index(task) - 1]
     operator = TaskRepositioning(employee, task)
     employee_tasks.remove(task)
-    restrictions = [SequenceOrderFixed(employee_tasks), Precedence(task, prev_task)]
+    restrictions = [PrecedenceChain(employee_tasks), Precedence(task, prev_task)]
     return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
 
 
@@ -133,7 +133,7 @@ def map_ord_2c(question: ContrastiveQuestion) -> Neighborhood:
     original_neighbors = employee_tasks[max(index - 1, 0):index + 2]
     operator = TaskRepositioning(employee, task)
     employee_tasks.remove(task)
-    restrictions = [SequenceOrderFixed(employee_tasks), ForbiddenSequence(employee, original_neighbors)]
+    restrictions = [PrecedenceChain(employee_tasks), ForbiddenSequence(employee, original_neighbors)]
     return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
 
 

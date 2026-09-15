@@ -1,6 +1,6 @@
 # Local libraries
 from src.explaining.neighborhood.operator import TaskInsertion
-from src.explaining.neighborhood.restriction import ImmediatePrecedence, SequenceOrderFixed
+from src.explaining.neighborhood.restriction import ImmediatePrecedence, PrecedenceChain
 from src.explaining.neighborhood.templates import insertion
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.explaining.questioning.questions_templates_bank import (
@@ -41,9 +41,9 @@ def test_map_ins_1_anchors_the_target_task_right_after_the_named_activity():
     assert operator.candidate_employees == frozenset({employee})
     assert operator.candidate_tasks == frozenset({target_task})
     assert len(neighborhood.restrictions) == 2
-    order_fixed = [r for r in neighborhood.restrictions if isinstance(r, SequenceOrderFixed)]
+    precedence_chain = [r for r in neighborhood.restrictions if isinstance(r, PrecedenceChain)]
     immediate_precedence = [r for r in neighborhood.restrictions if isinstance(r, ImmediatePrecedence)]
-    assert len(order_fixed) == 1 and order_fixed[0].tasks == [anchor, t2]
+    assert len(precedence_chain) == 1 and precedence_chain[0].tasks == [anchor, t2]
     assert len(immediate_precedence) == 1
     assert immediate_precedence[0].predecessor == anchor
     assert immediate_precedence[0].successor == target_task
@@ -63,7 +63,7 @@ def test_map_ins_2a_targets_the_named_task_with_no_anchor():
     assert operator.candidate_employees == frozenset({employee})
     assert operator.candidate_tasks == frozenset({target_task})
     assert len(neighborhood.restrictions) == 1
-    assert isinstance(neighborhood.restrictions[0], SequenceOrderFixed)
+    assert isinstance(neighborhood.restrictions[0], PrecedenceChain)
 
 
 #############
@@ -99,7 +99,7 @@ def test_map_ins_2c_targets_every_employee_regardless_of_skill():
     assert operator.candidate_employees == all_employees
     assert operator.candidate_tasks == frozenset({target_task})
     assert neighborhood.employees == all_employees
-    assert all(isinstance(restriction, SequenceOrderFixed) for restriction in neighborhood.restrictions)
+    assert all(isinstance(restriction, PrecedenceChain) for restriction in neighborhood.restrictions)
     assert len(neighborhood.restrictions) == len(all_employees)
     restriction_tasks = [restriction.tasks for restriction in neighborhood.restrictions]
     assert restriction_tasks.count([t1, t2]) == 1

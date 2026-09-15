@@ -39,7 +39,7 @@ def test_task_insertion_with_empty_candidate_tasks_raises():
 # TaskDeletion #
 ################
 
-def test_task_deletion_target_tasks_and_scope_return_the_candidate_sets():
+def test_task_deletion_target_tasks_and_scope_return_the_freed_employees_and_candidate_tasks():
     instance = build_instance()
     employee = build_employee(instance)
     task = build_task(instance)
@@ -48,7 +48,26 @@ def test_task_deletion_target_tasks_and_scope_return_the_candidate_sets():
     assert operator.scope == frozenset({employee, task})
 
 
-def test_task_deletion_with_empty_candidate_employees_raises():
+def test_task_deletion_min_and_max_nb_removals_default_to_one():
+    instance = build_instance()
+    employee = build_employee(instance)
+    task = build_task(instance)
+    operator = TaskDeletion(frozenset({employee}), frozenset({task}))
+    assert operator.min_nb_removals == 1
+    assert operator.max_nb_removals == 1
+
+
+def test_task_deletion_min_and_max_nb_removals_are_settable():
+    instance = build_instance()
+    employee = build_employee(instance)
+    task_1 = build_task(instance, 0)
+    task_2 = build_task(instance, 1)
+    operator = TaskDeletion(frozenset({employee}), frozenset({task_1, task_2}), min_nb_removals=1, max_nb_removals=2)
+    assert operator.min_nb_removals == 1
+    assert operator.max_nb_removals == 2
+
+
+def test_task_deletion_with_empty_freed_employees_raises():
     instance = build_instance()
     task = build_task(instance)
     with pytest.raises(ValueError):
@@ -60,6 +79,30 @@ def test_task_deletion_with_empty_candidate_tasks_raises():
     employee = build_employee(instance)
     with pytest.raises(ValueError):
         TaskDeletion(frozenset({employee}), frozenset())
+
+
+def test_task_deletion_with_negative_min_nb_removals_raises():
+    instance = build_instance()
+    employee = build_employee(instance)
+    task = build_task(instance)
+    with pytest.raises(ValueError):
+        TaskDeletion(frozenset({employee}), frozenset({task}), min_nb_removals=-1, max_nb_removals=1)
+
+
+def test_task_deletion_with_min_nb_removals_exceeding_max_raises():
+    instance = build_instance()
+    employee = build_employee(instance)
+    task = build_task(instance)
+    with pytest.raises(ValueError):
+        TaskDeletion(frozenset({employee}), frozenset({task}), min_nb_removals=1, max_nb_removals=0)
+
+
+def test_task_deletion_with_max_nb_removals_exceeding_candidate_tasks_raises():
+    instance = build_instance()
+    employee = build_employee(instance)
+    task = build_task(instance)
+    with pytest.raises(ValueError):
+        TaskDeletion(frozenset({employee}), frozenset({task}), min_nb_removals=1, max_nb_removals=2)
 
 
 ##################

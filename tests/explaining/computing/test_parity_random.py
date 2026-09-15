@@ -5,16 +5,17 @@ import random
 import pytest
 
 # Local libraries
-from src.explaining.neighborhood.operator import SequenceReordering, TaskInsertion, TaskRepositioning
+from src.explaining.neighborhood.operator import TaskInsertion, TaskRepositioning
 from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.explaining.questioning.questions_templates_bank import (
     QUESTIONS_TEMPLATES, WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
+    WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3,
     WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
 )
 from src.modeling.solution import Solution
 from tests.explaining.computing.helpers import (
-    assert_same_kpis, build_austria_solution, get_neighborhood_computation_pipeline_gap_and_solution,
+    assert_at_least_as_good_kpis, build_austria_solution, get_neighborhood_computation_pipeline_gap_and_solution,
     get_tailored_computation_pipeline_gap_and_solution
 )
 
@@ -36,14 +37,20 @@ def assert_parity_over_random_samples(solution: Solution, template_id: str,
     - understating how much room a joint reoptimization of every now-reordered task's time can find.
     The neighborhood MILP re-solves all of them together, so it can only find an equal or smaller gap.
 
-    WIP: A combination is skipped rather than checked when none of its operator's candidate employees
-    is skilled for any of its candidate tasks, since skill mismatches aren't handled by the neighborhood
-    computation pipeline yet.
+    WIP: A combination is skipped rather than checked when none of the neighborhood's TaskInsertion (or
+    TaskRepositioning) candidate employees is skilled for any of its candidate tasks, since skill
+    mismatches aren't handled by the neighborhood computation pipeline yet. A neighborhood with neither
+    (e.g. a lone SequenceReordering) is never skipped this way, since it never reassigns anyone.
+
+    KPIs (when the tailored pipeline is feasible) are checked with assert_at_least_as_good_kpis rather
+    than requiring an exact match: for candidate-set questions the neighborhood pipeline's exhaustive
+    MILP search can legitimately find a strictly better swap than the tailored pipeline's heuristic, not
+    just an equally good one (see that helper's docstring).
 
     Raises:
         AssertionError: if the template has no valid field-value combination at all for solution,
-            or if a sampled combination's neighborhood gap exceeds its tailored gap, or (when both are
-            feasible) their KPIs disagree.
+            or if a sampled combination's neighborhood gap exceeds its tailored gap, or (when the
+            tailored pipeline is feasible) the neighborhood pipeline's KPIs are worse.
     """
     # compute_all_fields_valid_values needs solution.nb_non_performed_tasks for some templates (e.g.
     # (Ins,2b)'s "no candidate task at all" special case), which itself needs KPIs to have been computed.
@@ -55,14 +62,15 @@ def assert_parity_over_random_samples(solution: Solution, template_id: str,
 
     for fields_values in all_fields_values[:max_samples]:
         neighborhood = Mapper.map(ContrastiveQuestion(solution, template_id, fields_values))
-        operator = neighborhood.operators[0]
-        if isinstance(operator, TaskInsertion):
-            candidate_employees, candidate_tasks = operator.candidate_employees, operator.candidate_tasks
-        elif isinstance(operator, TaskRepositioning):
-            candidate_employees = frozenset({operator.employee})
-            candidate_tasks = frozenset({operator.target_task})
-        else:
-            candidate_employees, candidate_tasks = frozenset(), frozenset()
+        candidate_employees, candidate_tasks = frozenset(), frozenset()
+        for operator in neighborhood.operators:
+            if isinstance(operator, TaskInsertion):
+                candidate_employees, candidate_tasks = operator.candidate_employees, operator.candidate_tasks
+                break
+            elif isinstance(operator, TaskRepositioning):
+                candidate_employees = frozenset({operator.employee})
+                candidate_tasks = frozenset({operator.target_task})
+                break
         if candidate_tasks and not any(
                 employee.is_capable_of_performing(task)
                 for employee in candidate_employees for task in candidate_tasks):
@@ -77,7 +85,7 @@ def assert_parity_over_random_samples(solution: Solution, template_id: str,
 
         assert neighborhood_gap <= tailored_gap, f"Neighborhood gap exceeds tailored gap for {fields_values}"
         if tailored_gap == 0:
-            assert_same_kpis(tailored_solution, neighborhood_solution)
+            assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
 
 
 @pytest.mark.slow
@@ -115,6 +123,43 @@ def test_ins_3_parity_over_random_samples():
     why is {Employee} not performing {Task} in addition to their already-performed activities
     (even if it means changing their order)?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_INS_3)
+
+
+@pytest.mark.slow
+def test_swp_1_parity_over_random_samples():
+    """(Swp,1), over random (Employee, Task1, Task2) samples:
+    why is {Employee} not performing {Task1} rather than {Task2}?"""
+    assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_1)
+
+
+@pytest.mark.slow
+def test_swp_2a_parity_over_random_samples():
+    """(Swp,2a), over random (Employee, Task) samples:
+    why is {Employee} not performing {Task} rather than any of their already-performed tasks?"""
+    assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_2A)
+
+
+@pytest.mark.slow
+def test_swp_2b_parity_over_random_samples():
+    """(Swp,2b), over random Employee samples:
+    why is {Employee} not performing any non-performed task rather than any of their already-performed
+    tasks?"""
+    assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_2B)
+
+
+@pytest.mark.slow
+def test_swp_2c_parity_over_random_samples():
+    """(Swp,2c), over random Task samples:
+    why is any employee not performing {Task} rather than any of their already-performed tasks?"""
+    assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_2C)
+
+
+@pytest.mark.slow
+def test_swp_3_parity_over_random_samples():
+    """(Swp,3), over random (Employee, Task) samples:
+    why is {Employee} not performing {Task} rather than any of their already-performed tasks (even if it
+    means changing their order)?"""
+    assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_3)
 
 
 @pytest.mark.slow

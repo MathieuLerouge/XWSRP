@@ -1,7 +1,7 @@
 # Local libraries
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskInsertion
-from src.explaining.neighborhood.restriction import ImmediatePrecedence, SequenceOrderFixed
+from src.explaining.neighborhood.restriction import ImmediatePrecedence, PrecedenceChain
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.explaining.computing.templates.exceptions import ImpossibleTransformationException
 
@@ -27,7 +27,7 @@ def map_ins_1(question: ContrastiveQuestion) -> Neighborhood:
     anchor_activity = instance.get_hypothetical_activity_by_names(activity_name, employee_name)
     operator = TaskInsertion(frozenset({employee}), frozenset({task}))
     employee_tasks = list(solution.get_sequence(employee).get_contained_tasks())
-    restrictions = [SequenceOrderFixed(employee_tasks), ImmediatePrecedence(anchor_activity, task)]
+    restrictions = [PrecedenceChain(employee_tasks), ImmediatePrecedence(anchor_activity, task)]
     return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
 
 
@@ -50,7 +50,7 @@ def map_ins_2a(question: ContrastiveQuestion) -> Neighborhood:
     task = instance.get_task_by_name(task_name)
     operator = TaskInsertion(frozenset({employee}), frozenset({task}))
     employee_tasks = list(solution.get_sequence(employee).get_contained_tasks())
-    restrictions = [SequenceOrderFixed(employee_tasks)]
+    restrictions = [PrecedenceChain(employee_tasks)]
     return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
 
 
@@ -80,7 +80,7 @@ def map_ins_2b(question: ContrastiveQuestion) -> Neighborhood:
         )
     operator = TaskInsertion(frozenset({employee}), candidate_tasks)
     employee_tasks = list(solution.get_sequence(employee).get_contained_tasks())
-    restrictions = [SequenceOrderFixed(employee_tasks)]
+    restrictions = [PrecedenceChain(employee_tasks)]
     return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
 
 
@@ -103,7 +103,7 @@ def map_ins_2c(question: ContrastiveQuestion) -> Neighborhood:
     candidate_employees = frozenset(solution.instance.employees)
     operator = TaskInsertion(candidate_employees, frozenset({task}))
     restrictions = [
-        SequenceOrderFixed(list(solution.get_sequence(employee).get_contained_tasks()))
+        PrecedenceChain(list(solution.get_sequence(employee).get_contained_tasks()))
         for employee in candidate_employees
     ]
     return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)

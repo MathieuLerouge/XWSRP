@@ -87,13 +87,14 @@ class Precedence(Restriction):
         return self._successor
 
 
-######################
-# SequenceOrderFixed #
-######################
+###################
+# PrecedenceChain #
+###################
 
-class SequenceOrderFixed(Restriction):
+class PrecedenceChain(Restriction):
     """
-    A Restriction requiring that the relative order of a given, explicit, ordered list of tasks stays unchanged.
+    A Restriction requiring that the relative order of a given, explicit, ordered list of tasks stays
+    unchanged: a chain of Precedence relations, one between each consecutive pair.
     """
 
     def __init__(self, tasks: list[Task]):
@@ -142,3 +143,34 @@ class ForbiddenSequence(Restriction):
     def activities(self):
         """The forbidden chain of activities, in the order they must not appear contiguously in."""
         return self._activities
+
+
+################################
+# ForbiddenBackwardSubsequence #
+################################
+
+class ForbiddenBackwardSubsequence(Restriction):
+    """
+    A Restriction requiring that a specific employee's route never travels directly or indirectly from a
+    later task to an earlier one within a given, explicit, ordered list of tasks - i.e. whichever of them
+    remain performed keep their original relative order, though any of them may become unperformed.
+    """
+
+    def __init__(self, employee: Employee, tasks: list[Task]):
+        """
+        Args:
+            employee: The employee whose route must not travel backward within tasks.
+            tasks: The tasks, in the relative order that whichever of them remain performed must keep.
+        """
+        self._employee = employee
+        self._tasks = tasks
+
+    @property
+    def employee(self):
+        """The employee whose route must not travel backward within tasks."""
+        return self._employee
+
+    @property
+    def tasks(self):
+        """The tasks, in the relative order that whichever of them remain performed must keep."""
+        return self._tasks

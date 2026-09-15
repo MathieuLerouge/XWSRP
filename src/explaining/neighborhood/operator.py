@@ -86,42 +86,66 @@ class TaskDeletion(Operator):
     An Operator that removes a target task from an employee's sequence.
     """
 
-    def __init__(self, candidate_employees: frozenset[Employee], candidate_tasks: frozenset[Task]):
+    def __init__(self, freed_employees: frozenset[Employee], candidate_tasks: frozenset[Task],
+                 min_nb_removals: int = 1, max_nb_removals: int = 1):
         """
         Args:
-            candidate_employees: The employees among which the one currently performing the removed task
-                is chosen.
-            candidate_tasks: The tasks among which the one to remove is chosen.
+            freed_employees: The employees whose already-performed, non-candidate tasks are freed to
+                shift in time/order to accommodate whichever candidate task(s) get removed. Each
+                candidate task's own assignee is already known and isn't chosen from this set.
+            candidate_tasks: The tasks among which the ones to remove are chosen.
+            min_nb_removals: The minimum number of candidate_tasks that must be removed.
+            max_nb_removals: The maximum number of candidate_tasks that may be removed.
 
         Raises:
-            ValueError: If candidate_employees or candidate_tasks is empty.
+            ValueError: If freed_employees or candidate_tasks is empty, if min_nb_removals or
+                max_nb_removals is negative, if min_nb_removals exceeds max_nb_removals, or if
+                max_nb_removals exceeds the number of candidate_tasks.
         """
-        if len(candidate_employees) == 0:
-            raise ValueError("candidate_employees must not be empty")
+        if len(freed_employees) == 0:
+            raise ValueError("freed_employees must not be empty")
         if len(candidate_tasks) == 0:
             raise ValueError("candidate_tasks must not be empty")
-        self._candidate_employees = candidate_employees
+        if min_nb_removals < 0 or max_nb_removals < 0:
+            raise ValueError("min_nb_removals and max_nb_removals must not be negative")
+        if min_nb_removals > max_nb_removals:
+            raise ValueError("min_nb_removals must not exceed max_nb_removals")
+        if max_nb_removals > len(candidate_tasks):
+            raise ValueError("max_nb_removals must not exceed the number of candidate_tasks")
+        self._freed_employees = freed_employees
         self._candidate_tasks = candidate_tasks
+        self._min_nb_removals = min_nb_removals
+        self._max_nb_removals = max_nb_removals
 
     @property
-    def candidate_employees(self):
-        """The employees among which the one currently performing the removed task is chosen."""
-        return self._candidate_employees
+    def freed_employees(self):
+        """The employees whose already-performed, non-candidate tasks are freed to shift in time/order."""
+        return self._freed_employees
 
     @property
     def candidate_tasks(self):
-        """The tasks among which the one to remove is chosen."""
+        """The tasks among which the ones to remove are chosen."""
         return self._candidate_tasks
 
     @property
+    def min_nb_removals(self):
+        """The minimum number of candidate_tasks that must be removed."""
+        return self._min_nb_removals
+
+    @property
+    def max_nb_removals(self):
+        """The maximum number of candidate_tasks that may be removed."""
+        return self._max_nb_removals
+
+    @property
     def target_tasks(self):
-        """The tasks among which the one to remove is chosen."""
+        """The tasks among which the ones to remove are chosen."""
         return self.candidate_tasks
 
     @property
     def scope(self):
-        """The candidate employees and candidate tasks."""
-        return self._candidate_employees | self._candidate_tasks
+        """The freed employees and candidate tasks."""
+        return self._freed_employees | self._candidate_tasks
 
 
 ##################
