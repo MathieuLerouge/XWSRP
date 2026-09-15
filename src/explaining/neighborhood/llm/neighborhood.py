@@ -5,10 +5,10 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 # Local library
-from src.explaining.neighborhood.llm.extracted_operator import (
+from src.explaining.neighborhood.llm.operator import (
     ExtractedFeasibilityShortfallOperator, ExtractedTaskDeletion
 )
-from src.explaining.neighborhood.llm.extracted_restriction import ExtractedRestriction
+from src.explaining.neighborhood.llm.restriction import ExtractedRestriction
 
 
 #########################

@@ -5,7 +5,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # Local library
-from src.explaining.neighborhood.llm.extracted_neighborhood import ExtractedNeighborhood
+from src.explaining.neighborhood.llm.neighborhood import ExtractedNeighborhood
 
 
 #####################

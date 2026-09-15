@@ -5,7 +5,7 @@ from typing import Annotated, Literal, Union
 from pydantic import Field
 
 # Local library
-from src.explaining.neighborhood.llm.extracted_primitive import ActivityName, EmployeeName, ExtractedPrimitive, TaskName
+from src.explaining.neighborhood.llm.primitive import ActivityName, EmployeeName, ExtractedPrimitive, TaskName
 
 
 ################################
