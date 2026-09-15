@@ -63,6 +63,10 @@ requires a valid Gurobi license), install the extra requirements file instead:
 ```
 uv pip install -r requirements_gurobi.txt
 ```
+`requirements.txt` also installs `instructor`, used by the explanation pipeline 
+(see `src/explaining/neighborhood/extractor.py`). \
+Using it against Anthropic's models requires a valid API key set in the `ANTHROPIC_API_KEY` environment variable 
+— see [Anthropic's console](https://console.anthropic.com/) to obtain one.
 
 
 ## 2.2. Running the project
