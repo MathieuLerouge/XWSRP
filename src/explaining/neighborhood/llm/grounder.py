@@ -46,14 +46,15 @@ class Grounder:
 
         Raises:
             NeighborhoodExtractionError: If any name doesn't resolve against solution's instance,
-                or an ImmediatePrecedence restriction names a route-boundary sentinel ("Start"/"Return")
+                if a task deletion names a candidate task that isn't currently performed,
+                or if an ImmediatePrecedence restriction names a route-boundary sentinel ("Start"/"Return")
                 while the operator doesn't name a single unambiguous employee to anchor it to.
         """
         instance = solution.instance
         try:
             operators = [Grounder._ground_operator(extracted.operator, instance)]
             if extracted.deletion is not None:
-                operators.append(Grounder._ground_task_deletion(extracted.deletion, instance))
+                operators.append(Grounder._ground_task_deletion(extracted.deletion, solution))
             anchor_employee_name = Grounder._get_singleton_employee_name(extracted.operator)
             restrictions = [
                 Grounder._ground_restriction(restriction, instance, anchor_employee_name)
@@ -87,17 +88,25 @@ class Grounder:
             return SequenceReordering(employee)
 
     @staticmethod
-    def _ground_task_deletion(extracted_deletion: ExtractedTaskDeletion, instance: Instance) -> TaskDeletion:
+    def _ground_task_deletion(extracted_deletion: ExtractedTaskDeletion, solution: Solution) -> TaskDeletion:
         """
         Raises:
-            ValueError: If any name extracted_deletion carries doesn't resolve against instance.
+            ValueError: If any name extracted_deletion carries doesn't resolve against solution's instance,
+                or if any of its candidate_tasks isn't currently performed
+                (unlike TaskInsertion, which may legitimately name an already-performed task,
+                a TaskDeletion candidate must already have an assignee to delete it from),
+                or NeighborhoodModel crashes trying to look one up.
         """
+        instance = solution.instance
         freed_employees = frozenset(
             instance.get_employee_by_name(name) for name in extracted_deletion.freed_employees
         )
         candidate_tasks = frozenset(
             instance.get_task_by_name(name) for name in extracted_deletion.candidate_tasks
         )
+        for task in candidate_tasks:
+            if not solution.get_task_performance_status(task):
+                raise ValueError(f"Task {task.name} is not currently performed, so it cannot be deleted")
         return TaskDeletion(freed_employees, candidate_tasks,
                              min_nb_removals=extracted_deletion.min_nb_removals,
                              max_nb_removals=extracted_deletion.max_nb_removals)

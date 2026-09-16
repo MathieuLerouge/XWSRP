@@ -158,6 +158,16 @@ def test_ground_forbidden_backward_subsequence():
     assert restriction.tasks == [instance.get_task_by_name(name) for name in ["T1", "T2", "T3"]]
 
 
+def test_ground_raises_on_task_deletion_naming_a_non_performed_task():
+    _, solution = _build_solution_with_valentin_and_ambre_performing_tasks()
+    extracted = ExtractedNeighborhood.model_validate({
+        "operator": {"kind": "task_insertion", "candidate_employees": ["Valentin"], "candidate_tasks": ["T5"]},
+        "deletion": {"kind": "task_deletion", "freed_employees": ["Valentin"], "candidate_tasks": ["T4"]},
+    })
+    with pytest.raises(NeighborhoodExtractionError):
+        Grounder.ground(extracted, solution)
+
+
 def test_ground_raises_on_unresolvable_employee_name():
     _, solution = _build_solution_with_valentin_and_ambre_performing_tasks()
     extracted = ExtractedNeighborhood.model_validate({

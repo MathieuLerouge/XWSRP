@@ -91,13 +91,12 @@ Q: "Why isn't task T3 moved from Alice to Bob?"
 
 def build_user_prompt(solution: Solution, question_text: str) -> str:
     """
-    Builds the per-call user prompt embedding question_text together with solution's own
-    employee/task vocabulary, so entity names the LLM extracts are ones the given solution
-    actually recognizes.
+    Builds the prompt embedding question_text together with solution's own employee/task vocabulary,
+    so entity names the LLM extracts are ones the given solution actually recognizes.
 
     Args:
         solution: The solution the question is about.
-        question_text: The end-user's free-text question.
+        question_text: The free-text question.
 
     Returns:
         str: The user prompt to send alongside SYSTEM_PROMPT.
