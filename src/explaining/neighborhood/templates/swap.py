@@ -1,4 +1,5 @@
 # Local libraries
+from src.explaining.neighborhood.assembler import Assembler
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskDeletion, TaskInsertion
 from src.explaining.neighborhood.restriction import ForbiddenBackwardSubsequence, PrecedenceChain
@@ -32,7 +33,7 @@ def map_swp_1(question: ContrastiveQuestion) -> Neighborhood:
     employee_tasks = list(solution.get_sequence(employee).get_contained_tasks())
     employee_tasks.remove(task_2)
     restrictions = [PrecedenceChain(employee_tasks)]
-    return Neighborhood(solution=solution, operators=operators, restrictions=restrictions)
+    return Assembler.assemble(operators, restrictions, solution)
 
 
 def map_swp_2a(question: ContrastiveQuestion) -> Neighborhood:
@@ -59,7 +60,7 @@ def map_swp_2a(question: ContrastiveQuestion) -> Neighborhood:
         TaskInsertion(frozenset({employee}), frozenset({task}))
     ]
     restrictions = [ForbiddenBackwardSubsequence(employee, employee_tasks)]
-    return Neighborhood(solution=solution, operators=operators, restrictions=restrictions)
+    return Assembler.assemble(operators, restrictions, solution)
 
 
 def map_swp_2b(question: ContrastiveQuestion) -> Neighborhood:
@@ -95,7 +96,7 @@ def map_swp_2b(question: ContrastiveQuestion) -> Neighborhood:
         TaskInsertion(frozenset({employee}), candidate_tasks)
     ]
     restrictions = [ForbiddenBackwardSubsequence(employee, employee_tasks)]
-    return Neighborhood(solution=solution, operators=operators, restrictions=restrictions)
+    return Assembler.assemble(operators, restrictions, solution)
 
 
 def map_swp_2c(question: ContrastiveQuestion) -> Neighborhood:
@@ -124,7 +125,7 @@ def map_swp_2c(question: ContrastiveQuestion) -> Neighborhood:
         ForbiddenBackwardSubsequence(employee, list(solution.get_sequence(employee).get_contained_tasks()))
         for employee in candidate_employees
     ]
-    return Neighborhood(solution=solution, operators=operators, restrictions=restrictions)
+    return Assembler.assemble(operators, restrictions, solution)
 
 
 def map_swp_3(question: ContrastiveQuestion) -> Neighborhood:
@@ -151,4 +152,4 @@ def map_swp_3(question: ContrastiveQuestion) -> Neighborhood:
         TaskDeletion(frozenset({employee}), frozenset(employee_tasks)),
         TaskInsertion(frozenset({employee}), frozenset({task}))
     ]
-    return Neighborhood(solution=solution, operators=operators)
+    return Assembler.assemble(operators, [], solution)

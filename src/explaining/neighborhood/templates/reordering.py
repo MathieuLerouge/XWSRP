@@ -1,4 +1,5 @@
 # Local libraries
+from src.explaining.neighborhood.assembler import Assembler
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import SequenceReordering, TaskRepositioning
 from src.explaining.neighborhood.restriction import (
@@ -29,7 +30,7 @@ def map_ord_1a(question: ContrastiveQuestion) -> Neighborhood:
     employee_tasks = list(solution.get_sequence(employee).get_contained_tasks())
     employee_tasks.remove(task_1)
     restrictions = [PrecedenceChain(employee_tasks), ImmediatePrecedence(task_2, task_1)]
-    return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
+    return Assembler.assemble([operator], restrictions, solution)
 
 
 def map_ord_1b(question: ContrastiveQuestion) -> Neighborhood:
@@ -54,7 +55,7 @@ def map_ord_1b(question: ContrastiveQuestion) -> Neighborhood:
     employee_tasks = list(solution.get_sequence(employee).get_contained_tasks())
     employee_tasks.remove(task_1)
     restrictions = [PrecedenceChain(employee_tasks), ImmediatePrecedence(task_1, task_2)]
-    return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
+    return Assembler.assemble([operator], restrictions, solution)
 
 
 def map_ord_2a(question: ContrastiveQuestion) -> Neighborhood:
@@ -80,7 +81,7 @@ def map_ord_2a(question: ContrastiveQuestion) -> Neighborhood:
     operator = TaskRepositioning(employee, task)
     employee_tasks.remove(task)
     restrictions = [PrecedenceChain(employee_tasks), Precedence(next_task, task)]
-    return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
+    return Assembler.assemble([operator], restrictions, solution)
 
 
 def map_ord_2b(question: ContrastiveQuestion) -> Neighborhood:
@@ -106,7 +107,7 @@ def map_ord_2b(question: ContrastiveQuestion) -> Neighborhood:
     operator = TaskRepositioning(employee, task)
     employee_tasks.remove(task)
     restrictions = [PrecedenceChain(employee_tasks), Precedence(task, prev_task)]
-    return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
+    return Assembler.assemble([operator], restrictions, solution)
 
 
 def map_ord_2c(question: ContrastiveQuestion) -> Neighborhood:
@@ -134,7 +135,7 @@ def map_ord_2c(question: ContrastiveQuestion) -> Neighborhood:
     operator = TaskRepositioning(employee, task)
     employee_tasks.remove(task)
     restrictions = [PrecedenceChain(employee_tasks), ForbiddenSequence(employee, original_neighbors)]
-    return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
+    return Assembler.assemble([operator], restrictions, solution)
 
 
 def map_ord_3(question: ContrastiveQuestion) -> Neighborhood:
@@ -156,4 +157,4 @@ def map_ord_3(question: ContrastiveQuestion) -> Neighborhood:
     operator = SequenceReordering(employee)
     employee_tasks = list(solution.get_sequence(employee).get_contained_tasks())
     restrictions = [ForbiddenSequence(employee, employee_tasks)]
-    return Neighborhood(solution=solution, operators=[operator], restrictions=restrictions)
+    return Assembler.assemble([operator], restrictions, solution)
