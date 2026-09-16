@@ -51,9 +51,13 @@ performed in their original relative order, while allowing any of them to become
 Restrictions are composable: an employee's tasks may be covered by several of them at once 
 (e.g. `PrecedenceChain` together with one or more `ImmediatePrecedence`).
 
-The `templates` subpackage maps a `Question` to the `Neighborhood` it induces: `Mapper` (`mapper.py`)
-dispatches on the question's template id to a dedicated mapping function, implemented per question family
-(`insertion.py` for the `(Ins,*)` family — see section 3).
+Two subpackages turn a question into the `Neighborhood` it induces. 
+The `templates` subpackage maps a `Question` to it: 
+`Mapper` (`mapper.py`) dispatches on the question's template id to a dedicated mapping function, 
+implemented per question family (`insertion.py` for the `(Ins,*)` family, etc.). \
+The `llm` subpackage is the free-text alternative: 
+`Extractor` (`llm/extractor.py`) turns a free-text question directly into the `Neighborhood` it induces, 
+by composing primitives via a model-agnostic LLM — see its own [`README.md`](llm/README.md) for detail.
 
 
 # 2. Description of the files
@@ -69,13 +73,19 @@ dispatches on the question's template id to a dedicated mapping function, implem
 
 `neighborhood.py` contains `Neighborhood`, described above.
 
-`templates` is the subpackage mapping questions to neighborhoods:
+`assembler.py` contains `Assembler`, which assembles operators/restrictions into a `Neighborhood`
+and defers to `NeighborhoodModel`'s own capability check (its `NotImplementedError`) to confirm it's actually solvable.
 
+`exceptions.py` contains `NeighborhoodError`, raised when a `Neighborhood` can't be assembled or solved.
+
+In `templates` subpackage:
 - `mapper.py` contains `Mapper`, 
 whose `map(question)` method dispatches a `ContrastiveQuestion` to its matching neighborhood-mapping function.
 - `insertion.py` contains the mapping functions for the `(Ins,*)` template family.
 - `swap.py` contains the mapping functions for the `(Swp,*)` template family.
 - `reordering.py` contains the mapping functions for the `(Ord,*)` template family.
+
+The files of `llm` subpackage are detailed its own [`README.md`](llm/README.md).
 
 
 # 3. `Primitive` bank

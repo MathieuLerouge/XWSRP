@@ -58,6 +58,7 @@ def _restriction_types(neighborhood):
 # (Ins,1) #
 ############
 
+@pytest.mark.llm
 def test_ins_1(extractor, instance):
     neighborhood = extractor.extract("Why doesn't Valentin do task T5 right after task T3?")
     operator_types = _operator_types(neighborhood)
@@ -71,6 +72,7 @@ def test_ins_1(extractor, instance):
 # (Ins,2a) #
 #############
 
+@pytest.mark.llm
 def test_ins_2a(extractor, instance):
     neighborhood = extractor.extract("Why isn't Valentin performing task T5 at some point in his day?")
     task_insertion = next(o for o in neighborhood.operators if isinstance(o, TaskInsertion))
@@ -82,6 +84,7 @@ def test_ins_2a(extractor, instance):
 # (Ins,2b) #
 #############
 
+@pytest.mark.llm
 def test_ins_2b(extractor, instance):
     neighborhood = extractor.extract(
         "Why doesn't Valentin do any of the tasks he currently isn't assigned, at some point in his day?"
@@ -96,6 +99,7 @@ def test_ins_2b(extractor, instance):
 # (Ins,2c) #
 #############
 
+@pytest.mark.llm
 def test_ins_2c(extractor, instance):
     neighborhood = extractor.extract("Why isn't task T5 performed by anyone at some point in the day?")
     task_insertion = next(o for o in neighborhood.operators if isinstance(o, TaskInsertion))
@@ -107,6 +111,7 @@ def test_ins_2c(extractor, instance):
 # (Ins,3) #
 ############
 
+@pytest.mark.llm
 def test_ins_3(extractor, instance):
     neighborhood = extractor.extract(
         "Why doesn't Valentin do task T5 in addition to his current tasks, even if it means changing their order?"
@@ -119,6 +124,7 @@ def test_ins_3(extractor, instance):
 # (Swp,1) #
 ############
 
+@pytest.mark.llm
 def test_swp_1(extractor, instance):
     neighborhood = extractor.extract("Why isn't Valentin performing task T5 instead of task T2?")
     operator_types = _operator_types(neighborhood)
@@ -133,6 +139,7 @@ def test_swp_1(extractor, instance):
 # (Swp,2a) #
 #############
 
+@pytest.mark.llm
 def test_swp_2a(extractor, instance):
     neighborhood = extractor.extract("Why isn't Valentin performing task T5 rather than one of his current tasks?")
     operator_types = _operator_types(neighborhood)
@@ -147,6 +154,7 @@ def test_swp_2a(extractor, instance):
 # (Swp,2b) #
 #############
 
+@pytest.mark.llm
 def test_swp_2b(extractor, instance):
     neighborhood = extractor.extract(
         "Why doesn't Valentin do one of his non-performed tasks rather than one of his current tasks?"
@@ -164,6 +172,7 @@ def test_swp_2b(extractor, instance):
 # (Swp,2c) #
 #############
 
+@pytest.mark.llm
 def test_swp_2c(extractor, instance):
     neighborhood = extractor.extract("Why isn't task T5 performed by someone rather than one of their current tasks?")
     operator_types = _operator_types(neighborhood)
@@ -178,6 +187,7 @@ def test_swp_2c(extractor, instance):
 # (Swp,3) #
 ############
 
+@pytest.mark.llm
 def test_swp_3(extractor, instance):
     neighborhood = extractor.extract(
         "Why isn't Valentin performing task T5 rather than one of his current tasks, "
@@ -193,6 +203,7 @@ def test_swp_3(extractor, instance):
 # (Ord,1a) #
 #############
 
+@pytest.mark.llm
 def test_ord_1a(extractor, instance):
     neighborhood = extractor.extract("Why isn't Valentin performing task T2 later in his day, right after task T3?")
     assert TaskRepositioning in _operator_types(neighborhood)
@@ -205,6 +216,7 @@ def test_ord_1a(extractor, instance):
 # (Ord,1b) #
 #############
 
+@pytest.mark.llm
 def test_ord_1b(extractor, instance):
     neighborhood = extractor.extract("Why isn't Valentin performing task T3 earlier in his day, right before task T2?")
     assert TaskRepositioning in _operator_types(neighborhood)
@@ -217,6 +229,7 @@ def test_ord_1b(extractor, instance):
 # (Ord,2a) #
 #############
 
+@pytest.mark.llm
 def test_ord_2a(extractor, instance):
     neighborhood = extractor.extract("Why isn't Valentin performing task T2 at a later stage of his day?")
     assert TaskRepositioning in _operator_types(neighborhood)
@@ -229,6 +242,7 @@ def test_ord_2a(extractor, instance):
 # (Ord,2b) #
 #############
 
+@pytest.mark.llm
 def test_ord_2b(extractor, instance):
     neighborhood = extractor.extract("Why isn't Valentin performing task T3 at an earlier stage of his day?")
     assert TaskRepositioning in _operator_types(neighborhood)
@@ -241,6 +255,7 @@ def test_ord_2b(extractor, instance):
 # (Ord,2c) #
 #############
 
+@pytest.mark.llm
 def test_ord_2c(extractor, instance):
     neighborhood = extractor.extract("Why isn't Valentin performing task T2 at any other stage of his day?")
     assert TaskRepositioning in _operator_types(neighborhood)
@@ -253,6 +268,7 @@ def test_ord_2c(extractor, instance):
 # (Ord,3) #
 ############
 
+@pytest.mark.llm
 def test_ord_3(extractor, instance):
     neighborhood = extractor.extract("Why can't Ambre's route be done in a different order?")
     assert SequenceReordering in _operator_types(neighborhood)
@@ -265,6 +281,7 @@ def test_ord_3(extractor, instance):
 # Not coverable yet #
 ######################
 
+@pytest.mark.llm
 def test_task_relocation_shaped_question_is_not_coverable(extractor):
     with pytest.raises(NeighborhoodExtractionError):
         extractor.extract("Why isn't task T2 moved from Valentin to Ambre?")

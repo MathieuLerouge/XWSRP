@@ -88,21 +88,21 @@ def assert_parity_over_random_samples(solution: Solution, template_id: str,
             assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ins_1_parity_over_random_samples():
     """(Ins,1), over random (Employee, Task, Activity) samples:
     why is {Employee} not performing {Task} just after {Activity}?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_INS_1)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ins_2a_parity_over_random_samples():
     """(Ins,2a), over random (Employee, Task) samples:
     why is {Employee} not performing {Task} between two consecutive activities of their route?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_INS_2A)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ins_2b_parity_over_random_samples():
     """(Ins,2b), over random Employee samples:
     why is {Employee} not performing any non-performed task between two consecutive activities of
@@ -110,14 +110,14 @@ def test_ins_2b_parity_over_random_samples():
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_INS_2B)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ins_2c_parity_over_random_samples():
     """(Ins,2c), over random Task samples:
     why is any employee not performing {Task} between two consecutive activities of their route?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_INS_2C)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ins_3_parity_over_random_samples():
     """(Ins,3), over random (Employee, Task) samples:
     why is {Employee} not performing {Task} in addition to their already-performed activities
@@ -125,21 +125,21 @@ def test_ins_3_parity_over_random_samples():
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_INS_3)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_swp_1_parity_over_random_samples():
     """(Swp,1), over random (Employee, Task1, Task2) samples:
     why is {Employee} not performing {Task1} rather than {Task2}?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_1)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_swp_2a_parity_over_random_samples():
     """(Swp,2a), over random (Employee, Task) samples:
     why is {Employee} not performing {Task} rather than any of their already-performed tasks?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_2A)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_swp_2b_parity_over_random_samples():
     """(Swp,2b), over random Employee samples:
     why is {Employee} not performing any non-performed task rather than any of their already-performed
@@ -147,14 +147,14 @@ def test_swp_2b_parity_over_random_samples():
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_2B)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_swp_2c_parity_over_random_samples():
     """(Swp,2c), over random Task samples:
     why is any employee not performing {Task} rather than any of their already-performed tasks?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_2C)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_swp_3_parity_over_random_samples():
     """(Swp,3), over random (Employee, Task) samples:
     why is {Employee} not performing {Task} rather than any of their already-performed tasks (even if it
@@ -162,42 +162,42 @@ def test_swp_3_parity_over_random_samples():
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_SWP_3)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ord_1a_parity_over_random_samples():
     """(Ord,1a), over random (Employee, Task1, Task2) samples:
     why is {Employee} not performing {Task1} later in their planning, just after {Task2}?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_ORD_LAT_1)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ord_1b_parity_over_random_samples():
     """(Ord,1b), over random (Employee, Task1, Task2) samples:
     why is {Employee} not performing {Task1} earlier in their planning, just before {Task2}?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_ORD_EAR_1)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ord_2a_parity_over_random_samples():
     """(Ord,2a), over random (Employee, Task) samples:
     why is {Employee} not performing {Task} at a later stage of their planning?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_ORD_LAT_2)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ord_2b_parity_over_random_samples():
     """(Ord,2b), over random (Employee, Task) samples:
     why is {Employee} not performing {Task} at an earlier stage of their planning?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_ORD_EAR_2)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ord_2c_parity_over_random_samples():
     """(Ord,2c), over random (Employee, Task) samples:
     why is {Employee} not performing {Task} at any another stage in their planning?"""
     assert_parity_over_random_samples(build_austria_solution(), WHY_NOT_ORD_2)
 
 
-@pytest.mark.slow
+@pytest.mark.parity
 def test_ord_3_parity_over_random_samples():
     """(Ord,3), over random Employee samples:
     why is {Employee} not performing the activities of their route in another order?"""
