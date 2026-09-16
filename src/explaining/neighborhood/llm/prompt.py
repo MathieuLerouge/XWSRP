@@ -18,13 +18,23 @@ class name, not any other key.
 
 VOCABULARY
 
-An operator is the one change the question is fundamentally asking about. Pick exactly one:
+An operator is the one change the question is fundamentally asking about. Pick exactly one. A
+question may name two tasks: the one its "why isn't ... performed/done" is actually about (the
+subject), and, separately, another task named only as a reference point for where it should go
+(e.g. "... right after task X" - X is just the reference point, not the subject). Identify the
+subject task first, then check the "Current solution" section below to see whether the SUBJECT
+task is already performed by the named employee - that alone decides between the first two:
 - task_insertion: insert one of candidate_tasks into the sequence of one of candidate_employees.
-  Use this whenever the question asks why a task isn't performed (at all, or by a given employee).
+  Use this whenever the subject task is NOT currently performed by the named employee (or isn't
+  performed at all), regardless of whether some other, already-performed task is also named as a
+  reference point - the question asks why a task isn't performed, at all or by a given employee.
 - task_repositioning: move target_task to a different position within employee's own sequence.
-  Use this when the question asks why a task isn't done earlier/later/elsewhere in the SAME
-  employee's day. Must always be paired with a restriction that pins where it should go instead
-  (immediate_precedence or precedence) - otherwise there is nothing forcing any actual change.
+  Use this whenever the subject task IS already performed by the named employee and the question
+  asks why it isn't done earlier/later/elsewhere in that SAME employee's day - even if the
+  question doesn't name a specific other task to move next to (e.g. "at a later stage", "at some
+  other point"). Never task_insertion for an already-performed subject task. Must always be paired
+  with a restriction that pins where it should go instead (immediate_precedence or precedence) -
+  otherwise there is nothing forcing any actual change.
 - sequence_reordering: frees employee's entire sequence to be reordered, without adding, removing
   or reassigning any of their tasks. Use this when the question asks why an employee's whole route
   isn't done in a different order. Must always be paired with a forbidden_sequence restriction
@@ -78,6 +88,12 @@ Q: "Why isn't Alice performing T5 instead of T2?" (Alice currently performs T1, 
 -> coverable: true, neighborhood: operator=task_insertion(candidate_employees=[Alice],
    candidate_tasks=[T5]), deletion=task_deletion(freed_employees=[Alice], candidate_tasks=[T2]),
    restrictions=[precedence_chain(tasks=[T1, T3])]
+
+Q: "Why doesn't Alice do task T2 at a later point in her day?" (Alice currently performs T1, T2,
+   T3 - T2 is already performed, so this is a repositioning, not an insertion, even though no
+   other task is named as the new position)
+-> coverable: true, neighborhood: operator=task_repositioning(employee=Alice, target_task=T2),
+   restrictions=[precedence_chain(tasks=[T1, T3]), precedence(predecessor=T3, successor=T2)]
 
 Q: "Why can't Bob's route be done in a different order?" (Bob currently performs T6, T7, T8)
 -> coverable: true, neighborhood: operator=sequence_reordering(employee=Bob),
