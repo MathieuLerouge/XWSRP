@@ -1,8 +1,8 @@
 # Local library
 from src.modeling.solution import Solution
 
-# The sentinel ActivityName values for the boundaries of an employee's route (see
-# src.modeling.departure.LEAVING_HOME_STRING / src.modeling.comeback.COMING_BACK_HOME_STRING),
+# The sentinel ActivityName values for the boundaries of an employee's route
+# (see src.modeling.departure.LEAVING_HOME_STRING / src.modeling.comeback.COMING_BACK_HOME_STRING),
 # valid for ImmediatePrecedence/ForbiddenSequence regardless of which solution is being questioned.
 _ROUTE_START = "Start"
 _ROUTE_END = "Return"

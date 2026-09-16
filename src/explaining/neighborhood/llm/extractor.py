@@ -1,10 +1,12 @@
 # Standard library
+import os
 from typing import Optional, cast
 
 # Third-party libraries
 import instructor
 from instructor import Mode
 from instructor.core import InstructorRetryException
+from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
 # Local libraries
 from src.explaining.neighborhood.assembler import Assembler
@@ -16,6 +18,26 @@ from src.explaining.neighborhood.llm.neighborhood import ExtractedNeighborhood
 from src.explaining.neighborhood.llm.prompt import SYSTEM_PROMPT, build_user_prompt
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.modeling.solution import Solution
+
+
+# Provider prefixes (of a "provider/model-name" string) that need an API key,
+# mapped to the environment variable that must carry it
+# - checked eagerly at Extractor construction time so a missing key fails clearly right here,
+# rather than surfacing a confusing error from deep inside instructor/the provider SDK on the first extract() call.
+_PROVIDER_API_KEY_ENV_VARS = {
+    "anthropic": "ANTHROPIC_API_KEY",
+}
+
+
+def _check_required_api_key_is_set(model: str):
+    """
+    Raises:
+        RuntimeError: If model's provider requires an API key and the corresponding environment variable isn't set.
+    """
+    provider = model.split("/", 1)[0]
+    env_var_name = _PROVIDER_API_KEY_ENV_VARS.get(provider)
+    if env_var_name is not None and env_var_name not in os.environ:
+        raise RuntimeError(f"Using model {model!r} requires the {env_var_name} environment variable to be set.")
 
 
 #############
@@ -37,7 +59,11 @@ class Extractor:
                 Left as None (instructor's own per-provider default, typically its TOOLS mode)
                 unless the provider needs something else - e.g. Ollama's tool-calling support isn't reliable enough
                 for the default mode and needs Mode.MD_JSON instead.
+
+        Raises:
+            RuntimeError: If model's provider requires an API key and the corresponding environment variable isn't set.
         """
+        _check_required_api_key_is_set(model)
         self._solution = solution
         self._client = instructor.from_provider(model, mode=mode)
 
@@ -58,12 +84,13 @@ class Extractor:
                 or it named a primitive combination NeighborhoodModel doesn't support yet.
         """
         user_prompt = build_user_prompt(self._solution, question_text)
+        messages = [
+            ChatCompletionSystemMessageParam(role="system", content=SYSTEM_PROMPT),
+            ChatCompletionUserMessageParam(role="user", content=user_prompt),
+        ]
         try:
             outcome = self._client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt},
-                ],
+                messages=messages,
                 response_model=ExtractionOutcome,
             )
         except InstructorRetryException as error:

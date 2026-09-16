@@ -34,6 +34,22 @@ SOLVER_NAME = SOLVER_HIGHS
 # SOLVER_NAME = SOLVER_GUROBI
 
 
+#############################
+# Extractor - Configuration #
+#############################
+
+# Choose which LLM backend the neighborhood-based explanation pipeline's Extractor uses
+# to turn a free-text question into a Neighborhood, by activating one of the following lines
+# (format: "provider/model-name", passed straight through to instructor.from_provider)
+#
+# NB: The "ollama/..." line requires Ollama running locally with the model pulled (`ollama pull llama3.2`).
+# No API key needed. The "anthropic/..." line requires a valid ANTHROPIC_API_KEY environment variable
+# and installing requirements_anthropic.txt instead of requirements.txt.
+#
+EXTRACTOR_MODEL = "ollama/llama3.2"
+# EXTRACTOR_MODEL = "anthropic/claude-sonnet-5"
+
+
 #####################################
 # Explainer process - Configuration #
 #####################################
