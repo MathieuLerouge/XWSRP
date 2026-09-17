@@ -148,7 +148,6 @@ class SequenceForHeuristics(Sequence):
         return step_index
 
     def tighten_times(self, update_KPIs: bool = True):
-        assert (self.is_time_consistent, "The times are not consistent")
         idle_time_loss = 0
         time_variation_forward = self[0].FTS
         if time_variation_forward > 0:
@@ -217,133 +216,6 @@ class SequenceForHeuristics(Sequence):
     # Examining - Insertion - Best transformation #
     ###############################################
 
-    # TODO to remove if not necessary
-    # def examine_placing_between(self, entering_task: Task,
-    #                             step_before_placement_index: int, step_after_placement_index: int):
-    #     """
-    #     Examine the feasibility of placing the given entering task between
-    #     the step at the given index before the placement and the step at given index after the placement;
-    #     provide a dictionary, describing this examination, with keys:
-    #     'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible'
-    #     'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and
-    #     'traveling_duration_detour'.
-    #
-    #     - If the placement is feasible, the value associated to the key 'start_time' is the start time (int)
-    #       that could be applied to the entering task, when following the earliest policy,
-    #       whereas the values associated to 'earliest_start_time_for_upstream' and
-    #       'latest_start_time_for_downstream' are both None;
-    #     - If the placement is infeasible, the values associated to the keys 'earliest_start_time_for_upstream' and
-    #       'latest_start_time_for_downstream' are the start times that could be applied to the entering task so that
-    #       the time consistency of respectively the upstream and the downstream portions of the sequence,
-    #       while the value associated to the keys 'start_time' is an average of these artificial values.
-    #
-    #     Assumptions (only checked in debug):
-    #
-    #     - 1. the given entering task can be realized by the employee of this sequence;
-    #     - 2. the given entering task must not be already in this sequence;
-    #     - 3. the given index of the step before placement must both be
-    #     between 0 (included) and the number of steps - 2 (included);
-    #     - 4. the given index of the step before placement must both be
-    #     between 1 (included) and the number of steps - 1 (included);
-    #     - 5. the index of the step before the placement is smaller or equal to
-    #     the one of the step after the placement;
-    #     - 6. the times of this sequence are consistent.
-    #
-    #     :param entering_task: the task (Task) that is figured to be inserted
-    #     :param step_before_placement_index: the index of the step (int) before the position
-    #       where the given task would be placed
-    #     :param step_after_placement_index: the index of the step (int) after the position
-    #       where the given task would be placed
-    #     :return: the dictionary with keys 'is_feasible', 'is_upstream_feasible', 'is_downstream_feasible',
-    #       'start_time', 'earliest_start_time_for_upstream', 'latest_start_time_for_downstream' and
-    #       'traveling_duration_detour'
-    #     """
-    #
-    #     # Check the assumptions
-    #     assert (self.employee.is_capable_of_performing(entering_task),
-    #             f"The employee {self.employee.name} is not capable of realizing the given task {entering_task.name}")
-    #     assert (not (entering_task in self.get_contained_tasks()),
-    #             f"The given entering task {entering_task.name} is already in this sequence")
-    #     assert (0 <= step_before_placement_index < self.__len__() - 1,
-    #             f"The given step index {step_before_placement_index} is not between "
-    #             f"1 and {self.__len__() - 1} included")
-    #     assert (0 < step_after_placement_index < self.__len__(),
-    #             f"The given step index {step_after_placement_index} is not between "
-    #             f"1 and {self.__len__() - 1} included")
-    #     assert (step_before_placement_index <= step_after_placement_index,
-    #             f"The given step before the placement index {step_before_placement_index} is larger than"
-    #             f"the given step after the placement index {step_after_placement_index}")
-    #     assert self.is_time_consistent, "The times are not consistent"
-    #
-    #     # Get the step before and after the hypothetical placement
-    #     step_before = self[step_before_placement_index]
-    #     step_after = self[step_after_placement_index]
-    #
-    #     # Compute the earliest time at which the employee can start realizing the entering task,
-    #     # so that the times of the upstream portion of his/her sequence before the placement are consistent,
-    #     # and the latest time at which he/she can start realizing the entering task,
-    #     # so that the times of the downstream portion of his/her sequence after the placement are consistent
-    #     traveling_duration_from_step_before_placement_to_entering_task = \
-    #         self.instance.compute_traveling_duration(step_before.activity, entering_task)
-    #     earliest_start_time_of_entering_task = max(
-    #         entering_task.start_time_lb,
-    #         step_before.start_time - step_before.BTS + step_before.activity.duration +
-    #         traveling_duration_from_step_before_placement_to_entering_task
-    #     )
-    #     traveling_duration_from_entering_task_to_step_after_placement = \
-    #         self.instance.compute_traveling_duration(entering_task, step_after.activity)
-    #     latest_start_time_of_entering_task = min(
-    #         entering_task.end_time_ub,
-    #         step_after.start_time + step_after.FTS -
-    #         traveling_duration_from_entering_task_to_step_after_placement
-    #     ) - entering_task.duration
-    #     traveling_duration_detour = (
-    #             traveling_duration_from_step_before_placement_to_entering_task +
-    #             traveling_duration_from_entering_task_to_step_after_placement -
-    #             np.sum([
-    #                 self.instance.compute_traveling_duration(self[step_index].activity, self[step_index + 1].activity)
-    #                 for step_index in range(step_before_placement_index, step_after_placement_index)
-    #             ])
-    #     )
-    #
-    #     # Compute two booleans indicating whether the entering task can be placed while guaranteeing
-    #     # the consistency of the times of respectively the upstream and the downstream portions of the sequence
-    #     upstream_portion_is_feasible = (earliest_start_time_of_entering_task + entering_task.duration <=
-    #                                     entering_task.end_time_ub)
-    #     downstream_portion_is_feasible = (latest_start_time_of_entering_task >= entering_task.start_time_lb)
-    #     is_feasible = (
-    #             upstream_portion_is_feasible and downstream_portion_is_feasible and
-    #             earliest_start_time_of_entering_task < latest_start_time_of_entering_task
-    #     )
-    #
-    #     # Initialize the artificial start times
-    #     start_time_for_upstream = None
-    #     start_time_for_downstream = None
-    #
-    #     # If the consistency of both upstream and downstream portions can be guaranteed,
-    #     # then set start time according to the earliest policy
-    #     if is_feasible:
-    #         start_time = earliest_start_time_of_entering_task
-    #
-    #     # If the consistency of one the upstream or downstream portions can not be guaranteed,
-    #     # then set artificial start times for backward and forward to earliest and latest start times
-    #     # and the start time itself as the average of these artificial start times
-    #     else:
-    #         start_time_for_upstream = earliest_start_time_of_entering_task
-    #         start_time = (earliest_start_time_of_entering_task + latest_start_time_of_entering_task) // 2
-    #         start_time_for_downstream = latest_start_time_of_entering_task
-    #
-    #     return {'is_feasible': is_feasible,
-    #             'is_upstream_feasible': upstream_portion_is_feasible,
-    #             'is_downstream_feasible': downstream_portion_is_feasible,
-    #             'start_time': start_time,
-    #             'earliest_start_time_for_upstream': start_time_for_upstream,
-    #             'latest_start_time_for_downstream': start_time_for_downstream,
-    #             'traveling_duration_detour': traveling_duration_detour}
-
-    # def examine_insertion_at(self, entering_task: Task, step_index: int):
-    #     return self.examine_placing_between(entering_task, step_index - 1, step_index)
-
     def examine_insertion_at(self, task: Task, insertion_step_index: int,
                              compute_times_only_if_skill_constraints_satisfied: bool = True):
         """
@@ -363,10 +235,10 @@ class SequenceForHeuristics(Sequence):
         """
 
         # Check the assumptions
-        assert (not (task in self.get_contained_tasks()),
-                f"The given entering task {task.name} is already in this sequence")
-        assert (0 < insertion_step_index < self.__len__(),
-                f"The given step index {insertion_step_index} is not between 1 and {self.__len__() - 1} included")
+        assert task not in self.get_contained_tasks(), \
+            f"The given entering task {task.name} is already in this sequence"
+        assert 0 < insertion_step_index < self.__len__(), \
+            f"The given step index {insertion_step_index} is not between 1 and {self.__len__() - 1} included"
         assert self.is_time_consistent, "The times are not consistent"
 
         # Examine skill-wise feasibility
@@ -484,14 +356,6 @@ class SequenceForHeuristics(Sequence):
                     examined_step_index = self.nb_steps
                 else:
                     examined_step_index += 1
-        # TODO: Remove these lines
-        # best_examination_bis = self.find_best_insertion_between_consecutive_activities_bis(
-        #     task, tabu_indices, compute_times_only_if_skill_constraints_satisfied
-        # )
-        # if best_examination != best_examination_bis:
-        #     print(best_examination)
-        #     print(best_examination_bis)
-        #     raise Exception("ERROR")
         return best_examination
 
     def find_best_insertion_between_consecutive_activities_among_tasks_set(
@@ -557,49 +421,13 @@ class SequenceForHeuristics(Sequence):
     # Examining - Replacement #
     ###########################
 
-    # TODO to remove if below works properly
-    def examine_replacing_task_with_another_former(self, replaced_task: Task, replacing_task: Task,
-                                                   compute_times_only_if_skill_constraints_satisfied: bool = True):
-        # Check the assumptions
-        assert (not (replaced_task in self.get_contained_tasks()),
-                f"The given replaced_task task {replaced_task.name} is not in this sequence")
-        assert (not (replacing_task in self.get_contained_tasks()),
-                f"The given replacing_task task {replacing_task.name} is already in this sequence")
-        assert self.is_time_consistent, "The times are not consistent"
-        # Examine skill-wise feasibility
-        is_skill_feasible = self.employee.is_capable_of_performing(replacing_task)
-        if compute_times_only_if_skill_constraints_satisfied and not is_skill_feasible:
-            examination = ReplacementExamination()
-            examination.is_feasible = False
-            examination.is_skill_feasible = False
-            examination.employee = self.employee
-            examination.replaced_task = replaced_task
-            examination.replacing_task = replacing_task
-            return examination
-        # Examine time-wise
-        sequence_copy = self.copy()  # TODO: this makes the complexity way worst than what it could be
-        task_index = sequence_copy.get_step_index_of(replaced_task)
-        sequence_travel_time_before_removing = sequence_copy.total_traveling_duration
-        sequence_copy.remove_step(task_index, False, True)
-        sequence_travel_time_after_removing = sequence_copy.total_traveling_duration
-        sequence_travel_time_decrease_due_to_removal = \
-            sequence_travel_time_before_removing - sequence_travel_time_after_removing
-        insertion_examination = \
-            sequence_copy.examine_insertion_at(replacing_task, task_index,
-                                               compute_times_only_if_skill_constraints_satisfied)
-        examination = ReplacementExamination.from_examination(insertion_examination)
-        examination.replaced_task = replaced_task
-        examination.replacing_task = replacing_task
-        examination.travel_time_increase -= sequence_travel_time_decrease_due_to_removal
-        return examination
-
     def examine_replacing_task_with_another(self, replaced_task: Task, replacing_task: Task,
                                             compute_times_only_if_skill_constraints_satisfied: bool = True):
         # Check the assumptions
-        assert (not (replaced_task in self.get_contained_tasks()),
-                f"The given replaced_task task {replaced_task.name} is not in this sequence")
-        assert (not (replacing_task in self.get_contained_tasks()),
-                f"The given replacing_task task {replacing_task.name} is already in this sequence")
+        assert replaced_task in self.get_contained_tasks(), \
+            f"The given replaced_task task {replaced_task.name} is not in this sequence"
+        assert replacing_task not in self.get_contained_tasks(), \
+            f"The given replacing_task task {replacing_task.name} is already in this sequence"
         assert self.is_time_consistent, "The times are not consistent"
 
         # Examine skill-wise feasibility
@@ -777,12 +605,12 @@ class SequenceForHeuristics(Sequence):
         :return: the reordering examination (ReorderExamination)
         """
         # Check the assumptions
-        assert (moving_task in self.get_contained_tasks(),
-                f"The given moving task {moving_task.name} is not in this sequence")
-        assert (fixed_task in self.get_contained_tasks(),
-                f"The given leaving task {fixed_task.name} is not in this sequence")
-        assert (self.get_step_index_of(moving_task) < self.get_step_index_of(fixed_task),
-                f"The given moving task {moving_task.name} is not before the given fixed task {fixed_task.name} ")
+        assert moving_task in self.get_contained_tasks(), \
+            f"The given moving task {moving_task.name} is not in this sequence"
+        assert fixed_task in self.get_contained_tasks(), \
+            f"The given leaving task {fixed_task.name} is not in this sequence"
+        assert self.get_step_index_of(moving_task) < self.get_step_index_of(fixed_task), \
+            f"The given moving task {moving_task.name} is not before the given fixed task {fixed_task.name} "
         assert self.is_time_consistent, "The times are not consistent"
         # Examine
         sequence_copy = self.copy()
@@ -817,12 +645,12 @@ class SequenceForHeuristics(Sequence):
         :return: the reordering examination (ReorderExamination)
         """
         # Check the assumptions
-        assert (moving_task in self.get_contained_tasks(),
-                f"The given moving task {moving_task.name} is not in this sequence")
-        assert (fixed_task in self.get_contained_tasks(),
-                f"The given leaving task {fixed_task.name} is not in this sequence")
-        assert (self.get_step_index_of(moving_task) > self.get_step_index_of(fixed_task),
-                f"The given moving task {moving_task.name} is not after the given fixed task {fixed_task.name} ")
+        assert moving_task in self.get_contained_tasks(), \
+            f"The given moving task {moving_task.name} is not in this sequence"
+        assert fixed_task in self.get_contained_tasks(), \
+            f"The given leaving task {fixed_task.name} is not in this sequence"
+        assert self.get_step_index_of(moving_task) > self.get_step_index_of(fixed_task), \
+            f"The given moving task {moving_task.name} is not after the given fixed task {fixed_task.name} "
         assert self.is_time_consistent, "The times are not consistent"
         # Examine
         sequence_copy = self.copy()
@@ -857,8 +685,8 @@ class SequenceForHeuristics(Sequence):
         step_index = self.get_step_index_of(moving_task)
         last_task_step_index = self.get_last_task_step_index()
         # Check the assumptions
-        assert (step_index < last_task_step_index,
-                f"The given moving task {moving_task.name} is the last task in this sequence")
+        assert step_index < last_task_step_index, \
+            f"The given moving task {moving_task.name} is the last task in this sequence"
         # Find the best shift to later
         best_examination = None
         for step in self.get_steps(step_index + 1, last_task_step_index + 1):
@@ -884,8 +712,8 @@ class SequenceForHeuristics(Sequence):
         step_index = self.get_step_index_of(moving_task)
         first_task_step_index = self.get_first_task_step_index()
         # Check the assumptions
-        assert (step_index > first_task_step_index,
-                f"The given moving task {moving_task.name} is the first task in this sequence")
+        assert step_index > first_task_step_index, \
+            f"The given moving task {moving_task.name} is the first task in this sequence"
         # Find the best shift to earlier
         best_examination = None
         for step in self.get_steps(first_task_step_index, step_index):
@@ -1044,11 +872,11 @@ class SequenceForHeuristics(Sequence):
         """
 
         # Check assumptions
-        assert (0 < step_index < self.__len__(),
-                f"The given step index {step_index} is not between 1 and {self.__len__() - 1} included")
-        assert (isinstance(self.get_step(step_index).activity, Task),
-                f"It is not possible to removed step {step_index} as its corresponding activity "
-                f"{self.get_step(step_index).activity.name} is not a task")
+        assert 0 < step_index < self.__len__(), \
+            f"The given step index {step_index} is not between 1 and {self.__len__() - 1} included"
+        assert isinstance(self.get_step(step_index).activity, Task), \
+            (f"It is not possible to removed step {step_index} as its corresponding activity "
+             f"{self.get_step(step_index).activity.name} is not a task")
         assert self.is_time_consistent, "The times are not consistent"
 
         # Remove the step
@@ -1106,13 +934,13 @@ class SequenceForHeuristics(Sequence):
                     (step_after_removal_former_arrival_time - removed_step.end_time)
             )
             assert (removed_step.arrival_time - step_before_removal_former_end_time ==
-                    self.instance.compute_traveling_duration(step_before_removal.activity, removed_step.activity),
-                    "Times before removal were incorrect, traveling duration was not respected")
+                    self.instance.compute_traveling_duration(step_before_removal.activity, removed_step.activity)), \
+                "Times before removal were incorrect, traveling duration was not respected"
             assert (step_after_removal_former_arrival_time - removed_step.end_time ==
-                    self.instance.compute_traveling_duration(removed_step.activity, step_after_removal.activity),
-                    "Times after removal were incorrect, traveling duration was not respected")
-            assert (traveling_duration_variation <= 0,
-                    "After removal, variation of traveling duration is found to be positive")
+                    self.instance.compute_traveling_duration(removed_step.activity, step_after_removal.activity)), \
+                "Times after removal were incorrect, traveling duration was not respected"
+            assert traveling_duration_variation <= 0, \
+                "After removal, variation of traveling duration is found to be positive"
             self._total_traveling_duration += traveling_duration_variation
 
             # Update idle time
@@ -1183,10 +1011,10 @@ class SequenceForHeuristics(Sequence):
         """
 
         # Check assumptions
-        assert (not (task in self.get_contained_tasks()),
-                f"The given task {task.name} is already in this sequence")
-        assert (0 < step_index < self.__len__(),
-                f"The given step index {step_index} is not between 1 and {self.__len__() - 1} included")
+        assert task not in self.get_contained_tasks(), \
+            f"The given task {task.name} is already in this sequence"
+        assert 0 < step_index < self.__len__(), \
+            f"The given step index {step_index} is not between 1 and {self.__len__() - 1} included"
         assert self.is_time_consistent, "The times are not consistent"
 
         # Initialize indices of the range of steps which start_time has been changed
@@ -1209,8 +1037,9 @@ class SequenceForHeuristics(Sequence):
         # Compute traveling durations
         traveling_duration_before_after = step_after_insertion.arrival_time - step_before_insertion.end_time
         assert (traveling_duration_before_after ==
-                self.instance.compute_traveling_duration(step_before_insertion.activity, step_after_insertion.activity),
-                "Times before and after insertion were incorrect, traveling duration was not respected")
+                self.instance.compute_traveling_duration(
+                    step_before_insertion.activity, step_after_insertion.activity)), \
+            "Times before and after insertion were incorrect, traveling duration was not respected"
         traveling_duration_before = self.instance.compute_traveling_duration(step_before_insertion.activity, task)
         traveling_duration_after = self.instance.compute_traveling_duration(task, step_after_insertion.activity)
 
@@ -1267,8 +1096,8 @@ class SequenceForHeuristics(Sequence):
                     traveling_duration_before + traveling_duration_after - traveling_duration_before_after
             )
             self._total_traveling_duration += traveling_duration_variation
-            assert (traveling_duration_variation >= 0,
-                    "After insertion, variation of traveling duration is found to be negative")
+            assert traveling_duration_variation >= 0, \
+                "After insertion, variation of traveling duration is found to be negative"
 
             # Update idle time
             idle_time_variation = (
