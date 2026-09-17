@@ -4,7 +4,7 @@ import numpy as np
 
 # Local libraries
 from main_configuration import *
-from src.checking.feasibility import check_feasibility
+from src.feasibility.checker import FeasibilityChecker
 from src.drawing.figuresmanager import FiguresManager
 from src.optimization.heuristics.greedy import run_greedy_algorithm
 from src.optimization.heuristics.neighborhood_search import run_neighborhood_search
@@ -70,7 +70,7 @@ def optimization_main():
                 solution = run_stochastic_heuristic(instance)
                 end = time.time()
                 solving_time_in_seconds = np.ceil(end - start)
-                feasible = check_feasibility(solution, covering=False)[0]
+                feasible = FeasibilityChecker(solution).is_feasible()
                 print(f"Feasible solution: {feasible}")
                 print(f"Solving time: {solving_time_in_seconds}s = "
                       f"{solving_time_in_seconds // 60}min {solving_time_in_seconds % 60}s")
@@ -86,7 +86,7 @@ def optimization_main():
                 raise ValueError(f"The process {MAIN_PROCESS_AMONG_OPTIMIZATION_ONES} is not an optimizing process")
             end = time.time()
             solving_time_in_seconds = int(np.ceil(end - start))
-            feasible = check_feasibility(solution, covering=False)[0]
+            feasible = FeasibilityChecker(solution).is_feasible()
             print(f"Feasible solution: {feasible}")
             print(f"Solving time: {solving_time_in_seconds}s = "
                   f"{solving_time_in_seconds // 60}min {solving_time_in_seconds % 60}s")
@@ -155,7 +155,7 @@ def optimization_main():
                 raise ValueError(f"The process {MAIN_PROCESS_AMONG_REOPTIMIZATION_ONES} is not a reoptimizing process")
             end = time.time()
             solving_time_in_seconds = int(np.ceil(end - start))
-            feasible = check_feasibility(solution, covering=False)[0]
+            feasible = FeasibilityChecker(solution).is_feasible()
             print(f"Feasible solution: {feasible}")
             print(f"Solving time: {solving_time_in_seconds}s = "
                   f"{solving_time_in_seconds // 60}min {solving_time_in_seconds % 60}s")

@@ -1,7 +1,7 @@
 # Local libraries
 from main_configuration import MAIN_PROCESS, EXPLANATIONS_ANALYSIS_MAXIMUM_NUMBER_OF_EXPLANATIONS_PER_TEMPLATE, \
     MAIN_PROCESS_AMONG_EXPLAINER_ONES
-from src.checking.feasibility import check_feasibility
+from src.feasibility.checker import FeasibilityChecker
 from src.explaining.configuration import *
 from src.explaining.processes import launch_explainer_UI_on_demo_solution, launch_explainer_UI_on_default_solution, \
     compute_computation_time_analysis_of_explanations
@@ -63,7 +63,7 @@ def explaining_main():
 
                 # Extract solution from file
                 solution = extract_solution_from_file(solution_file_path)
-                feasible = check_feasibility(solution, covering=False)[0]
+                feasible = FeasibilityChecker(solution).is_feasible()
                 if feasible:
                     solution.compute_kpis()
                 print_title_frame(f"Extraction of {solution.name}")

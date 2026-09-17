@@ -1,4 +1,6 @@
 # Local library
+from src.utils.files.feasibility import create_multiple_solution_feasibility_checks_file_path, \
+    create_solution_feasibility_check_file_path
 from src.utils.files.general import check_inputs_file_existence, get_default_inputs_directory_path, \
     get_default_outputs_directory_path, get_file_extension, get_file_name_from_path, get_project_directory_path, \
     has_a_file_extension, make_absolute_path_from_relative_one, make_inputs_file_relative_path_from_file_name, \
@@ -29,6 +31,8 @@ __all__ = [
     "create_instance_file_name",
     "create_instance_file_path",
     "create_instance_file_paths_with_various_extensions",
+    "create_multiple_solution_feasibility_checks_file_path",
+    "create_solution_feasibility_check_file_path",
     "does_instance_file_name_mention_version",
     "does_solution_file_name_mention_solving_method",
     "does_solution_file_name_mention_solving_parameters",

@@ -1,5 +1,5 @@
 # Local libraries
-from src.checking.feasibility import check_feasibility
+from src.feasibility.checker import FeasibilityChecker
 from src.evaluation.constants import INSTANCES_FOR_EVALUATION_NAMES
 from src.explaining.writing.explanation import define_multiple_contrastive_explanations_json_file_name
 from src.optimization.heuristics.solution import SolutionForHeuristics
@@ -45,9 +45,9 @@ def get_solution_for_evaluation(instance_index: int = 0):
     """
     solution_path = get_solution_for_evaluation_path(instance_index)
     solution = extract_solution_from_file(solution_path, True, True, True)
-    feasible, text = check_feasibility(solution)
-    if not feasible:
-        raise ValueError(f"The solution {solution.name} is not feasible: {text}")
+    checker = FeasibilityChecker(solution)
+    if not checker.is_feasible():
+        raise ValueError(f"The solution {solution.name} is not feasible: {checker.report()}")
     solution = SolutionForHeuristics.from_Solution(solution)
     solution.tighten_times()
     return solution

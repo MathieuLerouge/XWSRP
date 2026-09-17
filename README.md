@@ -38,7 +38,7 @@ The directory `utils` contains various utility functions and global variables. \
 The directory `modeling` contains the objects used to model WSRP instances and solutions. \
 The directory `optimization` contains the scripts used for solving WSRP instances. \
 The directory `drawing` contains the scripts used for representing WSRP solutions. \
-The directory `checking` contains the scripts used for checking WSRP solutions feasibility. \
+The directory `feasibility` contains the scripts used for checking WSRP solutions feasibility. \
 The directory `explaining` contains the scripts used for generating explanations
 (see its own [`README.md`](src/explaining/README.md) for a description of its subdirectories). \
 The directory `evaluation` contains the scripts related to the evaluation of the explanations. \

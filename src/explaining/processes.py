@@ -8,7 +8,7 @@ import numpy as np
 # Local libraries
 from main_configuration import EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION, \
     EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES
-from src.checking.feasibility import check_feasibility
+from src.feasibility.checker import FeasibilityChecker
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
 from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
@@ -44,7 +44,7 @@ def get_demo_solution():
     :return: the solution for demo (Solution)
     """
     solution = extract_solution_from_file(get_demo_solution_path(), True, True, True)
-    if not check_feasibility(solution)[0]:
+    if not FeasibilityChecker(solution).is_feasible():
         raise ValueError(f"The solution {solution.name} is not feasible")
     return solution
 
@@ -152,7 +152,7 @@ def get_default_solution():
         raise FileNotFoundError(f"There are no solutions files found in directory "
                                 f"{DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH}")
     solution = extract_solution_from_file(solution_file_path, True, True, True)
-    if not check_feasibility(solution)[0]:
+    if not FeasibilityChecker(solution).is_feasible():
         raise ValueError(f"The solution {solution.name} is not feasible")
     return solution
 

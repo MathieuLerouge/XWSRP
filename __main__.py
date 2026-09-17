@@ -4,7 +4,7 @@
 
 # Local libraries
 from main_configuration import MAIN_PROCESS
-from src.checking.__main__ import analysis_main
+from src.feasibility.__main__ import analysis_main
 from src.explaining.__main__ import explaining_main
 from src.optimization.__main__ import optimization_main
 from src.teaching.__main__ import teaching_main

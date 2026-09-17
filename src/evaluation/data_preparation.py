@@ -2,7 +2,7 @@
 from os import path
 
 # Local libraries
-from src.checking.feasibility import check_feasibility
+from src.feasibility.checker import FeasibilityChecker
 from src.evaluation.constants import INSTANCES_FOR_EVALUATION_NAMES, SOLUTIONS_FOR_EVALUATION_NAMES, \
     ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION
 from src.evaluation.prepared_data_extraction import get_explanations_for_evaluation_directory_path
@@ -65,7 +65,7 @@ def compute_solution_for_evaluation_by_ILP_optimization(instance: Instance, solv
         model.solving_time_limit = solving_time_limit
     model.solve(mute=mute_process)
     solution = model.solution
-    if not check_feasibility(solution)[0]:
+    if not FeasibilityChecker(solution).is_feasible():
         raise ValueError(f"The solution {solution.name} is not feasible")
     solution.compute_kpis()
     solution.tighten_times()
@@ -100,9 +100,9 @@ def get_solution_for_evaluation_in_default_inputs_directory(instance_index: int)
     """
     solution_path = get_path_of_solution_for_evaluation_in_default_inputs_directory(instance_index)
     solution = extract_solution_from_file(solution_path, True, True, True)
-    feasible, text = check_feasibility(solution)
-    if not feasible:
-        raise ValueError(f"The solution {solution.name} is not feasible: {text}")
+    checker = FeasibilityChecker(solution)
+    if not checker.is_feasible():
+        raise ValueError(f"The solution {solution.name} is not feasible: {checker.report()}")
     solution = SolutionForHeuristics.from_Solution(solution)
     solution.tighten_times()
     return solution

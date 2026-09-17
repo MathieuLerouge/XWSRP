@@ -1,6 +1,6 @@
 # Local libraries
 from main_configuration import *
-from src.checking.feasibility import check_feasibility
+from src.feasibility.checker import FeasibilityChecker
 from src.drawing.figuresmanager import FiguresManager
 from src.reading.solution import extract_solution_from_file
 from src.utils.display import print_title_frame
@@ -37,7 +37,7 @@ def analysis_main():
         # Check the feasibility of the solution
         print_title_frame(f"Checking feasibility of {solution.name}")
         print("")
-        feasible = check_feasibility(solution, covering=False)[0]
+        feasible = FeasibilityChecker(solution).is_feasible()
         solution.compute_kpis()
         print("Checking: done")
         print("")

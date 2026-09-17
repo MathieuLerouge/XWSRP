@@ -2,7 +2,7 @@
 import pytest
 
 # Local libraries
-from src.checking.feasibility import check_feasibility
+from src.feasibility.checker import FeasibilityChecker
 from src.optimization.milp.model import Model
 from src.optimization.milp.solver.solver import SOLVER_GUROBI, SOLVER_HIGHS
 from src.reading.instance import extract_instance_from_file
@@ -27,8 +27,8 @@ def solve_small_instance(solver_name: str):
 def test_solve_with_highs_finds_a_feasible_solution():
     model = solve_small_instance(SOLVER_HIGHS)
     assert model.has_solution
-    feasible, checking_text = check_feasibility(model.solution)
-    assert feasible, checking_text
+    checker = FeasibilityChecker(model.solution)
+    assert checker.is_feasible(), checker.report()
     assert model.objective_value < 0
 
 
@@ -41,8 +41,8 @@ def test_solve_with_gurobi_finds_a_feasible_solution():
     try:
         model = solve_small_instance(SOLVER_GUROBI)
         assert model.has_solution
-        feasible, checking_text = check_feasibility(model.solution)
-        assert feasible, checking_text
+        checker = FeasibilityChecker(model.solution)
+        assert checker.is_feasible(), checker.report()
         assert model.objective_value < 0
     except (gurobipy.GurobiError, RuntimeError) as error:
         pytest.skip(f"gurobipy is installed but not usable: {error}")

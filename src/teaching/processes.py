@@ -1,13 +1,13 @@
 # Local libraries
-from src.checking.feasibility import check_feasibility, create_multiple_solution_feasibility_checks_file_path
+from src.feasibility.checker import FeasibilityChecker
 from src.drawing.figuresmanager import FiguresManager
 from src.teaching.optimization.programming.model import WSRPIPModelForTeaching
 from src.teaching.reading.instance import extract_teaching_instance_from_file
 from src.teaching.reading.solution import extract_solution_for_teaching_from_file
 from src.utils.constants import LINE_BREAK_STRING
 from src.utils.display import print_title_frame, create_title_frame
-from src.utils.files import get_paths_of_instances_files_in_given_directory, \
-    get_paths_of_solutions_files_in_given_directory
+from src.utils.files import create_multiple_solution_feasibility_checks_file_path, \
+    get_paths_of_instances_files_in_given_directory, get_paths_of_solutions_files_in_given_directory
 from src.writing.analysis import write_solution_analysis
 from src.writing.common import write_text_to_file
 from src.writing.solution import write_solution
@@ -68,7 +68,9 @@ def run_IP_optimization_on_teaching_instances(solving_process_time_limit_in_seco
         print_title_frame(f"Building solution and checking feasibility")
         print("")
         solution = model.solution
-        if check_feasibility(solution, covering=(model.version == 1))[0]:
+        checker = FeasibilityChecker(solution)
+        checker.covering = (model.version == 1)
+        if checker.is_feasible():
             raise Exception("The solution given by the optimization is not feasible")
         print("Solution feasible: True")
         print(f"Solution name: {solution.name}")
@@ -122,7 +124,9 @@ def run_feasibility_check_on_provided_solutions(save_solutions_feasibility_check
     for solution_file_path in solutions_files_paths:
         solution = extract_solution_for_teaching_from_file(solution_file_path)
         solution.compute_kpis()
-        feasible, checking_text = check_feasibility(solution, tolerance_in_minutes=tolerance_in_minutes)
+        checker = FeasibilityChecker(solution, tolerance_in_minutes=tolerance_in_minutes)
+        feasible = checker.is_feasible()
+        checking_text = checker.report()
         title_frame = create_title_frame(f"Checking of {solution.name}")
         checking_text = (title_frame + LINE_BREAK_STRING + LINE_BREAK_STRING +
                          checking_text + LINE_BREAK_STRING + LINE_BREAK_STRING)
