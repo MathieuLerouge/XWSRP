@@ -91,7 +91,7 @@ def extract_solution_for_heuristics_from_file(solution_file_path: str):
     instance_file_path = find_instance_file_path_corresponding_to_solution(solution_file_path)
     instance = extract_instance_from_file(instance_file_path)
     meta_data = identify_meta_data_in_solution_file_path(solution_file_path)
-    solution = SolutionForHeuristics(instance, heuristic_ID=meta_data[META_DATA_SOLVING_METHOD_KEY])
+    solution = SolutionForHeuristics(instance, heuristic_id=meta_data[META_DATA_SOLVING_METHOD_KEY])
     return complete_solution_from_file(solution, solution_file_path)
 
 

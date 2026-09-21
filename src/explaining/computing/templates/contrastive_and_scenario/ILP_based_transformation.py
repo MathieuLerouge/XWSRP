@@ -8,6 +8,7 @@ from src.explaining.computing.templates.infeasibility import SkillInfeasibility,
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
+from src.optimization.heuristics.slacks import SlackTimeComputer
 from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExceptionMapper
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
@@ -33,7 +34,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
     transformation_is_skill_feasible = employee.is_capable_of_performing(task)
     transformation_is_feasible = transformation_is_skill_feasible and (model.pivot_task_time_gap == 0)
     # Create support solution
-    support_sequence = SequenceForHeuristics.from_Sequence(model.solution_sequence)
+    support_sequence = SequenceForHeuristics.from_sequence(model.solution_sequence)
     support_solution = solution.copy(solution.name + "_support")
     if support_solution.get_task_performance_status(task):
         support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
@@ -51,9 +52,9 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
         else:
             support_sequence = support_solution.get_sequence(employee)
             upstream_critical_step_index = \
-                support_sequence.find_first_critical_step_index_backward_from(step_index - 1)
+                SlackTimeComputer.find_first_critical_step_index_backward_from(support_sequence, step_index - 1)
             downstream_critical_step_index = \
-                support_sequence.find_first_critical_step_index_forward_from(step_index + 1)
+                SlackTimeComputer.find_first_critical_step_index_forward_from(support_sequence, step_index + 1)
             upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_ub
             downstream_feasible = latest_start_time_for_downstream >= task.start_time_lb
             infeasibility = TimeInfeasibility(

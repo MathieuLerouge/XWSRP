@@ -1,6 +1,7 @@
 # Standard libraries
 import random
 import time
+from typing import Optional, Tuple
 
 # Third-party libraries
 import numpy as np
@@ -12,8 +13,9 @@ from main_configuration import NEIGHBORHOOD_SEARCH_POPULATION_SIZE, NEIGHBORHOOD
 from src.modeling.employee import Employee
 from src.modeling.instance import Instance
 from src.modeling.task import Task
+from src.optimization.heuristics.evaluator import Evaluator
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from src.optimization.heuristics.stochastic import run_stochastic_heuristic
+from src.optimization.heuristics.algorithms.stochastic import run_stochastic_heuristic
 
 # Global variables
 NEIGHBORHOOD_SEARCH_RANDOM_SEED = 42
@@ -24,7 +26,8 @@ NEIGHBORHOOD_SEARCH_RANDOM_SEED = 42
 ###########################################
 
 def randomly_select_employee_by_favoring_higher_travel_time_vs_working_time_ratio(
-        solution: SolutionForHeuristics, employees: list[Employee] = None) -> Employee:
+        solution: SolutionForHeuristics, employees: Optional[list[Employee]] = None
+) -> Employee:
     """
     Randomly select an employee among the given employees according to a probability distribution which,
     for each employee, is proportional to their total travel time divided by their total working duration
@@ -46,7 +49,8 @@ def randomly_select_employee_by_favoring_higher_travel_time_vs_working_time_rati
 
 
 def randomly_select_task_in_employee_sequence_by_favoring_higher_travel_time_delta_vs_duration_ratio(
-        solution: SolutionForHeuristics, employee: Employee) -> Task:
+        solution: SolutionForHeuristics, employee: Employee
+) -> Task:
     """
     Randomly select a task among those performed by the given employee,
     according to a probability distribution which, for each task, is proportional to
@@ -166,13 +170,14 @@ def randomly_insert_non_performed_task_in_employee_sequence(solution: SolutionFo
         skilled_employees = solution.instance.get_employees_with_skill_level_higher_than(task.skill_level)
         # Get the list of feasible insertions of the selected task for each of these employees
         # NB: O(m)
-        feasible_insertions_examinations = []
+        feasible_insertions_evaluations = []
         for employee in skilled_employees:
-            feasible_insertions_examinations.extend(
-                solution.find_feasible_insertions_between_consecutive_activities(employee, task)
+            feasible_insertions_evaluations.extend(
+                Evaluator.find_feasible_insertions_between_consecutive_activities(
+                    solution.get_sequence(employee), task)
             )
         # If there is no feasible insertion for any skilled employee, return the input solution
-        if len(feasible_insertions_examinations) == 0:
+        if len(feasible_insertions_evaluations) == 0:
             return solution, False
         # Otherwise,
         else:
@@ -180,14 +185,14 @@ def randomly_insert_non_performed_task_in_employee_sequence(solution: SolutionFo
             # according to a probability distribution which is inversely proportional to
             # the travel time increase due to each insertion of the task in the employee sequence
             # NB: O(m)
-            weights = [1 / (examination.travel_time_increase + 1)
-                       for examination in feasible_insertions_examinations]
-            examination = random.choices(feasible_insertions_examinations, weights=weights)[0]
+            weights = [1 / (evaluation.travel_time_increase + 1)
+                       for evaluation in feasible_insertions_evaluations]
+            evaluation = random.choices(feasible_insertions_evaluations, weights=weights)[0]
             # Insert the task in the selected employee sequence
             # NB: O(p)
             # NB 2: worst case complexity in O(m)
             # NB 3: average case complexity in O(m/n)
-            solution.insert_task_after_activity(task, examination.activity_before_insertion, examination.start_time,
+            solution.insert_task_after_activity(task, evaluation.activity_before_insertion, evaluation.start_time,
                                                 tighten_times=False)
             return solution, True
 
@@ -247,11 +252,11 @@ def randomly_replace_performed_task_by_non_performed_one(solution: SolutionForHe
             [task for task in solution.non_performed_tasks if employee.is_capable_of_performing(task)]
         # Get the list of feasible replacements of the selected task by each of the possible tasks
         # NB: O(m)
-        examinations = \
-            solution.find_feasible_replacements_of_task_given_various_replacing_tasks(employee, replaced_task,
-                                                                                      possible_replacing_tasks)
+        evaluations = \
+            Evaluator.find_feasible_replacements_of_task_given_various_replacing_tasks(
+                solution.get_sequence(employee), replaced_task, possible_replacing_tasks)
         # If there is no feasible replacement, return the input solution
-        if len(examinations) == 0:
+        if len(evaluations) == 0:
             return solution, False
         # Otherwise,
         else:
@@ -260,16 +265,16 @@ def randomly_replace_performed_task_by_non_performed_one(solution: SolutionForHe
             # the duration of the replacing task divided by
             # the travel time increase due to each replacement of the task in the employee sequence
             # NB: O(m)
-            weights = [(examination.replacing_task.duration / (examination.travel_time_increase + 1)
-                        if examination.travel_time_increase >= 0 else
-                        examination.replacing_task.duration - examination.travel_time_increase)
-                       for examination in examinations]
-            examination = random.choices(examinations, weights=weights)[0]
+            weights = [(evaluation.replacing_task.duration / (evaluation.travel_time_increase + 1)
+                        if evaluation.travel_time_increase >= 0 else
+                        evaluation.replacing_task.duration - evaluation.travel_time_increase)
+                       for evaluation in evaluations]
+            evaluation = random.choices(evaluations, weights=weights)[0]
             # Replace the task in the selected employee sequence
             # NB: O(p)
             # NB 2: worst case complexity in O(m)
             # NB 3: average case complexity in O(m/n)
-            solution.replace_task_by_another(replaced_task, examination.replacing_task, examination.start_time,
+            solution.replace_task_by_another(replaced_task, evaluation.replacing_task, evaluation.start_time,
                                              tighten_times=False)
             return solution, True
 
@@ -321,13 +326,13 @@ def randomly_reassign_task_from_employee_sequence_to_another(solution: SolutionF
                              if employee != stolen_employee and employee.skill_level >= moving_task.skill_level]
         # Get the list of feasible reassignments of the selected task for each of these employees
         # NB: O(m)
-        examinations = []
+        evaluations = []
         for employee in skilled_employees:
-            examinations.extend(
-                solution.find_feasible_reassignments(stolen_employee, moving_task, employee)
+            evaluations.extend(
+                Evaluator.find_feasible_reassignments(solution, stolen_employee, moving_task, employee)
             )
         # If there is no feasible reassignment for any skilled employee, return the input solution
-        if len(examinations) == 0:
+        if len(evaluations) == 0:
             return solution, False
         # Otherwise,
         else:
@@ -335,16 +340,16 @@ def randomly_reassign_task_from_employee_sequence_to_another(solution: SolutionF
             # according to a probability distribution which is inversely proportional to
             # the travel time increase due to each reassignment of the task in the employee sequence
             # NB: O(m)
-            weights = [(1 / (examination.travel_time_increase + 1) if examination.travel_time_increase >= 0 else
-                        -examination.travel_time_increase)
-                       for examination in examinations]
-            examination = random.choices(examinations, weights=weights)[0]
+            weights = [(1 / (evaluation.travel_time_increase + 1) if evaluation.travel_time_increase >= 0 else
+                        -evaluation.travel_time_increase)
+                       for evaluation in evaluations]
+            evaluation = random.choices(evaluations, weights=weights)[0]
             # Insert the task in the selected employee sequence
             # NB: O(p)
             # NB 2: worst case complexity in O(m)
             # NB 3: average case complexity in O(m/n)
-            solution.reassign_task_after_activity(moving_task, examination.activity_before_reassignment,
-                                                  examination.start_time, tighten_times=False)
+            solution.reassign_task_after_activity(moving_task, evaluation.activity_before_reassignment,
+                                                  evaluation.start_time, tighten_times=False)
             return solution, True
 
 
@@ -375,9 +380,9 @@ def randomly_reorder_task_in_employee_sequence(solution: SolutionForHeuristics):
             task = random.choice(tasks)
         # Get the list of feasible reorders of the selected task
         # NB: O(m)
-        examinations = solution.find_task_feasible_reorders(employee, task)
+        evaluations = Evaluator.find_task_feasible_reorders(solution.get_sequence(employee), task)
         # If there is no feasible reorder for any skilled employee, return the input solution
-        if len(examinations) == 0:
+        if len(evaluations) == 0:
             return solution, False
         # Otherwise,
         else:
@@ -385,16 +390,16 @@ def randomly_reorder_task_in_employee_sequence(solution: SolutionForHeuristics):
             # according to a probability distribution which is inversely proportional to
             # the travel time increase due to each reorder of the task in the employee sequence
             # NB: O(m)
-            weights = [(1 / (examination.travel_time_increase + 1) if examination.travel_time_increase >= 0 else
-                        -examination.travel_time_increase)
-                       for examination in examinations]
-            examination = random.choices(examinations, weights=weights)[0]
+            weights = [(1 / (evaluation.travel_time_increase + 1) if evaluation.travel_time_increase >= 0 else
+                        -evaluation.travel_time_increase)
+                       for evaluation in evaluations]
+            evaluation = random.choices(evaluations, weights=weights)[0]
             # Insert the task in the selected employee sequence
             # NB: O(p)
             # NB 2: worst case complexity in O(m)
             # NB 3: average case complexity in O(m/n)
-            solution.shift_task_in_sequence_after_activity(task, examination.activity_before, examination.start_time,
-                                                           tighten_times=False)
+            solution.reposition_task_in_sequence_after_activity(task, evaluation.activity_before, evaluation.start_time,
+                                                                tighten_times=False)
             return solution, True
 
 
@@ -416,7 +421,7 @@ def shuffle_solution(solution: SolutionForHeuristics, nb_iterations: int = 10):
     return solution
 
 
-def initialize_solution_population(instance: Instance, solution: SolutionForHeuristics = None):
+def initialize_solution_population(instance: Instance, solution: Optional[SolutionForHeuristics] = None):
     population = []
     nb_steps_between_messages = max(np.ceil(.2 * NEIGHBORHOOD_SEARCH_POPULATION_SIZE), 2)
     if solution is not None:
@@ -426,15 +431,15 @@ def initialize_solution_population(instance: Instance, solution: SolutionForHeur
             if i % nb_steps_between_messages == 1:
                 print(f"Preparing initial solution: {i}")
             if i == 1:
-                population.append(SolutionForHeuristics.from_SolutionOpti(solution, 'neighborhood_search'))
+                population.append(SolutionForHeuristics.from_solution_opti(solution, 'neighborhood_search'))
             else:
-                solution_copy = SolutionForHeuristics.from_SolutionOpti(solution, 'neighborhood_search')
+                solution_copy = SolutionForHeuristics.from_solution_opti(solution, 'neighborhood_search')
                 population.append(shuffle_solution(solution_copy))
     for i in range(len(population) + 1, NEIGHBORHOOD_SEARCH_POPULATION_SIZE + 1):
         if i % nb_steps_between_messages == 1:
             print(f"Preparing initial solution: {i}")
         stochastic_solution = run_stochastic_heuristic(instance, mute=True)
-        population.append(SolutionForHeuristics.from_SolutionOpti(stochastic_solution, 'neighborhood_search'))
+        population.append(SolutionForHeuristics.from_solution_opti(stochastic_solution, 'neighborhood_search'))
     sort_population(population)
     return population
 
@@ -448,7 +453,7 @@ NEIGHBORING_FUNCTIONS = dict(
 )
 
 
-def compute_weights_distribution_for_neighboring_functions(neighboring_successes_counters: dict[str, (int, int)]):
+def compute_weights_distribution_for_neighboring_functions(neighboring_successes_counters: dict[str, Tuple[int, int]]):
     weights = dict()
     for neighboring_function_name, (successes, attempts) in neighboring_successes_counters.items():
         successes = max(successes, 1)
@@ -459,8 +464,10 @@ def compute_weights_distribution_for_neighboring_functions(neighboring_successes
     return weights
 
 
-def create_neighboring_pool(solution: SolutionForHeuristics, neighboring_successes_counters: dict[str, (int, int)],
-                            pool_size: int, neighboring_failure_limit: int = None):
+def create_neighboring_pool(
+        solution: SolutionForHeuristics, neighboring_successes_counters: dict[str, Tuple[int, int]],
+        pool_size: int, neighboring_failure_limit: Optional[int] = None
+):
     if neighboring_failure_limit is None:
         neighboring_failure_limit = 2 * pool_size
     pool = []
@@ -489,7 +496,7 @@ def create_neighboring_pool(solution: SolutionForHeuristics, neighboring_success
 # Neighborhood search - Main function #
 #######################################
 
-def run_neighborhood_search(instance: Instance, solution: SolutionForHeuristics = None):
+def run_neighborhood_search(instance: Instance, solution: Optional[SolutionForHeuristics] = None):
 
     # Initialize random seed
     if NEIGHBORHOOD_SEARCH_RANDOM_SEED is not None:
@@ -507,7 +514,7 @@ def run_neighborhood_search(instance: Instance, solution: SolutionForHeuristics 
     # Run the neighborhood search
     print("2. Running neighborhood search")
     generation_counter = 1
-    neighboring_successes_counters = {label: [0, 0] for label in NEIGHBORING_FUNCTIONS.keys()}
+    neighboring_successes_counters = {label: (0, 0) for label in NEIGHBORING_FUNCTIONS.keys()}
     neighborhood_search_start_time = time.time()
     neighborhood_search_time = 0
     messages_counter = 0

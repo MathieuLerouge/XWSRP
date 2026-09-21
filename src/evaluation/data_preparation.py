@@ -103,7 +103,7 @@ def get_solution_for_evaluation_in_default_inputs_directory(instance_index: int)
     checker = FeasibilityChecker(solution)
     if not checker.is_feasible():
         raise ValueError(f"The solution {solution.name} is not feasible: {checker.report()}")
-    solution = SolutionForHeuristics.from_Solution(solution)
+    solution = SolutionForHeuristics.from_solution(solution)
     solution.tighten_times()
     return solution
 

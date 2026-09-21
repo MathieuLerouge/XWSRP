@@ -3,6 +3,7 @@ from src.explaining.modeling.employee import EditableEmployee
 from src.explaining.modeling.instance import EditableInstance
 from src.modeling.sequence import Sequence
 from src.optimization.heuristics.sequence import SequenceForHeuristics
+from src.optimization.heuristics.slacks import SlackTimeComputer
 from src.optimization.heuristics.step import StepForHeuristics
 
 
@@ -14,7 +15,7 @@ class EditableSequence(SequenceForHeuristics):
         self._instance = instance
         self._employee = employee
         self._steps = steps
-        self.update_time_slacks()
+        SlackTimeComputer.update_time_slacks(self)
 
     @classmethod
     def from_Sequence(cls, sequence: Sequence, instance: EditableInstance = None):
@@ -35,7 +36,7 @@ class EditableSequence(SequenceForHeuristics):
         self._steps = [StepForHeuristics(instance.get_hypothetical_activity_by_names(step.activity.name, self._employee.name),
                                          start_time=step.start_time) for step in self._steps]
         self.compute_times_based_on_fixed_start_times()
-        self.update_time_slacks()
+        SlackTimeComputer.update_time_slacks(self)
         self.compute_kpis()
 
     ########

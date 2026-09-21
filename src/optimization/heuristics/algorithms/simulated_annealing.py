@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 # Local libraries
 from src.drawing.routes import create_routes_figure
 from src.drawing.schedules import create_schedules_figure
-from src.optimization.heuristics.greedy import run_greedy_algorithm
+from src.optimization.heuristics.algorithms.greedy import run_greedy_algorithm
+from src.optimization.heuristics.evaluator import Evaluator
 from src.optimization.heuristics.solution import SolutionForHeuristics
 from src.reading.instance import extract_instance_from_file
 from src.utils.files import get_project_directory_path
@@ -27,10 +28,11 @@ def run_simulated_annealing(solution: SolutionForHeuristics):
         """
         task = random.choice(_solution.non_performed_tasks)
         employee = random.choice(_solution.instance.get_employees_with_skill_level_higher_than(task.skill_level))
-        examination = _solution.find_best_insertion_between_consecutive_activities(employee, task)
-        if examination.is_feasible:
-            activity = examination.activity_before_insertion
-            _solution.insert_task_after_activity(task, activity, examination.start_time, tighten_times=True)
+        evaluation = Evaluator.find_best_insertion_between_consecutive_activities(
+            _solution.get_sequence(employee), task)
+        if evaluation.is_feasible:
+            activity = evaluation.activity_before_insertion
+            _solution.insert_task_after_activity(task, activity, evaluation.start_time, tighten_times=True)
             return _solution, True
         else:
             return _solution, False
@@ -42,10 +44,11 @@ def run_simulated_annealing(solution: SolutionForHeuristics):
         """
         task = random.choice(solution.performed_tasks)
         employee = random.choice(_solution.instance.get_employees_with_skill_level_higher_than(task.skill_level))
-        examination = _solution.find_best_insertion_between_consecutive_activities(employee, task)
-        if examination.is_feasible:
-            activity = examination.activity_before_insertion
-            _solution.insert_task_after_activity(task, activity, examination.start_time, tighten_times=True)
+        evaluation = Evaluator.find_best_insertion_between_consecutive_activities(
+            _solution.get_sequence(employee), task)
+        if evaluation.is_feasible:
+            activity = evaluation.activity_before_insertion
+            _solution.insert_task_after_activity(task, activity, evaluation.start_time, tighten_times=True)
             return _solution, True
         else:
             return _solution, False

@@ -42,7 +42,7 @@ class Explainer:
         self._language_key = LANGUAGE_ENGLISH_KEY
         self._activated_questions_templates = dict([(id, QUESTIONS_TEMPLATES[id]) for id in QUESTIONS_TEMPLATES.keys()
                                                     if id in self._available_questions_templates_ids])
-        self._root_solution = EditableSolution.from_Solution(solution)
+        self._root_solution = EditableSolution.from_solution(solution)
         # History
         self._history_is_enabled = False
         self._history = History(self._root_solution)
@@ -109,7 +109,7 @@ class Explainer:
     @current_solution.setter
     def current_solution(self, solution: Solution):
         if not isinstance(solution, EditableSolution):
-            solution = EditableSolution.from_Solution(solution)
+            solution = EditableSolution.from_solution(solution)
         if solution not in self._history:
             self._history.store_solution(solution)
         self._current_solution = solution
@@ -235,7 +235,7 @@ class Explainer:
     def store_solution(self, solution: Solution):
         if self._history_is_enabled:
             if not isinstance(solution, EditableSolution):
-                solution = EditableSolution.from_Solution(solution)
+                solution = EditableSolution.from_solution(solution)
             self._history.store_solution(solution)
         else:
             raise PermissionError("Historizing is disabled")

@@ -29,6 +29,7 @@ from src.explaining.computing.templates.counterfactual.ILP_model.reordering2 imp
     IPModelForReordering2cWithInstanceAlterations
 from src.explaining.computing.templates.counterfactual.ILP_model.reordering3 import \
     IPModelForReordering3WithInstanceAlterations
+from src.optimization.heuristics.slacks import SlackTimeComputer
 from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExceptionMapper
 
 
@@ -90,8 +91,10 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
             infeasibility = SkillInfeasibility(key_employee, key_task)
         else:
             sequence = support_solution.get_sequence(key_employee)
-            upstream_critical_step_index = sequence.find_first_critical_step_index_backward_from(step_index - 1)
-            downstream_critical_step_index = sequence.find_first_critical_step_index_forward_from(step_index + 1)
+            upstream_critical_step_index = \
+                SlackTimeComputer.find_first_critical_step_index_backward_from(sequence, step_index - 1)
+            downstream_critical_step_index = \
+                SlackTimeComputer.find_first_critical_step_index_forward_from(sequence, step_index + 1)
             upstream_feasible = earliest_start_time_for_upstream + key_task.duration <= key_task.end_time_ub
             downstream_feasible = latest_start_time_for_downstream >= key_task.start_time_lb
             infeasibility = TimeInfeasibility(

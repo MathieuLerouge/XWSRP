@@ -1,5 +1,6 @@
 # Local libraries
 from src.modeling.instance import Instance
+from src.optimization.heuristics.evaluator import Evaluator
 from src.optimization.heuristics.solution import SolutionForHeuristics
 from src.utils.constants import GREEDY_SOLVING_METHOD
 
@@ -11,7 +12,7 @@ from src.utils.constants import GREEDY_SOLVING_METHOD
 def run_greedy_algorithm(instance: Instance):
 
     # Initialize solution
-    solution = SolutionForHeuristics(instance, heuristic_ID=GREEDY_SOLVING_METHOD)
+    solution = SolutionForHeuristics(instance, heuristic_id=GREEDY_SOLVING_METHOD)
 
     # Initialize step counter and maximum number of steps left
     step_counter = 1
@@ -28,16 +29,16 @@ def run_greedy_algorithm(instance: Instance):
             print(f"Steps: {step_counter} | Max steps left: {max_steps_left}")
 
         # Find the best task insertion among insertions of any available task and any employee
-        examination = \
-            solution.find_best_insertion_between_consecutive_activities_among_sets(available_tasks,
-                                                                                   instance.employees)
+        evaluation = \
+            Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
+                solution, available_tasks, instance.employees)
 
         # If the best task insertion is feasible,
-        if examination.is_feasible:
+        if evaluation.is_feasible:
 
             # Insert the selected task in the sequence of the selected employee
-            task = examination.inserted_task
-            solution.insert_task_after_activity(task, examination.activity_before_insertion, examination.start_time,
+            task = evaluation.inserted_task
+            solution.insert_task_after_activity(task, evaluation.activity_before_insertion, evaluation.start_time,
                                                 tighten_times=False)
 
             # Update available tasks

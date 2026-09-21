@@ -6,10 +6,10 @@ import numpy as np
 from main_configuration import *
 from src.feasibility.checker import FeasibilityChecker
 from src.drawing.figuresmanager import FiguresManager
-from src.optimization.heuristics.greedy import run_greedy_algorithm
-from src.optimization.heuristics.neighborhood_search import run_neighborhood_search
+from optimization.heuristics.algorithms.greedy import run_greedy_algorithm
+from optimization.heuristics.algorithms.neighborhood_search import run_neighborhood_search
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from src.optimization.heuristics.stochastic import run_stochastic_heuristic
+from optimization.heuristics.algorithms.stochastic import run_stochastic_heuristic
 from src.reading.instance import extract_instance_from_file
 from src.reading.solution import extract_solution_from_file
 from src.utils.display import print_title_frame
@@ -148,7 +148,7 @@ def optimization_main():
                 print_title_frame(f"Reoptimizing of {initial_solution.name} "
                                   f"using variable neighborhood search algorithm")
                 print("")
-                solution = SolutionForHeuristics.from_Solution(initial_solution)
+                solution = SolutionForHeuristics.from_solution(initial_solution)
                 print("New solution:", solution.name)
                 solution = run_neighborhood_search(solution.instance, solution)
             else:

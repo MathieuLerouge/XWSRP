@@ -3,6 +3,7 @@ import random
 
 # Local libraries
 from src.modeling.instance import Instance
+from src.optimization.heuristics.evaluator import Evaluator
 from src.optimization.heuristics.solution import SolutionForHeuristics
 
 
@@ -13,7 +14,7 @@ from src.optimization.heuristics.solution import SolutionForHeuristics
 def run_stochastic_heuristic(instance: Instance, mute: bool = False):
 
     # Initialize solution
-    solution = SolutionForHeuristics(instance, heuristic_ID='stochastic')
+    solution = SolutionForHeuristics(instance, heuristic_id='stochastic')
 
     # Create a dictionary of possible tasks that may be performed by each employee
     possible_tasks_per_employee = {employee: instance.tasks for employee in instance.employees}
@@ -37,12 +38,13 @@ def run_stochastic_heuristic(instance: Instance, mute: bool = False):
         weights = [1/len(possible_tasks_per_employee[employee]) for employee in employees]
         employee = random.choices(employees, weights=weights, k=1)[0]
 
-        # Examine for each possible task if it can be feasibly inserted in the sequence of the selected employee and
+        # Evaluate for each possible task if it can be feasibly inserted in the sequence of the selected employee and
         # compute its best insertion
         possible_tasks = possible_tasks_per_employee[employee]
-        examinations = \
-            solution.find_best_feasible_insertion_between_consecutive_activities_for_each_task(possible_tasks, employee)
-        possible_tasks = [examination.inserted_task for examination in examinations]
+        evaluations = \
+            Evaluator.find_best_feasible_insertion_between_consecutive_activities_for_each_task(
+                solution.get_sequence(employee), possible_tasks)
+        possible_tasks = [evaluation.inserted_task for evaluation in evaluations]
 
         # If none of the possible tasks can be feasibly inserted,
         # then remove the employee from the ones who may still have tasks to insert
@@ -54,12 +56,12 @@ def run_stochastic_heuristic(instance: Instance, mute: bool = False):
 
             # Select randomly a task according to a probability distribution which for each task
             # is inversely proportional to the traveling time increase due to the insertion of the task
-            weights = [1 / (examination.travel_time_increase + 0.01) for examination in examinations]
-            examination = random.choices(examinations, weights=weights, k=1)[0]
-            task = examination.inserted_task
+            weights = [1 / (evaluation.travel_time_increase + 0.01) for evaluation in evaluations]
+            evaluation = random.choices(evaluations, weights=weights, k=1)[0]
+            task = evaluation.inserted_task
 
             # Insert the selected task in the sequence of the selected employee
-            solution.insert_task_after_activity(task, examination.activity_before_insertion, examination.start_time)
+            solution.insert_task_after_activity(task, evaluation.activity_before_insertion, evaluation.start_time)
 
             # Update possible tasks of selected employee
             # In addition, check if the employee has no more possible tasks to insert

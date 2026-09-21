@@ -1,3 +1,6 @@
+# Standard library
+from typing import Optional
+
 # Local libraries
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
@@ -13,14 +16,17 @@ OPTIMALITY_GAP_KEY = 'optimality_gap'
 OBJECTIVE_VALUE_KEY = 'objective_value'
 
 
-######################
-# Class SolutionOpti #
-######################
+################
+# SolutionOpti #
+################
 
 class SolutionOpti(Solution):
 
-    def __init__(self, instance: Instance, name: str = None, sequences: dict = None, tasks_performances: dict = None,
-                 lunch_breaks_performances: dict = None, solving_method_id: str = 'NA'):
+    def __init__(
+            self, instance: Instance, name: Optional[str] = None, sequences: Optional[dict] = None,
+            tasks_performances: Optional[dict] = None, lunch_breaks_performances: Optional[dict] = None,
+            solving_method_id: str = 'NA'
+    ):
         self._optimization_data = dict()
         self._optimization_data[SOLVING_METHOD_ID_KEY] = solving_method_id
         self._optimization_data[SOLVING_METHOD_PARAMS_KEY] = None
@@ -34,7 +40,7 @@ class SolutionOpti(Solution):
     ############################################
 
     @classmethod
-    def from_Solution(cls, solution: Solution):
+    def from_solution(cls, solution: Solution):
         solution_for_optimization = cls(solution.instance, solution.name, solution._copy_sequences(),
                                         solution._copy_tasks_realizations(), solution._copy_lunch_breaks_realizations())
         solution_for_optimization._kpis = solution._copy_kpis()
@@ -110,5 +116,5 @@ class SolutionOpti(Solution):
     # Copy #
     ########
 
-    def copy(self, name: str = None):
-        return SolutionOpti.from_Solution(super().copy(name))
+    def copy(self, name: Optional[str] = None):
+        return SolutionOpti.from_solution(super().copy(name))

@@ -6,7 +6,7 @@ from src.evaluation.data_preparation import get_instance_for_evaluation_in_defau
 from src.evaluation.user_interface_with_prepared_data import \
     prepare_explainer_GUI_for_evaluation_given_experiment_version
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from src.optimization.heuristics.simulated_annealing import run_simulated_annealing
+from optimization.heuristics.algorithms.simulated_annealing import run_simulated_annealing
 from src.utils.files import get_default_inputs_directory_path, get_default_outputs_directory_path
 from src.writing.solution import write_solution
 
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         solution = get_solution_for_evaluation_in_default_inputs_directory(instance_index)
         solution.compute_kpis()
         print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
-        solution = SolutionForHeuristics.from_Solution(solution)
+        solution = SolutionForHeuristics.from_solution(solution)
         solution = run_simulated_annealing(solution)
         print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
         solution.name = solution.name + "_reoptimized"

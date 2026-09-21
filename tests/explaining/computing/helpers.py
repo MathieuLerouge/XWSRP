@@ -51,7 +51,7 @@ def get_tailored_computation_pipeline_gap_and_solution(
     """
     Return (feasibility gap, support_solution) following the tailored computation pipeline.
     """
-    editable_solution = EditableSolution.from_Solution(solution)
+    editable_solution = EditableSolution.from_solution(solution)
     question = ContrastiveQuestion(editable_solution, template_id, fields_values)
     support_solution, infeasibility, _ = apply_transformation_induced_by_contrastive_or_scenario_question(
         editable_solution, question

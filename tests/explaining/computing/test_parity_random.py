@@ -31,7 +31,7 @@ def assert_parity_over_random_samples(solution: Solution, template_id: str,
     field-value combinations for the given template (fewer if fewer valid combinations exist).
 
     NB: The neighborhood gap is asserted <= the tailored gap, not ==.
-    The tailored pipeline's reordering examinations (examine_moving_after_a_task/examine_moving_before_a_task)
+    The tailored pipeline's reordering evaluatations (evaluate_moving_after_a_task/evaluate_moving_before_a_task)
     bound each candidate slot's feasibility using the original sequence's precomputed BTS/FTS slack,
     which goes stale once the relative order actually changes
     - understating how much room a joint reoptimization of every now-reordered task's time can find.

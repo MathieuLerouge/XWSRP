@@ -169,7 +169,7 @@ class IPModelForTransformationWithInstanceAlterations(SequenceModel):
 
         :return: the support sequence (SequenceForHeuristics)
         """
-        return SequenceForHeuristics.from_Sequence(self.solution_sequence)
+        return SequenceForHeuristics.from_sequence(self.solution_sequence)
 
     @property
     def is_support_sequence_feasible(self):

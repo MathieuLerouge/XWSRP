@@ -90,7 +90,7 @@ class IPModelForInsertionWithInstanceAlterations(SequenceModel):
 
     @property
     def support_sequence(self):
-        return SequenceForHeuristics.from_Sequence(self.solution_sequence)
+        return SequenceForHeuristics.from_sequence(self.solution_sequence)
 
     ######################
     # Decision variables #

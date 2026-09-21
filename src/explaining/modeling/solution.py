@@ -28,7 +28,7 @@ class EditableSolution(SolutionForHeuristics):
         self.compute_kpis()
 
     @classmethod
-    def from_Solution(cls, solution: Solution, instance: EditableInstance = None):
+    def from_solution(cls, solution: Solution, instance: EditableInstance = None):
         instance = EditableInstance.from_Instance(solution.instance) if instance is None else instance
         sequences = dict(
             [(employee.name, EditableSequence.from_Sequence(solution.get_sequence_by_name(employee.name), instance))

@@ -1,21 +1,40 @@
-# Local libraries modules
+# Standard library
+from typing import Optional, cast
+
+# Local libraries
 from src.modeling.comeback import ComeBack
 from src.modeling.departure import Departure
 from src.modeling.employee import Employee
 from src.modeling.instance import Instance
+from src.modeling.kpis import KPIs
 from src.modeling.sequence import Sequence
 from src.modeling.task import Task
-from src.optimization.heuristics.examination import InsertionExamination, ReplacementExamination, ReorderExamination
+from src.optimization.heuristics.evaluator import Evaluator
+from src.optimization.heuristics.slacks import SlackTimeComputer
 from src.optimization.heuristics.step import StepForHeuristics
 
 
-###############################
-# Class SequenceForHeuristics #
-###############################
+#########################
+# SequenceForHeuristics #
+#########################
 
 class SequenceForHeuristics(Sequence):
+    """
+    A sequence of steps performed by an employee, extended with the state (KPIs, time slacks, tightening
+    suspension) and in-place mutation operations (removal, insertion, replacement) needed by the heuristics.
+    Time-slack computation lives in SlackTimeComputer, and move evaluation in Evaluator, both operating
+    on instances of this class rather than being methods of it.
+    """
 
-    def __init__(self, instance: Instance, employee: Employee, steps: list[StepForHeuristics] = None):
+    def __init__(self, instance: Instance, employee: Employee, steps: Optional[list[StepForHeuristics]] = None):
+        """
+        Args:
+            instance: the instance (Instance) this sequence belongs to.
+            employee: the employee (Employee) whose sequence this is.
+            steps: the steps (list of StepForHeuristics) making up this sequence;
+              if None, a sequence with only a departure and a comeback step,
+              both at the employee's start time lower bound, is created.
+        """
         super().__init__(instance, employee, None)
         if steps is None:
             steps = \
@@ -24,62 +43,71 @@ class SequenceForHeuristics(Sequence):
                  StepForHeuristics(ComeBack(employee), employee.start_time_lb,
                                    employee.start_time_lb, employee.start_time_lb)]
         self._steps = steps
-        self.update_time_slacks()
+        self._tightening_suspension_depth: int = 0
+        SlackTimeComputer.update_time_slacks(self)
 
     @classmethod
-    def from_Sequence(cls, sequence: Sequence):
-        steps = [StepForHeuristics.from_Step(step) for step in sequence]
-        return SequenceForHeuristics(sequence.instance, sequence.employee, steps)
+    def from_sequence(cls, sequence: Sequence):
+        steps = [StepForHeuristics.from_step(step) for step in sequence]
+        return cls(sequence.instance, sequence.employee, steps)
 
     def __getitem__(self, index: int) -> StepForHeuristics:
-        return self._steps[index]
+        return cast(StepForHeuristics, self._steps[index])
 
     @property
-    def _nb_realized_tasks(self) -> int:
-        return self._kpis.nb_performed_tasks
+    def _nb_performed_tasks(self) -> int:
+        """Number of tasks performed in this sequence."""
+        return cast(KPIs, self._kpis).nb_performed_tasks
 
-    @_nb_realized_tasks.setter
-    def _nb_realized_tasks(self, nb_realized_tasks: int):
-        self._kpis.nb_performed_tasks = nb_realized_tasks
+    @_nb_performed_tasks.setter
+    def _nb_performed_tasks(self, nb_performed_tasks: int):
+        cast(KPIs, self._kpis).nb_performed_tasks = nb_performed_tasks
 
     @property
     def _total_traveling_duration(self) -> int:
-        return self._kpis.total_traveling_duration
+        """Total time, in minutes, spent traveling between steps in this sequence."""
+        return cast(KPIs, self._kpis).total_traveling_duration
 
     @_total_traveling_duration.setter
     def _total_traveling_duration(self, total_traveling_duration: int):
-        self._kpis.total_traveling_duration = total_traveling_duration
+        cast(KPIs, self._kpis).total_traveling_duration = total_traveling_duration
 
     @property
     def _total_working_duration(self) -> int:
-        return self._kpis.total_working_duration
+        """Total time, in minutes, spent performing tasks in this sequence."""
+        return cast(KPIs, self._kpis).total_working_duration
 
     @_total_working_duration.setter
     def _total_working_duration(self, total_working_duration: int):
-        self._kpis.total_working_duration = total_working_duration
+        cast(KPIs, self._kpis).total_working_duration = total_working_duration
 
     @property
     def _total_traveling_distance(self) -> float:
-        return self._kpis.total_traveling_distance
+        """Total distance, in km, traveled between steps in this sequence."""
+        return cast(KPIs, self._kpis).total_traveling_distance
 
     @_total_traveling_distance.setter
     def _total_traveling_distance(self, total_traveling_distance: float):
-        self._kpis.total_traveling_distance = total_traveling_distance
+        cast(KPIs, self._kpis).total_traveling_distance = total_traveling_distance
 
     @property
     def _total_idle_time(self) -> int:
-        return self._kpis.total_idle_time
+        """Total idle time, in minutes, spent waiting between steps in this sequence."""
+        return cast(KPIs, self._kpis).total_idle_time
 
     @_total_idle_time.setter
     def _total_idle_time(self, total_idle_time: int):
-        self._kpis.total_idle_time = total_idle_time
+        cast(KPIs, self._kpis).total_idle_time = total_idle_time
 
     ########
     # Copy #
     ########
 
+    def _copy_steps(self) -> list[StepForHeuristics]:
+        return cast(list[StepForHeuristics], super()._copy_steps())
+
     def copy(self):
-        sequence = SequenceForHeuristics(self._instance, self._employee, self._copy_steps())
+        sequence = self.__class__(self._instance, self._employee, self._copy_steps())
         sequence._kpis = self._copy_kpis()
         return sequence
 
@@ -88,774 +116,30 @@ class SequenceForHeuristics(Sequence):
     ########
 
     def get_step(self, index: int) -> StepForHeuristics:
-        return self._steps[index]
+        return cast(StepForHeuristics, self._steps[index])
 
-    #########
-    # Times #
-    #########
+    ##############
+    # Tightening #
+    ##############
 
-    # TODO adapt to lunch breaks
-    def shift_steps_times_backward_from(self, step_index: int, start_time: int):
-        """
-        Assumption: instance without lunch breaks.
+    @property
+    def is_tightening_suspended(self) -> bool:
+        """Whether an enclosing SlackTimeComputer.deferred_tightening() block is suppressing eager tightening."""
+        return self._tightening_suspension_depth > 0
 
-        :param step_index: index (int) of the step whose start time is changed
-        and from which times of previous steps are changed in consequence
-        :param start_time: start time of the step (int)
-        :return: index (int) of the first step which start time is changed
-        """
-        time_variation = self[step_index].start_time - start_time
-        while time_variation > 0 and step_index >= 0:
-            step = self[step_index]
-            step.start_time -= time_variation
-            step.end_time -= time_variation
-            step.BTS -= time_variation
-            step.FTS += time_variation
-            time_variation = max(step.arrival_time - step.start_time, 0)
-            step.arrival_time -= time_variation
-            step_index -= 1
-        return step_index + 1
+    def suspend_tightening(self):
+        """Increments the tightening-suspension nesting depth; pairs with resume_tightening()."""
+        self._tightening_suspension_depth += 1
 
-    # TODO adapt to lunch breaks
-    def shift_steps_times_forward_from(self, step_index, start_time):
-        """
-        Assumption: instance without lunch breaks.
+    def resume_tightening(self):
+        """Decrements the tightening-suspension nesting depth; pairs with suspend_tightening()."""
+        self._tightening_suspension_depth -= 1
 
-        :param step_index: index (int) of the step which start time is changed
-        and from which times of next steps are changed in consequence
-        :param start_time: start time of the step (int)
-        :return: index (int) of the last step which start time is changed
-        """
-        time_variation = start_time - self[step_index].start_time
-        if step_index == 0 and time_variation > 0:
-            self[0].arrival_time = start_time
-        while time_variation > 0 and step_index <= self.nb_steps - 2:
-            step = self[step_index]
-            next_step = self[step_index + 1]
-            step.start_time += time_variation
-            step.end_time += time_variation
-            step.BTS += time_variation
-            step.FTS -= time_variation
-            next_step.arrival_time += time_variation
-            time_variation = max(next_step.arrival_time - next_step.start_time, 0)
-            step_index += 1
-        if step_index == self.nb_steps - 1:
-            step = self[step_index]
-            step.start_time = step.arrival_time
-            step.end_time = step.arrival_time
-            step.BTS += time_variation
-            step.FTS -= time_variation
-        return step_index
+    ##################################
+    # Mutations - Private - Feasible #
+    ##################################
 
-    def tighten_times(self, update_KPIs: bool = True):
-        idle_time_loss = 0
-        time_variation_forward = self[0].FTS
-        if time_variation_forward > 0:
-            former_comeback_time = self[-1].start_time
-            self.shift_steps_times_forward_from(0, self[0].start_time + time_variation_forward)
-            idle_time_loss += time_variation_forward - (self[-1].start_time - former_comeback_time)
-        time_variation_backward = self[-1].BTS
-        if time_variation_backward > 0:
-            former_departure_time = self[0].start_time
-            self.shift_steps_times_backward_from(self.nb_steps - 1,
-                                                 self[-1].start_time - time_variation_backward)
-            idle_time_loss += time_variation_backward - (former_departure_time - self[0].start_time)
-        if update_KPIs:
-            self._total_idle_time -= idle_time_loss
-
-    ###############
-    # Time slacks #
-    ###############
-
-    # TODO adapt to tasks unavailabilities and lunch breaks
-    def update_BTS_forward_from(self, step_index: int):
-        """
-        Assumption: there are no tasks unavailabilities and no lunch breaks
-        Assumption: when step_index > 0, it is assumed that BTS[step_index-1] is computed and valid
-
-        :param step_index: (int)
-        """
-        if step_index == 0:
-            self[0].BTS = self[0].start_time - self.employee.start_time_lb
-            step_index += 1
-        for previous_step_index in range(step_index - 1, self.nb_steps - 1):
-            step = self[previous_step_index + 1]
-            previous_step = self[previous_step_index]
-            step.BTS = min(
-                step.start_time - step.activity.start_time_lb,
-                step.start_time - (previous_step.start_time - previous_step.BTS + previous_step.activity.duration +
-                                   self.instance.compute_traveling_duration(previous_step.activity, step.activity))
-            )
-
-    # TODO adapt to tasks unavailabilities and lunch breaks
-    def update_FTS_backward_from(self, step_index: int):
-        """
-        Assumption: there are no tasks unavailabilities and no lunch breaks
-        Assumption: when step_index < nb_steps - 1, it is assumed that FTS[step_index+1] is computed and valid
-
-        :param step_index: (int)
-        """
-        if step_index == self.nb_steps - 1:
-            self[-1].FTS = self.employee.end_time_ub - self[-1].start_time
-            step_index -= 1
-        for next_step_index in range(step_index + 1, 0, -1):
-            step = self[next_step_index - 1]
-            next_step = self[next_step_index]
-            step.FTS = min(
-                step.activity.end_time_ub - (step.start_time + step.activity.duration),
-                next_step.start_time + next_step.FTS -
-                (step.start_time + step.activity.duration +
-                 self.instance.compute_traveling_duration(step.activity, next_step.activity))
-            )
-
-    def update_time_slacks(self):
-        self.update_BTS_forward_from(0)
-        self.update_FTS_backward_from(self.nb_steps - 1)
-
-    ###############################################
-    # Examining - Insertion - Best transformation #
-    ###############################################
-
-    def examine_insertion_at(self, task: Task, insertion_step_index: int,
-                             compute_times_only_if_skill_constraints_satisfied: bool = True):
-        """
-        Examine the feasibility of the insertion of the given task at the given insertion step index
-
-        Assumptions (only checked in debug):
-
-        - 1. the given task must not be already in this sequence;
-        - 2. the given insertion step index must be between 1 (included) and the number of steps - 1 (included);
-        - 3. the times of this sequence are consistent.
-
-        :param task: the task (Task) that would be inserted
-        :param insertion_step_index: the index of the step (int) where the given task would be inserted
-        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether
-          if the skill constraints are not satisfied start times should still be computed
-        :return: the insertion examination (InsertionExamination)
-        """
-
-        # Check the assumptions
-        assert task not in self.get_contained_tasks(), \
-            f"The given entering task {task.name} is already in this sequence"
-        assert 0 < insertion_step_index < self.__len__(), \
-            f"The given step index {insertion_step_index} is not between 1 and {self.__len__() - 1} included"
-        assert self.is_time_consistent, "The times are not consistent"
-
-        # Examine skill-wise feasibility
-        is_skill_feasible = self.employee.is_capable_of_performing(task)
-        if compute_times_only_if_skill_constraints_satisfied and not is_skill_feasible:
-            examination = InsertionExamination()
-            examination.is_feasible = False
-            examination.is_skill_feasible = False
-            examination.inserted_task = task
-            examination.employee = self.employee
-            return examination
-
-        # Get the step before and after the hypothetical insertion
-        step_before = self[insertion_step_index - 1]
-        step_after = self[insertion_step_index]
-
-        # Compute the earliest time at which the employee can start realizing the entering task,
-        # so that the times of the upstream portion of his/her sequence before the insertion are consistent,
-        # and the latest time at which he/she can start realizing the entering task,
-        # so that the times of the downstream portion of his/her sequence after the insertion are consistent
-        traveling_duration_from_step_before_insertion_to_entering_task = \
-            self.instance.compute_traveling_duration(step_before.activity, task)
-        earliest_start_time_of_entering_task = max(
-            task.start_time_lb,
-            step_before.start_time - step_before.BTS + step_before.activity.duration +
-            traveling_duration_from_step_before_insertion_to_entering_task
-        )
-        traveling_duration_from_entering_task_to_step_after_insertion = \
-            self.instance.compute_traveling_duration(task, step_after.activity)
-        latest_start_time_of_entering_task = min(
-            task.end_time_ub,
-            step_after.start_time + step_after.FTS -
-            traveling_duration_from_entering_task_to_step_after_insertion
-        ) - task.duration
-        traveling_duration_detour = (
-                traveling_duration_from_step_before_insertion_to_entering_task +
-                traveling_duration_from_entering_task_to_step_after_insertion -
-                self.instance.compute_traveling_duration(step_before.activity, step_after.activity)
-        )
-
-        # Compute two booleans indicating whether the entering task can be inserted while guaranteeing
-        # the consistency of the times of respectively the upstream and the downstream portions of the sequence
-        upstream_portion_is_feasible = (earliest_start_time_of_entering_task + task.duration <=
-                                        task.end_time_ub)
-        downstream_portion_is_feasible = (latest_start_time_of_entering_task >= task.start_time_lb)
-        late = max(earliest_start_time_of_entering_task - latest_start_time_of_entering_task, 0)
-        is_time_feasible = upstream_portion_is_feasible and downstream_portion_is_feasible and late == 0
-
-        # Initialize the artificial start times
-        start_time_for_upstream = None
-        start_time_for_downstream = None
-
-        # If the consistency of both upstream and downstream portions can be guaranteed,
-        # then set start time according to the earliest policy
-        if is_time_feasible:
-            start_time = earliest_start_time_of_entering_task
-
-        # If the consistency of one the upstream or downstream portions can not be guaranteed,
-        # then set artificial start times for backward and forward to earliest and latest start times
-        # and the start time itself as the average of these artificial start times
-        else:
-            start_time_for_upstream = earliest_start_time_of_entering_task
-            start_time_for_downstream = latest_start_time_of_entering_task
-            start_time = (earliest_start_time_of_entering_task + latest_start_time_of_entering_task) // 2
-            if downstream_portion_is_feasible:
-                start_time = start_time_for_downstream
-            if upstream_portion_is_feasible:
-                start_time = start_time_for_upstream
-
-        # Return examination
-        examination = InsertionExamination()
-        examination.is_feasible = is_time_feasible and is_skill_feasible
-        examination.is_skill_feasible = is_skill_feasible
-        examination.is_time_feasible = is_time_feasible
-        examination.is_upstream_feasible = upstream_portion_is_feasible
-        examination.is_downstream_feasible = downstream_portion_is_feasible
-        examination.start_time = start_time
-        examination.earliest_start_time_for_upstream = start_time_for_upstream
-        examination.latest_start_time_for_downstream = start_time_for_downstream
-        examination.travel_time_increase = traveling_duration_detour
-        examination.late = late
-        examination.inserted_task = task
-        examination.insertion_step_index = insertion_step_index
-        examination.activity_before_insertion = step_before.activity
-        examination.employee = self.employee
-        return examination
-
-    def find_best_insertion_between_consecutive_activities(
-            self, task: Task, tabu_indices: list[int] = None,
-            compute_times_only_if_skill_constraints_satisfied: bool = True):
-        # Examine skill-wise feasibility
-        insertion_is_skill_feasible = self.employee.is_capable_of_performing(task)
-        if compute_times_only_if_skill_constraints_satisfied and not insertion_is_skill_feasible:
-            examination = InsertionExamination()
-            examination.is_feasible = False
-            examination.is_skill_feasible = False
-            examination.inserted_task = task
-            examination.employee = self.employee
-            return examination
-        # Examine all step index for insertion starting from index 1
-        if tabu_indices is None:
-            tabu_indices = []
-        examined_step_index = 1
-        best_examination = None
-        while examined_step_index <= self.nb_steps - 1:
-            # If the examined step is tabu, then go to next step
-            if examined_step_index in tabu_indices:
-                examined_step_index += 1
-            # If the examined step is not tabu, then examine it
-            else:
-                examination = self.examine_insertion_at(task, examined_step_index, False)
-                if best_examination is None or examination.is_better_than(best_examination):
-                    best_examination = examination
-                if best_examination.is_upstream_feasible and not examination.is_upstream_feasible:
-                    examined_step_index = self.nb_steps
-                else:
-                    examined_step_index += 1
-        return best_examination
-
-    def find_best_insertion_between_consecutive_activities_among_tasks_set(
-            self, tasks: list[Task], compute_times_only_if_skill_constraints_satisfied: bool = True):
-        """
-        Among all tasks of given set, find the best insertion of a task in this sequence: see
-        InsertionExamination.is_better_insertion_than for the exact ranking criteria.
-
-        Assumptions (only checked in debug):
-        The times of this sequence are consistent.
-
-        :param tasks: the list of candidate tasks (Task) that would be inserted
-        :param compute_times_only_if_skill_constraints_satisfied: a boolean (bool) for telling whether
-          if the skill constraints are not satisfied start times should still be computed
-        :return: the examination of the best insertion (InsertionExamination)
-        """
-
-        # The assumptions are checked when calling find_best_insertion_between_consecutive_activities
-
-        best_insertion_examination = self.find_best_insertion_between_consecutive_activities(
-            tasks[0], None, compute_times_only_if_skill_constraints_satisfied
-        )
-        for task in tasks[1:]:
-            examination = self.find_best_insertion_between_consecutive_activities(
-                task, None, compute_times_only_if_skill_constraints_satisfied
-            )
-            if examination.is_better_insertion_than(best_insertion_examination):
-                best_insertion_examination = examination
-        return best_insertion_examination
-
-    ####################################################
-    # Examining - Insertion - Feasible transformations #
-    ####################################################
-
-    def find_feasible_insertions_between_consecutive_activities(self, task: Task):
-        """
-        Find all feasible insertions of a task in this sequence.
-
-        Assumptions (only checked in debug):
-        The times of this sequence are consistent.
-
-        :param task: the candidate task (Task) that would be inserted
-        :return: the list of all feasible insertions (list[InsertionExamination])
-        """
-        examinations = []
-        one_insertion_is_upstream_feasible = False
-        if self.employee.is_capable_of_performing(task):
-            insertion_step_index = 1
-            while insertion_step_index <= self.nb_steps - 1:
-                examination = self.examine_insertion_at(task, insertion_step_index, True)
-                if examination.is_feasible:
-                    one_insertion_is_upstream_feasible = True
-                    examinations.append(examination)
-                elif examination.is_upstream_feasible:
-                    one_insertion_is_upstream_feasible = True
-                else:
-                    if one_insertion_is_upstream_feasible:
-                        insertion_step_index = self.nb_steps
-                insertion_step_index += 1
-        return examinations
-
-    ###########################
-    # Examining - Replacement #
-    ###########################
-
-    def examine_replacing_task_with_another(self, replaced_task: Task, replacing_task: Task,
-                                            compute_times_only_if_skill_constraints_satisfied: bool = True):
-        # Check the assumptions
-        assert replaced_task in self.get_contained_tasks(), \
-            f"The given replaced_task task {replaced_task.name} is not in this sequence"
-        assert replacing_task not in self.get_contained_tasks(), \
-            f"The given replacing_task task {replacing_task.name} is already in this sequence"
-        assert self.is_time_consistent, "The times are not consistent"
-
-        # Examine skill-wise feasibility
-        is_skill_feasible = self.employee.is_capable_of_performing(replacing_task)
-        if compute_times_only_if_skill_constraints_satisfied and not is_skill_feasible:
-            examination = ReplacementExamination()
-            examination.is_feasible = False
-            examination.is_skill_feasible = False
-            examination.employee = self.employee
-            examination.replaced_task = replaced_task
-            examination.replacing_task = replacing_task
-            return examination
-
-        # Examine time-wise
-
-        # Get the step before and after the hypothetical insertion
-        replacement_step_index = self.get_step_index_of(replaced_task)
-        step_before = self[replacement_step_index - 1]
-        step_after = self[replacement_step_index + 1]
-
-        # Compute the earliest time at which the employee can start realizing the entering task,
-        # so that the times of the upstream portion of his/her sequence before the insertion are consistent,
-        # and the latest time at which he/she can start realizing the entering task,
-        # so that the times of the downstream portion of his/her sequence after the insertion are consistent
-        traveling_duration_from_step_before_insertion_to_entering_task = \
-            self.instance.compute_traveling_duration(step_before.activity, replacing_task)
-        earliest_start_time_of_entering_task = max(
-            replacing_task.start_time_lb,
-            step_before.start_time - step_before.BTS + step_before.activity.duration +
-            traveling_duration_from_step_before_insertion_to_entering_task
-        )
-        traveling_duration_from_entering_task_to_step_after_insertion = \
-            self.instance.compute_traveling_duration(replacing_task, step_after.activity)
-        latest_start_time_of_entering_task = min(
-            replacing_task.end_time_ub,
-            step_after.start_time + step_after.FTS -
-            traveling_duration_from_entering_task_to_step_after_insertion
-        ) - replacing_task.duration
-        traveling_duration_detour = (
-                traveling_duration_from_step_before_insertion_to_entering_task +
-                traveling_duration_from_entering_task_to_step_after_insertion -
-                self.instance.compute_traveling_duration(step_before.activity, replaced_task) -
-                self.instance.compute_traveling_duration(replaced_task, step_after.activity)
-        )
-
-        # Compute two booleans indicating whether the entering task can be inserted while guaranteeing
-        # the consistency of the times of respectively the upstream and the downstream portions of the sequence
-        upstream_portion_is_feasible = (earliest_start_time_of_entering_task + replacing_task.duration <=
-                                        replacing_task.end_time_ub)
-        downstream_portion_is_feasible = (latest_start_time_of_entering_task >= replacing_task.start_time_lb)
-        late = max(earliest_start_time_of_entering_task - latest_start_time_of_entering_task, 0)
-        is_time_feasible = upstream_portion_is_feasible and downstream_portion_is_feasible and late == 0
-
-        # Initialize the artificial start times
-        start_time_for_upstream = None
-        start_time_for_downstream = None
-
-        # If the consistency of both upstream and downstream portions can be guaranteed,
-        # then set start time according to the earliest policy
-        if is_time_feasible:
-            start_time = earliest_start_time_of_entering_task
-
-        # If the consistency of one the upstream or downstream portions can not be guaranteed,
-        # then set artificial start times for backward and forward to earliest and latest start times
-        # and the start time itself as the average of these artificial start times
-        else:
-            start_time_for_upstream = earliest_start_time_of_entering_task
-            start_time_for_downstream = latest_start_time_of_entering_task
-            start_time = (earliest_start_time_of_entering_task + latest_start_time_of_entering_task) // 2
-            if downstream_portion_is_feasible:
-                start_time = start_time_for_downstream
-            if upstream_portion_is_feasible:
-                start_time = start_time_for_upstream
-        examination = ReplacementExamination()
-        examination.is_feasible = is_time_feasible and is_skill_feasible
-        examination.is_skill_feasible = is_skill_feasible
-        examination.is_time_feasible = is_time_feasible
-        examination.is_upstream_feasible = upstream_portion_is_feasible
-        examination.is_downstream_feasible = downstream_portion_is_feasible
-        examination.start_time = start_time
-        examination.earliest_start_time_for_upstream = start_time_for_upstream
-        examination.latest_start_time_for_downstream = start_time_for_downstream
-        examination.travel_time_increase = traveling_duration_detour
-        examination.late = late
-        examination.replaced_task = replaced_task
-        examination.replacing_task = replacing_task
-        examination.employee = self.employee
-        return examination
-
-    def find_best_task_to_be_replaced_with_given_task(self, task: Task,
-                                                      compute_times_only_if_skill_constraints_satisfied: bool = True):
-        # Examine skill-wise feasibility
-        swap_is_skill_feasible = self.employee.is_capable_of_performing(task)
-        if compute_times_only_if_skill_constraints_satisfied and not swap_is_skill_feasible:
-            examination = ReplacementExamination()
-            examination.is_feasible = False
-            examination.is_skill_feasible = False
-            examination.employee = self.employee
-            examination.replacing_task = task
-            return examination
-        # Examine all step index for swap starting from index 1
-        examined_step_index = 1
-        best_examination = None
-        while examined_step_index <= self.nb_steps - 2:
-            replaced_task = self.get_step(examined_step_index).activity
-            examination = self.examine_replacing_task_with_another(replaced_task, task, False)
-            if best_examination is None or examination.is_better_than(best_examination):
-                best_examination = examination
-            if best_examination.is_upstream_feasible and not examination.is_upstream_feasible:
-                examined_step_index = self.nb_steps
-            else:
-                examined_step_index += 1
-        return best_examination
-
-    def find_best_replacement_among_various_replacing_tasks(
-            self, tasks: list[Task], compute_times_only_if_skill_constraints_satisfied: bool = True):
-        best_examination = self.find_best_task_to_be_replaced_with_given_task(
-            tasks[0], compute_times_only_if_skill_constraints_satisfied
-        )
-        for task in tasks[1:]:
-            examination = self.find_best_task_to_be_replaced_with_given_task(
-                task, compute_times_only_if_skill_constraints_satisfied
-            )
-            # Case where the current transformation is feasible
-            if examination.is_feasible:
-                if not best_examination.is_feasible or \
-                        (examination.travel_time_increase <
-                         best_examination.travel_time_increase):
-                    best_examination = examination
-            # Case where both the current transformation and the best currently known one are infeasible
-            elif not best_examination.is_feasible:
-                # Case where the current transformation is infeasible skill-wise
-                if not examination.is_skill_feasible:
-                    if not best_examination.is_skill_feasible and \
-                            task.skill_level < best_examination.replacing_task.skill_level:
-                        best_examination = examination
-                # Case where the current transformation is feasible skill-wise
-                else:
-                    if not best_examination.is_skill_feasible:
-                        best_examination = examination
-                    # Case where both the current transformation and
-                    # the best currently known one are feasible skill-wise
-                    else:
-                        # Case where the current transformation is infeasible upstream-wise
-                        if not examination.is_upstream_feasible:
-                            if not best_examination.is_upstream_feasible and examination.late < best_examination.late:
-                                best_examination = examination
-                        # Case where the current transformation is feasible upstream-wise
-                        else:
-                            if not best_examination.is_upstream_feasible:
-                                best_examination = examination
-                            # Case where both the current transformation and the best currently known one
-                            # are feasible upstream-wise
-                            elif examination.late < best_examination.late:
-                                best_examination = examination
-        return best_examination
-
-    #############################################
-    # Examining - Reorder - Best transformation #
-    #############################################
-
-    def examine_moving_after_a_task(self, moving_task: Task, fixed_task: Task):
-        """
-        Examine the feasibility of moving the given moving task after the fixed task in this sequence
-
-        Assumptions (only checked in debug):
-
-        - 1. the given moving task must be in the given employee's sequence;
-        - 2. the given fixed task must be in the given employee's sequence;
-        - 3. the given moving task must be before the given fixed task in the given employee's sequence;
-        - 4. the times of the given employee's sequence are consistent.
-
-        :param moving_task: the task which would move (Task)
-        :param fixed_task: the task after which the moving task would be moved
-        :return: the reordering examination (ReorderExamination)
-        """
-        # Check the assumptions
-        assert moving_task in self.get_contained_tasks(), \
-            f"The given moving task {moving_task.name} is not in this sequence"
-        assert fixed_task in self.get_contained_tasks(), \
-            f"The given leaving task {fixed_task.name} is not in this sequence"
-        assert self.get_step_index_of(moving_task) < self.get_step_index_of(fixed_task), \
-            f"The given moving task {moving_task.name} is not before the given fixed task {fixed_task.name} "
-        assert self.is_time_consistent, "The times are not consistent"
-        # Examine
-        sequence_copy = self.copy()
-        moving_task_index = sequence_copy.get_step_index_of(moving_task)
-        sequence_travel_time_before_removing = sequence_copy.total_traveling_duration
-        sequence_copy.remove_step(moving_task_index, False, True)
-        sequence_travel_time_after_removing = sequence_copy.total_traveling_duration
-        sequence_travel_time_decrease_due_to_removal = \
-            sequence_travel_time_before_removing - sequence_travel_time_after_removing
-        fixed_task_index = sequence_copy.get_step_index_of(fixed_task)
-        insertion_examination = sequence_copy.examine_insertion_at(moving_task, fixed_task_index + 1)
-        examination = ReorderExamination.from_examination(insertion_examination)
-        examination.moving_task = moving_task
-        examination.activity_before = fixed_task
-        examination.activity_after = sequence_copy.get_step(fixed_task_index + 1).activity
-        examination.travel_time_increase -= sequence_travel_time_decrease_due_to_removal
-        return examination
-
-    def examine_moving_before_a_task(self, moving_task: Task, fixed_task: Task):
-        """
-        Examine the feasibility of moving the given moving task before the fixed task in this sequence
-
-        Assumptions (only checked in debug):
-
-        - 1. the given moving task must be in the given employee's sequence;
-        - 2. the given fixed task must be in the given employee's sequence;
-        - 3. the given moving task must be before the given fixed task in the given employee's sequence;
-        - 4. the times of the given employee's sequence are consistent.
-
-        :param moving_task: the task which would move (Task)
-        :param fixed_task: the task before which the moving task would be moved (Task)
-        :return: the reordering examination (ReorderExamination)
-        """
-        # Check the assumptions
-        assert moving_task in self.get_contained_tasks(), \
-            f"The given moving task {moving_task.name} is not in this sequence"
-        assert fixed_task in self.get_contained_tasks(), \
-            f"The given leaving task {fixed_task.name} is not in this sequence"
-        assert self.get_step_index_of(moving_task) > self.get_step_index_of(fixed_task), \
-            f"The given moving task {moving_task.name} is not after the given fixed task {fixed_task.name} "
-        assert self.is_time_consistent, "The times are not consistent"
-        # Examine
-        sequence_copy = self.copy()
-        moving_task_index = sequence_copy.get_step_index_of(moving_task)
-        sequence_travel_time_before_removing = sequence_copy.total_traveling_duration
-        sequence_copy.remove_step(moving_task_index, False, True)
-        sequence_travel_time_after_removing = sequence_copy.total_traveling_duration
-        sequence_travel_time_decrease_due_to_removal = \
-            sequence_travel_time_before_removing - sequence_travel_time_after_removing
-        fixed_task_index = sequence_copy.get_step_index_of(fixed_task)
-        insertion_examination = sequence_copy.examine_insertion_at(moving_task, fixed_task_index)
-        examination = ReorderExamination.from_examination(insertion_examination)
-        examination.moving_task = moving_task
-        examination.activity_before = sequence_copy.get_step(fixed_task_index - 1).activity
-        examination.activity_after = fixed_task
-        examination.travel_time_increase -= sequence_travel_time_decrease_due_to_removal
-        return examination
-
-    def find_best_reorder_to_perform_task_later(self, moving_task: Task):
-        """
-        Find the best reorder such that the given task is performed at a later step
-
-        Assumptions (only checked in debug):
-
-        - 1. the given moving task must be in the given employee's sequence;
-        - 2. the given moving task must not be the last task in the given employee's sequence;
-        - 3. the times of the given employee's sequence are consistent.
-
-        :param moving_task: the task which would move (Task)
-        :return: the reordering examination (ReorderExamination)
-        """
-        step_index = self.get_step_index_of(moving_task)
-        last_task_step_index = self.get_last_task_step_index()
-        # Check the assumptions
-        assert step_index < last_task_step_index, \
-            f"The given moving task {moving_task.name} is the last task in this sequence"
-        # Find the best shift to later
-        best_examination = None
-        for step in self.get_steps(step_index + 1, last_task_step_index + 1):
-            task = step.activity
-            examination = self.examine_moving_after_a_task(moving_task, task)
-            if not best_examination or examination.is_better_than(best_examination):
-                best_examination = examination
-        return best_examination
-
-    def find_best_reorder_to_perform_task_earlier(self, moving_task: Task):
-        """
-        Find the best reorder such that the given task is performed at an earlier step
-
-        Assumptions (only checked in debug):
-
-        - 1. the given moving task must be in the given employee's sequence;
-        - 2. the given moving task must not be the first task in the given employee's sequence;
-        - 3. the times of the given employee's sequence are consistent.
-
-        :param moving_task: the task which would move (Task)
-        :return: the reordering examination (ReorderExamination)
-        """
-        step_index = self.get_step_index_of(moving_task)
-        first_task_step_index = self.get_first_task_step_index()
-        # Check the assumptions
-        assert step_index > first_task_step_index, \
-            f"The given moving task {moving_task.name} is the first task in this sequence"
-        # Find the best shift to earlier
-        best_examination = None
-        for step in self.get_steps(first_task_step_index, step_index):
-            task = step.activity
-            examination = self.examine_moving_before_a_task(moving_task, task)
-            if not best_examination or examination.is_better_than(best_examination):
-                best_examination = examination
-        return best_examination
-
-    def find_best_task_reorder(self, moving_task: Task):
-        """
-        Find the best reorder such that the given task is performed at a later or earlier step
-
-        Assumptions (only checked in debug):
-
-        - 1. the given moving task must be in the given employee's sequence;
-        - 2. the given moving task must not be the first or last task in the given employee's sequence;
-        - 3. the times of the given employee's sequence are consistent.
-
-        :param moving_task: the task which would move (Task)
-        :return: the reordering examination (ReorderExamination)
-        """
-        if self.get_step_index_of(moving_task) == self.get_first_task_step_index():
-            return self.find_best_reorder_to_perform_task_later(moving_task)
-        elif self.get_step_index_of(moving_task) == self.get_last_task_step_index():
-            return self.find_best_reorder_to_perform_task_earlier(moving_task)
-        else:
-            examination_later = self.find_best_reorder_to_perform_task_later(moving_task)
-            examination_earlier = self.find_best_reorder_to_perform_task_earlier(moving_task)
-            if examination_later.is_better_than(examination_earlier):
-                return examination_later
-            else:
-                return examination_earlier
-
-    ##################################################
-    # Examining - Reorder - Feasible transformations #
-    ##################################################
-
-    def find_feasible_reorders_to_perform_task_later(self, moving_task: Task):
-        """
-        Find the feasible reorders such that the given task is performed at a later step
-
-        Assumptions (only checked in debug):
-
-        - 1. the given moving task must be in the given employee's sequence;
-        - 2. the times of the given employee's sequence are consistent.
-
-        :param moving_task: the task which would move (Task)
-        :return: the reordering examinations (list of ReorderExamination)
-        """
-        step_index = self.get_step_index_of(moving_task)
-        last_task_step_index = self.get_last_task_step_index()
-        examinations = []
-        for step in self.get_steps(step_index + 1, last_task_step_index + 1):
-            task = step.activity
-            examination = self.examine_moving_after_a_task(moving_task, task)
-            if examination.is_feasible:
-                examinations.append(examination)
-        return examinations
-
-    def find_feasible_reorders_to_perform_task_earlier(self, moving_task: Task):
-        """
-        Find the feasible reorders such that the given task is performed at an earlier step
-
-        Assumptions (only checked in debug):
-
-        - 1. the given moving task must be in the given employee's sequence;
-        - 2. the times of the given employee's sequence are consistent.
-
-        :param moving_task: the task which would move (Task)
-        :return: the reordering examinations (list of ReorderExamination)
-        """
-        step_index = self.get_step_index_of(moving_task)
-        first_task_step_index = self.get_first_task_step_index()
-        examinations = []
-        for step in self.get_steps(first_task_step_index, step_index):
-            task = step.activity
-            examination = self.examine_moving_before_a_task(moving_task, task)
-            if examination.is_feasible:
-                examinations.append(examination)
-        return examinations
-
-    def find_task_feasible_reorders(self, moving_task: Task):
-        """
-        Find the feasible reorders such that the given task is performed at a later or earlier step
-
-        Assumptions (only checked in debug):
-
-        - 1. the given moving task must be in the given employee's sequence;
-        - 2. the given moving task must not be the first or last task in the given employee's sequence;
-        - 3. the times of the given employee's sequence are consistent.
-
-        :param moving_task: the task which would move (Task)
-        :return: the reordering examinations (list of ReorderExamination)
-        """
-        examinations_later = self.find_feasible_reorders_to_perform_task_later(moving_task)
-        examinations_earlier = self.find_feasible_reorders_to_perform_task_earlier(moving_task)
-        return examinations_later + examinations_earlier
-
-    ##################
-    # Critical steps #
-    ##################
-
-    def find_first_critical_step_index_backward_from(self, step_index: int):
-        """
-        Find the index of the first backward critical step that can be found,
-        starting from the given step index and going backward.
-
-        Remark: A backward critical step is a step which BTS is limited by its start time lower bound,
-        not by the times of steps before it.
-
-        :param step_index: (int)
-        :return: the index of the first critical step found
-        """
-        step = self[step_index]
-        while step.BTS < step.start_time - step.activity.start_time_lb:
-            step_index -= 1
-            step = self[step_index]
-        return step_index
-
-    def find_first_critical_step_index_forward_from(self, step_index: int):
-        """
-        Find the index of the first forward critical step that can be found,
-        starting from the given step index and going forward.
-
-        Remark: A forward critical step is a step which FTS is limited by its end time upper bound,
-        not by the times of the steps after it.
-
-        :param step_index: (int)
-        :return: the index of the first critical step found
-        """
-        step = self[step_index]
-        while step.FTS < step.activity.end_time_ub - (step.start_time + step.activity.duration):
-            step_index += 1
-            step = self[step_index]
-        return step_index
-
-    #####################################
-    # Local change - Private - Feasible #
-    #####################################
-
-    def _feasibly_remove_step(self, step_index: int, tighten_times: bool = True, update_KPIs: bool = True):
+    def _feasibly_remove_step(self, step_index: int, tighten_times: bool = True, update_kpis: bool = True):
         """
         Remove the step from this sequence at the given index.
 
@@ -865,10 +149,11 @@ class SequenceForHeuristics(Sequence):
         - 2. the activity at the given step index is a Task;
         - 3. the times of the sequence are consistent.
 
-        :param step_index: the index (int) of the step that is removed from this sequence
-        :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence
-          after the step has been removed in order to minimize idle time
-        :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
+        Args:
+            step_index: The index of the step that is removed from this sequence.
+            tighten_times: If True, tightens the times of the sequence after the step has been removed,
+              in order to minimize idle time.
+            update_kpis: Whether to keep the KPIs up to date after the change.
         """
 
         # Check assumptions
@@ -900,7 +185,7 @@ class SequenceForHeuristics(Sequence):
             step_before_removal.end_time = step_after_removal.arrival_time - traveling_duration_before_after
             step_before_removal.start_time = step_before_removal.end_time
             step_before_removal.arrival_time = step_before_removal.start_time
-            step_before_removal.BTS += step_before_removal.start_time - step_before_removal_former_end_time
+            step_before_removal.bts += step_before_removal.start_time - step_before_removal_former_end_time
             assert step_before_removal.start_time >= step_before_removal_former_end_time, \
                 "After removal, departure time is found to be earlier than before"
 
@@ -912,16 +197,16 @@ class SequenceForHeuristics(Sequence):
 
             # If the step after removal is a comeback, then update return times to be all equal
             if step_index == self.nb_steps - 1:
-                step_after_removal.FTS += step_after_removal.start_time - step_after_removal.arrival_time
+                step_after_removal.fts += step_after_removal.start_time - step_after_removal.arrival_time
                 step_after_removal.start_time = step_after_removal.arrival_time
                 step_after_removal.end_time = step_after_removal.start_time
                 assert step_after_removal.arrival_time <= step_after_removal_former_arrival_time, \
                     "After removal, return time is found to be later than before"
 
         # Update KPIs if needed
-        if update_KPIs:
-            # Update tasks realization
-            self._nb_realized_tasks -= 1
+        if update_kpis:
+            # Update tasks performance
+            self._nb_performed_tasks -= 1
             self._total_working_duration -= removed_step.activity.duration
 
             # Update traveling duration
@@ -961,53 +246,57 @@ class SequenceForHeuristics(Sequence):
         # Update times slacks
         # BTS of steps from steps[0] (included) to steps[step_index - 1] (included) are correct
         # BTS of steps following steps[step_index] (included) must be updated
-        self.update_BTS_forward_from(step_index)
+        SlackTimeComputer.update_bts_forward_from(self, step_index)
         # FTS of steps from steps[-1] (included) to steps[step_index] (included) are correct
         # FTS of steps preceding steps[step_index - 1] (included) must be updated
-        self.update_FTS_backward_from(step_index - 1)
+        SlackTimeComputer.update_fts_backward_from(self, step_index - 1)
 
         # Tighten times if needed
         if tighten_times:
-            self.tighten_times(update_KPIs)
+            SlackTimeComputer.tighten_times(self, update_kpis)
 
         # Clear removed step
         removed_step.clear()
 
-    def _feasibly_remove_all_tasks(self, tighten_times: bool = True, update_KPIs: bool = True):
+    def _feasibly_remove_all_tasks(self, tighten_times: bool = True, update_kpis: bool = True):
         """
         Remove all the steps which correspond to tasks from this sequence.
 
-        :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence
-          after the step has been removed in order to minimize idle time
-        :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
+        Args:
+            tighten_times: If True, tightens the times of the sequence after the step has been removed,
+              in order to minimize idle time.
+            update_kpis: Whether to keep the KPIs up to date after the change.
         """
         step_indices = self.get_step_indices_of_contained_tasks()
         for step_index in reversed(step_indices):
             self._feasibly_remove_step(step_index, False, False)
-        if update_KPIs:
+        if update_kpis:
             self.compute_kpis()
         if tighten_times:
-            self.tighten_times(update_KPIs)
+            SlackTimeComputer.tighten_times(self, update_kpis)
 
     def _feasibly_insert_task_at(self, task: Task, step_index: int, start_time: int,
-                                 tighten_times: bool = True, update_KPIs: bool = True):
+                                 tighten_times: bool = True, update_kpis: bool = True):
         """
         Insert the given task at the given step index with the given start time;
         this method shall only be used when the insertion is known to be feasible.
 
         Assumptions (only checked in debug):
-        
+
         - 1. the given task is not in this sequence;
         - 2. the given step index is between 1 (included) and len(sequence) - 1 (included);
         - 3. the times of the sequence are consistent.
 
-        :param task: the task (Task) to insert
-        :param step_index: the index (int) of the step where the given task is inserted
-        :param start_time: the start time (int) at which the task is realized
-        :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence
-          after the step has been inserted in order to minimize idle time
-        :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
-        :return: a pair of indices of the first and last step which start time has been changed
+        Args:
+            task: The task to insert.
+            step_index: The index of the step where the given task is inserted.
+            start_time: The start time at which the task is performed.
+            tighten_times: If True, tightens the times of the sequence after the step has been inserted,
+              in order to minimize idle time.
+            update_kpis: Whether to keep the KPIs up to date after the change.
+
+        Returns:
+            A pair of indices of the first and last step which start time has been changed.
         """
 
         # Check assumptions
@@ -1057,8 +346,8 @@ class SequenceForHeuristics(Sequence):
         if arrival_times_difference_at_inserted_step < 0:
             backward_time_shift = -arrival_times_difference_at_inserted_step
             departure_former_time = self[0].start_time
-            first_step_with_time_change_index = self.shift_steps_times_backward_from(
-                step_index - 1, step_before_insertion.start_time - backward_time_shift
+            first_step_with_time_change_index = SlackTimeComputer.shift_steps_times_backward_from(
+                self, step_index - 1, step_before_insertion.start_time - backward_time_shift
             )
             departure_backward_time_shift = departure_former_time - self[0].start_time
             idle_time_variation_strictly_up_to_insertion = departure_backward_time_shift - backward_time_shift
@@ -1074,8 +363,8 @@ class SequenceForHeuristics(Sequence):
         if difference_start_and_arrival_times_after < 0:
             forward_time_shift = -difference_start_and_arrival_times_after
             comeback_former_time = self[-1].start_time
-            last_step_with_time_change_index = self.shift_steps_times_forward_from(
-                step_index + 1, step_after_insertion.arrival_time
+            last_step_with_time_change_index = SlackTimeComputer.shift_steps_times_forward_from(
+                self, step_index + 1, step_after_insertion.arrival_time
             )
             comeback_forward_time_shift = self[-1].start_time - comeback_former_time
             idle_time_variation_strictly_down_from_insertion = \
@@ -1085,10 +374,10 @@ class SequenceForHeuristics(Sequence):
                 difference_start_and_arrival_times_after - former_idle_time_at_step_after
 
         # Update KPIs if needed
-        if update_KPIs:
+        if update_kpis:
 
-            # Update tasks realization
-            self._nb_realized_tasks += 1
+            # Update tasks performance
+            self._nb_performed_tasks += 1
             self._total_working_duration += inserted_step.activity.duration
 
             # Update traveling duration
@@ -1115,28 +404,28 @@ class SequenceForHeuristics(Sequence):
         # Update times slacks
         # BTS of steps from steps[0] (included) to steps[step_index - 1] (included) are correct
         # BTS of steps following steps[step_index] (included) must be updated
-        self.update_BTS_forward_from(step_index)
+        SlackTimeComputer.update_bts_forward_from(self, step_index)
         # FTS of steps from steps[-1] (included) to steps[step_index + 1] (included) are correct
         # FTS of steps preceding steps[step_index] (included) must be updated
-        self.update_FTS_backward_from(step_index)
+        SlackTimeComputer.update_fts_backward_from(self, step_index)
 
         # Tighten times
         if tighten_times:
-            self.tighten_times(update_KPIs)
+            SlackTimeComputer.tighten_times(self, update_kpis)
 
         # Return indices of the range of steps which start times has been changed
         return first_step_with_time_change_index, last_step_with_time_change_index
 
-    #######################################
-    # Local change - Private - Infeasible #
-    #######################################
+    ####################################
+    # Mutations - Private - Infeasible #
+    ####################################
 
     def _infeasibly_insert_task_at(self, task: Task, step_index: int, start_time: int,
                                    start_time_for_backward: int, start_time_for_forward: int):
         """
         Insert the given task at the given step index with the given start time;
-        two artificial start times are provided for the computation of the times of the steps and after the insertion;
-        this method shall only be used when the insertion is known to be infeasible.
+        two artificial start times are provided for the computation of the times of the steps before and
+        after the insertion; this method shall only be used when the insertion is known to be infeasible.
 
         Assumptions (only checked in debug):
 
@@ -1144,14 +433,17 @@ class SequenceForHeuristics(Sequence):
         - 2. the given step index is between 1 (included) and the number of steps - 1 (included);
         - 3. the times of the sequence are consistent.
 
-        :param task: the task (Task) to insert
-        :param step_index: the index (int) of the step where the given task is inserted
-        :param start_time: the start time (int) of the task to insert
-        :param start_time_for_backward: the artificial start time (int) of the task to insert used for
-          the computation of the times of the steps before the task to insert
-        :param start_time_for_forward: the artificial start time (int) of the task to insert used for
-          the computation of the times of the steps after the task to insert
-        :return: a pair of indices of the first and last step which start time has been changed
+        Args:
+            task: The task to insert.
+            step_index: The index of the step where the given task is inserted.
+            start_time: The start time of the task to insert.
+            start_time_for_backward: The artificial start time of the task to insert used for the
+              computation of the times of the steps before the task to insert.
+            start_time_for_forward: The artificial start time of the task to insert used for the
+              computation of the times of the steps after the task to insert.
+
+        Returns:
+            A pair of indices of the first and last step which start time has been changed.
         """
 
         # Initialize indices of the range of steps which start_time has been changed
@@ -1168,8 +460,8 @@ class SequenceForHeuristics(Sequence):
         step_before_insertion_start_time = \
             start_time_for_backward - (traveling_duration_before + step_before_insertion.activity.duration)
         if step_before_insertion_start_time < step_before_insertion.start_time:
-            first_step_with_time_change_index = \
-                self.shift_steps_times_backward_from(step_index - 1, step_before_insertion_start_time)
+            first_step_with_time_change_index = SlackTimeComputer.shift_steps_times_backward_from(
+                self, step_index - 1, step_before_insertion_start_time)
             inserted_step.arrival_time = start_time_for_backward
         else:
             inserted_step.arrival_time = step_before_insertion.end_time + traveling_duration_before
@@ -1180,93 +472,106 @@ class SequenceForHeuristics(Sequence):
         step_after_insertion_arrival_time = start_time_for_forward + task.duration + traveling_duration_after
         step_after_insertion.arrival_time = step_after_insertion_arrival_time
         if step_after_insertion.start_time < step_after_insertion_arrival_time:
-            last_step_with_time_change_index = \
-                self.shift_steps_times_forward_from(step_index + 1, step_after_insertion_arrival_time)
+            last_step_with_time_change_index = SlackTimeComputer.shift_steps_times_forward_from(
+                self, step_index + 1, step_after_insertion_arrival_time)
 
         # Return indices of the range of steps which start time has been changed
         return first_step_with_time_change_index, last_step_with_time_change_index
 
-    #########################
-    # Local change - Public #
-    #########################
+    ######################
+    # Mutations - Public #
+    ######################
 
-    def remove_step(self, step_index: int, tighten_times: bool = True, update_KPIs: bool = True):
+    def remove_step(self, step_index: int):
         """
-        Remove the step from this sequence at the given index
+        Remove the step from this sequence at the given index; tightens times immediately unless called
+        within a SlackTimeComputer.deferred_tightening() block.
 
         Assumptions (only checked in debug):
         - 1. the given step index is between 1 (included) and the number of steps - 1 (included)
         - 2. the activity at the given step index is a Task
         - 3. the times of the sequence are consistent
 
-        :param step_index: the index (int) of the step that is removed from this sequence
-        :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence
-          after the step has been removed in order to minimize idle time
-        :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
-        :return: a boolean (bool) which indicates whether the change is feasible
+        Args:
+            step_index: The index of the step that is removed from this sequence.
+
+        Returns:
+            Whether the change is feasible.
         """
         # Remark: the assumptions are checked in _feasibly_remove_step
         assert self.is_time_consistent, "The times of the sequence are not consistent before removing."
-        self._feasibly_remove_step(step_index, tighten_times, update_KPIs)
+        self._feasibly_remove_step(step_index, not self.is_tightening_suspended, True)
         assert self.is_time_consistent, "The times of the sequence are not consistent after removing."
         return True
 
-    def remove_task(self, task: Task, tighten_times: bool = True, update_KPIs: bool = True):
+    def remove_task(self, task: Task):
         """
-        Remove the task from this sequence
+        Remove the task from this sequence; tightens times immediately unless called within a
+        SlackTimeComputer.deferred_tightening() block.
 
         Assumptions (only checked in debug):
         - 1. the task is in the sequence
         - 2. the times of the sequence are consistent
 
-        :param task: the task (Task) to remove from this sequence
-        :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence
-          after the task has been removed in order to minimize idle time
-        :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
-        :return: a boolean (bool) which indicates whether the change is feasible
+        Args:
+            task: The task to remove from this sequence.
+
+        Returns:
+            Whether the change is feasible.
         """
         assert self.contains(task), f"Task {task} is not in the sequence"
-        return self.remove_step(self.get_step_index_of(task), tighten_times, update_KPIs)
+        return self.remove_step(self.get_step_index_of(task))
 
-    def remove_all_tasks(self, tighten_times: bool = True, update_KPIs: bool = True):
+    def remove_all_tasks(self):
         """
-        Remove all the steps which correspond to tasks from this sequence.
+        Remove all the steps which correspond to tasks from this sequence; tightens times immediately
+        unless called within a SlackTimeComputer.deferred_tightening() block.
 
-        :param tighten_times: a boolean (bool) which, if set to True, tightens the times of the sequence
-          after the step has been removed in order to minimize idle time
-        :param update_KPIs: a boolean (bool) which maintains the KPIs up to date after the change
-        :return: a boolean (bool) which indicates whether the change is feasible
+        Returns:
+            Whether the change is feasible.
         """
         # Remark: the assumptions are checked in _feasibly_remove_step
         assert self.is_time_consistent, "The times of the sequence are not consistent before removing."
-        self._feasibly_remove_all_tasks(tighten_times, update_KPIs)
+        self._feasibly_remove_all_tasks(not self.is_tightening_suspended, True)
         assert self.is_time_consistent, "The times of the sequence are not consistent after removing."
         return True
 
-    def insert_task_at(self, entering_task: Task, step_index: int, start_time: int = None,
-                       start_time_for_backward: int = None, start_time_for_forward: int = None,
-                       tighten_times: bool = True, update_KPIs: bool = True):
+    def insert_task_at(
+            self, entering_task: Task, step_index: int, start_time: Optional[int] = None,
+            start_time_for_backward: Optional[int] = None, start_time_for_forward: Optional[int] = None
+    ):
         """
-        TODO
+        Insert the given task at the given step index, with the given start time if one is provided, or
+        the best feasible start time as found by Evaluator.evaluate_insertion_at() otherwise. Tightens
+        times immediately unless called within a SlackTimeComputer.deferred_tightening() block.
 
-        :param entering_task:
-        :param step_index:
-        :param start_time:
-        :param start_time_for_backward:
-        :param start_time_for_forward:
-        :param tighten_times:
-        :param update_KPIs:
-        :return: a boolean (bool) which indicates whether the change is feasible and
-          a pair of indices of the first and last step which start time has been changed
+        Args:
+            entering_task: The task to insert.
+            step_index: The index of the step where the given task is inserted.
+            start_time: The start time at which the task is performed. If None, it is computed by
+              Evaluator.evaluate_insertion_at(), along with start_time_for_backward and start_time_for_forward.
+            start_time_for_backward: The artificial start time of the task to insert used for the
+              computation of the times of the steps before the task to insert, when the insertion is
+              infeasible. None when the insertion is feasible.
+            start_time_for_forward: The artificial start time of the task to insert used for the
+              computation of the times of the steps after the task to insert, when the insertion is
+              infeasible. None when the insertion is feasible.
+
+        Returns:
+            A pair made of a boolean indicating whether the change is feasible, and a pair of indices of
+            the first and last step which start time has been changed.
         """
 
-        # If the start time of the task to insert is not provided,
-        # then compute it
         if start_time is None:
-            examination = self.examine_insertion_at(entering_task, step_index)
-            start_time = examination.start_time
-            start_time_for_backward = examination.earliest_start_time_for_upstream
-            start_time_for_forward = examination.latest_start_time_for_downstream
+            # NB: Times must be computed even when the entering task is skill-infeasible for the employee:
+            # this method only reports time feasibility, so callers that want to force an infeasible insertion anyway
+            # (e.g. Solution.insert_task_after_activity(..., ignore_skill_constraint=True))
+            # still need real start times rather than the None values left by a skill-infeasible early return.
+            evaluation = Evaluator.evaluate_insertion_at(
+                self, entering_task, step_index, compute_times_only_if_skill_constraints_satisfied=False)
+            start_time = evaluation.start_time
+            start_time_for_backward = evaluation.earliest_start_time_for_upstream
+            start_time_for_forward = evaluation.latest_start_time_for_downstream
         insertion_is_feasible = start_time_for_backward is None
 
         # If the insertion is feasible (that is to say there are no start time for backward and forward),
@@ -1274,7 +579,8 @@ class SequenceForHeuristics(Sequence):
         if insertion_is_feasible:
             assert self.is_time_consistent, "The times of the sequence are not consistent before inserting"
             first_step_with_time_change_index, last_step_with_time_change_index = \
-                self._feasibly_insert_task_at(entering_task, step_index, start_time, tighten_times, update_KPIs)
+                self._feasibly_insert_task_at(entering_task, step_index, start_time,
+                                              not self.is_tightening_suspended, True)
             assert self.is_time_consistent, "The times of the sequence are not consistent after inserting"
             return True, (first_step_with_time_change_index, last_step_with_time_change_index)
 
@@ -1283,15 +589,18 @@ class SequenceForHeuristics(Sequence):
         else:
             first_step_with_time_change_index, last_step_with_time_change_index = \
                 self._infeasibly_insert_task_at(entering_task, step_index, start_time,
-                                                start_time_for_backward, start_time_for_forward)
+                                                cast(int, start_time_for_backward), cast(int, start_time_for_forward))
             return False, (first_step_with_time_change_index, last_step_with_time_change_index)
 
-    # Remark: entering task must not be already in this sequence
-    def replace_task_by_another_at(self, entering_task: Task, step_index: int, start_time: int = None,
-                                   start_time_for_backward: int = None, start_time_for_forward: int = None,
-                                   tighten_times: bool = True, update_KPIs: bool = True):
+    def replace_task_by_another_at(
+            self, entering_task: Task, step_index: int, start_time: Optional[int] = None,
+            start_time_for_backward: Optional[int] = None, start_time_for_forward: Optional[int] = None
+    ):
         """
-        TODO
+        Replace the task at the given step index by the given entering task, which must not already be in
+        this sequence, removing the former step and inserting the entering task in its place. Removal and
+        insertion are both performed within a SlackTimeComputer.deferred_tightening() block, so times are
+        tightened at most once, after both steps, rather than in between them.
 
         Assumptions (only checked in debug):
 
@@ -1300,24 +609,32 @@ class SequenceForHeuristics(Sequence):
         - 3. the activity at the given step index is a Task;
         - 4. the times of the sequence are consistent.
 
-        :param entering_task:
-        :param step_index:
-        :param start_time:
-        :param start_time_for_backward:
-        :param start_time_for_forward:
-        :param tighten_times:
-        :param update_KPIs:
-        :return: a boolean (bool) which indicates whether the change is feasible
-          and a pair of indices of the first and last step which start time has been changed
+        Args:
+            entering_task: The task to insert in place of the one removed.
+            step_index: The index of the step whose task is replaced.
+            start_time: The start time at which the entering task is performed.
+              If None, it is computed by Evaluator.evaluate_insertion_at(),
+              along with start_time_for_backward and start_time_for_forward.
+            start_time_for_backward: The artificial start time of the entering task used for the
+              computation of the times of the steps before it, when the insertion is infeasible.
+              None when the insertion is feasible.
+            start_time_for_forward: The artificial start time of the entering task used for the
+              computation of the times of the steps after it, when the insertion is infeasible.
+              None when the insertion is feasible.
+
+        Returns:
+            A pair made of a boolean indicating whether the change is feasible,
+            and a pair of indices of the first and last step which start time has been changed.
         """
 
         # Check assumptions
         # Remark: the assumptions are already checked in remove_step and insert_task_at
 
-        # Remove the given step from this sequence
-        self.remove_step(step_index, False, update_KPIs)
+        with SlackTimeComputer.deferred_tightening(self):
+            # Remove the given step from this sequence
+            self.remove_step(step_index)
 
-        # Insert the task in this sequence at the given step index
-        return self.insert_task_at(entering_task, step_index,
-                                   start_time, start_time_for_backward, start_time_for_forward,
-                                   tighten_times, update_KPIs)
+            # Insert the task in this sequence at the given step index
+            result = self.insert_task_at(entering_task, step_index,
+                                         start_time, start_time_for_backward, start_time_for_forward)
+        return result
