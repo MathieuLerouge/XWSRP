@@ -7,7 +7,7 @@ from src.explaining.interacting.interface.figures import build_routes_figure, bu
     build_instance_metrics_figures, build_solution_metrics_figures
 from src.explaining.interacting.interface.tables import build_tasks_data_table, build_employees_data_table
 from src.explaining.interacting.interface.tools import convert_from_string_to_html
-from src.explaining.computing.templates.infeasibility import Infeasibility
+from src.explaining.computing.conflict.conflict import Conflict
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.utils.constants import LINE_BREAK_STRING
@@ -98,7 +98,7 @@ def build_tasks_data_panel(instance: Instance, is_current_instance: bool,
 
 def build_routes_figure_panel(solution: Solution, is_current_solution: bool, panel_title: str = "Employees' routes",
                               panel_title_prefix: str = "", panel_title_suffix: str = "",
-                              infeasibility: Infeasibility = None, language: str = LANGUAGE_ENGLISH_KEY):
+                              conflict: Conflict = None, language: str = LANGUAGE_ENGLISH_KEY):
     """
     Build a panel containing a map of the employees' routes for a given solution.
     """
@@ -112,7 +112,7 @@ def build_routes_figure_panel(solution: Solution, is_current_solution: bool, pan
             build_panel_banner(panel_title),
             dcc.Graph(id=f"{'current' if is_current_solution else 'other'}-solution-spatial-representation",
                       className='spatial-representation', style=dict(padding='1rem 0rem 0rem 0rem'),
-                      figure=build_routes_figure(solution=solution, infeasibility=infeasibility, language=language),
+                      figure=build_routes_figure(solution=solution, conflict=conflict, language=language),
                       config={'modeBarButtonsToRemove': ['zoom', 'pan', 'select', 'lasso', 'zoomIn', 'zoomOut'],
                               'displaylogo': False})
         ]
@@ -123,7 +123,7 @@ def build_routes_figure_panel(solution: Solution, is_current_solution: bool, pan
 def build_schedules_figure_panel(solution: Solution, is_current_solution: bool,
                                  panel_title: str = "Employees' schedules",
                                  panel_title_prefix: str = "", panel_title_suffix: str = "",
-                                 infeasibility: Infeasibility = None, language: str = LANGUAGE_ENGLISH_KEY):
+                                 conflict: Conflict = None, language: str = LANGUAGE_ENGLISH_KEY):
     """
     Build a panel containing a gantt chart of the employees' schedules for a given solution.
     """
@@ -137,7 +137,7 @@ def build_schedules_figure_panel(solution: Solution, is_current_solution: bool,
             build_panel_banner(panel_title),
             dcc.Graph(id=f"{'current' if is_current_solution else 'other'}-solution-temporal-representation",
                       className="temporal-representation", style=dict(padding='1rem 0rem 1rem 0rem'),
-                      figure=build_schedules_figure(solution=solution, infeasibility=infeasibility, language=language),
+                      figure=build_schedules_figure(solution=solution, conflict=conflict, language=language),
                       config={'modeBarButtonsToRemove': ['zoom', 'pan', 'select', 'lasso', 'zoomIn', 'zoomOut',
                                                          'autoScale'],
                               'displaylogo': False})

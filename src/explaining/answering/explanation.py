@@ -8,7 +8,7 @@ from src.explaining.questioning.questions_templates_bank import \
 from src.modeling.solution import Solution
 from src.explaining.questioning.question import Question, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
 from src.explaining.answering.explanations_templates_bank import EXPLANATIONS_TEMPLATES
-from src.explaining.computing.templates.infeasibility import Infeasibility, SkillInfeasibility, TimeInfeasibility
+from src.explaining.computing.conflict.conflict import Conflict, SkillConflict, TimeConflict
 from src.utils.constants import LINE_BREAK_STRING
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.utils.time import convert_nb_minutes_to_time_string, get_hour_format_associated_with_language
@@ -17,7 +17,10 @@ from src.utils.time import convert_nb_minutes_to_time_string, get_hour_format_as
 QUESTION_KEY = 'question'
 SUPPORT_SOLUTION_KEY = 'support solution'
 TRANSFORMATION_KEY = 'transformation'
-INFEASIBILITY_KEY = 'infeasibility'
+# WIP: Spelled 'infeasibility' rather than 'conflict' on purpose:
+# it is the key of already-saved explanation JSON files (see data/*/explanations/),
+# which renaming the classes must not invalidate.
+CONFLICT_KEY = 'infeasibility'
 
 
 ####################
@@ -39,10 +42,10 @@ def emphasize(text: str, make_bold: bool = False):
         return text
 
 
-def create_explanation(question: Question, support_solution: Solution, infeasibility: Infeasibility,
+def create_explanation(question: Question, support_solution: Solution, conflict: Conflict,
                        all_descriptions_of_applied_transformation: dict[str, str],
                        instance_alterations: InstanceChanges = None):
-    if infeasibility is None:
+    if conflict is None:
         if support_solution > question.solution:
             return PositiveExplanation(question, support_solution,
                                        all_descriptions_of_applied_transformation, instance_alterations)
@@ -50,24 +53,24 @@ def create_explanation(question: Question, support_solution: Solution, infeasibi
             return NonImprovingNegativeExplanation(question, support_solution,
                                                    all_descriptions_of_applied_transformation, instance_alterations)
     else:
-        if isinstance(infeasibility, SkillInfeasibility):
-            return SkillNegativeExplanation(question, support_solution, infeasibility,
+        if isinstance(conflict, SkillConflict):
+            return SkillNegativeExplanation(question, support_solution, conflict,
                                             all_descriptions_of_applied_transformation, instance_alterations)
-        elif isinstance(infeasibility, TimeInfeasibility):
-            return TimeNegativeExplanation(question, support_solution, infeasibility,
+        elif isinstance(conflict, TimeConflict):
+            return TimeNegativeExplanation(question, support_solution, conflict,
                                            all_descriptions_of_applied_transformation, instance_alterations)
         else:
-            raise TypeError(f"There is a problem with the type of infeasibility which is {type(infeasibility)}")
+            raise TypeError(f"There is a problem with the type of conflict which is {type(conflict)}")
 
 
 def create_explanation_from_dict(dictionary, solution: Solution):
     question = Question.from_dict(dictionary[QUESTION_KEY], solution)
     support_solution = Solution.from_dict(dictionary[SUPPORT_SOLUTION_KEY], solution.instance)
-    infeasibility = None
-    if INFEASIBILITY_KEY in dictionary:
-        infeasibility = Infeasibility.from_dict(dictionary[INFEASIBILITY_KEY], solution.instance)
-    if isinstance(infeasibility, TimeInfeasibility):
-        employee, task = infeasibility.conflicting_employee, infeasibility.conflicting_task
+    conflict = None
+    if CONFLICT_KEY in dictionary:
+        conflict = Conflict.from_dict(dictionary[CONFLICT_KEY], solution.instance)
+    if isinstance(conflict, TimeConflict):
+        employee, task = conflict.conflicting_employee, conflict.conflicting_task
         sequence = support_solution.get_sequence(employee)
         index = sequence.get_step_index_of(task)
         if index == 1:
@@ -75,19 +78,19 @@ def create_explanation_from_dict(dictionary, solution: Solution):
             traveling_time_from_departure = \
                 solution.instance.compute_traveling_duration(departure_step.activity, task)
             departure_time = \
-                infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task - traveling_time_from_departure
+                conflict.earliest_upstream_feasible_start_time_of_conflicting_task - traveling_time_from_departure
             departure_step.arrival_time, departure_step.start_time, departure_step.end_time = \
                 departure_time, departure_time, departure_time
         if index == sequence.nb_steps - 2:
             return_step = sequence[-1]
             traveling_time_to_return = \
                 solution.instance.compute_traveling_duration(task, return_step.activity)
-            return_time = infeasibility.latest_downstream_feasible_start_time_of_conflicting_task + \
+            return_time = conflict.latest_downstream_feasible_start_time_of_conflicting_task + \
                 task.duration + traveling_time_to_return
             return_step.arrival_time, return_step.start_time, return_step.end_time = \
                 return_time, return_time, return_time
     all_descriptions_of_applied_transformation = dictionary[TRANSFORMATION_KEY]
-    return create_explanation(question, support_solution, infeasibility, all_descriptions_of_applied_transformation)
+    return create_explanation(question, support_solution, conflict, all_descriptions_of_applied_transformation)
 
 
 #####################
@@ -590,14 +593,14 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
 # Class InfeasibleNegativeExplanation
 class InfeasibleNegativeExplanation(NegativeExplanation):
 
-    def __init__(self, question: Question, support_solution: Solution, infeasibility: Infeasibility,
+    def __init__(self, question: Question, support_solution: Solution, conflict: Conflict,
                  description_of_applied_transformation: str = None, instance_alterations: InstanceChanges = None):
-        self._infeasibility = infeasibility
+        self._conflict = conflict
         super().__init__(question, support_solution, description_of_applied_transformation, instance_alterations)
 
     @property
-    def infeasibility(self):
-        return self._infeasibility
+    def conflict(self):
+        return self._conflict
 
     @property
     def support_solution_is_feasible(self):
@@ -605,11 +608,11 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
 
     @property
     def _conflicting_employee(self):
-        return self._infeasibility.conflicting_employee
+        return self._conflict.conflicting_employee
 
     @property
     def _conflicting_task(self):
-        return self._infeasibility.conflicting_task
+        return self._conflict.conflicting_task
 
     @abstractmethod
     def _compute_text(self, with_bold_emphasis: bool = False):
@@ -617,17 +620,17 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
 
     def to_dict(self):
         dictionary = super().to_dict()
-        dictionary[INFEASIBILITY_KEY] = self.infeasibility.to_dict()
+        dictionary[CONFLICT_KEY] = self.conflict.to_dict()
         return dictionary
 
 
 # Class SkillNegativeExplanation
 class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 
-    def __init__(self, question: Question, support_solution: Solution, infeasibility: SkillInfeasibility,
+    def __init__(self, question: Question, support_solution: Solution, conflict: SkillConflict,
                  all_descriptions_of_applied_transformation: dict[str, str] = None,
                  instance_alterations: InstanceChanges = None):
-        super().__init__(question, support_solution, infeasibility,
+        super().__init__(question, support_solution, conflict,
                          all_descriptions_of_applied_transformation, instance_alterations)
 
     def _compute_text(self, with_bold_emphasis: bool = False):
@@ -671,32 +674,32 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 # Class TimeNegativeExplanation
 class TimeNegativeExplanation(InfeasibleNegativeExplanation):
 
-    def __init__(self, question: Question, support_solution: Solution, infeasibility: TimeInfeasibility,
+    def __init__(self, question: Question, support_solution: Solution, conflict: TimeConflict,
                  all_descriptions_of_applied_transformation: dict[str, str] = None,
                  instance_alterations: InstanceChanges = None):
-        super().__init__(question, support_solution, infeasibility,
+        super().__init__(question, support_solution, conflict,
                          all_descriptions_of_applied_transformation, instance_alterations)
-        self._infeasibility = infeasibility
+        self._conflict = conflict
 
     @property
-    def _solution_is_upstream_feasible(self):
-        return self._infeasibility.solution_is_upstream_feasible
+    def _is_upstream_feasible(self):
+        return self._conflict.is_upstream_feasible
 
     @property
     def _earliest_upstream_feasible_start_time_of_conflicting_task(self):
-        return self._infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task
+        return self._conflict.earliest_upstream_feasible_start_time_of_conflicting_task
 
     @property
     def _latest_downstream_feasible_start_time_of_conflicting_task(self):
-        return self._infeasibility.latest_downstream_feasible_start_time_of_conflicting_task
+        return self._conflict.latest_downstream_feasible_start_time_of_conflicting_task
 
     @property
     def _upstream_critical_step_index(self):
-        return self._infeasibility.upstream_critical_step_index
+        return self._conflict.upstream_critical_step_index
 
     @property
     def _downstream_critical_step_index(self):
-        return self._infeasibility.downstream_critical_step_index
+        return self._conflict.downstream_critical_step_index
 
     def _compute_text(self, with_bold_emphasis: bool = False):
 
@@ -805,7 +808,7 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
                              f"{upstream_critical_step_index} is larger than the one of the step index {step_index}")
 
         # - Part of the text about time conflict at task with upstream steps (if upstream-infeasible)
-        if not self._solution_is_upstream_feasible:
+        if not self._is_upstream_feasible:
             earliest_end_time = self._earliest_upstream_feasible_start_time_of_conflicting_task + task.duration
             earliest_end_time = convert_nb_minutes_to_time_string(earliest_end_time, hour_format)
             if self.language_is_english:

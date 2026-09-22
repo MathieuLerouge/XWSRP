@@ -135,6 +135,19 @@ class SolutionForHeuristics(SolutionOpti):
     def get_sequence(self, employee: Employee) -> SequenceForHeuristics:
         return self._sequences_for_heuristics[employee.name]
 
+    def compute_sequences_based_on_tasks_performances(self):
+        """
+        Rebuild every employee's sequence from the current tasks performances.
+
+        Overridden so that this solution keeps holding SequenceForHeuristics.
+        """
+        super().compute_sequences_based_on_tasks_performances()
+        self._sequences = {
+            employee_name: SequenceForHeuristics.from_sequence(sequence)
+            for employee_name, sequence in self._sequences.items()
+        }
+        self.compute_kpis()
+
     ########
     # Copy #
     ########

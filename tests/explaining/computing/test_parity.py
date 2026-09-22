@@ -5,7 +5,7 @@ from src.explaining.questioning.questions_templates_bank import (
     WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
 )
 from tests.explaining.computing.helpers import (
-    assert_at_least_as_good_kpis, assert_same_kpis, build_austria_solution,
+    assert_at_least_as_good_kpis, assert_same_conflict, assert_same_kpis, build_austria_solution,
     get_neighborhood_computation_pipeline_gap_and_solution, get_tailored_computation_pipeline_gap_and_solution
 )
 
@@ -15,14 +15,13 @@ def test_ins_1_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T27", "T17"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_1, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_1, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_1, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_1, fields_values)
 
     assert tailored_gap == neighborhood_gap
+    assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -32,14 +31,13 @@ def test_ins_2a_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T27"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_2A, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_2A, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_2A, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_2A, fields_values)
 
     assert tailored_gap == neighborhood_gap
+    assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -50,14 +48,13 @@ def test_ins_2b_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_2B, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_2B, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_2B, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_2B, fields_values)
 
     assert tailored_gap == neighborhood_gap
+    assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -68,14 +65,13 @@ def test_ins_2c_parity():
     solution = build_austria_solution()
     fields_values = ["T27"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_2C, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_2C, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_2C, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_2C, fields_values)
 
     assert tailored_gap == neighborhood_gap
+    assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -88,14 +84,13 @@ def test_ins_3_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T27"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_3, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_INS_3, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_3, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_INS_3, fields_values)
 
     assert tailored_gap == neighborhood_gap
+    assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -114,14 +109,14 @@ def test_swp_1_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T27", "T17"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_1, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_1, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_1, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_1, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
 
@@ -131,14 +126,14 @@ def test_swp_2a_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T27"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_2A, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_2A, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_2A, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_2A, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
 
@@ -149,14 +144,14 @@ def test_swp_2b_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_2B, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_2B, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_2B, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_2B, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
 
@@ -167,14 +162,14 @@ def test_swp_2c_parity():
     solution = build_austria_solution()
     fields_values = ["T27"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_2C, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_2C, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_2C, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_2C, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
 
@@ -187,14 +182,14 @@ def test_swp_3_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T27"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_3, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_SWP_3, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_3, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_SWP_3, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
 
@@ -210,14 +205,14 @@ def test_ord_1a_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T30", "T26"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_LAT_1, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_LAT_1, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_LAT_1, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_LAT_1, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -227,14 +222,14 @@ def test_ord_1b_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T26", "T7"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_EAR_1, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_EAR_1, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_EAR_1, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_EAR_1, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -244,14 +239,14 @@ def test_ord_2a_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T3"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_LAT_2, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_LAT_2, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_LAT_2, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_LAT_2, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -261,14 +256,14 @@ def test_ord_2b_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T3"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_EAR_2, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_EAR_2, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_EAR_2, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_EAR_2, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -278,14 +273,14 @@ def test_ord_2c_parity():
     solution = build_austria_solution()
     fields_values = ["Ellen", "T1"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_2, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_2, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_2, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_2, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)
 
@@ -295,13 +290,13 @@ def test_ord_3_parity():
     solution = build_austria_solution()
     fields_values = ["Carlotta"]
 
-    tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_3, fields_values
-    )
-    neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-        solution, WHY_NOT_ORD_3, fields_values
-    )
+    tailored_gap, tailored_solution, tailored_conflict = \
+        get_tailored_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_3, fields_values)
+    neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+        get_neighborhood_computation_pipeline_gap_and_solution(solution, WHY_NOT_ORD_3, fields_values)
 
     assert neighborhood_gap <= tailored_gap
+    if neighborhood_gap == tailored_gap:
+        assert_same_conflict(tailored_conflict, neighborhood_conflict)
     if tailored_gap == 0:
         assert_same_kpis(tailored_solution, neighborhood_solution)

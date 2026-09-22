@@ -10,6 +10,7 @@ from dash.exceptions import PreventUpdate
 import numpy as np
 
 # Local libraries
+from src.explaining.computing.conflict.conflict import SkillConflict
 from src.explaining.interacting.interface.figures import build_map_figure, build_routes_figure, \
     build_schedules_figure, build_instance_metrics_figures, build_solution_metrics_figures
 from src.explaining.interacting.interface.panels import build_routes_figure_panel, build_schedules_figure_panel, \
@@ -1708,11 +1709,11 @@ class ExplainerWebGUI:
                 question_template = self._questions_templates[question_template_id]
                 fields_values = [value for value in [input_1, input_2, input_3][:question_template.nb_fields]]
                 explanation = self._explainer.get_contrastive_explanation(question_template_id, fields_values)
-                infeasibility = None if explanation.support_solution_is_feasible else explanation.infeasibility
+                conflict = None if explanation.support_solution_is_feasible else explanation.conflict
                 explanation_text = convert_from_string_to_html(explanation.text)
                 solution = explanation.support_solution
                 if self.explanations_representation_are_enabled and \
-                        (infeasibility is None or not infeasibility.is_due_to_skill_considerations):
+                        (conflict is None or not isinstance(conflict, SkillConflict)):
                     explanation_repr_visibility = dict(display='block')
                     if self.language_is_english:
                         # f"{'Feasible' if explanation.support_solution_is_feasible else 'Infeasible'}"
@@ -1733,12 +1734,12 @@ class ExplainerWebGUI:
                             build_routes_figure_panel(
                                 solution=solution, is_current_solution=False,
                                 panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
-                                infeasibility=infeasibility, language=self.language
+                                conflict=conflict, language=self.language
                             ),
                             build_schedules_figure_panel(
                                 solution=solution, is_current_solution=False,
                                 panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
-                                infeasibility=infeasibility, language=self.language
+                                conflict=conflict, language=self.language
                             )
                         ]
                     )
@@ -2197,15 +2198,15 @@ class ExplainerWebGUI:
                             build_routes_figure_panel(
                                 solution=explanation.support_solution, is_current_solution=False,
                                 panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
-                                infeasibility=(None if explanation.support_solution_is_feasible
-                                               else explanation.infeasibility),
+                                conflict=(None if explanation.support_solution_is_feasible
+                                               else explanation.conflict),
                                 language=self.language
                             ),
                             build_schedules_figure_panel(
                                 solution=explanation.support_solution, is_current_solution=False,
                                 panel_title_prefix=panel_title_prefix, panel_title_suffix=panel_title_suffix,
-                                infeasibility=(None if explanation.support_solution_is_feasible
-                                               else explanation.infeasibility),
+                                conflict=(None if explanation.support_solution_is_feasible
+                                               else explanation.conflict),
                                 language=self.language
                             )
                         ]

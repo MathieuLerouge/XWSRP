@@ -5,6 +5,7 @@ import random
 import pytest
 
 # Local libraries
+from src.explaining.computing.exceptions import UnattributableFeasibilityShortfallException
 from src.explaining.neighborhood.operator import TaskInsertion, TaskRepositioning
 from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.questioning.question import ContrastiveQuestion
@@ -15,8 +16,8 @@ from src.explaining.questioning.questions_templates_bank import (
 )
 from src.modeling.solution import Solution
 from tests.explaining.computing.helpers import (
-    assert_at_least_as_good_kpis, build_austria_solution, get_neighborhood_computation_pipeline_gap_and_solution,
-    get_tailored_computation_pipeline_gap_and_solution
+    assert_at_least_as_good_kpis, assert_same_conflict, build_austria_solution,
+    get_neighborhood_computation_pipeline_gap_and_solution, get_tailored_computation_pipeline_gap_and_solution
 )
 
 # Global variables
@@ -47,10 +48,19 @@ def assert_parity_over_random_samples(solution: Solution, template_id: str,
     MILP search can legitimately find a strictly better swap than the tailored pipeline's heuristic, not
     just an equally good one (see that helper's docstring).
 
+    The two pipelines' Conflict objects are compared only once their gaps are known to be equal:
+    a strictly smaller neighborhood gap means the two are describing different arrangements,
+    which have no reason to agree on anything beyond neither of them fitting.
+
+    A combination is also skipped when the neighborhood pipeline's shortfall turns out not to be attributable
+    to the conflicting task's position at all (see UnattributableFeasibilityShortfallException),
+    since neither the gap nor the conflict is then measuring what the tailored pipeline measures.
+
     Raises:
         AssertionError: if the template has no valid field-value combination at all for solution,
             or if a sampled combination's neighborhood gap exceeds its tailored gap, or (when the
-            tailored pipeline is feasible) the neighborhood pipeline's KPIs are worse.
+            tailored pipeline is feasible) the neighborhood pipeline's KPIs are worse, or (when the two
+            gaps are equal) the two pipelines' conflicts differ.
     """
     # compute_all_fields_valid_values needs solution.nb_non_performed_tasks for some templates (e.g.
     # (Ins,2b)'s "no candidate task at all" special case), which itself needs KPIs to have been computed.
@@ -76,16 +86,19 @@ def assert_parity_over_random_samples(solution: Solution, template_id: str,
                 for employee in candidate_employees for task in candidate_tasks):
             continue
 
-        tailored_gap, tailored_solution = get_tailored_computation_pipeline_gap_and_solution(
-            solution, template_id, fields_values
-        )
-        neighborhood_gap, neighborhood_solution = get_neighborhood_computation_pipeline_gap_and_solution(
-            solution, template_id, fields_values
-        )
+        tailored_gap, tailored_solution, tailored_conflict = \
+            get_tailored_computation_pipeline_gap_and_solution(solution, template_id, fields_values)
+        try:
+            neighborhood_gap, neighborhood_solution, neighborhood_conflict = \
+                get_neighborhood_computation_pipeline_gap_and_solution(solution, template_id, fields_values)
+        except UnattributableFeasibilityShortfallException:
+            continue
 
         assert neighborhood_gap <= tailored_gap, f"Neighborhood gap exceeds tailored gap for {fields_values}"
         if tailored_gap == 0:
             assert_at_least_as_good_kpis(tailored_solution, neighborhood_solution)
+        if neighborhood_gap == tailored_gap:
+            assert_same_conflict(tailored_conflict, neighborhood_conflict)
 
 
 @pytest.mark.parity

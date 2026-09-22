@@ -1,15 +1,21 @@
+# Standard library
+from typing import cast
+
 # Third-party library
 import pyomo.environ as pyo
 
 # Local libraries
+from src.explaining.computing.checker import ModelCompatibilityChecker
 from src.explaining.neighborhood.neighborhood import Neighborhood
-from src.explaining.neighborhood.operator import (
-    SequenceReordering, TaskDeletion, TaskInsertion, TaskRepositioning
-)
+from src.explaining.neighborhood.operator import TaskDeletion, TaskInsertion, TaskRepositioning
 from src.explaining.neighborhood.restriction import (
     ForbiddenBackwardSubsequence, ForbiddenSequence, ImmediatePrecedence, Precedence, PrecedenceChain
 )
+from src.modeling.activity import Activity
+from src.modeling.employee import Employee
 from src.modeling.task import Task
+from src.optimization.heuristics.solution import SolutionForHeuristics
+from src.optimization.milp.index import COMING_BACK_HOME_INDEX, LEAVING_HOME_INDEX
 from src.optimization.milp.model import Model
 from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.solver.solver import Solver
@@ -23,44 +29,24 @@ class NeighborhoodModel(Model):
     """
     MILP model exploring a Neighborhood.
     Every employee and task outside the neighborhood's scope is pinned to reproduce the given solution exactly.
-    Among the feasibility-shortfall operator's candidate employees and candidate tasks,
-    the model searches for the (employee, task) pairing and insertion point minimizing, lexicographically:
+    The model searches for the solution minimizing, lexicographically:
     the feasibility shortfall, then working duration, then traveling duration.
 
-    Regarding the feasibility shortfall: each feasibility-shortfall task gets its own pair of slack
-    variables, so that candidate_start_time + slack_upstream[task] stands in for that task's start time
-    wherever it is lower-bounded, and candidate_start_time - slack_downstream[task] stands in wherever it
-    is upper-bounded. Whenever a feasibility-shortfall task genuinely fits, both its slacks are 0,
+    Regarding the feasibility shortfall: each feasibility-shortfall task gets its own pair of slack variables, so that:
+     • candidate_start_time + slack_upstream[task] stands in for that task's start time wherever it is lower-bounded;
+     • and candidate_start_time - slack_downstream[task] stands in wherever it is upper-bounded.
+    Whenever a feasibility-shortfall task genuinely fits, both its slacks are 0,
     and the model behaves exactly as if its start time were an ordinary decision variable.
-    The feasibility-shortfall objective sums every such task's slacks: for whichever one ends up NOT
-    performed, every constraint touching it is vacuous, so its slacks are unconstrained and minimization
-    drives them to 0 for free - only the chosen task's slacks end up contributing to the sum.
 
-    For TaskRepositioning and SequenceReordering, which have no candidate set of their own (a single
-    already-performed target task, or none at all), feasibility_shortfall_employees/feasibility_shortfall_tasks
-    instead mean: the operator's own employee, and either its target task (TaskRepositioning) or a pivot
-    task chosen from the employee's own given-solution sequence (SequenceReordering, see _extract_scope).
-    The same slack/feasibility-shortfall machinery then applies unchanged, since with singleton candidate
-    sets _add_neighborhood_candidate_selection_constraints already reduces to exactly the constraint each
-    of them needs (see their Comments in neighborhood/README.md section 3.2).
+    Once solved, this model reports:
+     • the shortfall itself (feasibility_shortfall);
+     • which employees and tasks it is about (conflicting_employee_and_task);
+     • and the route each employee ended up with (get_solved_route).
 
-    A neighborhood may optionally also carry a TaskDeletion operator alongside its feasibility-shortfall
-    operator (TaskInsertion/TaskRepositioning/SequenceReordering): deletion never has a "does it fit"
-    question of its own (removing a task is always time-feasible in isolation), so it never gets slack
-    variables or contributes to the feasibility-shortfall objective - it's handled entirely by
-    _add_neighborhood_deletion_constraints.
-
-    NB: In this part of the code, we assume that instance does not consider lunch breaks.
-
-    WIP: This implementation supports a Neighborhood targeted by one feasibility-shortfall operator - a
-    TaskInsertion, TaskRepositioning or SequenceReordering - optionally paired with one TaskDeletion (no
-    TaskRelocation, no more than one operator of either kind, no TaskDeletion without a feasibility-shortfall
-    operator alongside it). A TaskInsertion's candidate employees and candidate tasks may each be one or
-    several (covering, respectively, the (Ins,1)/(Ins,2a)/(Ins,3)-style single-candidate shapes and the
-    (Ins,2b)/(Ins,2c)-style candidate-set shapes); TaskRepositioning/SequenceReordering are always
-    singleton. An ImmediatePrecedence restriction is only supported when both of the feasibility-shortfall
-    operator's candidate sets are singletons, since it always pins one specific target task's insertion
-    point, which must align with the operator's own (also singleton) candidates.
+    WIP: The direction this module is heading in is to handle Neighborhoods built from
+    several operator and restriction primitives at once.
+    Assuming that there is at most one conflicting (employee, task) pair is relevant only for
+    the Neighborhood shapes handled today, which have exactly one feasibility-shortfall operator.
     """
 
     def __init__(self, neighborhood: Neighborhood):
@@ -72,8 +58,8 @@ class NeighborhoodModel(Model):
             NotImplementedError: if the neighborhood is not targeted by one feasibility-shortfall operator
                 (TaskInsertion, TaskRepositioning or SequenceReordering) optionally paired with one
                 TaskDeletion, if it carries an ImmediatePrecedence restriction while the feasibility-shortfall
-                operator has more than one candidate employee or candidate task, or if the instance has a
-                lunch break.
+                operator has more than one candidate employee or candidate task,
+                or if the instance has a lunch break or must cover all its tasks.
         """
         self._neighborhood = neighborhood
         (self._feasibility_shortfall_employees, self._feasibility_shortfall_operator,
@@ -83,58 +69,29 @@ class NeighborhoodModel(Model):
     @staticmethod
     def _extract_scope(neighborhood: Neighborhood):
         """
-        Return the (feasibility_shortfall_employees, feasibility_shortfall_operator,
-        feasibility_shortfall_tasks, deletion_operator) this implementation supports, or raise.
+        Return a tuple of four elements:
+         • feasibility_shortfall_employees;
+         • feasibility_shortfall_operator;
+         • feasibility_shortfall_tasks;
+         • deletion_operator.
 
-        feasibility_shortfall_employees/feasibility_shortfall_operator/feasibility_shortfall_tasks
-        describe the feasibility-shortfall operator: for a TaskInsertion, these are its own candidate employees/tasks.
-        For a TaskRepositioning, its single employee/target_task. For a SequenceReordering, its single
-        employee and a pivot task chosen from the employee's own given-solution sequence (the middle
-        one - the tailored pipeline's IPModelForReordering3 makes the same arbitrary choice, and for the
-        same reason: the feasibility-shortfall objective needs some task to attach slack variables to).
-        deletion_operator is the neighborhood's TaskDeletion operator, or None if it doesn't have one.
+        Whether the neighborhood is one this model can be built for is ModelCompatibilityChecker's question,
+        not this method's: it asks first and raises whatever answer it gets,
+        so the loop below can take the shape for granted rather than re-checking it.
 
         Raises:
-            NotImplementedError: if the neighborhood is not targeted by one feasibility-shortfall operator
-                (TaskInsertion, TaskRepositioning or SequenceReordering) optionally paired with one
-                TaskDeletion, if it carries an ImmediatePrecedence restriction while the feasibility-shortfall
-                operator has more than one candidate employee or candidate task, or if the instance has a
-                lunch break.
+            NotImplementedError: if ModelCompatibilityChecker finds the neighborhood incompatible with this model.
         """
-        if neighborhood.solution.instance.has_lunch_break:
-            raise NotImplementedError(
-                "NeighborhoodModel does not support instances with a lunch break"
-            )
-        if len(neighborhood.operators) not in (1, 2):
-            raise NotImplementedError(
-                "NeighborhoodModel currently only supports a neighborhood with one or two operators"
-            )
+        reason_for_incompatibility = ModelCompatibilityChecker.unsupported_reason(neighborhood)
+        if reason_for_incompatibility is not None:
+            raise NotImplementedError(reason_for_incompatibility)
         feasibility_shortfall_operator = None
         deletion_operator = None
         for candidate_operator in neighborhood.operators:
             if isinstance(candidate_operator, TaskDeletion):
-                if deletion_operator is not None:
-                    raise NotImplementedError(
-                        "NeighborhoodModel does not support more than one TaskDeletion operator"
-                    )
                 deletion_operator = candidate_operator
-            elif isinstance(candidate_operator, (TaskInsertion, TaskRepositioning, SequenceReordering)):
-                if feasibility_shortfall_operator is not None:
-                    raise NotImplementedError(
-                        "NeighborhoodModel does not support more than one TaskInsertion, "
-                        "TaskRepositioning or SequenceReordering operator"
-                    )
-                feasibility_shortfall_operator = candidate_operator
             else:
-                raise NotImplementedError(
-                    "NeighborhoodModel currently only supports TaskInsertion, TaskDeletion, "
-                    "TaskRepositioning or SequenceReordering operators"
-                )
-        if feasibility_shortfall_operator is None:
-            raise NotImplementedError(
-                "NeighborhoodModel requires a TaskInsertion, TaskRepositioning or "
-                "SequenceReordering operator alongside TaskDeletion"
-            )
+                feasibility_shortfall_operator = candidate_operator
         if isinstance(feasibility_shortfall_operator, TaskInsertion):
             feasibility_shortfall_employees = feasibility_shortfall_operator.candidate_employees
             feasibility_shortfall_tasks = feasibility_shortfall_operator.candidate_tasks
@@ -142,21 +99,13 @@ class NeighborhoodModel(Model):
             feasibility_shortfall_employees = frozenset({feasibility_shortfall_operator.employee})
             feasibility_shortfall_tasks = frozenset({feasibility_shortfall_operator.target_task})
         else:
+            # NB: A SequenceReordering, the only kind left once the checker has approved the neighborhood.
             employee_tasks = list(
                 neighborhood.solution.get_sequence(feasibility_shortfall_operator.employee).get_contained_tasks()
             )
             pivot_task = employee_tasks[len(employee_tasks) // 2]
             feasibility_shortfall_employees = frozenset({feasibility_shortfall_operator.employee})
             feasibility_shortfall_tasks = frozenset({pivot_task})
-        has_immediate_precedence = any(
-            isinstance(restriction, ImmediatePrecedence) for restriction in neighborhood.restrictions
-        )
-        if has_immediate_precedence and (
-                len(feasibility_shortfall_employees) > 1 or len(feasibility_shortfall_tasks) > 1):
-            raise NotImplementedError(
-                "NeighborhoodModel does not support an ImmediatePrecedence restriction together "
-                "with more than one candidate employee or candidate task"
-            )
         return (
             feasibility_shortfall_employees, feasibility_shortfall_operator, feasibility_shortfall_tasks,
             deletion_operator
@@ -492,12 +441,30 @@ class NeighborhoodModel(Model):
     # Results #
     ###########
 
+    def _initialize_solution(self):
+        """
+        Build this model's solution as a SolutionForHeuristics rather than the base SolutionOpti,
+        so that its sequences are SequenceForHeuristics whose steps carry the BTS/FTS time slacks.
+        """
+        self._solution = SolutionForHeuristics(self._data.instance, heuristic_id=self._solving_method_id)
+
+    @property
+    def solution(self) -> SolutionForHeuristics:
+        """
+        This model's solution as a SolutionForHeuristics.
+
+        Raises:
+            AttributeError: if solve() hasn't been called yet, or found no feasible solution.
+        """
+        return cast(SolutionForHeuristics, super().solution)
+
     @property
     def feasibility_shortfall(self) -> int:
         """
-        The minimized sum, across every feasibility-shortfall task, of the shortfall between its start
-        time as constrained from upstream and from downstream: 0 if the task fits without conflict,
-        strictly positive if it doesn't (the magnitude of the overlap that would need to be resolved for it to fit).
+        The minimized sum, across every feasibility-shortfall task, of the shortfall between
+        its start time as constrained from upstream and from downstream:
+        0 if the task fits without conflict, strictly positive if it doesn't
+        (the magnitude of the overlap that would need to be resolved for it to fit).
 
         Raises:
             AttributeError: if solve() hasn't been called yet, or found no feasible solution.
@@ -508,3 +475,65 @@ class NeighborhoodModel(Model):
             pyo.value(self.var_slack_upstream[task_index]) + pyo.value(self.var_slack_downstream[task_index])
             for task_index in self._feasibility_shortfall_task_indices
         ))
+
+    @property
+    def conflicting_employee_and_task(self) -> tuple[Employee, Task]:
+        """
+        The (employee, task) pair this model's feasibility shortfall is about:
+        whichever feasibility-shortfall task the solution ends up performing, and whoever performs it.
+
+        WIP: The direction this module is heading in is to handle Neighborhoods built from
+        several operator and restriction primitives at once.
+        This method is relevant only for the Neighborhood handled today,
+        which have exactly one feasibility-shortfall operator.
+
+        Raises:
+            AttributeError: if solve() hasn't been called yet, or found no feasible solution.
+        """
+        performed_tasks = [
+            task for task in self._feasibility_shortfall_tasks if self.solution.get_task_performance_status(task)
+        ]
+        assert len(performed_tasks) == 1, (
+            f"Expected exactly one performed feasibility-shortfall task, got {len(performed_tasks)}"
+        )
+        conflicting_task = performed_tasks[0]
+        return self.solution.get_task_assignee(conflicting_task), conflicting_task
+
+    def get_solved_route(self, employee: Employee) -> list[Activity]:
+        """
+        Return the activities the given employee performs between leaving home and coming back home,
+        in the order this model's solved routing variables put them.
+
+        The solution's own sequence can't be relied on for this ordering. It orders steps by start time,
+        and a feasibility-shortfall task's reported start time is the one its upstream constraints alone
+        imply (see Model._extract_solution), whereas the steps after it in the route are timed against the
+        looser value its downstream constraints see. As soon as the shortfall is strictly positive those
+        two can cross, sorting steps into an order the route never had.
+
+        Args:
+            employee: The employee whose solved route is read.
+
+        Returns:
+            The employee's activities in route order, empty if they perform nothing. Note that this only
+            covers the route out of leaving home: with the sequencing relaxed at a feasibility-shortfall
+            task, the solver can leave a cycle of tasks disconnected from that route, and those are not
+            reported here (see UnattributableFeasibilityShortfallException).
+
+        Raises:
+            AttributeError: if solve() hasn't been called yet, or found no feasible solution.
+        """
+        if not self.has_solution:
+            raise AttributeError("There is no solution stored")
+        employee_index = self._data.get_employee_index_by_employee(employee)
+        successor_index_by_activity_index = {
+            indices[1]: indices[2] for indices in self.vars_U.keys()
+            if indices[0] == employee_index and pyo.value(self.vars_U[indices]) > 0.99
+        }
+        activities: list[Activity] = []
+        activity_index = successor_index_by_activity_index.get(LEAVING_HOME_INDEX, COMING_BACK_HOME_INDEX)
+        while activity_index != COMING_BACK_HOME_INDEX:
+            activities.append(self._data.get_hyp_activity_by_indices(employee_index, activity_index))
+            assert len(activities) <= len(successor_index_by_activity_index), \
+                f"{employee.name}'s solved route cycles back on itself"
+            activity_index = successor_index_by_activity_index[activity_index]
+        return activities

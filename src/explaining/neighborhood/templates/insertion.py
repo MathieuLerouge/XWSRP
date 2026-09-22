@@ -4,7 +4,7 @@ from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskInsertion
 from src.explaining.neighborhood.restriction import ImmediatePrecedence, PrecedenceChain
 from src.explaining.questioning.question import ContrastiveQuestion
-from src.explaining.computing.templates.exceptions import ImpossibleTransformationException
+from src.explaining.computing.exceptions import ImpossibleTransformationException
 
 
 def map_ins_1(question: ContrastiveQuestion) -> Neighborhood:

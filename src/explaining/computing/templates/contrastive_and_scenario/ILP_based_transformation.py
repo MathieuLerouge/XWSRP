@@ -4,7 +4,7 @@ from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.categ
 from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.insertion3 import IPModelForInsertion3
 from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.ordering3 import IPModelForReordering3
 from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.swap3 import IPModelForSwap3
-from src.explaining.computing.templates.infeasibility import SkillInfeasibility, TimeInfeasibility
+from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
@@ -27,7 +27,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
     :param employee: the employee concerned by the transformation (Employee)
     :param task: the task concerned by the transformation (Task)
     :param model: the ILP model used to compute the transformation (IPModelForCategory3)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the support sequence as a text (str)
     """
     # Save whether the transformation is feasible
@@ -41,14 +41,14 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
     if transformation_is_feasible:
         support_sequence.compute_kpis()
     support_solution.replace_sequence_by_another(employee, support_sequence, transformation_is_feasible)
-    # Create infeasibility if any
+    # Create conflict if any
     step_index = support_sequence.get_step_index_of(task)
     earliest_start_time_for_upstream = model.pivot_task_start_time_for_backward
     latest_start_time_for_downstream = model.pivot_task_start_time_for_forward
-    infeasibility = None
+    conflict = None
     if not transformation_is_feasible:
         if not transformation_is_skill_feasible:
-            infeasibility = SkillInfeasibility(employee, task)
+            conflict = SkillConflict(employee, task)
         else:
             support_sequence = support_solution.get_sequence(employee)
             upstream_critical_step_index = \
@@ -57,7 +57,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
                 SlackTimeComputer.find_first_critical_step_index_forward_from(support_sequence, step_index + 1)
             upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_ub
             downstream_feasible = latest_start_time_for_downstream >= task.start_time_lb
-            infeasibility = TimeInfeasibility(
+            conflict = TimeConflict(
                 employee, task, upstream_feasible, downstream_feasible,
                 earliest_start_time_for_upstream, latest_start_time_for_downstream,
                 upstream_critical_step_index, downstream_critical_step_index
@@ -65,7 +65,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
     support_sequence_activities_names = [step.activity.name for step in support_sequence]
     description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
     # Return explanation content
-    return support_solution, infeasibility, description_of_support_sequence
+    return support_solution, conflict, description_of_support_sequence
 
 
 ############################
@@ -81,7 +81,7 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task to be inserted mentioned in the question (str)
     :param time_limit: the time limit in seconds for the explanation computation (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -96,11 +96,11 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
         exception = OutcomeToExceptionMapper.map(solve_outcome)
         if exception is not None:
             raise exception
-        support_solution, infeasibility, description_of_support_sequence = \
+        support_solution, conflict, description_of_support_sequence = \
             extract_explanation_content_from_ILP_model_results(solution, employee, task, model)
     else:
         support_solution = solution.copy(solution.name + "_support")
-        infeasibility = SkillInfeasibility(employee, task)
+        conflict = SkillConflict(employee, task)
         description_of_support_sequence = ""
     applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
@@ -110,7 +110,7 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
             f"ajoutant {task.name} dans le planning de {employee.name} selon la route suivante "
             f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}",
     }
-    return support_solution, infeasibility, applying_transformation_text_in_various_languages
+    return support_solution, conflict, applying_transformation_text_in_various_languages
 
 
 #######################
@@ -127,7 +127,7 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
     :param time_limit: the time limit in seconds for the explanation computation (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -141,7 +141,7 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
         exception = OutcomeToExceptionMapper.map(solve_outcome)
         if exception is not None:
             raise exception
-        support_solution, infeasibility, description_of_support_sequence = \
+        support_solution, conflict, description_of_support_sequence = \
             extract_explanation_content_from_ILP_model_results(solution, employee, task, model)
         leaving_task = model.leaving_task
         applying_transformation_text_in_various_languages = {
@@ -155,9 +155,9 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
         }
     else:
         support_solution = solution.copy(solution.name + "_support")
-        infeasibility = SkillInfeasibility(employee, task)
+        conflict = SkillConflict(employee, task)
         applying_transformation_text_in_various_languages = {LANGUAGE_ENGLISH_KEY: "", LANGUAGE_FRENCH_KEY: ""}
-    return support_solution, infeasibility, applying_transformation_text_in_various_languages
+    return support_solution, conflict, applying_transformation_text_in_various_languages
 
 
 #############################
@@ -172,7 +172,7 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param time_limit: the time limit in seconds for computing the transformation (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -185,7 +185,7 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
     if exception is not None:
         raise exception
     pivot_task = model.pivot_task
-    support_solution, infeasibility, description_of_support_sequence = \
+    support_solution, conflict, description_of_support_sequence = \
         extract_explanation_content_from_ILP_model_results(solution, employee, pivot_task, model)
     applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
@@ -195,4 +195,4 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
             f"réordonnant l'itinéraire de {employee.name} en l'itinéraire suivant "
             f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
     }
-    return support_solution, infeasibility, applying_transformation_text_in_various_languages
+    return support_solution, conflict, applying_transformation_text_in_various_languages

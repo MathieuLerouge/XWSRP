@@ -65,7 +65,8 @@ and mapped to transformation functions in `computing/templates`.
 `Neighborhood` i.e. the employees and tasks in scope, together with 
 the `Operator`s that may transform their sequences 
 and the `Restriction`s that narrow how (scope restrictions). \
-Its `templates` subdirectory's `Mapper` translates a `ContrastiveQuestion` into the `Neighborhood` it induces.
+Its `templates` subdirectory's `Mapper` translates a `ContrastiveQuestion` into the `Neighborhood` it induces, 
+and its `TemplateComplianceChecker` recognizes the shapes that translation produces.
 
 `computing` contains the computational core that answers a question by attempting to modify the solution. 
 Its `templates` subdirectory dispatches each question template to a dedicated transformation function, 
@@ -74,14 +75,16 @@ implemented in one of two subpackages:
 with an ILP-based fallback for harder cases);
 - and `counterfactual` (MILP-based search for minimal instance alterations making the requested action feasible). \
 `model.py`'s `NeighborhoodModel` offers a generic alternative, 
-turning a `Neighborhood` into a solvable MILP instead of a per-template transformation function. \
-Its outputs (support solution, infeasibility, instance alterations) feed directly into `answering`.
+turning a `Neighborhood` into a solvable MILP instead of a per-template transformation function, 
+with `checker.py`'s `ModelCompatibilityChecker` saying which `Neighborhood`s it can be built for 
+and `conflict`'s `ConflictExtractor` turning a solved one into the same `Conflict` the tailored pipeline returns. \
+Its outputs (support solution, conflict, instance alterations) feed directly into `answering`.
 
 `answering` turns a `Question` and the result of `computing/templates` into a human-facing `Explanation`. \
 `create_explanation(...)` selects the appropriate subclass (`PositiveExplanation`, `NonImprovingNegativeExplanation`, 
 `InfeasibleNegativeExplanation`, `SkillNegativeExplanation`, `TimeNegativeExplanation`) 
 depending on whether the support solution improves on the original solution
-and whether an infeasibility was raised, and builds its text from `explanations_templates_bank.py`.
+and whether a conflict was found, and builds its text from `explanations_templates_bank.py`.
 
 `writing` contains the scripts used for serializing `Explanation` objects to JSON files,
 both for caching purposes and for the batch analysis triggered from `__main__.py`. \

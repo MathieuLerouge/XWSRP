@@ -1,7 +1,7 @@
 # Local libraries
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.computing.templates.infeasibility import SkillInfeasibility, TimeInfeasibility
-from src.explaining.computing.templates.exceptions import ImpossibleTransformationException
+from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
+from src.explaining.computing.exceptions import ImpossibleTransformationException
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
@@ -26,14 +26,14 @@ def extract_explanation_content_for_insertion_from_evaluation(solution: Editable
     :param task: the task to insert (Task)
     :param activity: the activity after which the task is to be inserted (Activity)
     :param evaluation: the evaluation of the insertion (InsertionEvaluation)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     transformation_is_feasible = evaluation.is_feasible
     support_solution = solution.copy(solution.name + "_support")
     if support_solution.get_task_performance_status(task):
         support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
-    infeasibility = None
+    conflict = None
     if transformation_is_feasible:
         support_solution.insert_task_after_activity(task, activity, start_time=evaluation.start_time)
     else:
@@ -48,7 +48,7 @@ def extract_explanation_content_for_insertion_from_evaluation(solution: Editable
                 task, activity, evaluation.start_time, None, None, False, False, True
             )
         if not evaluation.is_skill_feasible:
-            infeasibility = SkillInfeasibility(employee, task)
+            conflict = SkillConflict(employee, task)
         else:
             sequence = support_solution.get_sequence(employee)
             index = sequence.get_step_index_of(activity) + 1
@@ -56,7 +56,7 @@ def extract_explanation_content_for_insertion_from_evaluation(solution: Editable
                 SlackTimeComputer.find_first_critical_step_index_backward_from(sequence, index - 1)
             downstream_critical_step_index = \
                 SlackTimeComputer.find_first_critical_step_index_forward_from(sequence, index + 1)
-            infeasibility = TimeInfeasibility(
+            conflict = TimeConflict(
                 employee, task, evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
                 evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
                 upstream_critical_step_index=upstream_critical_step_index,
@@ -74,7 +74,7 @@ def extract_explanation_content_for_insertion_from_evaluation(solution: Editable
         LANGUAGE_FRENCH_KEY:
             f"insérant {task.name} juste après {activity_name_in_french} dans le planning de {employee.name}",
     }
-    return support_solution, infeasibility, applying_transformation_text_in_various_languages
+    return support_solution, conflict, applying_transformation_text_in_various_languages
 
 
 def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, activity_name: str):
@@ -86,7 +86,7 @@ def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, 
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
     :param activity_name: the name of the activity mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -104,7 +104,7 @@ def apply_ins_2a(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -123,7 +123,7 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
 
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -149,7 +149,7 @@ def apply_ins_2c(solution: EditableSolution, task_name: str):
 
     :param solution: the solution to explain (EditableSolution)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     task = solution.instance.get_task_by_name(task_name)
@@ -176,12 +176,12 @@ def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolut
     :param replacing_task: the task that will replace the leaving task (Task)
     :param leaving_task: the task that will be replaced by the replacing task (Task)
     :param evaluation: the evaluation of the transformation (ReplacementEvaluation)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     transformation_is_feasible = evaluation.is_feasible  # Sequence-wise
     support_solution = solution.copy(solution.name + "_support")
-    infeasibility = None
+    conflict = None
     if transformation_is_feasible:
         support_solution.replace_task_by_another(leaving_task, replacing_task, evaluation.start_time)
     else:
@@ -196,7 +196,7 @@ def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolut
                 leaving_task, replacing_task, evaluation.start_time, None, None, False, False, True
             )
         if not evaluation.is_skill_feasible:
-            infeasibility = SkillInfeasibility(employee, replacing_task)
+            conflict = SkillConflict(employee, replacing_task)
         else:
             sequence = support_solution.get_sequence(employee)
             index = sequence.get_step_index_of(replacing_task)
@@ -204,7 +204,7 @@ def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolut
                 SlackTimeComputer.find_first_critical_step_index_backward_from(sequence, index - 1)
             downstream_critical_step_index = \
                 SlackTimeComputer.find_first_critical_step_index_forward_from(sequence, index + 1)
-            infeasibility = TimeInfeasibility(
+            conflict = TimeConflict(
                 employee, replacing_task, evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
                 evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
                 upstream_critical_step_index=upstream_critical_step_index,
@@ -216,7 +216,7 @@ def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolut
         LANGUAGE_FRENCH_KEY:
             f"remplaçant {leaving_task.name} du planning de {employee.name} par {replacing_task.name}"
     }
-    return support_solution, infeasibility, applying_transformation_text_in_various_languages
+    return support_solution, conflict, applying_transformation_text_in_various_languages
 
 
 def apply_swp_1(solution: EditableSolution, employee_name: str, task1_name: str, task2_name: str):
@@ -228,7 +228,7 @@ def apply_swp_1(solution: EditableSolution, employee_name: str, task1_name: str,
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task1_name: the name of the first task mentioned in the question (str)
     :param task2_name: the name of the second task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -246,7 +246,7 @@ def apply_swp_2a(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -265,7 +265,7 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
 
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -291,7 +291,7 @@ def apply_swp_2c(solution: EditableSolution, task_name: str):
 
     :param solution: the solution to explain (EditableSolution)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     replacing_task = solution.instance.get_task_by_name(task_name)
@@ -318,7 +318,7 @@ def extract_explanation_content_for_reordering_from_evaluation(solution: Editabl
     :param moving_task: the task to be moved within the employee's sequence (Task)
     :param fixed_task: the fixed task before or after which the moving task is inserted (Task)
     :param evaluation: the evaluation of the transformation (ReorderEvaluation)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     support_sequence = solution.get_sequence(employee)
@@ -328,7 +328,7 @@ def extract_explanation_content_for_reordering_from_evaluation(solution: Editabl
         is_moving_task_1_after_task_2 = False
     transformation_is_feasible = evaluation.is_feasible
     support_solution = solution.copy(solution.name + "_support")
-    infeasibility = None
+    conflict = None
     if transformation_is_feasible:
         if is_moving_task_1_after_task_2:
             support_solution.reposition_task_in_sequence_after_activity(moving_task, fixed_task, evaluation.start_time)
@@ -354,14 +354,14 @@ def extract_explanation_content_for_reordering_from_evaluation(solution: Editabl
                 SlackTimeComputer.find_first_critical_step_index_backward_from(support_sequence, index - 1)
             downstream_critical_step_index = \
                 SlackTimeComputer.find_first_critical_step_index_forward_from(support_sequence, index + 1)
-            infeasibility = TimeInfeasibility(
+            conflict = TimeConflict(
                 employee, moving_task, evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
                 evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
                 upstream_critical_step_index=upstream_critical_step_index,
                 downstream_critical_step_index=downstream_critical_step_index
             )
         else:
-            raise ValueError("Infeasibility should only be due to time infeasibility.")
+            raise ValueError("The conflict should only be due to time considerations.")
     if is_moving_task_1_after_task_2:
         applying_transformation_text_in_various_languages = {
             LANGUAGE_ENGLISH_KEY:
@@ -376,7 +376,7 @@ def extract_explanation_content_for_reordering_from_evaluation(solution: Editabl
             LANGUAGE_FRENCH_KEY:
                 f"déplaçant {moving_task.name} juste avant {fixed_task.name} dans le planning de {employee.name}"
         }
-    return support_solution, infeasibility, applying_transformation_text_in_various_languages
+    return support_solution, conflict, applying_transformation_text_in_various_languages
 
 
 def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name_1: str, task_name_2: str):
@@ -388,7 +388,7 @@ def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name_1: st
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name_1: the name of the first task mentioned in the question (str)
     :param task_name_2: the name of the second task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -407,7 +407,7 @@ def apply_ord_1b(solution: EditableSolution, employee_name: str, task_name_1: st
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name_1: the name of the first task mentioned in the question (str)
     :param task_name_2: the name of the second task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -425,7 +425,7 @@ def apply_ord_2a(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to be transformed (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -444,7 +444,7 @@ def apply_ord_2b(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to be transformed (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -463,7 +463,7 @@ def apply_ord_2c(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to be transformed (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)

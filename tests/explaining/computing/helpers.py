@@ -2,8 +2,9 @@
 from typing import Optional
 
 # Local libraries
+from src.explaining.computing.conflict.conflict import Conflict, TimeConflict
+from src.explaining.computing.conflict.extractor import ConflictExtractor
 from src.explaining.computing.model import NeighborhoodModel
-from src.explaining.computing.templates.infeasibility import Infeasibility, TimeInfeasibility
 from src.explaining.computing.templates.transformation import \
     apply_transformation_induced_by_contrastive_or_scenario_question
 from src.explaining.modeling.solution import EditableSolution
@@ -27,50 +28,71 @@ def build_austria_solution() -> Solution:
     return extract_solution_from_file(_AUSTRIA_SOLUTION_PATH, True, True, True)
 
 
-def gap_from_infeasibility(infeasibility: Optional[Infeasibility]):
+def gap_from_conflict(conflict: Optional[Conflict]):
     """
-    Return the feasibility gap for the given Infeasibility (or None): 0 if feasible, otherwise the
-    (earliest upstream) - (latest downstream) quantity.
+    Return the feasibility gap for the given Conflict (or None): 0 if feasible,
+    otherwise the (earliest upstream) - (latest downstream) quantity.
 
     Raises:
-        AssertionError: if infeasibility is a SkillInfeasibility, which this comparison excludes since
-            skill mismatches aren't handled by the neighborhood computation pipeline yet.
+        AssertionError: if conflict is a SkillConflict,
+            which this comparison excludes since skill mismatches aren't handled by the neighborhood computation pipeline yet.
     """
-    if infeasibility is None:
+    if conflict is None:
         return 0
-    assert isinstance(infeasibility, TimeInfeasibility), (
-        f"Unexpected infeasibility type for a skill-compatible test case: {type(infeasibility)}"
+    assert isinstance(conflict, TimeConflict), (
+        f"Unexpected conflict type for a skill-compatible test case: {type(conflict)}"
     )
-    return (infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task -
-            infeasibility.latest_downstream_feasible_start_time_of_conflicting_task)
+    return (conflict.earliest_upstream_feasible_start_time_of_conflicting_task -
+            conflict.latest_downstream_feasible_start_time_of_conflicting_task)
 
 
 def get_tailored_computation_pipeline_gap_and_solution(
         solution: Solution, template_id: str, fields_values: list[str]
 ):
     """
-    Return (feasibility gap, support_solution) following the tailored computation pipeline.
+    Return (feasibility gap, support_solution, conflict) following the tailored computation pipeline.
     """
     editable_solution = EditableSolution.from_solution(solution)
     question = ContrastiveQuestion(editable_solution, template_id, fields_values)
-    support_solution, infeasibility, _ = apply_transformation_induced_by_contrastive_or_scenario_question(
+    support_solution, conflict, _ = apply_transformation_induced_by_contrastive_or_scenario_question(
         editable_solution, question
     )
-    return gap_from_infeasibility(infeasibility), support_solution
+    return gap_from_conflict(conflict), support_solution, conflict
 
 
 def get_neighborhood_computation_pipeline_gap_and_solution(
         solution: Solution, template_id: str, fields_values: list[str]
 ):
     """
-    Return (feasibility gap, support_solution) following the neighborhood computation pipeline.
+    Return (feasibility gap, support_solution, conflict) following the neighborhood computation pipeline.
     """
     question = ContrastiveQuestion(solution, template_id, fields_values)
     neighborhood = Mapper.map(question)
     model = NeighborhoodModel(neighborhood)
     outcome = model.solve(mute=True)
     assert outcome.has_incumbent, "The neighborhood computation pipeline's MILP should be feasible by construction"
-    return model.feasibility_shortfall, model.solution
+    return model.feasibility_shortfall, model.solution, ConflictExtractor.extract(model)
+
+
+def assert_same_conflict(tailored_conflict: Optional[Conflict],
+                              neighborhood_conflict: Optional[Conflict]):
+    """
+    Assert both pipelines describe the same conflict, field for field.
+    Only meaningful once the two gaps are known to be equal:
+    when the neighborhood pipeline's MILP finds a  better arrangement than the tailored pipeline's heuristic
+    (a strictly smaller gap, which assert_parity_over_random_samples explicitly allows),
+    the two are describing different arrangements and have no reason to agree on anything but the fact that neither fits.
+    """
+    assert (tailored_conflict is None) == (neighborhood_conflict is None), (
+        f"One pipeline reports a conflict and the other does not: "
+        f"tailored={tailored_conflict}, neighborhood={neighborhood_conflict}"
+    )
+    if tailored_conflict is None:
+        return
+    assert tailored_conflict.to_dict() == neighborhood_conflict.to_dict(), (
+        f"Conflicts differ: tailored={tailored_conflict.to_dict()}, "
+        f"neighborhood={neighborhood_conflict.to_dict()}"
+    )
 
 
 def assert_same_kpis(solution_1: Solution, solution_2: Solution):

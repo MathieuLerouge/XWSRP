@@ -1,8 +1,8 @@
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.computing.templates.infeasibility import SkillInfeasibility, TimeInfeasibility
-from src.explaining.computing.templates.exceptions import ImpossibleTransformationException
+from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
+from src.explaining.computing.exceptions import ImpossibleTransformationException
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.explaining.computing.templates.counterfactual.ILP_model.transformation_with_alterations import \
     IPModelForTransformationWithInstanceAlterations
@@ -45,7 +45,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
 
     :param solution: the solution to explain (EditableSolution)
     :param model: the ILP model used to compute the transformation (IPModelForInsertionAlteringInput)
-    :return: a tuple containing the transformed solution (EditableSolution), the infeasibility (Infeasibility),
+    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
     the texts describing the transformation in various languages (dict) and
     the instance parameter changes (InstanceChanges)
     """
@@ -83,12 +83,12 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
     if transformation_is_feasible:
         support_sequence.compute_kpis()
     support_solution.replace_sequence_by_another(key_employee, support_sequence, transformation_is_feasible)
-    # Build infeasibility (if any)
+    # Build conflict (if any)
     step_index = support_sequence.get_step_index_of(key_task)
-    infeasibility = None
+    conflict = None
     if not transformation_is_feasible:
         if not transformation_is_skill_feasible:
-            infeasibility = SkillInfeasibility(key_employee, key_task)
+            conflict = SkillConflict(key_employee, key_task)
         else:
             sequence = support_solution.get_sequence(key_employee)
             upstream_critical_step_index = \
@@ -97,7 +97,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
                 SlackTimeComputer.find_first_critical_step_index_forward_from(sequence, step_index + 1)
             upstream_feasible = earliest_start_time_for_upstream + key_task.duration <= key_task.end_time_ub
             downstream_feasible = latest_start_time_for_downstream >= key_task.start_time_lb
-            infeasibility = TimeInfeasibility(
+            conflict = TimeConflict(
                 key_employee, key_task, upstream_feasible, downstream_feasible,
                 earliest_start_time_for_upstream, latest_start_time_for_downstream,
                 upstream_critical_step_index, downstream_critical_step_index
@@ -140,7 +140,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
         }
     else:
         raise NotImplementedError(f"text not implemented for ILP model type {type(model)}")
-    return (support_solution, infeasibility, applying_transformation_text_in_various_languages,
+    return (support_solution, conflict, applying_transformation_text_in_various_languages,
             model.support_instance_alterations)
 
 
@@ -161,7 +161,7 @@ def apply_ctf_ins_1(solution: EditableSolution, employee_name: str, task_name: s
     :param activity_name: the name of the activity mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the infeasibility (Infeasibility),
+    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
     the texts describing the transformation in various languages (dict) and
     the instance changes (InstanceChanges)
     """
@@ -191,7 +191,7 @@ def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the infeasibility (Infeasibility),
+    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
     the texts describing the transformation in various languages (dict) and
     the instance changes (InstanceChanges)
     """
@@ -219,7 +219,7 @@ def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
     :param employee_name: the name of the employee mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the infeasibility (Infeasibility),
+    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
     the texts describing the transformation in various languages (dict) and
     the instance changes (InstanceChanges)
     """
@@ -254,7 +254,7 @@ def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: s
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the infeasibility (Infeasibility),
+    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
     the texts describing the transformation in various languages (dict) and
     the instance changes (InstanceChanges)
     """
@@ -286,7 +286,7 @@ def apply_ctf_swp_1(solution: EditableSolution, employee_name: str, task1_name: 
     :param task2_name: the name of the second task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
@@ -313,7 +313,7 @@ def apply_ctf_swp_2a(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
@@ -338,7 +338,7 @@ def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
     :param employee_name: the name of the employee mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     employee = solution.instance.get_employee_by_name(employee_name)
@@ -372,7 +372,7 @@ def apply_ctf_swp_3(solution: EditableSolution, employee_name: str, task_name: s
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
@@ -404,7 +404,7 @@ def apply_ctf_ord_1a(solution: EditableSolution, employee_name: str, task1_name:
     :param task2_name: the name of the second task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
@@ -433,7 +433,7 @@ def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name:
     :param task2_name: the name of the second task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
@@ -460,7 +460,7 @@ def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
@@ -488,7 +488,7 @@ def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
@@ -516,7 +516,7 @@ def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
@@ -543,7 +543,7 @@ def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
     :param employee_name: the name of the employee mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the infeasibility if any (Infeasibility) and
+    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the text of the transformation to apply in various languages (dict(str, str))
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))

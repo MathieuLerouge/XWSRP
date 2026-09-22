@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 # Local libraries
 from src.explaining.interacting.interface.assets.styles import UI_FONT_COLOR, UI_PANEL_CONTENT_COLOR, UI_LINE_COLOR, \
     UI_CONFLICT_TASK_COLOR, UI_CONFLICT_BOUND_COLOR
-from src.explaining.computing.templates.infeasibility import Infeasibility, TimeInfeasibility
+from src.explaining.computing.conflict.conflict import Conflict, TimeConflict
 from src.modeling.activity import Activity
 from src.modeling.comeback import ComeBack
 from src.modeling.departure import Departure
@@ -32,7 +32,7 @@ def compute_employees_colors(instance: Instance):
     return px.colors.sample_colorscale('agsunset', [n/(nb_employees - 1)*(.8 - 0) + 0 for n in range(nb_employees)])
 
 
-def build_map_figure(instance: Instance, solution: Solution = None, infeasibility: Infeasibility = None,
+def build_map_figure(instance: Instance, solution: Solution = None, conflict: Conflict = None,
                      mode: str = 'all', language: str = LANGUAGE_ENGLISH_KEY):
     """
     Build a typical map figure that be used for displaying the locations of the employees, the ones of the task
@@ -190,7 +190,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                 )
         fig.add_trace(go.Scattermap(
             name="None", mode='markers+text', marker=dict(color='grey', size=9),
-            opacity=(1 if infeasibility is None else OPACITY_DEGREE),
+            opacity=(1 if conflict is None else OPACITY_DEGREE),
             lat=non_performed_tasks_latitudes, lon=non_performed_tasks_longitudes,
             hoverinfo='text+name', hovertext=non_performed_tasks_descriptions,
             text=[name + "<br><br> " for name in non_performed_tasks_names],
@@ -225,7 +225,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
             else:
                 raise ValueError(f"Unknown language: {language}")
             route_steps_marker_sizes.append(12)
-            if infeasibility is None:
+            if conflict is None:
                 fig.add_trace(go.Scattermap(
                     name=employee.name, mode='markers+lines+text',
                     marker=dict(color=colors[i], size=route_steps_marker_sizes),
@@ -234,7 +234,7 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
                     text=[name + "<br><br> " for name in route_steps_names]
                 ))
             else:
-                if employee.name == infeasibility.conflicting_employee.name:
+                if employee.name == conflict.conflicting_employee.name:
                     fig.add_trace(go.Scattermap(
                         name=employee.name, mode='markers+lines+text',
                         line=dict(width=2),
@@ -262,11 +262,11 @@ def build_map_figure(instance: Instance, solution: Solution = None, infeasibilit
     return fig
 
 
-def build_routes_figure(solution: Solution, infeasibility: Infeasibility = None, language: str = LANGUAGE_ENGLISH_KEY):
+def build_routes_figure(solution: Solution, conflict: Conflict = None, language: str = LANGUAGE_ENGLISH_KEY):
     """
     Build a map figure of the employees' routes.
     """
-    return build_map_figure(solution.instance, solution=solution, infeasibility=infeasibility, language=language)
+    return build_map_figure(solution.instance, solution=solution, conflict=conflict, language=language)
 
 
 def create_home_description_in_schedules_figure(activity: Activity, time_as_string: str,
@@ -315,7 +315,7 @@ def create_task_description_in_schedules_figure(task: Task, start_time_as_string
         raise ValueError(f"Unknown language: {language}")
 
 
-def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = None,
+def build_schedules_figure(solution: Solution, conflict: Conflict = None,
                            language: str = LANGUAGE_ENGLISH_KEY):
     """
     Build a gantt chart of the employees' schedules.
@@ -330,16 +330,16 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
         start_step = sequence[0]
         fig.add_trace(go.Bar(
             orientation='h', width=.3, marker=dict(color=colors[i]),
-            opacity=(OPACITY_DEGREE if infeasibility is not None else 1),
+            opacity=(OPACITY_DEGREE if conflict is not None else 1),
             base=[start_step.start_time - 5], x=[5], y=[employee.name],
             name=employee.name, hoverinfo='text+name',
             hovertext=[create_home_description_in_schedules_figure(
                 start_step.activity, start_step. get_start_time(True, hour_format), language)],
             showlegend=False
         ))
-        if infeasibility is not None and isinstance(infeasibility, TimeInfeasibility) and \
-                infeasibility.conflicting_employee.name == employee.name:
-            conflicting_task = infeasibility.conflicting_task
+        if conflict is not None and isinstance(conflict, TimeConflict) and \
+                conflict.conflicting_employee.name == employee.name:
+            conflicting_task = conflict.conflicting_task
             conflict_index = sequence.get_step_index_of(conflicting_task)
             assert (conflict_index != 0)
             employee_name_bis = employee.name + "2"
@@ -393,8 +393,8 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
             conflict_step_earliest_start_time = max(before_conflict_step.end_time + traveling_duration,
                                                     conflict_activity.start_time_lb)
             assert (conflict_step_earliest_start_time ==
-                    infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task)
-            conflict_step_earliest_start_time = infeasibility.earliest_upstream_feasible_start_time_of_conflicting_task
+                    conflict.earliest_upstream_feasible_start_time_of_conflicting_task)
+            conflict_step_earliest_start_time = conflict.earliest_upstream_feasible_start_time_of_conflicting_task
             conflict_step_earliest_end_time = conflict_step_earliest_start_time + conflict_activity.duration
             conflict_step_earliest_start_time_as_string = convert_nb_minutes_to_time_string(
                 conflict_step_earliest_start_time, get_hour_format_associated_with_language(language)
@@ -421,9 +421,9 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                                                 conflict_activity.end_time_ub)
             conflict_step_latest_start_time = conflict_step_latest_end_time - conflict_activity.duration
             assert (conflict_step_latest_start_time ==
-                    infeasibility.latest_downstream_feasible_start_time_of_conflicting_task)
+                    conflict.latest_downstream_feasible_start_time_of_conflicting_task)
             conflict_step_latest_start_time = \
-                infeasibility.latest_downstream_feasible_start_time_of_conflicting_task
+                conflict.latest_downstream_feasible_start_time_of_conflicting_task
             conflict_step_latest_end_time = conflict_step_latest_start_time + conflict_activity.duration
             conflict_step_latest_start_time_as_string = convert_nb_minutes_to_time_string(
                 conflict_step_latest_start_time, get_hour_format_associated_with_language(language)
@@ -505,16 +505,16 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                 showlegend=False
             ))
             # Critical bounds
-            upstream_critical_step_index = infeasibility.upstream_critical_step_index
+            upstream_critical_step_index = conflict.upstream_critical_step_index
             upstream_critical_bound_y_suffix = ""
-            downstream_critical_step_index = infeasibility.downstream_critical_step_index
+            downstream_critical_step_index = conflict.downstream_critical_step_index
             downstream_critical_bound_y_suffix = "2"
-            if infeasibility.solution_is_upstream_feasible:
-                if not infeasibility.solution_is_downstream_feasible:
+            if conflict.is_upstream_feasible:
+                if not conflict.is_downstream_feasible:
                     if conflict_step_earliest_start_time == conflicting_task.start_time_lb:
                         upstream_critical_step_index = conflict_index
             else:
-                if infeasibility.solution_is_downstream_feasible:
+                if conflict.is_downstream_feasible:
                     if conflict_step_latest_end_time == conflicting_task.end_time_ub:
                         downstream_critical_step_index = conflict_index
             upstream_critical_step = sequence[upstream_critical_step_index]
@@ -571,7 +571,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                     raise ValueError(f"Unknown language: {language}")
                 fig.add_trace(go.Bar(
                     orientation='h', width=.3, marker=dict(color='lightgrey'),
-                    opacity=(OPACITY_DEGREE if infeasibility is not None else 1),
+                    opacity=(OPACITY_DEGREE if conflict is not None else 1),
                     base=[step.end_time], x=[traveling_duration], y=[employee.name], name=employee.name,
                     hoverinfo='text', hovertext=traveling_text, showlegend=False
                 ))
@@ -586,7 +586,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
                 steps_durations.append(step.activity.duration)
             fig.add_trace(go.Bar(
                 orientation='h', width=.8, marker=dict(color=colors[i]),
-                opacity=(OPACITY_DEGREE if infeasibility is not None else 1),
+                opacity=(OPACITY_DEGREE if conflict is not None else 1),
                 base=steps_start_times, x=steps_durations,
                 y=[employee.name for _ in steps_start_times],
                 name=employee.name, hoverinfo='text+name', hovertext=steps_hover_texts,
@@ -595,7 +595,7 @@ def build_schedules_figure(solution: Solution, infeasibility: Infeasibility = No
             return_step = sequence[-1]
             fig.add_trace(go.Bar(
                 orientation='h', width=.3, marker=dict(color=colors[i]),
-                opacity=(OPACITY_DEGREE if infeasibility is not None else 1),
+                opacity=(OPACITY_DEGREE if conflict is not None else 1),
                 base=[return_step.start_time], x=[5], y=[employee.name],
                 name=employee.name, hoverinfo='text+name',
                 hovertext=[create_home_description_in_schedules_figure(

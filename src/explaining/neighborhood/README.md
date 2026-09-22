@@ -74,7 +74,7 @@ by composing primitives via a model-agnostic LLM — see its own [`README.md`](l
 `neighborhood.py` contains `Neighborhood`, described above.
 
 `assembler.py` contains `Assembler`, which assembles operators/restrictions into a `Neighborhood`
-and defers to `NeighborhoodModel`'s own capability check (its `NotImplementedError`) to confirm it's actually solvable.
+and defers to `computing`'s `ModelCompatibilityChecker` to confirm it's actually one `NeighborhoodModel` can solve.
 
 `exceptions.py` contains `NeighborhoodError`, raised when a `Neighborhood` can't be assembled or solved.
 
@@ -84,6 +84,11 @@ whose `map(question)` method dispatches a `ContrastiveQuestion` to its matching 
 - `insertion.py` contains the mapping functions for the `(Ins,*)` template family.
 - `swap.py` contains the mapping functions for the `(Swp,*)` template family.
 - `reordering.py` contains the mapping functions for the `(Ord,*)` template family.
+- `checker.py` contains `TemplateComplianceChecker`, 
+whose `match(neighborhood)` method recognizes the shapes those mapping functions produce, 
+answering with the family (`(Ins,*)`/`(Swp,*)`/`(Ord,*)`) or `None`. 
+It is strictly narrower than `computing`'s `ModelCompatibilityChecker`:
+the two coincide over today's catalogue, but the model also accepts combinations no template induces.
 
 The files of `llm` subpackage are detailed its own [`README.md`](llm/README.md).
 
