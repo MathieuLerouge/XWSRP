@@ -56,6 +56,80 @@ def test_bts_after_unavailability_is_bounded_by_it_not_by_the_rest_of_the_route(
     assert sequence[3].start_time - sequence[3].bts == 330
 
 
+def build_sequence_with_lunch_break(task_a_start_time_lb: int = 0, task_a_start_time: int = 100,
+                                    task_b_start_time: int = 500,
+                                    lunch_break_time_ub: int = 600) -> SequenceForHeuristics:
+    """
+    Departure(0) -> TaskA(50min) -> TaskB(40min) -> ComeBack, on an instance whose lunch break lasts 60min
+    within [400, lunch_break_time_ub]. Every activity sits at the same location, so traveling durations are
+    all zero and the expected slacks can be worked out by hand.
+
+    The break is meant to be taken on the arc between TaskA and TaskB, i.e. at step index 1.
+    """
+    instance = build_instance()
+    instance.set_lunch_break(400, lunch_break_time_ub, 60)
+    employee = build_employee()
+    task_a = build_task("TA", duration=50, start_time_lb=task_a_start_time_lb)
+    task_b = build_task("TB", duration=40)
+    steps = [
+        StepForHeuristics(Departure(employee), 0, 0, 0),
+        StepForHeuristics(task_a, 0, task_a_start_time, task_a_start_time + 50),
+        StepForHeuristics(task_b, task_a_start_time + 50, task_b_start_time, task_b_start_time + 40),
+        StepForHeuristics(ComeBack(employee), task_b_start_time + 40, task_b_start_time + 40,
+                          task_b_start_time + 40),
+    ]
+    return SequenceForHeuristics(instance, employee, steps)
+
+
+def test_bts_after_a_lunch_break_is_bounded_by_the_break_window_when_the_employee_is_early():
+    """
+    The break cannot start before its window opens, so the step after it cannot start before that lower
+    bound plus the break's duration, however early the employee gets there.
+    """
+    sequence = build_sequence_with_lunch_break()
+
+    SlackTimeComputer.recompute_time_slacks(sequence, step_index_before_lunch_break=1)
+
+    # TaskA could be over by 50, but lunch cannot start before 400, so TaskB waits until 400 + 60.
+    assert sequence[2].start_time - sequence[2].bts == 460
+
+
+def test_bts_after_a_lunch_break_pays_its_duration_as_a_toll_when_the_employee_is_late():
+    """The break is also a toll on the arc: the employee neither works nor travels while eating."""
+    sequence = build_sequence_with_lunch_break(
+        task_a_start_time_lb=500, task_a_start_time=500, task_b_start_time=700, lunch_break_time_ub=900)
+
+    SlackTimeComputer.recompute_time_slacks(sequence, step_index_before_lunch_break=1)
+
+    # TaskA cannot be over before 550, and the 60min break follows it, so TaskB cannot start before 610.
+    assert sequence[1].start_time - sequence[1].bts + sequence[1].activity.duration == 550
+    assert sequence[2].start_time - sequence[2].bts == 610
+
+
+def test_fts_before_a_lunch_break_is_bounded_by_the_break_window():
+    """The break cannot end after its window closes, so the step before it has to be over by then."""
+    sequence = build_sequence_with_lunch_break()
+
+    SlackTimeComputer.recompute_time_slacks(sequence, step_index_before_lunch_break=1)
+
+    # The break has to be over by 600, so TaskA has to be over by 600 - 60.
+    latest_end = sequence[1].start_time + sequence[1].fts + sequence[1].activity.duration
+    assert latest_end == 540
+
+
+def test_slacks_ignore_the_lunch_break_when_no_step_is_given_for_it():
+    """
+    Omitting the break's position leaves the computation exactly as it was before lunch breaks were handled,
+    so that no caller changes behaviour until it starts passing one.
+    """
+    sequence = build_sequence_with_lunch_break()
+
+    SlackTimeComputer.recompute_time_slacks(sequence)
+
+    assert sequence[2].start_time - sequence[2].bts == 50
+    assert sequence[1].start_time + sequence[1].fts + sequence[1].activity.duration == 960
+
+
 #######################################################################
 # find_bts_binding_step_index_from / find_fts_binding_step_index_from #
 #######################################################################

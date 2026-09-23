@@ -1,6 +1,6 @@
 # Standard libraries
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 # Local library
 from src.modeling.unavailability import Unavailability
@@ -24,9 +24,10 @@ class SlackTimeComputer:
     # Computation #
     ###############
 
-    # TODO: Adapt to task with unavailabilities (split time windows) and lunch breaks
+    # TODO: Adapt to task with unavailabilities (split time windows)
     @staticmethod
-    def recompute_bts_from(sequence: "SequenceForHeuristics", step_index: int):
+    def recompute_bts_from(sequence: "SequenceForHeuristics", step_index: int,
+                           step_index_before_lunch_break: Optional[int] = None):
         """
         Recompute the backward time slacks, in sequence order, starting from the step at the given index.
         A step's BTS (backward time slack) is how much earlier it could start,
@@ -38,34 +39,52 @@ class SlackTimeComputer:
         having left the previous step as early as that step could itself start,
         i.e. the previous step's earliest start plus its duration plus the traveling duration.
 
+        The employee's lunch break, when one is taken on the way to a step, holds that step back in two more ways.
+        It is a toll of its own duration on the arc it is taken on,
+        since the employee neither works nor travels while eating,
+        so its duration is added to the moment the step can be reached.
+        And it cannot start before its own time window does,
+        so the step cannot start before that window's lower bound plus the break's duration either,
+        however early the employee gets there.
+
         An employee unavailability needs no special case here: the lower bound of its own time window is its start time,
         which gives it a BTS of zero, and that zero then propagates as a wall to the steps after it.
 
         NB: The steps' times are read, never written. Only their BTS are recomputed,
         and only from the given index onwards, which is why the BTS of the step before it has to be valid already.
 
-        WIP: Instance without split task time windows (see Task.apply_unavailability) and without lunch breaks.
+        WIP: Instance without split task time windows (see Task.apply_unavailability).
 
         Args:
             sequence: The sequence whose BTS slacks are recomputed.
             step_index: The step index to start recomputing BTS from.
               When it is not the first one, the BTS of the step before it is assumed computed and valid.
+            step_index_before_lunch_break: Index of the step the employee leaves to take their lunch break,
+              the break being taken on the arc between it and the step after it. None when they take none,
+              in which case the two lunch-break terms above are simply left out.
         """
         if step_index == 0:
             sequence[0].bts = sequence[0].start_time - sequence.employee.start_time_lb
             step_index += 1
+        instance = sequence.instance
         for previous_step_index in range(step_index - 1, sequence.nb_steps - 1):
             step = sequence[previous_step_index + 1]
             previous_step = sequence[previous_step_index]
-            step.bts = min(
-                step.start_time - step.activity.start_time_lb,
-                step.start_time - (previous_step.start_time - previous_step.bts + previous_step.activity.duration +
-                                   sequence.instance.compute_traveling_duration(previous_step.activity, step.activity))
+            earliest_start_candidates = [step.activity.start_time_lb]
+            earliest_reachable_start = (
+                previous_step.start_time - previous_step.bts + previous_step.activity.duration +
+                instance.compute_traveling_duration(previous_step.activity, step.activity)
             )
+            if previous_step_index == step_index_before_lunch_break:
+                earliest_reachable_start += instance.lunch_break_duration
+                earliest_start_candidates.append(instance.lunch_break_time_lb + instance.lunch_break_duration)
+            earliest_start_candidates.append(earliest_reachable_start)
+            step.bts = step.start_time - max(earliest_start_candidates)
 
-    # TODO: Adapt to task with unavailabilities (split time windows) and lunch breaks
+    # TODO: Adapt to task with unavailabilities (split time windows)
     @staticmethod
-    def recompute_fts_from(sequence: "SequenceForHeuristics", step_index: int):
+    def recompute_fts_from(sequence: "SequenceForHeuristics", step_index: int,
+                           step_index_before_lunch_break: Optional[int] = None):
         """
         Recompute the forward time slacks, in reverse order, starting from the step at the given index.
         A step's FTS (forward time slack) is how much later it could start,
@@ -77,43 +96,62 @@ class SlackTimeComputer:
         to reach the next step as late as that step could itself start,
         i.e. the next step's latest start minus the traveling duration and its own duration.
 
+        The employee's lunch break, when one is taken on leaving a step, holds that step up in two more ways.
+        It is a toll of its own duration on the arc it is taken on,
+        since the employee neither works nor travels while eating,
+        so its duration is taken off the moment they have to leave.
+        And it cannot end after its own time window does, so the step has to be over by that window's upper bound
+        minus the break's duration, however much room the rest of the route leaves.
+
         An employee unavailability needs no special case here: the upper bound of its own time window is its end time,
         which gives it an FTS of zero, and that zero then propagates as a wall to the steps before it.
 
         NB: The steps' times are read, never written. Only their FTS are recomputed,
         and only from the given index backwards, which is why the FTS of the step after it has to be valid already.
 
-        WIP: Instance without split task time windows (see Task.apply_unavailability) and without lunch breaks.
+        WIP: Instance without split task time windows (see Task.apply_unavailability).
 
         Args:
             sequence: The sequence whose FTS slacks are recomputed.
             step_index: The step index to start recomputing FTS from.
               When it is not the last one, the FTS of the step after it is assumed computed and valid.
+            step_index_before_lunch_break: Index of the step the employee leaves to take their lunch break,
+              the break being taken on the arc between it and the step after it. None when they take none,
+              in which case the two lunch-break terms above are simply left out.
         """
         if step_index == sequence.nb_steps - 1:
             sequence[-1].fts = sequence.employee.end_time_ub - sequence[-1].start_time
             step_index -= 1
+        instance = sequence.instance
         for next_step_index in range(step_index + 1, 0, -1):
             step = sequence[next_step_index - 1]
             next_step = sequence[next_step_index]
-            step.fts = min(
-                step.activity.end_time_ub - (step.start_time + step.activity.duration),
+            end_time = step.start_time + step.activity.duration
+            latest_end_candidates = [step.activity.end_time_ub]
+            latest_reachable_end = (
                 next_step.start_time + next_step.fts -
-                (step.start_time + step.activity.duration +
-                 sequence.instance.compute_traveling_duration(step.activity, next_step.activity))
+                instance.compute_traveling_duration(step.activity, next_step.activity)
             )
+            if next_step_index - 1 == step_index_before_lunch_break:
+                latest_reachable_end -= instance.lunch_break_duration
+                latest_end_candidates.append(instance.lunch_break_time_ub - instance.lunch_break_duration)
+            latest_end_candidates.append(latest_reachable_end)
+            step.fts = min(latest_end_candidates) - end_time
 
-    # TODO: Adapt to task with unavailabilities (split time windows) and lunch breaks
+    # TODO: Adapt to task with unavailabilities (split time windows)
     @staticmethod
-    def recompute_time_slacks(sequence: "SequenceForHeuristics"):
+    def recompute_time_slacks(sequence: "SequenceForHeuristics",
+                              step_index_before_lunch_break: Optional[int] = None):
         """
         Recompute the BTS and FTS slacks of every step of the given sequence, from scratch.
 
         Args:
             sequence: The sequence whose BTS and FTS slacks are recomputed.
+            step_index_before_lunch_break: Index of the step the employee leaves to take their lunch break,
+              the break being taken on the arc between it and the step after it. None when they take none.
         """
-        SlackTimeComputer.recompute_bts_from(sequence, 0)
-        SlackTimeComputer.recompute_fts_from(sequence, sequence.nb_steps - 1)
+        SlackTimeComputer.recompute_bts_from(sequence, 0, step_index_before_lunch_break)
+        SlackTimeComputer.recompute_fts_from(sequence, sequence.nb_steps - 1, step_index_before_lunch_break)
 
     ##################
     # Binding steps #
@@ -122,12 +160,12 @@ class SlackTimeComputer:
     @staticmethod
     def find_bts_binding_step_index_from(sequence: "SequenceForHeuristics", step_index: int) -> int:
         """
-        Find the index of the step whose own time window is what caps the BTS of the step at the given
-        index, searching backward from it.
+        Find the index of the step whose own time window is what caps the BTS of the step at the given index,
+        searching backward from it.
 
         Remark: A BTS-binding step is a step whose BTS is limited by its own start time lower bound,
-        not by the times of the steps before it. Its slack is not necessarily zero: binding here means
-        that its own bound is the active constraint, not that it has no room left.
+        not by the times of the steps before it. Its slack is not necessarily zero:
+        binding here means that its own bound is the active constraint, not that it has no room left.
 
         Args:
             sequence: The sequence to search.
@@ -145,12 +183,12 @@ class SlackTimeComputer:
     @staticmethod
     def find_fts_binding_step_index_from(sequence: "SequenceForHeuristics", step_index: int) -> int:
         """
-        Find the index of the step whose own time window is what caps the FTS of the step at the given
-        index, searching forward from it.
+        Find the index of the step whose own time window is what caps the FTS of the step at the given index,
+        searching forward from it.
 
         Remark: An FTS-binding step is a step whose FTS is limited by its own end time upper bound,
-        not by the times of the steps after it. Its slack is not necessarily zero: binding here means
-        that its own bound is the active constraint, not that it has no room left.
+        not by the times of the steps after it. Its slack is not necessarily zero:
+        binding here means that its own bound is the active constraint, not that it has no room left.
 
         Args:
             sequence: The sequence to search.
