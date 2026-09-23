@@ -71,10 +71,13 @@ def build_sequence_with_lunch_break(task_a_start_time_lb: int = 0, task_a_start_
     employee = build_employee()
     task_a = build_task("TA", duration=50, start_time_lb=task_a_start_time_lb)
     task_b = build_task("TB", duration=40)
+    # TaskB is reached across the break, so it is arrived at once the break is over: never before the
+    # break's window opens, and never sooner than TaskA's end plus the break's duration.
+    task_b_arrival_time = max(task_a_start_time + 50 + 60, 400 + 60)
     steps = [
         StepForHeuristics(Departure(employee), 0, 0, 0),
         StepForHeuristics(task_a, 0, task_a_start_time, task_a_start_time + 50),
-        StepForHeuristics(task_b, task_a_start_time + 50, task_b_start_time, task_b_start_time + 40),
+        StepForHeuristics(task_b, task_b_arrival_time, task_b_start_time, task_b_start_time + 40),
         StepForHeuristics(ComeBack(employee), task_b_start_time + 40, task_b_start_time + 40,
                           task_b_start_time + 40),
     ]
@@ -213,6 +216,51 @@ def test_propagate_earlier_start_time_from_rejects_a_start_time_that_is_not_earl
         SlackTimeComputer.propagate_earlier_start_time_from(sequence, 3, sequence[3].start_time)
 
 
+def test_propagate_later_start_time_from_lets_the_lunch_break_absorb_the_shift():
+    """
+    A break still waiting for its own window to open soaks up the shift rather than passing it on, so the
+    step reached across it does not move at all.
+    """
+    sequence = build_sequence_with_lunch_break()
+    SlackTimeComputer.recompute_time_slacks(sequence, step_index_before_lunch_break=1)
+
+    # TaskA moves 100min later, ending at 300, which is still early enough that lunch waits for 400 anyway.
+    SlackTimeComputer.propagate_later_start_time_from(sequence, 1, 250, step_index_before_lunch_break=1)
+
+    assert (sequence[1].start_time, sequence[1].end_time) == (250, 300)
+    assert sequence[2].arrival_time == 460
+    assert sequence[2].start_time == 500
+
+
+def test_propagate_later_start_time_from_pushes_past_the_lunch_break_once_it_no_longer_waits():
+    """Once the employee stops getting there early, the break stops absorbing and the shift resumes."""
+    sequence = build_sequence_with_lunch_break()
+    SlackTimeComputer.recompute_time_slacks(sequence, step_index_before_lunch_break=1)
+
+    # TaskA moves to end at 450, past the break's 400 opening, so lunch now runs 450-510 and TaskB follows.
+    SlackTimeComputer.propagate_later_start_time_from(sequence, 1, 400, step_index_before_lunch_break=1)
+
+    assert (sequence[1].start_time, sequence[1].end_time) == (400, 450)
+    assert sequence[2].arrival_time == 510
+    assert sequence[2].start_time == 510
+
+
+def test_propagate_earlier_start_time_from_needs_no_lunch_break_handling():
+    """
+    The backward pass never touches the arrival time of the step reached across the break, and a caller
+    honouring BTS never asks to start before the break's window allows, so the step after it simply absorbs.
+    """
+    sequence = build_sequence_with_lunch_break()
+    SlackTimeComputer.recompute_time_slacks(sequence, step_index_before_lunch_break=1)
+    earliest_task_b_start_time = sequence[2].start_time - sequence[2].bts
+
+    SlackTimeComputer.propagate_earlier_start_time_from(sequence, 2, earliest_task_b_start_time)
+
+    # TaskB drops to the earliest its break allows, and TaskA stays where it was.
+    assert sequence[2].start_time == earliest_task_b_start_time == 460
+    assert (sequence[1].start_time, sequence[1].end_time) == (100, 150)
+
+
 def test_propagate_later_start_time_from_rejects_a_start_time_that_is_not_later():
     """Shifting by nothing used to leave every step but the last untouched while still reporting a range."""
     sequence = build_sequence_with_unavailability()
@@ -265,3 +313,35 @@ def test_tighten_times_without_unavailability_matches_prior_whole_route_behavior
     # tightening pulls everything as close together as possible, from departure through to the comeback.
     assert sequence[0].start_time == sequence[1].start_time
     assert sequence[1].end_time == sequence[2].start_time
+
+
+def test_tighten_times_leaves_room_for_the_lunch_break():
+    """
+    Tightening a route whose slacks account for a lunch break leaves exactly the room the break needs:
+    the step before it is over in time for it to fit, and the step after it waits for it to be over.
+    """
+    sequence = build_sequence_with_lunch_break()
+    SlackTimeComputer.recompute_time_slacks(sequence, step_index_before_lunch_break=1)
+
+    SlackTimeComputer.tighten_times(sequence, update_kpis=False, step_index_before_lunch_break=1)
+
+    # TaskA ends at 400, lunch runs 400-460, and TaskB starts the moment it is over.
+    assert (sequence[1].start_time, sequence[1].end_time) == (350, 400)
+    assert sequence[2].arrival_time == 460
+    assert sequence[2].start_time == 460
+
+
+def test_tighten_times_under_tightens_when_the_lunch_break_is_not_threaded_through():
+    """
+    The counterpart of the check above, pinning why the break's position has to be threaded all the way down.
+    Without it the forward pass overstates what pushing a step costs the steps beyond the break, gives up
+    early, and leaves idle time behind. The result stays feasible, it is just looser than it needs to be.
+    """
+    sequence = build_sequence_with_lunch_break()
+    SlackTimeComputer.recompute_time_slacks(sequence, step_index_before_lunch_break=1)
+
+    SlackTimeComputer.tighten_times(sequence, update_kpis=False)
+
+    # TaskA stays put, 310min before TaskB, where threading the break packs it to the 60min the break needs.
+    assert (sequence[1].start_time, sequence[1].end_time) == (100, 150)
+    assert sequence[2].start_time - sequence[1].end_time == 310

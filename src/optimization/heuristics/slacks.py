@@ -238,7 +238,6 @@ class SlackTimeComputer:
     # Time shifts #
     ###############
 
-    # TODO: Adapt to lunch breaks
     @staticmethod
     def propagate_earlier_start_time_from(sequence: "SequenceForHeuristics", step_index: int, start_time: int) -> int:
         """
@@ -255,12 +254,16 @@ class SlackTimeComputer:
         This propagation also stops as soon as the step being visited is rigid (employee unavailability).
         At both ends of the sequence, the arrival times are pinned to start times.
 
+        The employee's lunch break needs no special handling here, unlike in propagate_later_start_time_from.
+        This pass never touches the arrival time of the step reached across the break,
+        only that of the step it is shifting; and a caller honoring BTS never asks for a start time earlier
+        than the break's own window allows, so the step after the break always has idle time to absorb the shift,
+        and propagation stops there of its own accord.
+
         The BTS and FTS of each shifted step are updated, so the sequence's slacks stay valid without a recomputation.
 
         NB: The shift is checked against neither the employee's working-time window
         nor the activities' own time windows. BTS is what tells a caller how far back it may ask to go.
-
-        WIP: Instance without lunch breaks.
 
         Args:
             sequence: The sequence whose steps' times are shifted.
@@ -295,9 +298,9 @@ class SlackTimeComputer:
             step_index -= 1
         return step_index + 1
 
-    # TODO: Adapt to lunch breaks
     @staticmethod
-    def propagate_later_start_time_from(sequence: "SequenceForHeuristics", step_index: int, start_time: int) -> int:
+    def propagate_later_start_time_from(sequence: "SequenceForHeuristics", step_index: int, start_time: int,
+                                        step_index_before_lunch_break: Optional[int] = None) -> int:
         """
         Shift the step start times to later times, in sequence order, starting from the step at the given index.
         The start time of the step at the given index is set to the given start time.
@@ -313,18 +316,23 @@ class SlackTimeComputer:
         which is left untouched, its arrival time included.
         At both ends of the sequence, the arrival times are pinned to start times.
 
+        The step reached across the employee's lunch break is the one exception to shifting arrival times by
+        the time variation: its arrival time is recomputed rather than shifted, because a break that is
+        waiting for its own window to open absorbs the shift instead of passing it on.
+        Only once the employee stops getting there early does the step after the break start moving again.
+
         The BTS and FTS of each shifted step are updated, so the sequence's slacks stay valid without a recomputation.
 
         NB: The shift is checked against neither the employee's working-time window
         nor the activities' own time windows. FTS is what tells a caller how far on it may ask to go.
-
-        WIP: Instance without lunch breaks.
 
         Args:
             sequence: The sequence whose steps' times are shifted.
             step_index: Index of the step which start time is changed,
               and from which times of next steps are changed in consequence.
             start_time: Start time of the step.
+            step_index_before_lunch_break: Index of the step the employee leaves to take their lunch break,
+              the break being taken on the arc between it and the step after it. None when they take none.
 
         Returns:
             Index of the last step the propagation reached, which is an upper bound rather than an exact answer:
@@ -347,18 +355,30 @@ class SlackTimeComputer:
             return step_index
         if step_index == 0:
             sequence[0].arrival_time = start_time
+        instance = sequence.instance
         while time_variation > 0 and step_index <= sequence.nb_steps - 2:
             step = sequence[step_index]
             step.start_time += time_variation
             step.end_time += time_variation
             step.bts += time_variation
             step.fts -= time_variation
-            step_index += 1
-            next_step = sequence[step_index]
+            next_step_index = step_index + 1
+            next_step = sequence[next_step_index]
             if SlackTimeComputer._is_rigid(next_step):
+                step_index = next_step_index
                 break
-            next_step.arrival_time += time_variation
+            if step_index == step_index_before_lunch_break:
+                # The break waits for its own window to open, so it absorbs the shift instead of passing it on
+                # for as long as the employee would be getting there early: recompute rather than shift.
+                next_step.arrival_time = max(
+                    step.end_time + instance.compute_traveling_duration(step.activity, next_step.activity) +
+                    instance.lunch_break_duration,
+                    instance.lunch_break_time_lb + instance.lunch_break_duration
+                )
+            else:
+                next_step.arrival_time += time_variation
             time_variation = max(next_step.arrival_time - next_step.start_time, 0)
+            step_index = next_step_index
         if step_index == sequence.nb_steps - 1:
             step = sequence[step_index]
             step.start_time = step.arrival_time
@@ -368,7 +388,8 @@ class SlackTimeComputer:
         return step_index
 
     @staticmethod
-    def tighten_times(sequence: "SequenceForHeuristics", update_kpis: bool = True):
+    def tighten_times(sequence: "SequenceForHeuristics", update_kpis: bool = True,
+                      step_index_before_lunch_break: Optional[int] = None):
         """
         Shift the given sequence's steps as close together as their time slacks allow, to minimize idle time:
         first forward from the departure and then backward from the comeback.
@@ -378,9 +399,16 @@ class SlackTimeComputer:
         since BTS/FTS already only ever reflect slack up to the nearest such rigid step in either direction and
         propagate_later_start_time_from/propagate_earlier_start_time_from never shift a rigid step's own times.
 
+        NB: How far each segment may be tightened is read straight off its end steps' BTS/FTS,
+        so those have to have been recomputed for the same lunch break as the one given here.
+        Tightening a sequence whose slacks were computed without a break, or for a break sitting on another arc,
+        asks for shifts the break cannot absorb.
+
         Args:
             sequence: The sequence whose steps' times are tightened.
             update_kpis: Whether to keep the sequence's idle-time KPI up to date after the change.
+            step_index_before_lunch_break: Index of the step the employee leaves to take their lunch break,
+              the break being taken on the arc between it and the step after it. None when they take none.
         """
         idle_time_loss = 0
         segment_boundaries = (
@@ -391,7 +419,8 @@ class SlackTimeComputer:
             if time_variation_forward > 0:
                 former_segment_end_time = sequence[segment_end].start_time
                 SlackTimeComputer.propagate_later_start_time_from(
-                    sequence, segment_start, sequence[segment_start].start_time + time_variation_forward)
+                    sequence, segment_start, sequence[segment_start].start_time + time_variation_forward,
+                    step_index_before_lunch_break)
                 idle_time_loss += time_variation_forward - (sequence[segment_end].start_time - former_segment_end_time)
         for segment_start, segment_end in zip(segment_boundaries, segment_boundaries[1:]):
             time_variation_backward = sequence[segment_end].bts
@@ -431,10 +460,10 @@ class SlackTimeComputer:
     @contextmanager
     def suspend_tightening(sequence: "SequenceForHeuristics"):
         """
-        Context manager that suspends eager time-tightening for every mutation performed within it, without
-        tightening when the block exits (unlike deferred_tightening()) -- the caller remains responsible for
-        eventually calling tighten_times() itself. Reentrant, via the same suspension depth as
-        deferred_tightening().
+        Context manager that suspends eager time-tightening for every mutation performed within it,
+        without tightening when the block exits (unlike deferred_tightening())
+        -- the caller remains responsible for eventually calling tighten_times() itself.
+        Reentrant, via the same suspension depth as deferred_tightening().
 
         Args:
             sequence: The sequence whose eager tightening is suspended for the block's duration.
