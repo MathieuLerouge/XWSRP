@@ -56,18 +56,18 @@ def test_bts_after_unavailability_is_bounded_by_it_not_by_the_rest_of_the_route(
     assert sequence[3].start_time - sequence[3].bts == 330
 
 
-##################################
-# find_first_critical_step_index #
-##################################
+#######################################################################
+# find_bts_binding_step_index_from / find_fts_binding_step_index_from #
+#######################################################################
 
-def test_find_first_critical_step_index_forward_from_stops_at_unavailability():
+def test_find_fts_binding_step_index_from_stops_at_unavailability():
     sequence = build_sequence_with_unavailability()
-    assert SlackTimeComputer.find_first_critical_step_index_forward_from(sequence, 1) == 2
+    assert SlackTimeComputer.find_fts_binding_step_index_from(sequence, 1) == 2
 
 
-def test_find_first_critical_step_index_backward_from_stops_at_unavailability():
+def test_find_bts_binding_step_index_from_stops_at_unavailability():
     sequence = build_sequence_with_unavailability()
-    assert SlackTimeComputer.find_first_critical_step_index_backward_from(sequence, 3) == 2
+    assert SlackTimeComputer.find_bts_binding_step_index_from(sequence, 3) == 2
 
 
 #######################################################################

@@ -694,12 +694,12 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
         return self._conflict.latest_downstream_feasible_start_time_of_conflicting_task
 
     @property
-    def _upstream_critical_step_index(self):
-        return self._conflict.upstream_critical_step_index
+    def _upstream_binding_step_index(self):
+        return self._conflict.upstream_binding_step_index
 
     @property
-    def _downstream_critical_step_index(self):
-        return self._conflict.downstream_critical_step_index
+    def _downstream_binding_step_index(self):
+        return self._conflict.downstream_binding_step_index
 
     def _compute_text(self, with_bold_emphasis: bool = False):
 
@@ -776,36 +776,36 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
         sequence = new_solution.get_sequence(employee)
         task = self._conflicting_task
         step_index = sequence.get_step_index_of(task)
-        upstream_critical_step_index = self._upstream_critical_step_index
+        upstream_binding_step_index = self._upstream_binding_step_index
         if step_index == 1:
             if self.language_is_english:
                 text += f"by performing {task.name} at the earliest possible time after leaving home, "
             elif self.language_is_french:
                 text += f"en réalisant {task.name} le plus tôt possible après avoir quitté son domicile, "
-        elif upstream_critical_step_index == 0:
+        elif upstream_binding_step_index == 0:
             if self.language_is_english:
                 text += f"by performing all the {self._activities} from home to " \
                         f"{task.name} at the earliest possible time, "
             elif self.language_is_french:
                 text += f"en réalisant toutes les {self._activities} du domicile jusque " \
                         f"{task.name} le plus tôt possible, "
-        elif upstream_critical_step_index == step_index - 1:
+        elif upstream_binding_step_index == step_index - 1:
             activity_before = sequence[step_index - 1].activity
             if self.language_is_english:
                 text += f"by performing {activity_before.name} and {task.name} at the earliest possible time, "
             elif self.language_is_french:
                 text += f"en réalisant {activity_before.name} et {task.name} le plus tôt possible, "
-        elif upstream_critical_step_index < step_index - 1:
-            upstream_critical_activity = sequence[upstream_critical_step_index].activity
+        elif upstream_binding_step_index < step_index - 1:
+            upstream_binding_activity = sequence[upstream_binding_step_index].activity
             if self.language_is_english:
-                text += f"by performing all the {self._activities} from {upstream_critical_activity.name} to " \
+                text += f"by performing all the {self._activities} from {upstream_binding_activity.name} to " \
                         f"{task.name} at the earliest possible time, "
             elif self.language_is_french:
-                text += f"en réalisant toutes les {self._activities} de {upstream_critical_activity.name} à " \
+                text += f"en réalisant toutes les {self._activities} de {upstream_binding_activity.name} à " \
                         f"{task.name} le plus tôt possible, "
         else:
-            raise ValueError(f"There is something wrong with the upstream critical step index which value "
-                             f"{upstream_critical_step_index} is larger than the one of the step index {step_index}")
+            raise ValueError(f"There is something wrong with the upstream binding step index which value "
+                             f"{upstream_binding_step_index} is larger than the one of the step index {step_index}")
 
         # - Part of the text about time conflict at task with upstream steps (if upstream-infeasible)
         if not self._is_upstream_feasible:
@@ -830,15 +830,15 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
             elif self.language_is_french:
                 text += f"{employee.name} peut commencer {task.name} au plus tôt à {earliest_start_time}. " \
                         f"Cependant {task.name} doit être commencée au plus tard à {latest_start_time} pour "
-            downstream_critical_step_index = self._downstream_critical_step_index
-            downstream_critical_activity = sequence[downstream_critical_step_index].activity
+            downstream_binding_step_index = self._downstream_binding_step_index
+            downstream_binding_activity = sequence[downstream_binding_step_index].activity
             if step_index == sequence.nb_steps - 2:
                 if self.language_is_english:
                     text += f"{employee.name} can then be at home by {employee.get_end_time_ub(False, hour_format)}. "
                 elif self.language_is_french:
                     text += f"permettre à {employee.name} d'être de retour à son domicile " \
                             f"avant {employee.get_end_time_ub(False, hour_format)}. "
-            elif downstream_critical_step_index == sequence.nb_steps - 1:
+            elif downstream_binding_step_index == sequence.nb_steps - 1:
                 if self.language_is_english:
                     text += f"{employee.name} can perform all the {self._activities} from {task.name} to home " \
                             f"and be back at home by {employee.get_end_time_ub(False, hour_format)}. "
@@ -846,20 +846,20 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
                     text += f"permettre à {employee.name} de réaliser toutes les {self._activities} à partir de " \
                             f"{task.name} et d'être de retour à son domicile avant " \
                             f"{employee.get_end_time_ub(False, hour_format)}. "
-            elif downstream_critical_step_index < sequence.nb_steps - 1:
+            elif downstream_binding_step_index < sequence.nb_steps - 1:
                 if self.language_is_english:
                     text += f"{employee.name} can perform all the {self._activities} from {task.name} " \
-                            f"to {downstream_critical_activity.name} " \
-                            f"and end {downstream_critical_activity.name} " \
-                            f"by {downstream_critical_activity.get_end_time_ub(False, hour_format)}. "
+                            f"to {downstream_binding_activity.name} " \
+                            f"and end {downstream_binding_activity.name} " \
+                            f"by {downstream_binding_activity.get_end_time_ub(False, hour_format)}. "
                 elif self.language_is_french:
                     text += f"permettre à {employee.name} de réaliser toutes les {self._activities} de {task.name} " \
-                            f"jusque {downstream_critical_activity.name} " \
-                            f"et terminer {downstream_critical_activity.name} " \
-                            f"avant {downstream_critical_activity.get_end_time_ub(False, hour_format)}. "
+                            f"jusque {downstream_binding_activity.name} " \
+                            f"et terminer {downstream_binding_activity.name} " \
+                            f"avant {downstream_binding_activity.get_end_time_ub(False, hour_format)}. "
             else:
-                raise ValueError(f"There is something wrong with the downstream critical step index which value is "
-                                 f"{downstream_critical_step_index} while the one of the step index is {step_index} "
+                raise ValueError(f"There is something wrong with the downstream binding step index which value is "
+                                 f"{downstream_binding_step_index} while the one of the step index is {step_index} "
                                  f"and the number of steps is {sequence.nb_steps}")
 
         # Fourth part - conclusion

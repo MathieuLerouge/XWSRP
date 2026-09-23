@@ -11,8 +11,10 @@ IS_UPSTREAM_FEASIBLE_KEY = 'upstream feasible'
 IS_DOWNSTREAM_FEASIBLE_KEY = 'downstream feasible'
 EARLIEST_UPSTREAM_FEASIBLE_START_TIME_OF_CONFLICTING_TASK_KEY = 'early start time'
 LATEST_DOWNSTREAM_FEASIBLE_START_TIME_OF_CONFLICTING_TASK_KEY = 'late start time'
-UPSTREAM_CRITICAL_STEP_INDEX_KEY = 'upstream critical index'
-DOWNSTREAM_CRITICAL_STEP_INDEX_KEY = 'downstream critical index'
+# Spelled 'critical' rather than 'binding' on purpose: these are the keys of already-saved explanation
+# JSON files (see data/*/explanations/), which renaming the concept must not invalidate.
+UPSTREAM_BINDING_STEP_INDEX_KEY = 'upstream critical index'
+DOWNSTREAM_BINDING_STEP_INDEX_KEY = 'downstream critical index'
 SKILL_CONFLICT_TYPE = 'skill'
 TIME_CONFLICT_TYPE = 'time'
 
@@ -121,7 +123,7 @@ class TimeConflict(Conflict):
     The task's start time is squeezed from both sides:
     the route upstream of it cannot get the employee there before earliest_upstream_feasible_start_time_of_conflicting_task,
     while the route downstream of it has to be left by latest_downstream_feasible_start_time_of_conflicting_task.
-    The conflict is what separates the two, and each critical step index points at the step, on its own side,
+    The conflict is what separates the two, and each binding step index points at the step, on its own side,
     that is actually binding rather than merely passing the pressure along.
     """
 
@@ -129,7 +131,7 @@ class TimeConflict(Conflict):
                  is_upstream_feasible: bool, is_downstream_feasible: bool,
                  earliest_upstream_feasible_start_time_of_conflicting_task: int,
                  latest_downstream_feasible_start_time_of_conflicting_task: int,
-                 upstream_critical_step_index: int, downstream_critical_step_index: int):
+                 upstream_binding_step_index: int, downstream_binding_step_index: int):
         """
         Args:
             conflicting_employee: The employee the requested transformation cannot be carried out for.
@@ -142,9 +144,9 @@ class TimeConflict(Conflict):
                 midnight, the conflicting task could start given the route before it.
             latest_downstream_feasible_start_time_of_conflicting_task: Latest time, in minutes since
                 midnight, the conflicting task could start given the route after it.
-            upstream_critical_step_index: Index of the first step, searching backward from the conflicting
+            upstream_binding_step_index: Index of the first step, searching backward from the conflicting
                 task, whose own start-time lower bound is what holds the route back.
-            downstream_critical_step_index: Index of the first step, searching forward from the conflicting
+            downstream_binding_step_index: Index of the first step, searching forward from the conflicting
                 task, whose own end-time upper bound is what holds the route back.
         """
         super().__init__(conflicting_employee, conflicting_task)
@@ -152,8 +154,8 @@ class TimeConflict(Conflict):
         self._is_downstream_feasible = is_downstream_feasible
         self._earliest_start_time = earliest_upstream_feasible_start_time_of_conflicting_task
         self._latest_start_time = latest_downstream_feasible_start_time_of_conflicting_task
-        self._upstream_critical_step_index = upstream_critical_step_index
-        self._downstream_critical_step_index = downstream_critical_step_index
+        self._upstream_binding_step_index = upstream_binding_step_index
+        self._downstream_binding_step_index = downstream_binding_step_index
 
     @property
     def is_upstream_feasible(self) -> bool:
@@ -176,14 +178,14 @@ class TimeConflict(Conflict):
         return self._latest_start_time
 
     @property
-    def upstream_critical_step_index(self) -> int:
+    def upstream_binding_step_index(self) -> int:
         """Index of the first step backward from the conflicting task whose own lower bound is binding."""
-        return self._upstream_critical_step_index
+        return self._upstream_binding_step_index
 
     @property
-    def downstream_critical_step_index(self) -> int:
+    def downstream_binding_step_index(self) -> int:
         """Index of the first step forward from the conflicting task whose own upper bound is binding."""
-        return self._downstream_critical_step_index
+        return self._downstream_binding_step_index
 
     def to_dict(self) -> dict:
         """Return this conflict as a dictionary, as read back by from_dict."""
@@ -195,8 +197,8 @@ class TimeConflict(Conflict):
             self.earliest_upstream_feasible_start_time_of_conflicting_task
         dictionary[LATEST_DOWNSTREAM_FEASIBLE_START_TIME_OF_CONFLICTING_TASK_KEY] = \
             self.latest_downstream_feasible_start_time_of_conflicting_task
-        dictionary[UPSTREAM_CRITICAL_STEP_INDEX_KEY] = self.upstream_critical_step_index
-        dictionary[DOWNSTREAM_CRITICAL_STEP_INDEX_KEY] = self.downstream_critical_step_index
+        dictionary[UPSTREAM_BINDING_STEP_INDEX_KEY] = self.upstream_binding_step_index
+        dictionary[DOWNSTREAM_BINDING_STEP_INDEX_KEY] = self.downstream_binding_step_index
         return dictionary
 
     @classmethod
@@ -217,5 +219,5 @@ class TimeConflict(Conflict):
                    bool(dictionary[IS_DOWNSTREAM_FEASIBLE_KEY]),
                    int(dictionary[EARLIEST_UPSTREAM_FEASIBLE_START_TIME_OF_CONFLICTING_TASK_KEY]),
                    int(dictionary[LATEST_DOWNSTREAM_FEASIBLE_START_TIME_OF_CONFLICTING_TASK_KEY]),
-                   int(dictionary[UPSTREAM_CRITICAL_STEP_INDEX_KEY]),
-                   int(dictionary[DOWNSTREAM_CRITICAL_STEP_INDEX_KEY]))
+                   int(dictionary[UPSTREAM_BINDING_STEP_INDEX_KEY]),
+                   int(dictionary[DOWNSTREAM_BINDING_STEP_INDEX_KEY]))

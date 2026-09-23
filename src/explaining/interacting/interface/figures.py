@@ -504,49 +504,49 @@ def build_schedules_figure(solution: Solution, conflict: Conflict = None,
                     return_step.activity, return_step.get_start_time(True, hour_format), language)],
                 showlegend=False
             ))
-            # Critical bounds
-            upstream_critical_step_index = conflict.upstream_critical_step_index
-            upstream_critical_bound_y_suffix = ""
-            downstream_critical_step_index = conflict.downstream_critical_step_index
-            downstream_critical_bound_y_suffix = "2"
+            # Binding bounds
+            upstream_binding_step_index = conflict.upstream_binding_step_index
+            upstream_binding_bound_y_suffix = ""
+            downstream_binding_step_index = conflict.downstream_binding_step_index
+            downstream_binding_bound_y_suffix = "2"
             if conflict.is_upstream_feasible:
                 if not conflict.is_downstream_feasible:
                     if conflict_step_earliest_start_time == conflicting_task.start_time_lb:
-                        upstream_critical_step_index = conflict_index
+                        upstream_binding_step_index = conflict_index
             else:
                 if conflict.is_downstream_feasible:
                     if conflict_step_latest_end_time == conflicting_task.end_time_ub:
-                        downstream_critical_step_index = conflict_index
-            upstream_critical_step = sequence[upstream_critical_step_index]
-            upstream_critical_bound = upstream_critical_step.activity.start_time_lb
-            downstream_critical_step = sequence[downstream_critical_step_index]
-            downstream_critical_bound = downstream_critical_step.activity.end_time_ub
+                        downstream_binding_step_index = conflict_index
+            upstream_binding_step = sequence[upstream_binding_step_index]
+            upstream_binding_bound = upstream_binding_step.activity.start_time_lb
+            downstream_binding_step = sequence[downstream_binding_step_index]
+            downstream_binding_bound = downstream_binding_step.activity.end_time_ub
             if check_if_language_is_english(language):
                 lower_bound_text = f"Yielding <b>lower bound</b><br>" \
-                                   f"of <b>{upstream_critical_step.activity.name}</b> availability<br>time window"
+                                   f"of <b>{upstream_binding_step.activity.name}</b> availability<br>time window"
                 upper_bound_text = f"Yielding <b>upper bound</b><br>" \
-                                   f"of <b>{downstream_critical_step.activity.name}</b> availability<br>time window"
+                                   f"of <b>{downstream_binding_step.activity.name}</b> availability<br>time window"
             elif check_if_language_is_french(language):
                 lower_bound_text = f"<b>Borne inférieure</b> de la fenêtre <br>"
-                if isinstance(upstream_critical_step.activity, Task):
-                    lower_bound_text += f"de disponibilité de <b>{upstream_critical_step.activity.name}</b> atteinte"
+                if isinstance(upstream_binding_step.activity, Task):
+                    lower_bound_text += f"de disponibilité de <b>{upstream_binding_step.activity.name}</b> atteinte"
                 else:
                     lower_bound_text += f"de travail <b>{employee.name}</b> atteinte"
                 upper_bound_text = f"<b>Borne supérieure</b> de la fenêtre <br>"
-                if isinstance(downstream_critical_step.activity, Task):
-                    upper_bound_text += f"de disponibilité de <b>{downstream_critical_step.activity.name}</b> atteinte"
+                if isinstance(downstream_binding_step.activity, Task):
+                    upper_bound_text += f"de disponibilité de <b>{downstream_binding_step.activity.name}</b> atteinte"
                 else:
                     upper_bound_text += f"de travail <b>{employee.name}</b> atteinte"
             else:
                 raise ValueError(f"Unknown language: {language}")
             fig.add_trace(go.Bar(
                 orientation='h', width=1, marker=dict(color=UI_CONFLICT_BOUND_COLOR),
-                base=[upstream_critical_bound - 3], x=[3], y=[employee.name + upstream_critical_bound_y_suffix],
+                base=[upstream_binding_bound - 3], x=[3], y=[employee.name + upstream_binding_bound_y_suffix],
                 name=employee.name, hoverinfo='text+name', hovertext=[lower_bound_text], showlegend=False
             ))
             fig.add_trace(go.Bar(
                 orientation='h', width=1, marker=dict(color=UI_CONFLICT_BOUND_COLOR),
-                base=[downstream_critical_bound], x=[3], y=[employee.name + downstream_critical_bound_y_suffix],
+                base=[downstream_binding_bound], x=[3], y=[employee.name + downstream_binding_bound_y_suffix],
                 name=employee.name, hoverinfo='text+name', hovertext=[upper_bound_text], showlegend=False
             ))
         else:

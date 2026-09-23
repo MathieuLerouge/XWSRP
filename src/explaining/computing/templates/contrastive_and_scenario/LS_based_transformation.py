@@ -52,15 +52,15 @@ def extract_explanation_content_for_insertion_from_evaluation(solution: Editable
         else:
             sequence = support_solution.get_sequence(employee)
             index = sequence.get_step_index_of(activity) + 1
-            upstream_critical_step_index = \
-                SlackTimeComputer.find_first_critical_step_index_backward_from(sequence, index - 1)
-            downstream_critical_step_index = \
-                SlackTimeComputer.find_first_critical_step_index_forward_from(sequence, index + 1)
+            upstream_binding_step_index = \
+                SlackTimeComputer.find_bts_binding_step_index_from(sequence, index - 1)
+            downstream_binding_step_index = \
+                SlackTimeComputer.find_fts_binding_step_index_from(sequence, index + 1)
             conflict = TimeConflict(
                 employee, task, evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
                 evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
-                upstream_critical_step_index=upstream_critical_step_index,
-                downstream_critical_step_index=downstream_critical_step_index
+                upstream_binding_step_index=upstream_binding_step_index,
+                downstream_binding_step_index=downstream_binding_step_index
             )
     if activity.name == "Start":
         activity_name_in_english = "Home"
@@ -200,15 +200,15 @@ def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolut
         else:
             sequence = support_solution.get_sequence(employee)
             index = sequence.get_step_index_of(replacing_task)
-            upstream_critical_step_index = \
-                SlackTimeComputer.find_first_critical_step_index_backward_from(sequence, index - 1)
-            downstream_critical_step_index = \
-                SlackTimeComputer.find_first_critical_step_index_forward_from(sequence, index + 1)
+            upstream_binding_step_index = \
+                SlackTimeComputer.find_bts_binding_step_index_from(sequence, index - 1)
+            downstream_binding_step_index = \
+                SlackTimeComputer.find_fts_binding_step_index_from(sequence, index + 1)
             conflict = TimeConflict(
                 employee, replacing_task, evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
                 evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
-                upstream_critical_step_index=upstream_critical_step_index,
-                downstream_critical_step_index=downstream_critical_step_index
+                upstream_binding_step_index=upstream_binding_step_index,
+                downstream_binding_step_index=downstream_binding_step_index
             )
     applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
@@ -350,15 +350,15 @@ def extract_explanation_content_for_reordering_from_evaluation(solution: Editabl
                 )
             support_sequence = support_solution.get_sequence(employee)
             index = support_sequence.get_step_index_of(moving_task)
-            upstream_critical_step_index = \
-                SlackTimeComputer.find_first_critical_step_index_backward_from(support_sequence, index - 1)
-            downstream_critical_step_index = \
-                SlackTimeComputer.find_first_critical_step_index_forward_from(support_sequence, index + 1)
+            upstream_binding_step_index = \
+                SlackTimeComputer.find_bts_binding_step_index_from(support_sequence, index - 1)
+            downstream_binding_step_index = \
+                SlackTimeComputer.find_fts_binding_step_index_from(support_sequence, index + 1)
             conflict = TimeConflict(
                 employee, moving_task, evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
                 evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
-                upstream_critical_step_index=upstream_critical_step_index,
-                downstream_critical_step_index=downstream_critical_step_index
+                upstream_binding_step_index=upstream_binding_step_index,
+                downstream_binding_step_index=downstream_binding_step_index
             )
         else:
             raise ValueError("The conflict should only be due to time considerations.")

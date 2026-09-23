@@ -51,16 +51,16 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
             conflict = SkillConflict(employee, task)
         else:
             support_sequence = support_solution.get_sequence(employee)
-            upstream_critical_step_index = \
-                SlackTimeComputer.find_first_critical_step_index_backward_from(support_sequence, step_index - 1)
-            downstream_critical_step_index = \
-                SlackTimeComputer.find_first_critical_step_index_forward_from(support_sequence, step_index + 1)
+            upstream_binding_step_index = \
+                SlackTimeComputer.find_bts_binding_step_index_from(support_sequence, step_index - 1)
+            downstream_binding_step_index = \
+                SlackTimeComputer.find_fts_binding_step_index_from(support_sequence, step_index + 1)
             upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_ub
             downstream_feasible = latest_start_time_for_downstream >= task.start_time_lb
             conflict = TimeConflict(
                 employee, task, upstream_feasible, downstream_feasible,
                 earliest_start_time_for_upstream, latest_start_time_for_downstream,
-                upstream_critical_step_index, downstream_critical_step_index
+                upstream_binding_step_index, downstream_binding_step_index
             )
     support_sequence_activities_names = [step.activity.name for step in support_sequence]
     description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"

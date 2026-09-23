@@ -117,16 +117,16 @@ class ConflictExtractor:
         # Both indices are reported in the tailored pipeline's numbering, that of the route *with* the
         # conflicting task back at step_index: indices below it are the same in both numberings, indices at
         # or above it are one higher there than in the route the search actually runs on.
-        upstream_critical_step_index = SlackTimeComputer.find_first_critical_step_index_backward_from(
+        upstream_binding_step_index = SlackTimeComputer.find_bts_binding_step_index_from(
             route, step_index - 1
         )
-        downstream_critical_step_index = SlackTimeComputer.find_first_critical_step_index_forward_from(
+        downstream_binding_step_index = SlackTimeComputer.find_fts_binding_step_index_from(
             route, step_index
         ) + 1
         return TimeConflict(
             conflicting_employee, conflicting_task,
             evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
             evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
-            upstream_critical_step_index=upstream_critical_step_index,
-            downstream_critical_step_index=downstream_critical_step_index
+            upstream_binding_step_index=upstream_binding_step_index,
+            downstream_binding_step_index=downstream_binding_step_index
         )

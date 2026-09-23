@@ -116,24 +116,25 @@ class SlackTimeComputer:
         SlackTimeComputer.recompute_fts_from(sequence, sequence.nb_steps - 1)
 
     ##################
-    # Critical steps #
+    # Binding steps #
     ##################
 
     @staticmethod
-    def find_first_critical_step_index_backward_from(sequence: "SequenceForHeuristics", step_index: int) -> int:
+    def find_bts_binding_step_index_from(sequence: "SequenceForHeuristics", step_index: int) -> int:
         """
-        Find the index of the first backward critical step that can be found,
-        starting from the given step index and going backward.
+        Find the index of the step whose own time window is what caps the BTS of the step at the given
+        index, searching backward from it.
 
-        Remark: A backward critical step is a step which BTS is limited by its start time lower bound,
-        not by the times of steps before it.
+        Remark: A BTS-binding step is a step whose BTS is limited by its own start time lower bound,
+        not by the times of the steps before it. Its slack is not necessarily zero: binding here means
+        that its own bound is the active constraint, not that it has no room left.
 
         Args:
             sequence: The sequence to search.
             step_index: The step index to start searching backward from.
 
         Returns:
-            The index of the first critical step found.
+            The index of the BTS-binding step found.
         """
         step = sequence[step_index]
         while step.bts < step.start_time - step.activity.start_time_lb:
@@ -142,20 +143,21 @@ class SlackTimeComputer:
         return step_index
 
     @staticmethod
-    def find_first_critical_step_index_forward_from(sequence: "SequenceForHeuristics", step_index: int) -> int:
+    def find_fts_binding_step_index_from(sequence: "SequenceForHeuristics", step_index: int) -> int:
         """
-        Find the index of the first forward critical step that can be found,
-        starting from the given step index and going forward.
+        Find the index of the step whose own time window is what caps the FTS of the step at the given
+        index, searching forward from it.
 
-        Remark: A forward critical step is a step which FTS is limited by its end time upper bound,
-        not by the times of the steps after it.
+        Remark: An FTS-binding step is a step whose FTS is limited by its own end time upper bound,
+        not by the times of the steps after it. Its slack is not necessarily zero: binding here means
+        that its own bound is the active constraint, not that it has no room left.
 
         Args:
             sequence: The sequence to search.
             step_index: The step index to start searching forward from.
 
         Returns:
-            The index of the first critical step found.
+            The index of the FTS-binding step found.
         """
         step = sequence[step_index]
         while step.fts < step.activity.end_time_ub - (step.start_time + step.activity.duration):
@@ -333,13 +335,10 @@ class SlackTimeComputer:
         Shift the given sequence's steps as close together as their time slacks allow, to minimize idle time:
         first forward from the departure and then backward from the comeback.
 
-        If the sequence contains one or more employee unavailabilities, they split it into independent segments
-        (departure -> first unavailability -> ... -> comeback): each segment is tightened on its own,
-        forward from its first step and backward from its last,
-        since BTS/FTS already only ever reflect slack up to the nearest such rigid step in either direction
-        (see recompute_bts_from/recompute_fts_from) and
+        If the sequence contains one or more employee unavailabilities, they split it into independent segments:
+        each segment is tightened on its own, forward from its first step and backward from its last,
+        since BTS/FTS already only ever reflect slack up to the nearest such rigid step in either direction and
         propagate_later_start_time_from/propagate_earlier_start_time_from never shift a rigid step's own times.
-        With no unavailability, this is exactly one segment spanning the whole sequence.
 
         Args:
             sequence: The sequence whose steps' times are tightened.

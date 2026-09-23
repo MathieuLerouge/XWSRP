@@ -64,11 +64,11 @@ def assert_conflict_describes_shortfall(model: NeighborhoodModel, conflict: Opti
     assert conflict.is_downstream_feasible == (latest >= conflicting_task.start_time_lb), \
         "The downstream feasibility flag disagrees with the latest start time fitting the task's time window"
 
-    upstream_critical_step_index = conflict.upstream_critical_step_index
-    downstream_critical_step_index = conflict.downstream_critical_step_index
+    upstream_binding_step_index = conflict.upstream_binding_step_index
+    downstream_binding_step_index = conflict.downstream_binding_step_index
     nb_steps = len(model.solution.get_sequence(conflict.conflicting_employee))
-    assert 0 <= upstream_critical_step_index < downstream_critical_step_index <= nb_steps, \
-        f"The critical step indices {upstream_critical_step_index, downstream_critical_step_index} do not "\
+    assert 0 <= upstream_binding_step_index < downstream_binding_step_index <= nb_steps, \
+        f"The binding step indices {upstream_binding_step_index, downstream_binding_step_index} do not "\
         f"bracket a position of a {nb_steps}-step route"
 
 
