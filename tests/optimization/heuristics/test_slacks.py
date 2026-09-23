@@ -1,3 +1,6 @@
+# Third-party library
+import pytest
+
 # Local libraries
 from src.modeling.comeback import ComeBack
 from src.modeling.departure import Departure
@@ -28,9 +31,9 @@ def build_sequence_with_unavailability() -> SequenceForHeuristics:
     return SequenceForHeuristics(instance, employee, steps)
 
 
-######################################################
-# update_bts_forward_from / update_fts_backward_from #
-######################################################
+###########################################
+# recompute_bts_from / recompute_fts_from #
+###########################################
 
 def test_unavailability_step_has_zero_bts_and_fts():
     sequence = build_sequence_with_unavailability()
@@ -53,9 +56,9 @@ def test_bts_after_unavailability_is_bounded_by_it_not_by_the_rest_of_the_route(
     assert sequence[3].start_time - sequence[3].bts == 330
 
 
-###################################
+##################################
 # find_first_critical_step_index #
-###################################
+##################################
 
 def test_find_first_critical_step_index_forward_from_stops_at_unavailability():
     sequence = build_sequence_with_unavailability()
@@ -67,42 +70,81 @@ def test_find_first_critical_step_index_backward_from_stops_at_unavailability():
     assert SlackTimeComputer.find_first_critical_step_index_backward_from(sequence, 3) == 2
 
 
-##############################
-# shift_steps_times_..._from #
-##############################
+#######################################################################
+# propagate_earlier_start_time_from / propagate_later_start_time_from #
+#######################################################################
 
-def test_shift_steps_times_forward_from_stops_exactly_at_unavailability_boundary():
+def test_propagate_later_start_time_from_stops_exactly_at_unavailability_boundary():
     sequence = build_sequence_with_unavailability()
-    returned_index = SlackTimeComputer.shift_steps_times_forward_from(
+    returned_index = SlackTimeComputer.propagate_later_start_time_from(
         sequence, 1, sequence[1].start_time + sequence[1].fts)
     assert returned_index == 2
     assert (sequence[1].start_time, sequence[1].end_time) == (250, 300)
     assert (sequence[2].start_time, sequence[2].end_time) == (300, 330)
 
 
-def test_shift_steps_times_forward_from_does_not_move_unavailability_on_overshoot():
+def test_propagate_later_start_time_from_does_not_move_unavailability_on_overshoot():
     sequence = build_sequence_with_unavailability()
     # Ask for more than TaskA's fts allows: without the fix, this used to shift the unavailability too.
-    SlackTimeComputer.shift_steps_times_forward_from(
+    SlackTimeComputer.propagate_later_start_time_from(
         sequence, 1, sequence[1].start_time + sequence[1].fts + 10)
     assert (sequence[2].start_time, sequence[2].end_time) == (300, 330)
 
 
-def test_shift_steps_times_backward_from_stops_exactly_at_unavailability_boundary():
+def test_propagate_earlier_start_time_from_stops_exactly_at_unavailability_boundary():
     sequence = build_sequence_with_unavailability()
-    returned_index = SlackTimeComputer.shift_steps_times_backward_from(
+    returned_index = SlackTimeComputer.propagate_earlier_start_time_from(
         sequence, 3, sequence[3].start_time - sequence[3].bts)
     assert returned_index == 3
     assert (sequence[3].start_time, sequence[3].end_time) == (330, 370)
     assert (sequence[2].start_time, sequence[2].end_time) == (300, 330)
 
 
-def test_shift_steps_times_backward_from_does_not_move_unavailability_on_overshoot():
+def test_propagate_earlier_start_time_from_does_not_move_unavailability_on_overshoot():
     sequence = build_sequence_with_unavailability()
     # Ask for more than TaskB's bts allows: without the fix, this used to shift the unavailability too.
-    SlackTimeComputer.shift_steps_times_backward_from(
+    SlackTimeComputer.propagate_earlier_start_time_from(
         sequence, 3, sequence[3].start_time - sequence[3].bts - 10)
     assert (sequence[2].start_time, sequence[2].end_time) == (300, 330)
+
+
+def test_propagate_later_start_time_from_does_not_move_the_unavailability_it_starts_on():
+    """
+    Both directions refuse to shift a rigid step they are asked to start from, not only the one they reach
+    by propagation: forward used to test the next step's rigidity only, after having moved the current one.
+    """
+    sequence = build_sequence_with_unavailability()
+
+    returned_index = SlackTimeComputer.propagate_later_start_time_from(sequence, 2, sequence[2].start_time + 10)
+
+    assert returned_index == 2
+    assert (sequence[2].start_time, sequence[2].end_time) == (300, 330)
+
+
+def test_propagate_earlier_start_time_from_does_not_move_the_unavailability_it_starts_on():
+    """The backward counterpart of the check above, pinning the two directions to the same contract."""
+    sequence = build_sequence_with_unavailability()
+
+    returned_index = SlackTimeComputer.propagate_earlier_start_time_from(sequence, 2, sequence[2].start_time - 10)
+
+    assert returned_index == 3
+    assert (sequence[2].start_time, sequence[2].end_time) == (300, 330)
+
+
+def test_propagate_earlier_start_time_from_rejects_a_start_time_that_is_not_earlier():
+    """Shifting by nothing used to leave the sequence untouched while reporting an empty range of changes."""
+    sequence = build_sequence_with_unavailability()
+
+    with pytest.raises(ValueError):
+        SlackTimeComputer.propagate_earlier_start_time_from(sequence, 3, sequence[3].start_time)
+
+
+def test_propagate_later_start_time_from_rejects_a_start_time_that_is_not_later():
+    """Shifting by nothing used to leave every step but the last untouched while still reporting a range."""
+    sequence = build_sequence_with_unavailability()
+
+    with pytest.raises(ValueError):
+        SlackTimeComputer.propagate_later_start_time_from(sequence, 1, sequence[1].start_time)
 
 
 #################

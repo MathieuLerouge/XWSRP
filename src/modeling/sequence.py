@@ -505,57 +505,6 @@ class Sequence:
         # TODO to implement
         raise NotImplementedError("Code not yet implemented")
 
-    # TODO adapt to lunch breaks
-    def shift_steps_times_backward_from(self, step_index: int, start_time: int) -> int:
-        """
-        Assumption: instance without lunch breaks.
-
-        Args:
-            step_index: Index of the step whose start time is changed, and from which times of previous
-                steps are changed in consequence.
-            start_time: New start time of the step at step_index.
-
-        Returns:
-            int: The index of the first step whose start time was changed.
-        """
-        time_variation = self._steps[step_index].start_time - start_time
-        while time_variation > 0 and step_index >= 0:
-            step = self[step_index]
-            step.start_time -= time_variation
-            step.end_time -= time_variation
-            time_variation = max(step.arrival_time - step.start_time, 0)
-            step.arrival_time -= time_variation
-            step_index -= 1
-        return step_index + 1
-
-    # TODO adapt to lunch breaks
-    def shift_steps_times_forward_from(self, step_index: int, start_time: int) -> int:
-        """
-        Assumption: instance without lunch breaks.
-
-        Args:
-            step_index: Index of the step whose start time is changed, and from which times of next
-                steps are changed in consequence.
-            start_time: New start time of the step at step_index.
-
-        Returns:
-            int: The index of the last step whose start time was changed.
-        """
-        time_variation = start_time - self._steps[step_index].start_time
-        if step_index == 0 and time_variation > 0:
-            self._steps[0].arrival_time = start_time
-        while time_variation > 0 and step_index <= len(self._steps) - 2:
-            step = self._steps[step_index]
-            next_step = self._steps[step_index + 1]
-            step.start_time += time_variation
-            step.end_time += time_variation
-            next_step.arrival_time += time_variation
-            time_variation = max(next_step.arrival_time - next_step.start_time, 0)
-            step_index += 1
-        self._steps[-1].start_time = self._steps[-1].arrival_time
-        self._steps[-1].end_time = self._steps[-1].arrival_time
-        return step_index
-
     ########
     # KPIs #
     ########

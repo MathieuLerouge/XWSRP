@@ -185,10 +185,10 @@ class SolutionForHeuristics(SolutionOpti):
             else:
                 SlackTimeComputer.tighten_times(sequence, update_kpis)
 
-    def update_time_slacks(self):
+    def recompute_time_slacks(self):
         """Recompute the BTS and FTS slacks of every step of every employee's sequence, from scratch."""
         for sequence in self._sequences_for_heuristics.values():
-            SlackTimeComputer.update_time_slacks(sequence)
+            SlackTimeComputer.recompute_time_slacks(sequence)
 
     ###############################
     # Mutations - Private helpers #

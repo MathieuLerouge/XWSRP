@@ -44,7 +44,7 @@ class SequenceForHeuristics(Sequence):
                                    employee.start_time_lb, employee.start_time_lb)]
         self._steps = steps
         self._tightening_suspension_depth: int = 0
-        SlackTimeComputer.update_time_slacks(self)
+        SlackTimeComputer.recompute_time_slacks(self)
 
     @classmethod
     def from_sequence(cls, sequence: Sequence):
@@ -246,10 +246,10 @@ class SequenceForHeuristics(Sequence):
         # Update times slacks
         # BTS of steps from steps[0] (included) to steps[step_index - 1] (included) are correct
         # BTS of steps following steps[step_index] (included) must be updated
-        SlackTimeComputer.update_bts_forward_from(self, step_index)
+        SlackTimeComputer.recompute_bts_from(self, step_index)
         # FTS of steps from steps[-1] (included) to steps[step_index] (included) are correct
         # FTS of steps preceding steps[step_index - 1] (included) must be updated
-        SlackTimeComputer.update_fts_backward_from(self, step_index - 1)
+        SlackTimeComputer.recompute_fts_from(self, step_index - 1)
 
         # Tighten times if needed
         if tighten_times:
@@ -346,7 +346,7 @@ class SequenceForHeuristics(Sequence):
         if arrival_times_difference_at_inserted_step < 0:
             backward_time_shift = -arrival_times_difference_at_inserted_step
             departure_former_time = self[0].start_time
-            first_step_with_time_change_index = SlackTimeComputer.shift_steps_times_backward_from(
+            first_step_with_time_change_index = SlackTimeComputer.propagate_earlier_start_time_from(
                 self, step_index - 1, step_before_insertion.start_time - backward_time_shift
             )
             departure_backward_time_shift = departure_former_time - self[0].start_time
@@ -363,7 +363,7 @@ class SequenceForHeuristics(Sequence):
         if difference_start_and_arrival_times_after < 0:
             forward_time_shift = -difference_start_and_arrival_times_after
             comeback_former_time = self[-1].start_time
-            last_step_with_time_change_index = SlackTimeComputer.shift_steps_times_forward_from(
+            last_step_with_time_change_index = SlackTimeComputer.propagate_later_start_time_from(
                 self, step_index + 1, step_after_insertion.arrival_time
             )
             comeback_forward_time_shift = self[-1].start_time - comeback_former_time
@@ -404,10 +404,10 @@ class SequenceForHeuristics(Sequence):
         # Update times slacks
         # BTS of steps from steps[0] (included) to steps[step_index - 1] (included) are correct
         # BTS of steps following steps[step_index] (included) must be updated
-        SlackTimeComputer.update_bts_forward_from(self, step_index)
+        SlackTimeComputer.recompute_bts_from(self, step_index)
         # FTS of steps from steps[-1] (included) to steps[step_index + 1] (included) are correct
         # FTS of steps preceding steps[step_index] (included) must be updated
-        SlackTimeComputer.update_fts_backward_from(self, step_index)
+        SlackTimeComputer.recompute_fts_from(self, step_index)
 
         # Tighten times
         if tighten_times:
@@ -460,7 +460,7 @@ class SequenceForHeuristics(Sequence):
         step_before_insertion_start_time = \
             start_time_for_backward - (traveling_duration_before + step_before_insertion.activity.duration)
         if step_before_insertion_start_time < step_before_insertion.start_time:
-            first_step_with_time_change_index = SlackTimeComputer.shift_steps_times_backward_from(
+            first_step_with_time_change_index = SlackTimeComputer.propagate_earlier_start_time_from(
                 self, step_index - 1, step_before_insertion_start_time)
             inserted_step.arrival_time = start_time_for_backward
         else:
@@ -472,7 +472,7 @@ class SequenceForHeuristics(Sequence):
         step_after_insertion_arrival_time = start_time_for_forward + task.duration + traveling_duration_after
         step_after_insertion.arrival_time = step_after_insertion_arrival_time
         if step_after_insertion.start_time < step_after_insertion_arrival_time:
-            last_step_with_time_change_index = SlackTimeComputer.shift_steps_times_forward_from(
+            last_step_with_time_change_index = SlackTimeComputer.propagate_later_start_time_from(
                 self, step_index + 1, step_after_insertion_arrival_time)
 
         # Return indices of the range of steps which start time has been changed

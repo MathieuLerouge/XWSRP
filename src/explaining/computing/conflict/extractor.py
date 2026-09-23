@@ -73,7 +73,7 @@ class ConflictExtractor:
                 f"{conflicting_employee.name}'s solved route leaves home and comes back without passing "
                 f"through {conflicting_task.name}, which is performed on a disconnected cycle of its own"
             )
-        SlackTimeComputer.update_time_slacks(route)
+        SlackTimeComputer.recompute_time_slacks(route)
         return route, conflicting_task_step_index
 
     @staticmethod
