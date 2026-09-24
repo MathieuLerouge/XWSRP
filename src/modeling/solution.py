@@ -23,6 +23,8 @@ from src.utils.constants import LINE_BREAK_STRING
 DISPLACEMENT_STRING = ">>"
 TASKS_PERFORMANCES_KEY = 'tasks performances'
 SEQUENCES_KEY = 'sequences'
+KPIS_KEY = 'kpis'
+INSTANCE_KEY = 'instance'
 
 
 ############
@@ -754,21 +756,30 @@ class Solution:
     ###################
 
     @classmethod
-    def from_dict(cls, dictionary, instance: Instance) -> "Solution":
+    def from_dict(cls, dictionary, instance: Optional[Instance] = None) -> "Solution":
         """
         Builds a Solution from a dictionary representation.
+
+        NB: Any KPIs recorded in dictionary are ignored: they are derived from the sequences,
+        and so are recomputed here rather than trusted.
 
         Args:
             dictionary: Dictionary describing the solution, as produced by to_dict.
             instance: Instance the solution is built for. Must have the name recorded in dictionary.
+                Defaults to the instance embedded in dictionary, if it holds one.
 
         Returns:
             The built Solution.
 
         Raises:
-            ValueError: If dictionary's recorded instance name does not match instance's name, or if dictionary
-                describes sequences without describing tasks performances.
+            ValueError: If no instance is given and dictionary embeds none, if dictionary's recorded instance
+                name does not match instance's name, or if dictionary describes sequences without describing
+                tasks performances.
         """
+        if instance is None:
+            if INSTANCE_KEY not in dictionary:
+                raise ValueError("No instance was given, and the given dictionary does not embed one either")
+            instance = Instance.from_dict(dictionary[INSTANCE_KEY])
         if dictionary['instance name'] != instance.name:
             raise ValueError(f"The name {instance.name} of the given instance does not match "
                              f"the instance name {dictionary['instance name']} in the given dictionary")
@@ -788,15 +799,24 @@ class Solution:
             solution.compute_kpis()
         return solution
 
-    def to_dict(self, with_tasks_performances: bool = True, with_sequences: bool = False) -> dict:
+    def to_dict(self, with_tasks_performances: bool = True, with_sequences: bool = False,
+                with_kpis: bool = False, with_instance: bool = False) -> dict:
         """
         Returns a dictionary representation of this solution.
+
+        NB: The tasks performances alone are enough to rebuild the solution, provided its instance is known.
+        Everything else is optional: the sequences and the KPIs are derived from them,
+        and the instance is only embedded to make the representation self-contained.
 
         Args:
             with_tasks_performances: If True, include each task's performance status, and, when performed, its
                 assignee and start time.
             with_sequences: If True, include each employee's ordered list of performed task names. Requires
                 with_tasks_performances to also be True.
+            with_kpis: If True, include the solution's KPIs, computing them first if needed. Informational
+                only: from_dict recomputes them rather than reading them back.
+            with_instance: If True, embed the whole instance, so that the solution can be rebuilt without
+                access to the instance's own file.
 
         Returns:
             The dictionary representation of this solution.
@@ -819,4 +839,10 @@ class Solution:
                 sequence = self.get_sequence(employee)
                 sequences_dictionary[employee.name] = [task.name for task in sequence.get_contained_tasks()]
             dictionary[SEQUENCES_KEY] = sequences_dictionary
+        if with_kpis:
+            if not self.has_kpis:
+                self.compute_kpis()
+            dictionary[KPIS_KEY] = self.kpis.to_dict()
+        if with_instance:
+            dictionary[INSTANCE_KEY] = self.instance.to_dict()
         return dictionary

@@ -13,7 +13,7 @@ from src.explaining.questioning.question import ContrastiveQuestion
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.importing.instance import extract_instance_from_file
-from src.importing.solution import extract_solution_from_file
+from src.importing.solution import import_solution
 
 # Global variables
 _AUSTRIA_INSTANCE_PATH = "src/explaining/instances/InstanceAustria.xlsx"
@@ -25,7 +25,7 @@ def build_austria_instance() -> Instance:
 
 
 def build_austria_solution() -> Solution:
-    return extract_solution_from_file(_AUSTRIA_SOLUTION_PATH, True, True, True)
+    return import_solution(_AUSTRIA_SOLUTION_PATH, True, True, True)
 
 
 def gap_from_conflict(conflict: Optional[Conflict]):

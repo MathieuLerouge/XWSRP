@@ -1,0 +1,108 @@
+{
+    "name": "instance_with_unavailabilities",
+    "speed": {
+        "value": 0.8333333333333334,
+        "unit": "km/min"
+    },
+    "lunch break": {
+        "start_time": "12:00PM",
+        "end_time": "02:00PM",
+        "duration": 60
+    },
+    "employees": {
+        "Ellen": {
+            "availability": {
+                "start_time": "08:00AM",
+                "end_time": "06:00PM"
+            },
+            "location": {
+                "latitude": 47.722831,
+                "longitude": 16.193356
+            },
+            "skill level": 2,
+            "unavailabilities": [
+                {
+                    "start_time": "10:00AM",
+                    "end_time": "11:00AM",
+                    "location": {
+                        "latitude": 47.75,
+                        "longitude": 16.2
+                    }
+                },
+                {
+                    "start_time": "03:00PM",
+                    "end_time": "04:00PM",
+                    "location": {
+                        "latitude": 47.8,
+                        "longitude": 16.25
+                    }
+                }
+            ]
+        },
+        "Adam": {
+            "availability": {
+                "start_time": "08:00AM",
+                "end_time": "06:00PM"
+            },
+            "location": {
+                "latitude": 48.188438,
+                "longitude": 14.861615
+            },
+            "skill level": 2
+        }
+    },
+    "tasks": {
+        "T1": {
+            "availability": {
+                "start_time": "08:00AM",
+                "end_time": "06:00PM"
+            },
+            "location": {
+                "latitude": 48.129326,
+                "longitude": 15.754151
+            },
+            "duration": 40,
+            "skill level": 1,
+            "unavailabilities": [
+                {
+                    "start_time": "11:00AM",
+                    "end_time": "01:00PM"
+                }
+            ]
+        },
+        "T2": {
+            "availability": {
+                "start_time": "08:00AM",
+                "end_time": "06:00PM"
+            },
+            "location": {
+                "latitude": 47.240070,
+                "longitude": 15.429835
+            },
+            "duration": 30,
+            "skill level": 1,
+            "unavailabilities": [
+                {
+                    "start_time": "09:00AM",
+                    "end_time": "09:30AM"
+                },
+                {
+                    "start_time": "04:00PM",
+                    "end_time": "06:00PM"
+                }
+            ]
+        },
+        "T3": {
+            "availability": {
+                "start_time": "08:00AM",
+                "end_time": "06:00PM"
+            },
+            "location": {
+                "latitude": 47.803338,
+                "longitude": 15.348212
+            },
+            "duration": 40,
+            "skill level": 1
+        }
+    }
+}

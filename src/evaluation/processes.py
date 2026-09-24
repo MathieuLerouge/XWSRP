@@ -8,7 +8,7 @@ from src.evaluation.user_interface_with_prepared_data import \
 from src.optimization.heuristics.solution import SolutionForHeuristics
 from src.optimization.heuristics.algorithms.simulated_annealing import run_simulated_annealing
 from src.utils.files import get_default_inputs_directory_path, get_default_outputs_directory_path
-from src.exporting.solution import write_solution
+from src.exporting.solution import export_solution
 
 
 # Global variables
@@ -41,7 +41,7 @@ if __name__ == '__main__':
         instance = get_instance_for_evaluation_in_default_inputs_directory(instance_index)
         solution = compute_solution_for_evaluation_by_ILP_optimization(instance, 45*60)
         print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
-        write_solution(solution, get_default_inputs_directory_path())
+        export_solution(solution, get_default_inputs_directory_path())
 
     ##################################################
     # Re-optimization of solution via metaheuristics #
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         solution = run_simulated_annealing(solution)
         print(f"Objective values: {solution.total_working_duration, solution.total_traveling_duration}")
         solution.name = solution.name + "_reoptimized"
-        write_solution(solution, get_default_outputs_directory_path())
+        export_solution(solution, get_default_outputs_directory_path())
 
     ##########################################################
     # Checking negativity of all explanations about solution #

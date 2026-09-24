@@ -2,7 +2,7 @@
 from main_configuration import *
 from src.feasibility.checker import FeasibilityChecker
 from src.drawing.figuresmanager import FiguresManager
-from src.importing.solution import extract_solution_from_file
+from src.importing.solution import import_solution
 from src.utils.display import print_title_frame
 from src.utils.files import get_paths_of_solutions_files_in_given_directory
 from src.exporting.analysis import write_solution_analysis
@@ -26,7 +26,7 @@ def analysis_main():
     for solution_file_path in solutions_files_paths:
 
         # Extract the solution
-        solution = extract_solution_from_file(solution_file_path)
+        solution = import_solution(solution_file_path)
         print_title_frame(f"Extraction of {solution.name}")
         print("")
         print(f"File path: {solution_file_path}")

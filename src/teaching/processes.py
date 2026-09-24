@@ -10,7 +10,7 @@ from src.utils.files import create_multiple_solution_feasibility_checks_file_pat
     get_paths_of_instances_files_in_given_directory, get_paths_of_solutions_files_in_given_directory
 from src.exporting.analysis import write_solution_analysis
 from src.exporting.common import write_text_to_file
-from src.exporting.solution import write_solution
+from src.exporting.solution import export_solution
 
 
 ###################
@@ -83,7 +83,7 @@ def run_IP_optimization_on_teaching_instances(solving_process_time_limit_in_seco
         print("")
         solution.compute_kpis()
         # solution.tighten_times()
-        write_solution(solution)
+        export_solution(solution)
         write_solution_analysis(solution)
         print("Writing: done")
         print("")

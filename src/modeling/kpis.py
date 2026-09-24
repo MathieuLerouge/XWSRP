@@ -1,3 +1,11 @@
+# Global variables
+NB_PERFORMED_TASKS_KEY = 'nb performed tasks'
+TOTAL_WORKING_DURATION_KEY = 'total working duration'
+TOTAL_TRAVELING_DURATION_KEY = 'total traveling duration'
+TOTAL_TRAVELING_DISTANCE_KEY = 'total traveling distance'
+TOTAL_IDLE_TIME_KEY = 'total idle time'
+
+
 ########
 # KPIs #
 ########
@@ -104,3 +112,18 @@ class KPIs:
             self._total_traveling_distance - other._total_traveling_distance,
             self._total_idle_time - other._total_idle_time,
         )
+
+    def to_dict(self) -> dict:
+        """
+        Returns a dictionary representation of these KPIs.
+
+        Returns:
+            The dictionary representation of these KPIs.
+        """
+        return {
+            NB_PERFORMED_TASKS_KEY: int(self._nb_performed_tasks),
+            TOTAL_WORKING_DURATION_KEY: int(self._total_working_duration),
+            TOTAL_TRAVELING_DURATION_KEY: int(self._total_traveling_duration),
+            TOTAL_TRAVELING_DISTANCE_KEY: float(self._total_traveling_distance),
+            TOTAL_IDLE_TIME_KEY: int(self._total_idle_time),
+        }

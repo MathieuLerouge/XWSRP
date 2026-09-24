@@ -1,6 +1,5 @@
 # Standard library
-from os import listdir, path
-from typing import Optional
+from os import listdir
 
 # Local library
 from src.utils.constants import *
@@ -38,7 +37,7 @@ def is_a_solution_file_name_with_extension(file_name_with_extension: str):
         True if the file name is a solution file name, False otherwise.
     """
     if (has_a_file_extension(file_name_with_extension)
-            and get_file_extension(file_name_with_extension) == SOLUTION_FILE_EXTENSION):
+            and get_file_extension(file_name_with_extension) in SOLUTION_FILE_POSSIBLE_EXTENSIONS):
         for prefix in SOLUTION_FILE_NAME_POSSIBLE_PREFIXES:
             if prefix == file_name_with_extension[:len(prefix)]:
                 return True

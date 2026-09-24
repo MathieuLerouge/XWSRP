@@ -11,12 +11,12 @@ from src.optimization.heuristics.algorithms.neighborhood_search import run_neigh
 from src.optimization.heuristics.solution import SolutionForHeuristics
 from src.optimization.heuristics.algorithms.stochastic import run_stochastic_heuristic
 from src.importing.instance import extract_instance_from_file
-from src.importing.solution import extract_solution_from_file
+from src.importing.solution import import_solution
 from src.utils.display import print_title_frame
 from src.utils.files import get_paths_of_instances_files_in_given_directory, \
     get_paths_of_solutions_files_in_given_directory
 from src.exporting.analysis import write_solution_analysis
-from src.exporting.solution import write_solution
+from src.exporting.solution import export_solution
 
 
 ########
@@ -96,7 +96,7 @@ def optimization_main():
             # Solution writing
             print_title_frame(f"Writing down {solution.name}")
             print("")
-            write_solution(solution)
+            export_solution(solution)
             if OPTIMIZATION_PROCESS_WRITE_SOLUTIONS_ANALYSIS_INTO_FILES:
                 write_solution_analysis(solution)
             print(f"Nb performed tasks: {solution.nb_performed_tasks}/{instance.nb_tasks}")
@@ -126,7 +126,7 @@ def optimization_main():
         for solution_file_path in solutions_files_paths:
 
             # Extract each solution data
-            initial_solution = extract_solution_from_file(solution_file_path)
+            initial_solution = import_solution(solution_file_path)
             initial_solution.compute_kpis()
             print_title_frame(f"Extraction of {initial_solution.name}")
             print("")
@@ -190,7 +190,7 @@ def optimization_main():
             # Solution writing
             print_title_frame(f"Writing down {solution.name}")
             print("")
-            write_solution(solution)
+            export_solution(solution)
             if OPTIMIZATION_PROCESS_WRITE_SOLUTIONS_ANALYSIS_INTO_FILES:
                 write_solution_analysis(solution)
             print(f"Nb performed tasks: {solution.nb_performed_tasks}/{solution.instance.nb_tasks}")

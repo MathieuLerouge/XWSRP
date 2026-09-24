@@ -18,7 +18,7 @@ from src.explaining.exporting.explanation import export_multiple_contrastive_exp
 from src.modeling.solution import Solution
 from src.optimization.milp.solver.exceptions import TimeLimitReachedWithSolutionException, \
     TimeLimitReachedWithoutSolutionException
-from src.importing.solution import extract_solution_from_file
+from src.importing.solution import import_solution
 from src.utils.constants import DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import get_project_directory_path, get_paths_of_solutions_files_in_given_directory
 
@@ -43,7 +43,7 @@ def get_demo_solution():
 
     :return: the solution for demo (Solution)
     """
-    solution = extract_solution_from_file(get_demo_solution_path(), True, True, True)
+    solution = import_solution(get_demo_solution_path(), True, True, True)
     if not FeasibilityChecker(solution).is_feasible():
         raise ValueError(f"The solution {solution.name} is not feasible")
     return solution
@@ -151,7 +151,7 @@ def get_default_solution():
     except IndexError:
         raise FileNotFoundError(f"There are no solutions files found in directory "
                                 f"{DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH}")
-    solution = extract_solution_from_file(solution_file_path, True, True, True)
+    solution = import_solution(solution_file_path, True, True, True)
     if not FeasibilityChecker(solution).is_feasible():
         raise ValueError(f"The solution {solution.name} is not feasible")
     return solution

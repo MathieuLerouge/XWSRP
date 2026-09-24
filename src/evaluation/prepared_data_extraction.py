@@ -3,7 +3,7 @@ from src.feasibility.checker import FeasibilityChecker
 from src.evaluation.constants import INSTANCES_FOR_EVALUATION_NAMES
 from src.explaining.exporting.explanation import define_multiple_contrastive_explanations_json_file_name
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from src.importing.solution import extract_solution_from_file
+from src.importing.solution import import_solution
 from src.utils.files import get_project_directory_path
 
 
@@ -44,7 +44,7 @@ def get_solution_for_evaluation(instance_index: int = 0):
     :return: the solution for evaluation corresponding to the given instance index
     """
     solution_path = get_solution_for_evaluation_path(instance_index)
-    solution = extract_solution_from_file(solution_path, True, True, True)
+    solution = import_solution(solution_path, True, True, True)
     checker = FeasibilityChecker(solution)
     if not checker.is_feasible():
         raise ValueError(f"The solution {solution.name} is not feasible: {checker.report()}")

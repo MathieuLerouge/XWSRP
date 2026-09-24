@@ -2,18 +2,9 @@
 import math
 import random
 
-# Third party library
-import matplotlib.pyplot as plt
-
 # Local libraries
-from src.drawing.routes import create_routes_figure
-from src.drawing.schedules import create_schedules_figure
-from src.optimization.heuristics.algorithms.greedy import run_greedy_algorithm
 from src.optimization.heuristics.evaluator import Evaluator
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from src.importing.instance import extract_instance_from_file
-from src.utils.files import get_project_directory_path
-from src.exporting.solution import write_solution
 
 
 def run_simulated_annealing(solution: SolutionForHeuristics):
@@ -113,20 +104,3 @@ def run_simulated_annealing(solution: SolutionForHeuristics):
         print(f"At epoch {epoch}, best solution has objective values: "
               f"{best_solution.total_working_duration, best_solution.total_traveling_duration}")
     return best_solution
-
-
-if __name__ == "__main__":
-    instance_path_example = f"{get_project_directory_path()}/data/DB/instances/instance_Exeter20180803.json"
-    instance_example = extract_instance_from_file(instance_path_example, True, True, True)
-    solution_example = run_greedy_algorithm(instance_example)
-    write_solution(solution_example, f"{get_project_directory_path()}/data/DB/solutions")
-    print(solution_example.nb_performed_tasks, solution_example.total_working_duration,
-          solution_example.total_traveling_duration)
-    create_schedules_figure(solution_example)
-    create_routes_figure(solution_example)
-    plt.show()
-    # solution_example = run_simulated_annealing(solution_example)
-    # print(solution_example.nb_performed_tasks, solution_example.total_working_duration,
-    #       solution_example.total_traveling_duration)
-    # create_schedules_figure(solution_example)
-    # plt.show()

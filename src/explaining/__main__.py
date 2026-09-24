@@ -7,7 +7,7 @@ from src.explaining.processes import launch_explainer_UI_on_demo_solution, launc
     compute_computation_time_analysis_of_explanations
 from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.exporting.explanation import export_explanations_analysis_to_json_file
-from src.importing.solution import extract_solution_from_file
+from src.importing.solution import import_solution
 from src.utils.constants import RUN_EXPLAINER_ON_DEMO_SOLUTION_AS_EXPLANATION_PROCESS, \
     RUN_EXPLAINER_ON_GIVEN_SOLUTION_AS_EXPLANATION_PROCESS, \
     RUN_EXPLANATION_COMPUTATION_ANALYSIS_AS_EXPLANATION_PROCESS, RUN_EXPLANATION_PROCESS, \
@@ -62,7 +62,7 @@ def explaining_main():
             for solution_file_path in solutions_files_paths:
 
                 # Extract solution from file
-                solution = extract_solution_from_file(solution_file_path)
+                solution = import_solution(solution_file_path)
                 feasible = FeasibilityChecker(solution).is_feasible()
                 if feasible:
                     solution.compute_kpis()

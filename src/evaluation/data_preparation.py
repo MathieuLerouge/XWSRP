@@ -14,7 +14,7 @@ from src.modeling.solution import Solution
 from src.optimization.heuristics.solution import SolutionForHeuristics
 from src.optimization.milp.model import Model
 from src.importing.instance import extract_instance_from_file
-from src.importing.solution import extract_solution_from_file
+from src.importing.solution import import_solution
 from src.utils.files import get_default_inputs_directory_path
 
 
@@ -99,7 +99,7 @@ def get_solution_for_evaluation_in_default_inputs_directory(instance_index: int)
     :return: the solution for evaluation with given index
     """
     solution_path = get_path_of_solution_for_evaluation_in_default_inputs_directory(instance_index)
-    solution = extract_solution_from_file(solution_path, True, True, True)
+    solution = import_solution(solution_path, True, True, True)
     checker = FeasibilityChecker(solution)
     if not checker.is_feasible():
         raise ValueError(f"The solution {solution.name} is not feasible: {checker.report()}")

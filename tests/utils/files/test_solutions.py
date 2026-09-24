@@ -18,7 +18,8 @@ def test_is_a_solution_file_name_checks_the_prefix(file_name, expected):
 
 
 @pytest.mark.parametrize("file_name_with_extension, expected", [
-    pytest.param("solution_demo_by_greedy.txt", True, id="solution_extension"),
+    pytest.param("solution_demo_by_greedy.txt", True, id="txt_extension"),
+    pytest.param("solution_demo.json", True, id="json_extension"),
     pytest.param("solution_demo.xlsx", False, id="non_solution_extension"),
     pytest.param("solution_demo", False, id="no_extension"),
 ])

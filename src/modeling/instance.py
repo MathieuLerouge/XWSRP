@@ -16,6 +16,10 @@ from src.utils.location import Location
 from src.utils.speed import convert_speed_from_to, M_PER_S_STRING, KM_PER_MIN_STRING, KM_PER_H_STRING
 from src.utils.time import convert_time_string_to_nb_minutes, convert_nb_minutes_to_time_string
 
+# Global variables
+LUNCH_BREAK_KEY = 'lunch break'
+UNAVAILABILITIES_KEY = 'unavailabilities'
+
 
 ############
 # Instance #
@@ -515,10 +519,8 @@ class Instance:
         """
         Creates an instance from a dictionary.
 
-        Note that the current version of this function does not support task and employee unavailabilities.
-
         Args:
-            dictionary: Dictionary containing the instance's data.
+            dictionary: Dictionary containing the instance's data, as produced by to_dict.
 
         Returns:
             The new Instance.
@@ -529,26 +531,29 @@ class Instance:
         """
         instance = cls(dictionary['name'])
         instance.set_speed(dictionary['speed']['value'], dictionary['speed']['unit'])
+        if LUNCH_BREAK_KEY in dictionary:
+            lunch_break_data = dictionary[LUNCH_BREAK_KEY]
+            instance.set_lunch_break(
+                convert_time_string_to_nb_minutes(lunch_break_data['start_time']),
+                convert_time_string_to_nb_minutes(lunch_break_data['end_time']),
+                int(lunch_break_data['duration'])
+            )
         for employee_name, employee_data in dictionary['employees'].items():
             start_time = convert_time_string_to_nb_minutes(employee_data['availability']['start_time'])
             end_time = convert_time_string_to_nb_minutes(employee_data['availability']['end_time'])
-            if 'latitude' in employee_data['location']:
-                location = Location(employee_data['location']['latitude'], employee_data['location']['longitude'])
-            elif 'x' in employee_data['location']:
-                location = Location(employee_data['location']['x'], employee_data['location']['y'], False)
-            else:
-                raise ValueError("The given location is not geographic nor cartesian")
+            location = _build_location_from_dict(employee_data['location'])
             skill_level = int(employee_data['skill level'])
             instance.add_employee(employee_name, start_time, end_time, location, skill_level)
+            for unavailability_data in employee_data.get(UNAVAILABILITIES_KEY, []):
+                instance.get_employee_by_name(employee_name).add_unavailability(
+                    location=_build_location_from_dict(unavailability_data['location']),
+                    start_time=convert_time_string_to_nb_minutes(unavailability_data['start_time']),
+                    end_time=convert_time_string_to_nb_minutes(unavailability_data['end_time'])
+                )
         for task_name, task_data in dictionary['tasks'].items():
             start_time = convert_time_string_to_nb_minutes(task_data['availability']['start_time'])
             end_time = convert_time_string_to_nb_minutes(task_data['availability']['end_time'])
-            if 'latitude' in task_data['location']:
-                location = Location(task_data['location']['latitude'], task_data['location']['longitude'])
-            elif 'x' in task_data['location']:
-                location = Location(task_data['location']['x'], task_data['location']['y'], False)
-            else:
-                raise ValueError("The given location is not geographic nor cartesian")
+            location = _build_location_from_dict(task_data['location'])
             duration = int(task_data['duration'])
             skill_level = int(task_data['skill level'])
             try:
@@ -557,6 +562,11 @@ class Instance:
                 raise ValueError(f"Cannot add {task_name} which data are:"
                                   f"duration: {duration}, start_time: {start_time}, end_time: {end_time}, "
                                   f"skill_level: {skill_level}, location: {location}")
+            for unavailability_data in task_data.get(UNAVAILABILITIES_KEY, []):
+                instance.get_task_by_name(task_name).apply_unavailability(
+                    unavailability_start_time=convert_time_string_to_nb_minutes(unavailability_data['start_time']),
+                    unavailability_end_time=convert_time_string_to_nb_minutes(unavailability_data['end_time'])
+                )
         instance.update()
         return instance
 
@@ -564,7 +574,8 @@ class Instance:
         """
         Creates a dictionary from the instance.
 
-        Note that the current version of this function does not support task and employee unavailabilities.
+        The lunch break and the employees'/tasks' unavailabilities are only recorded when the instance has some,
+        so that instances without them keep the leaner representation.
 
         Returns:
             The dictionary representation of the instance.
@@ -575,18 +586,108 @@ class Instance:
             'employees': dict(),
             'tasks': dict()
         }
+        if self.has_lunch_break:
+            dictionary[LUNCH_BREAK_KEY] = {
+                'start_time': convert_nb_minutes_to_time_string(self.lunch_break_time_lb),
+                'end_time': convert_nb_minutes_to_time_string(self.lunch_break_time_ub),
+                'duration': self.lunch_break_duration
+            }
         for employee in self.employees:
-            dictionary['employees'][employee.name] = {
+            employee_dictionary: dict[str, Any] = {
                 'availability': {'start_time': convert_nb_minutes_to_time_string(employee.start_time_lb),
                                   'end_time': convert_nb_minutes_to_time_string(employee.end_time_ub)},
-                'location': {'latitude': employee.location.latitude, 'longitude': employee.location.longitude},
+                'location': _build_dict_from_location(employee.location),
                 'skill level': employee.skill_level
             }
+            if employee.has_unavailabilities:
+                employee_dictionary[UNAVAILABILITIES_KEY] = [
+                    {'start_time': convert_nb_minutes_to_time_string(unavailability.start_time_lb),
+                     'end_time': convert_nb_minutes_to_time_string(unavailability.end_time_ub),
+                     'location': _build_dict_from_location(unavailability.location)}
+                    for unavailability in employee.unavailabilities
+                ]
+            dictionary['employees'][employee.name] = employee_dictionary
         for task in self.tasks:
-            dictionary['tasks'][task.name] = {
+            task_dictionary: dict[str, Any] = {
                 'availability': {'start_time': convert_nb_minutes_to_time_string(task.start_time_lb),
                                   'end_time': convert_nb_minutes_to_time_string(task.end_time_ub)},
-                'location': {'latitude': task.location.latitude, 'longitude': task.location.longitude},
+                'location': _build_dict_from_location(task.location),
                 'duration': task.duration, 'skill level': task.skill_level
             }
+            if task.has_unavailability:
+                task_dictionary[UNAVAILABILITIES_KEY] = [
+                    {'start_time': convert_nb_minutes_to_time_string(start_time),
+                     'end_time': convert_nb_minutes_to_time_string(end_time)}
+                    for start_time, end_time in _identify_unavailability_periods_of(task)
+                ]
+            dictionary['tasks'][task.name] = task_dictionary
         return dictionary
+
+
+###########
+# Helpers #
+###########
+
+def _build_location_from_dict(dictionary: dict) -> Location:
+    """
+    Builds a Location from its dictionary representation, which may be geographic or cartesian.
+
+    Args:
+        dictionary: Dictionary holding either 'latitude'/'longitude' or 'x'/'y' coordinates.
+
+    Returns:
+        The corresponding Location.
+
+    Raises:
+        ValueError: If the dictionary holds neither pair of coordinates.
+    """
+    if 'latitude' in dictionary:
+        return Location(dictionary['latitude'], dictionary['longitude'])
+    elif 'x' in dictionary:
+        return Location(dictionary['x'], dictionary['y'], False)
+    else:
+        raise ValueError("The given location is not geographic nor cartesian")
+
+
+def _build_dict_from_location(location: Location) -> dict:
+    """
+    Returns the dictionary representation of a Location.
+
+    NB: Coordinates are written in degrees, since that is the unit Location's constructor expects,
+    and as plain floats rather than the numpy scalars Location stores, which the json module cannot serialize.
+
+    Args:
+        location: Location to represent.
+
+    Returns:
+        A dict holding 'latitude'/'longitude' for a geographic location, 'x'/'y' for a cartesian one.
+    """
+    if location.is_geographic():
+        return {'latitude': float(location.get_latitude(radians=False)),
+                'longitude': float(location.get_longitude(radians=False))}
+    return {'x': float(location.coordinates[0]), 'y': float(location.coordinates[1])}
+
+
+def _identify_unavailability_periods_of(task: Task) -> list[tuple[int, int]]:
+    """
+    Returns the periods that unavailabilities removed from a task's time window.
+
+    NB: Task.apply_unavailability subtracts the period from the task's time windows without keeping any record of it,
+    so the periods can only be recovered as the gaps left in the remaining windows,
+    within the task's original [start_time_lb, end_time_ub] bounds.
+
+    Args:
+        task: Task whose unavailability periods to recover.
+
+    Returns:
+        The periods, as (start time, end time) pairs in minutes since midnight, in chronological order.
+    """
+    periods = []
+    period_start_time = task.start_time_lb
+    for interval in sorted(task.time_windows.intervals, key=lambda time_window: time_window.lower_bound):
+        if interval.lower_bound > period_start_time:
+            periods.append((period_start_time, interval.lower_bound))
+        period_start_time = interval.upper_bound
+    if period_start_time < task.end_time_ub:
+        periods.append((period_start_time, task.end_time_ub))
+    return periods
