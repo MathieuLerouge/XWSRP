@@ -2,9 +2,9 @@
 from os import path
 
 # Local libraries
-from src.reading.solution import complete_solution_from_file
+from src.importing.solution import complete_solution_from_file
 from src.teaching.optimization.solution import SolutionForTeaching
-from src.teaching.reading.instance import extract_teaching_instance_from_file
+from src.teaching.importing.instance import extract_teaching_instance_from_file
 from src.utils.constants import META_DATA_SOLVING_METHOD_KEY
 from src.utils.files import find_instance_file_path_corresponding_to_solution, identify_meta_data_in_solution_file_path
 

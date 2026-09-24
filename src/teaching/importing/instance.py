@@ -1,5 +1,5 @@
 # Local libraries
-from src.reading.instance import complete_instance_from_xlsx_file
+from src.importing.instance import complete_instance_from_xlsx_file
 from src.teaching.modeling.instance import InstanceForTeaching
 from src.utils.constants import META_DATA_VERSION_KEY
 from src.utils.files import identify_meta_data_in_instance_file_path, get_instance_name_in_instance_file_path

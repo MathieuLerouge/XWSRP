@@ -16,7 +16,7 @@ which orchestrates the pipeline for each question asked about it:
 - `computing/templates` applies the tailored transformation corresponding to that question to the solution/instance, 
 and returns a support solution together with feasibility information;
 - `answering` turns that result into a typed `Explanation`;
-- `writing`/`reading` (de)serialize `Explanation` objects to/from JSON, 
+- `exporting`/`importing` (de)serialize `Explanation` objects to/from JSON, 
 so that previously computed explanations can be reused instead of recomputed;
 - `interacting` (terminal or web UI) presents the final explanation, and any supporting figures, to the user.
 
@@ -88,15 +88,15 @@ Its outputs (support solution, conflict, instance alterations) feed directly int
 depending on whether the support solution improves on the original solution
 and whether a conflict was found, and builds its text from `explanations_templates_bank.py`.
 
-`writing` contains the scripts used for serializing `Explanation` objects to JSON files,
+`exporting` contains the scripts used for serializing `Explanation` objects to JSON files,
 both for caching purposes and for the batch analysis triggered from `__main__.py`. \
-`reading` contains the scripts used for the inverse operation, 
+`importing` contains the scripts used for the inverse operation, 
 reconstructing `Explanation` objects from previously exported JSON files.
 
 `interacting` contains the orchestration and user interface layer, centered on the `Explainer` class. \
 `Explainer` owns the root `EditableSolution`, an optional `History` of visited instances/solutions,
 and the methods (`get_contrastive_explanation`, `compute_scenario_explanation`, `compute_counterfactual_explanation`) 
 tying `questioning`, `computing/templates` and `answering` together, 
-optionally short-circuiting via the `reading`/`writing` caches. \
+optionally short-circuiting via the `importing`/`exporting` caches. \
 `explainer_terminal.py` provides a terminal interaction mode, 
 while `interface` implements the Dash-based `ExplainerWebGUI` used by end users.

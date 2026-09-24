@@ -12,8 +12,8 @@ from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.reading.instance import extract_instance_from_file
-from src.reading.solution import extract_solution_from_file
+from src.importing.instance import extract_instance_from_file
+from src.importing.solution import extract_solution_from_file
 
 # Global variables
 _AUSTRIA_INSTANCE_PATH = "src/explaining/instances/InstanceAustria.xlsx"

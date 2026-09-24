@@ -11,9 +11,9 @@ from src.drawing.schedules import create_schedules_figure
 from src.optimization.heuristics.algorithms.greedy import run_greedy_algorithm
 from src.optimization.heuristics.evaluator import Evaluator
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from src.reading.instance import extract_instance_from_file
+from src.importing.instance import extract_instance_from_file
 from src.utils.files import get_project_directory_path
-from src.writing.solution import write_solution
+from src.exporting.solution import write_solution
 
 
 def run_simulated_annealing(solution: SolutionForHeuristics):

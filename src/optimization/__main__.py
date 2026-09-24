@@ -6,17 +6,17 @@ import numpy as np
 from main_configuration import *
 from src.feasibility.checker import FeasibilityChecker
 from src.drawing.figuresmanager import FiguresManager
-from optimization.heuristics.algorithms.greedy import run_greedy_algorithm
-from optimization.heuristics.algorithms.neighborhood_search import run_neighborhood_search
+from src.optimization.heuristics.algorithms.greedy import run_greedy_algorithm
+from src.optimization.heuristics.algorithms.neighborhood_search import run_neighborhood_search
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from optimization.heuristics.algorithms.stochastic import run_stochastic_heuristic
-from src.reading.instance import extract_instance_from_file
-from src.reading.solution import extract_solution_from_file
+from src.optimization.heuristics.algorithms.stochastic import run_stochastic_heuristic
+from src.importing.instance import extract_instance_from_file
+from src.importing.solution import extract_solution_from_file
 from src.utils.display import print_title_frame
 from src.utils.files import get_paths_of_instances_files_in_given_directory, \
     get_paths_of_solutions_files_in_given_directory
-from src.writing.analysis import write_solution_analysis
-from src.writing.solution import write_solution
+from src.exporting.analysis import write_solution_analysis
+from src.exporting.solution import write_solution
 
 
 ########

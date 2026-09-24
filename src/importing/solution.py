@@ -3,7 +3,7 @@ from os import path
 
 # Local libraries
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from src.reading.instance import extract_instance_from_file
+from src.importing.instance import extract_instance_from_file
 from src.modeling.solution import Solution
 from src.utils.constants import META_DATA_CORE_KEY, SOLUTION_NAME_PREFIX, META_DATA_SOLVING_METHOD_KEY, \
     HEURISTICS_SOLVING_METHODS

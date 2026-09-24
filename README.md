@@ -42,9 +42,9 @@ The directory `feasibility` contains the scripts used for checking WSRP solution
 The directory `explaining` contains the scripts used for generating explanations
 (see its own [`README.md`](src/explaining/README.md) for a description of its subdirectories). \
 The directory `evaluation` contains the scripts related to the evaluation of the explanations. \
-The directory `reading` contains the scripts used for reading WSRP instances and solutions 
+The directory `importing` contains the scripts used for importing WSRP instances and solutions 
 given as Excel and txt files. \
-The directory `writing` contains the scripts used for writing WSRP solutions. \
+The directory `exporting` contains the scripts used for exporting WSRP solutions. \
 The directory `teaching` contains the scripts used for the teaching-oriented process
 (checking or solving teaching instances/solutions).
 

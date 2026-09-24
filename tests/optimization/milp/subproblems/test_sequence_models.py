@@ -5,7 +5,7 @@ import pytest
 from src.optimization.milp.model import Model
 from src.optimization.milp.solver.solver import SOLVER_GUROBI, SOLVER_HIGHS
 from src.optimization.milp.subproblems.sequencereorderingmodel import SequenceReorderingModel
-from src.reading.instance import extract_instance_from_file
+from src.importing.instance import extract_instance_from_file
 
 # Global variables
 _SMALL_INSTANCE_PATH = "data/evaluation/instances/instance_evaluation_1.xlsx"

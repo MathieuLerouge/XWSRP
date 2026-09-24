@@ -6,9 +6,9 @@ from src.evaluation.data_preparation import get_instance_for_evaluation_in_defau
 from src.evaluation.user_interface_with_prepared_data import \
     prepare_explainer_GUI_for_evaluation_given_experiment_version
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from optimization.heuristics.algorithms.simulated_annealing import run_simulated_annealing
+from src.optimization.heuristics.algorithms.simulated_annealing import run_simulated_annealing
 from src.utils.files import get_default_inputs_directory_path, get_default_outputs_directory_path
-from src.writing.solution import write_solution
+from src.exporting.solution import write_solution
 
 
 # Global variables

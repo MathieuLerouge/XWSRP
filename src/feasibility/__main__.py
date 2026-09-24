@@ -2,10 +2,10 @@
 from main_configuration import *
 from src.feasibility.checker import FeasibilityChecker
 from src.drawing.figuresmanager import FiguresManager
-from src.reading.solution import extract_solution_from_file
+from src.importing.solution import extract_solution_from_file
 from src.utils.display import print_title_frame
 from src.utils.files import get_paths_of_solutions_files_in_given_directory
-from src.writing.analysis import write_solution_analysis
+from src.exporting.analysis import write_solution_analysis
 
 
 ########

@@ -10,7 +10,7 @@ from src.modeling.sequence import Sequence
 from src.modeling.solution import Solution
 from src.modeling.step import Step
 from src.modeling.task import Task
-from src.reading.instance import extract_instance_from_file
+from src.importing.instance import extract_instance_from_file
 
 # Global variables
 _SMALL_INSTANCE_PATH = "data/evaluation/instances/instance_evaluation_1.xlsx"

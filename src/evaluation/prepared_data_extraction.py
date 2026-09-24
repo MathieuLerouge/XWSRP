@@ -1,9 +1,9 @@
 # Local libraries
 from src.feasibility.checker import FeasibilityChecker
 from src.evaluation.constants import INSTANCES_FOR_EVALUATION_NAMES
-from src.explaining.writing.explanation import define_multiple_contrastive_explanations_json_file_name
+from src.explaining.exporting.explanation import define_multiple_contrastive_explanations_json_file_name
 from src.optimization.heuristics.solution import SolutionForHeuristics
-from src.reading.solution import extract_solution_from_file
+from src.importing.solution import extract_solution_from_file
 from src.utils.files import get_project_directory_path
 
 

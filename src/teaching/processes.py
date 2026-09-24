@@ -2,15 +2,15 @@
 from src.feasibility.checker import FeasibilityChecker
 from src.drawing.figuresmanager import FiguresManager
 from src.teaching.optimization.programming.model import WSRPIPModelForTeaching
-from src.teaching.reading.instance import extract_teaching_instance_from_file
-from src.teaching.reading.solution import extract_solution_for_teaching_from_file
+from src.teaching.importing.instance import extract_teaching_instance_from_file
+from src.teaching.importing.solution import extract_solution_for_teaching_from_file
 from src.utils.constants import LINE_BREAK_STRING
 from src.utils.display import print_title_frame, create_title_frame
 from src.utils.files import create_multiple_solution_feasibility_checks_file_path, \
     get_paths_of_instances_files_in_given_directory, get_paths_of_solutions_files_in_given_directory
-from src.writing.analysis import write_solution_analysis
-from src.writing.common import write_text_to_file
-from src.writing.solution import write_solution
+from src.exporting.analysis import write_solution_analysis
+from src.exporting.common import write_text_to_file
+from src.exporting.solution import write_solution
 
 
 ###################

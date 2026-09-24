@@ -6,12 +6,12 @@ from src.explaining.modeling.solution import EditableSolution
 from src.explaining.interacting.history import History
 from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import *
-from src.explaining.reading.explanation import import_single_explanation_from_json_file, \
+from src.explaining.importing.explanation import import_single_explanation_from_json_file, \
     import_multiple_explanations_from_json_file
 from src.explaining.computing.templates.transformation import \
     apply_transformation_induced_by_contrastive_or_scenario_question, \
     apply_transformation_induced_by_counterfactual_question
-from src.explaining.writing.explanation import define_single_contrastive_explanation_json_file_name, \
+from src.explaining.exporting.explanation import define_single_contrastive_explanation_json_file_name, \
     export_single_contrastive_explanation_to_json_file, define_multiple_contrastive_explanations_json_file_name, \
     export_multiple_contrastive_explanations_to_json_file
 from src.modeling.instance import Instance

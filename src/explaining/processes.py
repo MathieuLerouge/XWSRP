@@ -14,11 +14,11 @@ from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGU
 from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.computing.exceptions import ImpossibleTransformationException
-from src.explaining.writing.explanation import export_multiple_contrastive_explanations_to_json_file
+from src.explaining.exporting.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.modeling.solution import Solution
 from src.optimization.milp.solver.exceptions import TimeLimitReachedWithSolutionException, \
     TimeLimitReachedWithoutSolutionException
-from src.reading.solution import extract_solution_from_file
+from src.importing.solution import extract_solution_from_file
 from src.utils.constants import DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import get_project_directory_path, get_paths_of_solutions_files_in_given_directory
 
