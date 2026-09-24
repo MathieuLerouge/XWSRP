@@ -16,7 +16,7 @@ class ImpossibleTransformationException(Exception):
 class UnattributableFeasibilityShortfallException(Exception):
     """
     Raised when a solved feasibility shortfall cannot be attributed to the conflicting task's position,
-    so that no TimeConflict describes it (see ConflictExtractor.extract).
+    so that no TimeConflict describes it (see ConflictExtractor.extract_from_solved_model).
 
     Both symptoms this covers come from the same place:
     the conflicting task's slack variables relax the time-sequence constraints on either side of it,
