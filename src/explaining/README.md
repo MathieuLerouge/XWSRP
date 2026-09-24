@@ -30,9 +30,12 @@ each alteration is also recorded in an `InstanceChanges`.
 ## 1.2. Neighborhood-based computation pipeline
 
 An alternative to the tailored pipeline, covering the `(Ins,*)`, `(Swp,*)` and `(Ord,*)` contrastive question families.
-For a `ContrastiveQuestion`, `neighborhood/templates`'s `Mapper` maps it to the `Neighborhood` it induces, 
-then `computing/model.py`'s `NeighborhoodModel` turns that `Neighborhood` into a solvable MILP, 
-in place of `computing/templates`' per-template transformation function.
+For a `ContrastiveQuestion`, `neighborhood/templates`'s `Mapper` maps it to a `Neighborhood`.
+Then, if `computing/conflict/extractor.py`'s, `ConflictExtractor` identifies a `SkillConflict` from the `Neighborhood`,
+this conflict will be used as a basis for explanations;
+Otherwise, `computing/model.py`'s `NeighborhoodModel` turns the `Neighborhood` into a solvable MILP
+(in place of `computing/templates`' per-template transformation function),
+whose solve results are used by the `ConflictExtractor` to identify a `TimeConflict` (if any).
 
 NB: The neighborhood pipeline is able to accept inputs the tailored one doesn't handle 
 (e.g. a candidate task that happens to already be performed by someone else). 
@@ -40,7 +43,6 @@ What parity tests check is that every question the tailored pipeline can answer,
 the neighborhood pipeline can also answer it and gets the same (or a strictly better-fitting) support solution.
 
 ### Next steps: 
-Handle skill mismatches, unsupported by `NeighborhoodModel`. 
 `TaskRelocation` still exists only as vocabulary, with no MILP formulation.
 
 

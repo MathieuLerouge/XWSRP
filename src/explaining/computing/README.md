@@ -23,12 +23,11 @@ joint re-optimization instead and get their own small MILPs (`ILP_based_transfor
 `counterfactual` is MILP-based throughout: it searches for the minimal instance alterations that would make
 the requested action feasible.
 
-The **neighborhood pipeline** (`model.py`) is the generic alternative. `NeighborhoodModel` turns any
-`Neighborhood` (see [`../neighborhood/README.md`](../neighborhood/README.md)) into one MILP, rather than
-having a hand-written function per template. It reports a **feasibility shortfall**: 0 when the requested
-arrangement fits, otherwise how much the conflicting task's start time has to be stretched for it to. \
-`conflict/extractor.py`'s `ConflictExtractor` then turns that shortfall into the same `Conflict` the tailored
-pipeline returns, by calling the very primitives that pipeline calls rather than restating their formulas.
+The **neighborhood pipeline** (`model.py`) is the generic alternative. 
+`NeighborhoodModel` turns any `Neighborhood` into one MILP, rather than having a handwritten function per template. 
+It reports a **feasibility shortfall**: 0 when the requested arrangement fits, 
+otherwise how much the conflicting task's start time has to be stretched for it to. \
+`ConflictExtractor` then turns that shortfall into the same `Conflict` the tailored pipeline would return.
 
 Only the tailored pipeline handles counterfactual questions today; `NeighborhoodModel` covers the
 contrastive/scenario ones.
@@ -50,7 +49,8 @@ and `UnattributableFeasibilityShortfallException`, described in section 3.
 
 In `conflict` subpackage:
 - `conflict.py` contains `Conflict` and its two subclasses, `SkillConflict` and `TimeConflict`, described in section 3.
-- `extractor.py` contains `ConflictExtractor`, which maps a solved `NeighborhoodModel` to a `Conflict`.
+- `extractor.py` contains `ConflictExtractor`, which maps a `Neighborhood` to a `SkillConflict`
+  and a solved `NeighborhoodModel` to a `TimeConflict`.
 
 In `templates` subpackage:
 - `transformation.py` dispatches a `Question` to its matching transformation function.
@@ -68,7 +68,9 @@ A `Conflict` is local to the one hypothetical arrangement a question asked about
 It names the `conflicting_employee` and `conflicting_task` that clash, and comes in two kinds:
 
 - `SkillConflict` carries nothing further:
-  the employee's skill level either reaches what the task requires or it doesn't.
+  the employee's skill level either reaches what the task requires or it doesn't. 
+  It is reported only when *every* pairing an operator offers is blocked: 
+  one skill-feasible pairing left open is an arrangement the model can still search.
 - `TimeConflict` carries the squeeze. 
   The route upstream of the conflicting task cannot get the employee there before
   `earliest_upstream_feasible_start_time_of_conflicting_task`, 

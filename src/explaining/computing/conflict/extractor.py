@@ -2,9 +2,11 @@
 from typing import cast, Optional
 
 # Local libraries
-from src.explaining.computing.conflict.conflict import TimeConflict
+from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
 from src.explaining.computing.exceptions import UnattributableFeasibilityShortfallException
 from src.explaining.computing.model import NeighborhoodModel
+from src.explaining.neighborhood.neighborhood import Neighborhood
+from src.explaining.neighborhood.operator import Operator, TaskInsertion, TaskRelocation
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.evaluator import Evaluator
@@ -18,15 +20,84 @@ from src.optimization.heuristics.slacks import SlackTimeComputer
 
 class ConflictExtractor:
     """
-    Stateless collection of static methods turning a solved NeighborhoodModel's feasibility shortfall
-    into the Conflict the answering layer phrases explanations from, without mutating the given model.
+    Stateless collection of static methods turning a Neighborhood, and the NeighborhoodModel solved from it,
+    into the Conflict the answering layer phrases explanations from, without mutating either.
 
-    NB: This is the neighborhood computation pipeline's counterpart to what the tailored per-template pipeline
-    does at the end of each of its transformations.
+    The two kinds of Conflict are read off at different points of the pipeline,
+    because they are visible at different points:
+     • a SkillConflict is read off the Neighborhood's own operators, before any model is built.
+       NeighborhoodModel never relaxes a skill constraint,
+       so a neighborhood whose every candidate pairing is skill-infeasible has no incumbent at all,
+       rather than a shortfall to explain;
+     • a TimeConflict is read off the solved model's feasibility shortfall.
 
-    WIP: Only time conflicts are in scope. NeighborhoodModel never relaxes a skill constraint,
-    so a pairing that is skill-infeasible has no incumbent at all rather than a shortfall to explain.
+    NB: This is the neighborhood computation pipeline's counterpart to what the tailored per-template pipeline does
+    at the end of each of its transformations.
     """
+
+    ################
+    # Neighborhood #
+    ################
+
+    @staticmethod
+    def _get_candidate_pairings(operator: Operator) -> list[tuple[Employee, Task]]:
+        """
+        Return the (employee, task) pairings the given operator leaves open for the model to choose between,
+        or an empty list if it opens none.
+
+        Only an operator that can hand a task to an employee who does not already perform it opens a pairing:
+         • a TaskInsertion (any of its candidate employees may end up with any of its candidate tasks),
+         • or a TaskRelocation (its destination employee may end up with its target task).
+        TaskDeletion, TaskRepositioning and SequenceReordering all leave every task with whoever already performs it,
+        so the given solution having been skill-feasible is enough to know they open no skill conflict.
+
+        Args:
+            operator: The operator to read the open pairings off.
+
+        Returns:
+            The open pairings, sorted by employee then task name.
+        """
+        if isinstance(operator, TaskInsertion):
+            return sorted(
+                ((employee, task)
+                 for employee in operator.candidate_employees for task in operator.candidate_tasks),
+                key=lambda pairing: (pairing[0].name, pairing[1].name)
+            )
+        if isinstance(operator, TaskRelocation):
+            return [(operator.destination_employee, operator.target_task)]
+        return []
+
+    @staticmethod
+    def extract_from_neighborhood(neighborhood: Neighborhood) -> Optional[SkillConflict]:
+        """
+        Return the SkillConflict the given neighborhood is blocked by, or None when it is not blocked by one.
+
+        A neighborhood is blocked by a skill conflict when one of its operators opens pairings and
+        every one of them is skill-infeasible.
+
+        WIP: The first blocked operator found is the one reported,
+        which is unambiguous for the neighborhood shapes handled today
+        - carrying a single operator that opens pairings.
+
+        Args:
+            neighborhood: The neighborhood to read the conflict off the operators of.
+
+        Returns:
+            The SkillConflict naming the first blocked operator's first clashing pairing,
+            or None if no operator is blocked.
+        """
+        for operator in neighborhood.operators:
+            candidate_pairings = ConflictExtractor._get_candidate_pairings(operator)
+            if len(candidate_pairings) > 0 and all(
+                not employee.is_capable_of_performing(task) for employee, task in candidate_pairings
+            ):
+                conflicting_employee, conflicting_task = candidate_pairings[0]
+                return SkillConflict(conflicting_employee, conflicting_task)
+        return None
+
+    #####################
+    # NeighborhoodModel #
+    #####################
 
     @staticmethod
     def _build_route_without_conflicting_task(
@@ -77,7 +148,7 @@ class ConflictExtractor:
         return route, conflicting_task_step_index
 
     @staticmethod
-    def extract(model: NeighborhoodModel) -> Optional[TimeConflict]:
+    def extract_from_solved_model(model: NeighborhoodModel) -> Optional[TimeConflict]:
         """
         Return the TimeConflict the given solved model's feasibility shortfall stands for,
         or None when the solution it found is feasible (zero shortfall) and so needs no explaining.

@@ -5,8 +5,8 @@ import random
 import pytest
 
 # Local libraries
+from src.explaining.computing.conflict.extractor import ConflictExtractor
 from src.explaining.computing.exceptions import UnattributableFeasibilityShortfallException
-from src.explaining.neighborhood.operator import TaskInsertion, TaskRepositioning
 from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.explaining.questioning.questions_templates_bank import (
@@ -38,10 +38,11 @@ def assert_parity_over_random_samples(solution: Solution, template_id: str,
     - understating how much room a joint reoptimization of every now-reordered task's time can find.
     The neighborhood MILP re-solves all of them together, so it can only find an equal or smaller gap.
 
-    WIP: A combination is skipped rather than checked when none of the neighborhood's TaskInsertion (or
-    TaskRepositioning) candidate employees is skilled for any of its candidate tasks, since skill
-    mismatches aren't handled by the neighborhood computation pipeline yet. A neighborhood with neither
-    (e.g. a lone SequenceReordering) is never skipped this way, since it never reassigns anyone.
+    A combination is skipped rather than checked when the neighborhood is blocked by a skill conflict
+    (see ConflictExtractor.extract_from_neighborhood), because the two pipelines are not comparable there:
+    a skill conflict has no gap to compare, and where the neighborhood has several candidate pairings to
+    report one of, the tailored pipeline raises ImpossibleTransformationException rather than reporting
+    anything at all. That the two agree on the pairing when there is only one is test_conflict's job.
 
     KPIs (when the tailored pipeline is feasible) are checked with assert_at_least_as_good_kpis rather
     than requiring an exact match: for candidate-set questions the neighborhood pipeline's exhaustive
@@ -72,18 +73,7 @@ def assert_parity_over_random_samples(solution: Solution, template_id: str,
 
     for fields_values in all_fields_values[:max_samples]:
         neighborhood = Mapper.map(ContrastiveQuestion(solution, template_id, fields_values))
-        candidate_employees, candidate_tasks = frozenset(), frozenset()
-        for operator in neighborhood.operators:
-            if isinstance(operator, TaskInsertion):
-                candidate_employees, candidate_tasks = operator.candidate_employees, operator.candidate_tasks
-                break
-            elif isinstance(operator, TaskRepositioning):
-                candidate_employees = frozenset({operator.employee})
-                candidate_tasks = frozenset({operator.target_task})
-                break
-        if candidate_tasks and not any(
-                employee.is_capable_of_performing(task)
-                for employee in candidate_employees for task in candidate_tasks):
+        if ConflictExtractor.extract_from_neighborhood(neighborhood) is not None:
             continue
 
         tailored_gap, tailored_solution, tailored_conflict = \

@@ -34,8 +34,8 @@ def gap_from_conflict(conflict: Optional[Conflict]):
     otherwise the (earliest upstream) - (latest downstream) quantity.
 
     Raises:
-        AssertionError: if conflict is a SkillConflict,
-            which this comparison excludes since skill mismatches aren't handled by the neighborhood computation pipeline yet.
+        AssertionError: if conflict is a SkillConflict, which has no gap to measure at all
+            - the two pipelines compare their skill conflicts by pairing rather than by gap.
     """
     if conflict is None:
         return 0
@@ -65,13 +65,19 @@ def get_neighborhood_computation_pipeline_gap_and_solution(
 ):
     """
     Return (feasibility gap, support_solution, conflict) following the neighborhood computation pipeline.
+
+    The gap and the support solution are both None when the neighborhood is blocked by a skill conflict:
+    the MILP is never built for it, since no arrangement of it exists to search in the first place.
     """
     question = ContrastiveQuestion(solution, template_id, fields_values)
     neighborhood = Mapper.map(question)
+    skill_conflict = ConflictExtractor.extract_from_neighborhood(neighborhood)
+    if skill_conflict is not None:
+        return None, None, skill_conflict
     model = NeighborhoodModel(neighborhood)
     outcome = model.solve(mute=True)
     assert outcome.has_incumbent, "The neighborhood computation pipeline's MILP should be feasible by construction"
-    return model.feasibility_shortfall, model.solution, ConflictExtractor.extract(model)
+    return model.feasibility_shortfall, model.solution, ConflictExtractor.extract_from_solved_model(model)
 
 
 def assert_same_conflict(tailored_conflict: Optional[Conflict],
