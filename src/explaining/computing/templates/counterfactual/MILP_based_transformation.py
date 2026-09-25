@@ -2,7 +2,9 @@
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
-from src.explaining.computing.exceptions import ImpossibleTransformationException
+from src.explaining.computing.templates.common.preconditions import TransformationPreconditions, \
+    INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+from src.explaining.computing.templates.common.runner import MILPTransformationRunner
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
@@ -31,7 +33,6 @@ from src.explaining.computing.templates.counterfactual.MILP_model.reordering2 im
 from src.explaining.computing.templates.counterfactual.MILP_model.reordering3 import \
     MILPModelForReordering3WithInstanceAlterations
 from src.optimization.heuristics.slacks import SlackTimeComputer
-from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExceptionMapper
 
 
 ###################################################################################
@@ -169,10 +170,7 @@ def apply_ctf_ins_1(solution: EditableSolution, employee_name: str, task_name: s
     sequence = solution.get_sequence(employee)
     model = MILPModelForInsertion1WithInstanceAlterations(sequence, task, activity,
                                                           instance_parameter_alteration_bounds, solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -196,10 +194,7 @@ def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: 
     sequence = solution.get_sequence(employee)
     model = MILPModelForInsertion2aWithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
                                                            solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -219,20 +214,13 @@ def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
-    if len(solution.non_performed_tasks) == 0:
-        raise ImpossibleTransformationException("Inserting any non-performed task is impossible "
-                                                "given a solution performing all the tasks")
-    performable_non_performed_tasks = [task for task in solution.non_performed_tasks
-                                       if employee.is_capable_of_performing(task)]
-    if len(performable_non_performed_tasks) == 0:
-        raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
+    performable_non_performed_tasks = TransformationPreconditions.get_performable_non_performed_tasks(
+        solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+    )
     model = MILPModelForInsertion2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
                                                            instance_parameter_alteration_bounds,
-                                                         solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+                                                           solving_time_limit)
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -254,10 +242,7 @@ def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: s
     task = solution.instance.get_task_by_name(task_name)
     model = MILPModelForInsertion3WithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
                                                           solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -285,10 +270,7 @@ def apply_ctf_swp_1(solution: EditableSolution, employee_name: str, task1_name: 
     replaced_task = solution.instance.get_task_by_name(task2_name)
     model = MILPModelForSwap1WithInstanceAlterations(sequence, replacing_task, replaced_task,
                                                      instance_parameter_alteration_bounds, solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -310,10 +292,7 @@ def apply_ctf_swp_2a(solution: EditableSolution, employee_name: str, task_name: 
     replacing_task = solution.instance.get_task_by_name(task_name)
     model = MILPModelForSwap2aWithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
                                                       solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -332,20 +311,13 @@ def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
-    if len(solution.non_performed_tasks) == 0:
-        raise ImpossibleTransformationException("Inserting any non-performed task is impossible "
-                                                "given a solution performing all the tasks")
-    performable_non_performed_tasks = [task for task in solution.non_performed_tasks
-                                       if employee.is_capable_of_performing(task)]
-    if len(performable_non_performed_tasks) == 0:
-        raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
+    performable_non_performed_tasks = TransformationPreconditions.get_performable_non_performed_tasks(
+        solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+    )
     model = MILPModelForSwap2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
                                                       instance_parameter_alteration_bounds,
-                                                    solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+                                                      solving_time_limit)
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -367,10 +339,7 @@ def apply_ctf_swp_3(solution: EditableSolution, employee_name: str, task_name: s
     replacing_task = solution.instance.get_task_by_name(task_name)
     model = MILPModelForSwap3WithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
                                                      solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -399,10 +368,7 @@ def apply_ctf_ord_1a(solution: EditableSolution, employee_name: str, task1_name:
     fixed_task = solution.instance.get_task_by_name(task2_name)
     model = MILPModelForReordering1aWithInstanceAlterations(sequence, moving_task, fixed_task,
                                                             instance_parameter_alteration_bounds, solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -427,10 +393,7 @@ def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name:
     fixed_task = solution.instance.get_task_by_name(task2_name)
     model = MILPModelForReordering1bWithInstanceAlterations(sequence, moving_task, fixed_task,
                                                             instance_parameter_alteration_bounds, solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -449,15 +412,11 @@ def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: 
     :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
-    if sequence.nb_steps <= 3:
-        raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
+    TransformationPreconditions.check_sequence_is_reorderable(sequence)
     moving_task = solution.instance.get_task_by_name(task_name)
     model = MILPModelForReordering2aWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                             solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -476,15 +435,11 @@ def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: 
     :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
-    if sequence.nb_steps <= 3:
-        raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
+    TransformationPreconditions.check_sequence_is_reorderable(sequence)
     moving_task = solution.instance.get_task_by_name(task_name)
     model = MILPModelForReordering2bWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                             solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -503,15 +458,11 @@ def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: 
     :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
-    if sequence.nb_steps <= 3:
-        raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
+    TransformationPreconditions.check_sequence_is_reorderable(sequence)
     moving_task = solution.instance.get_task_by_name(task_name)
     model = MILPModelForReordering2cWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                             solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
@@ -529,12 +480,8 @@ def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
     :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
-    if sequence.nb_steps <= 3:
-        raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
+    TransformationPreconditions.check_sequence_is_reorderable(sequence)
     model = MILPModelForReordering3WithInstanceAlterations(sequence, instance_parameter_alteration_bounds,
                                                            solving_time_limit)
-    solve_outcome = model.solve(mute=True)
-    exception = OutcomeToExceptionMapper.map(solve_outcome)
-    if exception is not None:
-        raise exception
+    MILPTransformationRunner.solve_or_raise(model)
     return extract_explanation_content_from_MILP_model_results(solution, model)

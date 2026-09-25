@@ -1,7 +1,8 @@
 # Local libraries
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
-from src.explaining.computing.exceptions import ImpossibleTransformationException
+from src.explaining.computing.templates.common.preconditions import TransformationPreconditions, \
+    EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
@@ -125,13 +126,9 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
     :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
-    if len(solution.non_performed_tasks) == 0:
-        raise ImpossibleTransformationException("Inserting any non-performed task is impossible "
-                                                "given a solution performing all the tasks")
-    performable_non_performed_tasks = [task for task in solution.non_performed_tasks
-                                       if employee.is_capable_of_performing(task)]
-    if len(performable_non_performed_tasks) == 0:
-        raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
+    performable_non_performed_tasks = TransformationPreconditions.get_performable_non_performed_tasks(
+        solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+    )
     evaluation = Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
         solution, performable_non_performed_tasks, [employee], False
     )
@@ -263,13 +260,9 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
     :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
-    if len(solution.non_performed_tasks) == 0:
-        raise ImpossibleTransformationException("Exchanging a task with any non-performed task is impossible "
-                                                "given a solution performing all the tasks")
-    performable_non_performed_tasks = [task for task in solution.non_performed_tasks
-                                       if employee.is_capable_of_performing(task)]
-    if len(performable_non_performed_tasks) == 0:
-        raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
+    performable_non_performed_tasks = TransformationPreconditions.get_performable_non_performed_tasks(
+        solution, employee, EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+    )
     evaluation = Evaluator.find_best_replacement_among_sets(
         solution, [employee], performable_non_performed_tasks, False)
     replacing_task = evaluation.replacing_task
