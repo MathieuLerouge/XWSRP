@@ -3,7 +3,7 @@ from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditions, \
-    INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+    EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
@@ -312,7 +312,7 @@ def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
     employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
     performable_non_performed_tasks = TransformationPreconditions.get_performable_non_performed_tasks(
-        solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+        solution, employee, EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
     )
     model = MILPModelForSwap2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
                                                       instance_parameter_alteration_bounds,
