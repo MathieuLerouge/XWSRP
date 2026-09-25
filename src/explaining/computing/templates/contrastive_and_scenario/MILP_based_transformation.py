@@ -1,9 +1,9 @@
 # Local libraries
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.category3 import IPModelForCategory3
-from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.insertion3 import IPModelForInsertion3
-from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.ordering3 import IPModelForReordering3
-from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.swap3 import IPModelForSwap3
+from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.category3 import MILPModelForCategory3
+from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.insertion3 import MILPModelForInsertion3
+from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.reordering3 import MILPModelForReordering3
+from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.swap3 import MILPModelForSwap3
 from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
 from src.modeling.employee import Employee
 from src.modeling.task import Task
@@ -14,19 +14,19 @@ from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
 ##################################################################################
-# All kinds of transformation - Extraction of explanation content from ILP model #
+# All kinds of transformation - Extraction of explanation content from MILP model #
 ##################################################################################
 
-def extract_explanation_content_from_ILP_model_results(solution: EditableSolution, employee: Employee,
-                                                       task: Task, model: IPModelForCategory3):
+def extract_explanation_content_from_MILP_model_results(solution: EditableSolution, employee: Employee,
+                                                       task: Task, model: MILPModelForCategory3):
     """
     Extract useful content for the explanation to build,
-    from the results of the ILP model used to compute the transformation
+    from the results of the MILP model used to compute the transformation
 
     :param solution: the solution to transform (EditableSolution)
     :param employee: the employee concerned by the transformation (Employee)
     :param task: the task concerned by the transformation (Task)
-    :param model: the ILP model used to compute the transformation (IPModelForCategory3)
+    :param model: the MILP model used to compute the transformation (MILPModelForCategory3)
     :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
     the support sequence as a text (str)
     """
@@ -88,7 +88,7 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
     task = solution.instance.get_task_by_name(task_name)
     if employee.is_capable_of_performing(task):
         sequence = solution.get_sequence(employee)
-        model = IPModelForInsertion3(sequence, task)
+        model = MILPModelForInsertion3(sequence, task)
         if time_limit is not None:
             model.time_limit = time_limit
         # model.warm_start()
@@ -97,7 +97,7 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
         if exception is not None:
             raise exception
         support_solution, conflict, description_of_support_sequence = \
-            extract_explanation_content_from_ILP_model_results(solution, employee, task, model)
+            extract_explanation_content_from_MILP_model_results(solution, employee, task, model)
     else:
         support_solution = solution.copy(solution.name + "_support")
         conflict = SkillConflict(employee, task)
@@ -134,7 +134,7 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
     task = solution.instance.get_task_by_name(task_name)
     if employee.is_capable_of_performing(task):
         sequence = solution.get_sequence(employee)
-        model = IPModelForSwap3(sequence, task)
+        model = MILPModelForSwap3(sequence, task)
         if time_limit is not None:
             model.time_limit = time_limit
         solve_outcome = model.solve(mute=True)
@@ -142,7 +142,7 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
         if exception is not None:
             raise exception
         support_solution, conflict, description_of_support_sequence = \
-            extract_explanation_content_from_ILP_model_results(solution, employee, task, model)
+            extract_explanation_content_from_MILP_model_results(solution, employee, task, model)
         leaving_task = model.leaving_task
         applying_transformation_text_in_various_languages = {
             LANGUAGE_ENGLISH_KEY:
@@ -177,7 +177,7 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
-    model = IPModelForReordering3(sequence)
+    model = MILPModelForReordering3(sequence)
     if time_limit is not None:
         model.time_limit = time_limit
     solve_outcome = model.solve(mute=True)
@@ -186,7 +186,7 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
         raise exception
     pivot_task = model.pivot_task
     support_solution, conflict, description_of_support_sequence = \
-        extract_explanation_content_from_ILP_model_results(solution, employee, pivot_task, model)
+        extract_explanation_content_from_MILP_model_results(solution, employee, pivot_task, model)
     applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
             f"reordering {employee.name}'s route into the following route "

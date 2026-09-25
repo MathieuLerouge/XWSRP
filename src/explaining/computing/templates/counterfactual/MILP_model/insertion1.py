@@ -3,8 +3,8 @@ import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.ILP_model.insertion_with_alterations \
-    import IPModelForInsertionWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.insertion_with_alterations \
+    import MILPModelForInsertionWithInstanceAlterations
 from src.modeling.activity import Activity
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
@@ -12,12 +12,12 @@ from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
 ###############################################
-# IPModelForInsertion1WithInstanceAlterations #
+# MILPModelForInsertion1WithInstanceAlterations #
 ###############################################
 
-class IPModelForInsertion1WithInstanceAlterations(IPModelForInsertionWithInstanceAlterations):
+class MILPModelForInsertion1WithInstanceAlterations(MILPModelForInsertionWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Ins,1) counterfactual question:
+    MILP model to compute explanation content for answering (Ins,1) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} just after activity {Activity}?"
     """
 
@@ -25,7 +25,7 @@ class IPModelForInsertion1WithInstanceAlterations(IPModelForInsertionWithInstanc
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for inserting the given task in the given sequence after the given activity
+        Return a MILP model for inserting the given task in the given sequence after the given activity
         while allowing instance parameter alterations
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)

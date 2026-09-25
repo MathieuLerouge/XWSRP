@@ -3,26 +3,26 @@ import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.ILP_model.transformation_with_alterations import \
-    IPModelForTransformationWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
+    MILPModelForTransformationWithInstanceAlterations
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
 #########################################
-# IPModelForSwapWithInstanceAlterations #
+# MILPModelForSwapWithInstanceAlterations #
 #########################################
 
-class IPModelForSwapWithInstanceAlterations(IPModelForTransformationWithInstanceAlterations):
+class MILPModelForSwapWithInstanceAlterations(MILPModelForTransformationWithInstanceAlterations):
     """
-    Base IP model to compute explanation content for answering counterfactual question about swap
+    Base MILP model to compute explanation content for answering counterfactual question about swap
     """
 
     def __init__(self, sequence: SequenceForHeuristics, replacing_task: Task,
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for replacing a task of the sequence by the replacing task
+        Return a MILP model for replacing a task of the sequence by the replacing task
         while allowing instance parameter alterations
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)

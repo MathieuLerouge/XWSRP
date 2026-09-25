@@ -2,16 +2,16 @@
 import pyomo.environ as pyo
 
 # Local libraries
-from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.category3 import IPModelForCategory3
+from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.category3 import MILPModelForCategory3
 from src.modeling.sequence import Sequence
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
 #########################
-# IPModelForReordering3 #
+# MILPModelForReordering3 #
 #########################
 
-class IPModelForReordering3(IPModelForCategory3):
+class MILPModelForReordering3(MILPModelForCategory3):
 
     def __init__(self, sequence: Sequence):
         pivot_task_index = int(len(sequence)/2)
@@ -60,7 +60,8 @@ class IPModelForReordering3(IPModelForCategory3):
             "SequenceOrderConstraint",
             pyo.Constraint(expr=(
                 pyo.quicksum(
-                    [self.vars_U[(create_activity_key(sequence[j].activity), create_activity_key(sequence[j + 1].activity))]
+                    [self.vars_U[(create_activity_key(sequence[j].activity),
+                                  create_activity_key(sequence[j + 1].activity))]
                      for j in range(sequence.nb_steps - 1)]
                 ) <= sequence.nb_steps - 3
             ))

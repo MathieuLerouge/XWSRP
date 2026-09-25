@@ -16,10 +16,10 @@ from src.optimization.milp.subproblems.sequencemodel import SequenceModel, \
 
 
 #######################
-# IPModelForCategory3 #
+# MILPModelForCategory3 #
 #######################
 
-class IPModelForCategory3(SequenceModel):
+class MILPModelForCategory3(SequenceModel):
 
     def __init__(self, sequence: Sequence, pivot_task: Task):
         self._pivot_task = pivot_task

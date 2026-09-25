@@ -3,27 +3,27 @@ import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.ILP_model.transformation_with_alterations import \
-    IPModelForTransformationWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
+    MILPModelForTransformationWithInstanceAlterations
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
 ###############################################
-# IPModelForReorderingWithInstanceAlterations #
+# MILPModelForReorderingWithInstanceAlterations #
 ###############################################
 
-class IPModelForReorderingWithInstanceAlterations(IPModelForTransformationWithInstanceAlterations):
+class MILPModelForReorderingWithInstanceAlterations(MILPModelForTransformationWithInstanceAlterations):
     """
-    Base IP model to compute explanation content for answering counterfactual question about reordering
+    Base MILP model to compute explanation content for answering counterfactual question about reordering
     """
 
     def __init__(self, sequence: SequenceForHeuristics, moving_task: Task,
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for moving a task of the sequence at another position
+        Return a MILP model for moving a task of the sequence at another position
         while allowing instance parameter alterations
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)

@@ -4,70 +4,70 @@ from src.explaining.modeling.solution import EditableSolution
 from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
 from src.explaining.computing.exceptions import ImpossibleTransformationException
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
-from src.explaining.computing.templates.counterfactual.ILP_model.transformation_with_alterations import \
-    IPModelForTransformationWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.insertion_with_alterations import \
-    IPModelForInsertionWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.insertion1 import \
-    IPModelForInsertion1WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.insertion2 import \
-    IPModelForInsertion2aWithInstanceAlterations, IPModelForInsertion2bWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.insertion3 import \
-    IPModelForInsertion3WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.swap_with_alterations import \
-    IPModelForSwapWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.swap1 import IPModelForSwap1WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.swap2 import IPModelForSwap2aWithInstanceAlterations, \
-    IPModelForSwap2bWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.swap3 import IPModelForSwap3WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.reordering_with_alterations import \
-    IPModelForReorderingWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.reordering1 import \
-    IPModelForReordering1aWithInstanceAlterations, IPModelForReordering1bWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.reordering2 import \
-    IPModelForReordering2aWithInstanceAlterations, IPModelForReordering2bWithInstanceAlterations, \
-    IPModelForReordering2cWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.ILP_model.reordering3 import \
-    IPModelForReordering3WithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
+    MILPModelForTransformationWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.insertion_with_alterations import \
+    MILPModelForInsertionWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.insertion1 import \
+    MILPModelForInsertion1WithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.insertion2 import \
+    MILPModelForInsertion2aWithInstanceAlterations, MILPModelForInsertion2bWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.insertion3 import \
+    MILPModelForInsertion3WithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.swap_with_alterations import \
+    MILPModelForSwapWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.swap1 import MILPModelForSwap1WithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.swap2 import \
+    MILPModelForSwap2aWithInstanceAlterations, MILPModelForSwap2bWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.swap3 import MILPModelForSwap3WithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.reordering_with_alterations import \
+    MILPModelForReorderingWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.reordering1 import \
+    MILPModelForReordering1aWithInstanceAlterations, MILPModelForReordering1bWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.reordering2 import \
+    MILPModelForReordering2aWithInstanceAlterations, MILPModelForReordering2bWithInstanceAlterations, \
+    MILPModelForReordering2cWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.reordering3 import \
+    MILPModelForReordering3WithInstanceAlterations
 from src.optimization.heuristics.slacks import SlackTimeComputer
 from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExceptionMapper
 
 
 ##################################################################################
-# All kinds of transformation - Extraction of explanation content from ILP model #
+# All kinds of transformation - Extraction of explanation content from MILP model #
 ##################################################################################
 
-def extract_explanation_content_from_ILP_model_results(solution: EditableSolution,
-                                                       model: IPModelForTransformationWithInstanceAlterations):
+def extract_explanation_content_from_MILP_model_results(solution: EditableSolution,
+                                                       model: MILPModelForTransformationWithInstanceAlterations):
     """
     Extract useful content for the explanation to build,
-    from the results of the ILP model used to compute the transformation
+    from the results of the MILP model used to compute the transformation
 
     :param solution: the solution to explain (EditableSolution)
-    :param model: the ILP model used to compute the transformation (IPModelForInsertionAlteringInput)
+    :param model: the MILP model used to compute the transformation (MILPModelForTransformationWithInstanceAlterations)
     :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
     the texts describing the transformation in various languages (dict) and
     the instance parameter changes (InstanceChanges)
     """
     # Define key employee and task
     key_employee = model.support_sequence.employee
-    if isinstance(model, IPModelForInsertionWithInstanceAlterations):
+    if isinstance(model, MILPModelForInsertionWithInstanceAlterations):
         key_task = model.task_to_insert
         earliest_start_time_for_upstream = model.task_to_insert_start_time_for_backward
         latest_start_time_for_downstream = model.task_to_insert_start_time_for_forward
-    elif isinstance(model, IPModelForSwapWithInstanceAlterations):
+    elif isinstance(model, MILPModelForSwapWithInstanceAlterations):
         key_task = model.replacing_task
         earliest_start_time_for_upstream = model.replacing_task_start_time_for_backward
         latest_start_time_for_downstream = model.replacing_task_start_time_for_forward
-    elif isinstance(model, IPModelForReorderingWithInstanceAlterations):
+    elif isinstance(model, MILPModelForReorderingWithInstanceAlterations):
         key_task = model.moving_task
         earliest_start_time_for_upstream = model.moving_task_start_time_for_backward
         latest_start_time_for_downstream = model.moving_task_start_time_for_forward
     else:
-        raise ValueError("Unknown ILP model type")
+        raise ValueError("Unknown MILP model type")
     # Save whether the transformation is feasible
-    if (isinstance(model, IPModelForInsertionWithInstanceAlterations) or
-            isinstance(model, IPModelForSwapWithInstanceAlterations)):
+    if (isinstance(model, MILPModelForInsertionWithInstanceAlterations) or
+            isinstance(model, MILPModelForSwapWithInstanceAlterations)):
         transformation_is_skill_feasible = key_employee.is_capable_of_performing(key_task)
     else:
         transformation_is_skill_feasible = True
@@ -76,8 +76,8 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
     support_solution = solution.copy(solution.name + "_support")
     support_solution.instance = model.support_instance
     support_sequence = model.support_sequence
-    if (isinstance(model, IPModelForInsertionWithInstanceAlterations) or
-            isinstance(model, IPModelForSwapWithInstanceAlterations)):
+    if (isinstance(model, MILPModelForInsertionWithInstanceAlterations) or
+            isinstance(model, MILPModelForSwapWithInstanceAlterations)):
         if support_solution.get_task_performance_status(key_task):
             support_solution.remove_task(key_task, transformation_is_feasible, transformation_is_feasible)
     if transformation_is_feasible:
@@ -105,7 +105,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
     # Create description of applied transformation
     support_sequence_activities_names = [step.activity.name for step in support_sequence]
     description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
-    if isinstance(model, IPModelForInsertionWithInstanceAlterations):
+    if isinstance(model, MILPModelForInsertionWithInstanceAlterations):
         applying_transformation_text_in_various_languages = {
             LANGUAGE_ENGLISH_KEY:
                 f"adding {model.task_to_insert.name} in {key_employee.name}'s planning "
@@ -116,7 +116,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
                 f"selon la route suivante "
                 f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
         }
-    elif isinstance(model, IPModelForSwapWithInstanceAlterations):
+    elif isinstance(model, MILPModelForSwapWithInstanceAlterations):
         applying_transformation_text_in_various_languages = {
             LANGUAGE_ENGLISH_KEY:
                 f"replacing {model.replaced_task.name} with {model.replacing_task.name} "
@@ -127,7 +127,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
                 f"dans le planning de {key_employee.name} selon la route suivante "
                 f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
         }
-    elif isinstance(model, IPModelForReorderingWithInstanceAlterations):
+    elif isinstance(model, MILPModelForReorderingWithInstanceAlterations):
         applying_transformation_text_in_various_languages = {
             LANGUAGE_ENGLISH_KEY:
                 f"moving {model.moving_task.name} in {key_employee.name}'s planning "
@@ -139,7 +139,7 @@ def extract_explanation_content_from_ILP_model_results(solution: EditableSolutio
                 f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
         }
     else:
-        raise NotImplementedError(f"text not implemented for ILP model type {type(model)}")
+        raise NotImplementedError(f"text not implemented for MILP model type {type(model)}")
     return (support_solution, conflict, applying_transformation_text_in_various_languages,
             model.support_instance_alterations)
 
@@ -169,13 +169,13 @@ def apply_ctf_ins_1(solution: EditableSolution, employee_name: str, task_name: s
     task = solution.instance.get_task_by_name(task_name)
     activity = solution.instance.get_hypothetical_activity_by_names(activity_name, employee.name)
     sequence = solution.get_sequence(employee)
-    model = IPModelForInsertion1WithInstanceAlterations(sequence, task, activity, instance_parameter_alteration_bounds,
-                                                        solving_time_limit)
+    model = MILPModelForInsertion1WithInstanceAlterations(sequence, task, activity,
+                                                          instance_parameter_alteration_bounds, solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: str,
@@ -198,13 +198,13 @@ def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: 
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
     sequence = solution.get_sequence(employee)
-    model = IPModelForInsertion2aWithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
-                                                         solving_time_limit)
+    model = MILPModelForInsertion2aWithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
+                                                           solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
@@ -232,14 +232,14 @@ def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
                                        if employee.is_capable_of_performing(task)]
     if len(performable_non_performed_tasks) == 0:
         raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
-    model = IPModelForInsertion2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
-                                                         instance_parameter_alteration_bounds,
+    model = MILPModelForInsertion2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
+                                                           instance_parameter_alteration_bounds,
                                                          solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: str,
@@ -260,13 +260,13 @@ def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: s
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     task = solution.instance.get_task_by_name(task_name)
-    model = IPModelForInsertion3WithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
-                                                        solving_time_limit)
+    model = MILPModelForInsertion3WithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
+                                                          solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 #######################
@@ -292,13 +292,13 @@ def apply_ctf_swp_1(solution: EditableSolution, employee_name: str, task1_name: 
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     replacing_task = solution.instance.get_task_by_name(task1_name)
     replaced_task = solution.instance.get_task_by_name(task2_name)
-    model = IPModelForSwap1WithInstanceAlterations(sequence, replacing_task, replaced_task,
-                                                   instance_parameter_alteration_bounds, solving_time_limit)
+    model = MILPModelForSwap1WithInstanceAlterations(sequence, replacing_task, replaced_task,
+                                                     instance_parameter_alteration_bounds, solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_swp_2a(solution: EditableSolution, employee_name: str, task_name: str,
@@ -318,13 +318,13 @@ def apply_ctf_swp_2a(solution: EditableSolution, employee_name: str, task_name: 
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     replacing_task = solution.instance.get_task_by_name(task_name)
-    model = IPModelForSwap2aWithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
-                                                    solving_time_limit)
+    model = MILPModelForSwap2aWithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
+                                                      solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
@@ -350,14 +350,14 @@ def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
                                        if employee.is_capable_of_performing(task)]
     if len(performable_non_performed_tasks) == 0:
         raise ImpossibleTransformationException("All the non-performed task are too much skilled for the employee")
-    model = IPModelForSwap2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
-                                                    instance_parameter_alteration_bounds,
+    model = MILPModelForSwap2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
+                                                      instance_parameter_alteration_bounds,
                                                     solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_swp_3(solution: EditableSolution, employee_name: str, task_name: str,
@@ -377,13 +377,13 @@ def apply_ctf_swp_3(solution: EditableSolution, employee_name: str, task_name: s
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     replacing_task = solution.instance.get_task_by_name(task_name)
-    model = IPModelForSwap3WithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
-                                                   solving_time_limit)
+    model = MILPModelForSwap3WithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
+                                                     solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 #############################
@@ -410,13 +410,13 @@ def apply_ctf_ord_1a(solution: EditableSolution, employee_name: str, task1_name:
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     moving_task = solution.instance.get_task_by_name(task1_name)
     fixed_task = solution.instance.get_task_by_name(task2_name)
-    model = IPModelForReordering1aWithInstanceAlterations(sequence, moving_task, fixed_task,
-                                                          instance_parameter_alteration_bounds, solving_time_limit)
+    model = MILPModelForReordering1aWithInstanceAlterations(sequence, moving_task, fixed_task,
+                                                            instance_parameter_alteration_bounds, solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name: str, task2_name: str,
@@ -439,13 +439,13 @@ def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name:
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     moving_task = solution.instance.get_task_by_name(task1_name)
     fixed_task = solution.instance.get_task_by_name(task2_name)
-    model = IPModelForReordering1bWithInstanceAlterations(sequence, moving_task, fixed_task,
-                                                          instance_parameter_alteration_bounds, solving_time_limit)
+    model = MILPModelForReordering1bWithInstanceAlterations(sequence, moving_task, fixed_task,
+                                                            instance_parameter_alteration_bounds, solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: str,
@@ -467,13 +467,13 @@ def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: 
     if sequence.nb_steps <= 3:
         raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
     moving_task = solution.instance.get_task_by_name(task_name)
-    model = IPModelForReordering2aWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
-                                                          solving_time_limit)
+    model = MILPModelForReordering2aWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
+                                                            solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: str,
@@ -495,13 +495,13 @@ def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: 
     if sequence.nb_steps <= 3:
         raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
     moving_task = solution.instance.get_task_by_name(task_name)
-    model = IPModelForReordering2bWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
-                                                          solving_time_limit)
+    model = MILPModelForReordering2bWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
+                                                            solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: str,
@@ -523,13 +523,13 @@ def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: 
     if sequence.nb_steps <= 3:
         raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
     moving_task = solution.instance.get_task_by_name(task_name)
-    model = IPModelForReordering2cWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
-                                                          solving_time_limit)
+    model = MILPModelForReordering2cWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
+                                                            solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)
 
 
 def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
@@ -549,10 +549,10 @@ def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     if sequence.nb_steps <= 3:
         raise ImpossibleTransformationException("Reordering a sequence with 3 activities or fewer is impossible")
-    model = IPModelForReordering3WithInstanceAlterations(sequence, instance_parameter_alteration_bounds,
-                                                         solving_time_limit)
+    model = MILPModelForReordering3WithInstanceAlterations(sequence, instance_parameter_alteration_bounds,
+                                                           solving_time_limit)
     solve_outcome = model.solve(mute=True)
     exception = OutcomeToExceptionMapper.map(solve_outcome)
     if exception is not None:
         raise exception
-    return extract_explanation_content_from_ILP_model_results(solution, model)
+    return extract_explanation_content_from_MILP_model_results(solution, model)

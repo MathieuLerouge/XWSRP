@@ -2,15 +2,15 @@
 import pyomo.environ as pyo
 
 # Local libraries
-from src.explaining.computing.templates.contrastive_and_scenario.ILP_model.category3 import IPModelForCategory3
+from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.category3 import MILPModelForCategory3
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
 ##############################
-# IPModelForInsertion3 #
+# MILPModelForInsertion3 #
 ##############################
 
-class IPModelForInsertion3(IPModelForCategory3):
+class MILPModelForInsertion3(MILPModelForCategory3):
 
     def _compute_candidate_tasks(self):
         return self._sequence.get_contained_tasks() + [self._pivot_task]

@@ -23,19 +23,19 @@ MAX_NB_ALTERATIONS = 2
 
 
 ###################################################
-# IPModelForTransformationWithInstanceAlterations #
+# MILPModelForTransformationWithInstanceAlterations #
 ###################################################
 
-class IPModelForTransformationWithInstanceAlterations(SequenceModel):
+class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     """
-    Base IP model to compute explanation content for answering counterfactual question about any transformation
+    Base MILP model to compute explanation content for answering counterfactual question about any transformation
     """
 
     def __init__(self, sequence: SequenceForHeuristics, pivot_task: Task,
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for transforming a sequence while allowing instance parameter alterations
+        Return a MILP model for transforming a sequence while allowing instance parameter alterations
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)
         :param pivot_task: the task which plays a key role in the sequence optimization (Task)
@@ -856,7 +856,7 @@ class IPModelForTransformationWithInstanceAlterations(SequenceModel):
         )
 
     ######################################################
-    # Data extraction from IP solving results - Instance #
+    # Data extraction from MILP solving results - Instance #
     ######################################################
 
     def _extract_support_instance_alterations_from_IP_solving(self):
@@ -909,7 +909,7 @@ class IPModelForTransformationWithInstanceAlterations(SequenceModel):
         self._support_instance.alter(self._support_instance_alterations)
 
     ######################################################
-    # Data extraction from IP solving results - Sequence #
+    # Data extraction from MILP solving results - Sequence #
     ######################################################
 
     def _extract_ordered_steps(self):
@@ -976,7 +976,7 @@ class IPModelForTransformationWithInstanceAlterations(SequenceModel):
         self._sequence_from_IP_solving = sequence
 
     #################################################
-    # Data extraction from IP solving results - All #
+    # Data extraction from MILP solving results - All #
     #################################################
 
     def _extract_data_from_IP_solving(self):
@@ -990,7 +990,7 @@ class IPModelForTransformationWithInstanceAlterations(SequenceModel):
         self._extract_sequence_from_IP_solving()
 
     #################################
-    # Exploiting IP solving results #
+    # Exploiting MILP solving results #
     #################################
 
     def _is_task_performed_given_key(self, task_key: str):

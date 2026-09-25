@@ -3,20 +3,20 @@ import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.ILP_model.swap_with_alterations import \
-    IPModelForSwapWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.swap_with_alterations import \
+    MILPModelForSwapWithInstanceAlterations
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
 ##########################################
-# IPModelForSwap1WithInstanceAlterations #
+# MILPModelForSwap1WithInstanceAlterations #
 ##########################################
 
-class IPModelForSwap1WithInstanceAlterations(IPModelForSwapWithInstanceAlterations):
+class MILPModelForSwap1WithInstanceAlterations(MILPModelForSwapWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Swp,1) counterfactual question:
+    MILP model to compute explanation content for answering (Swp,1) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task1} in place of task {Task2}?"
     """
 
@@ -24,7 +24,7 @@ class IPModelForSwap1WithInstanceAlterations(IPModelForSwapWithInstanceAlteratio
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for replacing a given task of the sequence by the replacing task
+        Return a MILP model for replacing a given task of the sequence by the replacing task
         while allowing instance parameter alterations
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)

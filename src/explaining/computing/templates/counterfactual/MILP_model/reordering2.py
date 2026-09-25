@@ -2,18 +2,18 @@
 import pyomo.environ as pyo
 
 # Local libraries
-from src.explaining.computing.templates.counterfactual.ILP_model.reordering_with_alterations import \
-    IPModelForReorderingWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.reordering_with_alterations import \
+    MILPModelForReorderingWithInstanceAlterations
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
 #################################################
-# IPModelForReordering2aWithInstanceAlterations #
+# MILPModelForReordering2aWithInstanceAlterations #
 #################################################
 
-class IPModelForReordering2aWithInstanceAlterations(IPModelForReorderingWithInstanceAlterations):
+class MILPModelForReordering2aWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Ord,2a) counterfactual question:
+    MILP model to compute explanation content for answering (Ord,2a) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} later in their route?"
     """
 
@@ -73,12 +73,12 @@ class IPModelForReordering2aWithInstanceAlterations(IPModelForReorderingWithInst
 
 
 #################################################
-# IPModelForReordering2bWithInstanceAlterations #
+# MILPModelForReordering2bWithInstanceAlterations #
 #################################################
 
-class IPModelForReordering2bWithInstanceAlterations(IPModelForReorderingWithInstanceAlterations):
+class MILPModelForReordering2bWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Ord,2b) counterfactual question:
+    MILP model to compute explanation content for answering (Ord,2b) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} earlier in their route?"
     """
 
@@ -138,12 +138,12 @@ class IPModelForReordering2bWithInstanceAlterations(IPModelForReorderingWithInst
 
 
 #################################################
-# IPModelForReordering2cWithInstanceAlterations #
+# MILPModelForReordering2cWithInstanceAlterations #
 #################################################
 
-class IPModelForReordering2cWithInstanceAlterations(IPModelForReorderingWithInstanceAlterations):
+class MILPModelForReordering2cWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Ord,2c) counterfactual question:
+    MILP model to compute explanation content for answering (Ord,2c) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} at another position in their route?"
     """
 

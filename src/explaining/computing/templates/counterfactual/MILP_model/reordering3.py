@@ -1,24 +1,24 @@
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.ILP_model.reordering_with_alterations import \
-    IPModelForReorderingWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.reordering_with_alterations import \
+    MILPModelForReorderingWithInstanceAlterations
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
 ######################################################
-# Class IPModelForReordering3WithInstanceAlterations #
+# Class MILPModelForReordering3WithInstanceAlterations #
 ######################################################
 
-class IPModelForReordering3WithInstanceAlterations(IPModelForReorderingWithInstanceAlterations):
+class MILPModelForReordering3WithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Ord,3) counterfactual question:
+    MILP model to compute explanation content for answering (Ord,3) counterfactual question:
     "How to make possible that employee {Employee} performs the activities of their route in another order?"
     """
 
     def __init__(self, sequence: SequenceForHeuristics, instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for moving a task of the sequence at another position
+        Return a MILP model for moving a task of the sequence at another position
         while allowing instance parameter alterations
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)

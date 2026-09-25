@@ -3,20 +3,20 @@ import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.ILP_model.reordering_with_alterations import \
-    IPModelForReorderingWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.reordering_with_alterations import \
+    MILPModelForReorderingWithInstanceAlterations
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
 #################################################
-# IPModelForReordering1aWithInstanceAlterations #
+# MILPModelForReordering1aWithInstanceAlterations #
 #################################################
 
-class IPModelForReordering1aWithInstanceAlterations(IPModelForReorderingWithInstanceAlterations):
+class MILPModelForReordering1aWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Ord,1a) counterfactual question:
+    MILP model to compute explanation content for answering (Ord,1a) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} later in their route,
     just after task {Task2}?"
     """
@@ -25,7 +25,7 @@ class IPModelForReordering1aWithInstanceAlterations(IPModelForReorderingWithInst
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for moving a task of the sequence after another task of the sequence.
+        Return a MILP model for moving a task of the sequence after another task of the sequence.
         while allowing instance parameter alterations
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)
@@ -114,12 +114,12 @@ class IPModelForReordering1aWithInstanceAlterations(IPModelForReorderingWithInst
 
 
 #################################################
-# IPModelForReordering1bWithInstanceAlterations #
+# MILPModelForReordering1bWithInstanceAlterations #
 #################################################
 
-class IPModelForReordering1bWithInstanceAlterations(IPModelForReorderingWithInstanceAlterations):
+class MILPModelForReordering1bWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Ord,1b) counterfactual question:
+    MILP model to compute explanation content for answering (Ord,1b) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} earlier in their route,
     just before task {Task2}?"
     """
@@ -128,7 +128,7 @@ class IPModelForReordering1bWithInstanceAlterations(IPModelForReorderingWithInst
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for moving a task of the sequence after another task of the sequence.
+        Return a MILP model for moving a task of the sequence after another task of the sequence.
         while allowing instance parameter alterations
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)

@@ -3,21 +3,22 @@ import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.ILP_model.swap_with_alterations import \
-    IPModelForSwapWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.insertion_with_alterations \
+    import MILPModelForInsertionWithInstanceAlterations
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key, LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 
 
-###########################################
-# IPModelForSwap2aWithInstanceAlterations #
-###########################################
+################################################
+# MILPModelForInsertion2aWithInstanceAlterations #
+################################################
 
-class IPModelForSwap2aWithInstanceAlterations(IPModelForSwapWithInstanceAlterations):
+class MILPModelForInsertion2aWithInstanceAlterations(MILPModelForInsertionWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Swp,2a) counterfactual question:
-    "How to make possible that employee {Employee} performs task {Task} in place of one of their tasks?"
+    MILP model to compute explanation content for answering (Ins,2a) counterfactual question:
+    "How to make possible that employee {Employee} performs task {Task}
+    between two consecutive activities of their route?"
     """
 
     ######################
@@ -50,7 +51,7 @@ class IPModelForSwap2aWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         - the flow starts with a departure activity
         - the flow ends with a comeback activity
         - the flow is conserved at each activity
-        - the sequence of activities remains unchanged except that one task is replaced by the replacing task
+        - the sequence of activities remains unchanged except that a task is inserted in the sequence
 
         :return: None
         """
@@ -60,34 +61,35 @@ class IPModelForSwap2aWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         # - ensuring that the flow is conserved at each activity
         super()._add_flow_constraints()
         # Add a new flow constraint which ensures that the sequence of activities remains the same
-        # except that one task is replaced by the replacing task
+        # except that a task is inserted in the sequence
         activities = self._sequence.get_contained_activities()
         self._model.add_component(
-            "ReplacementBetweenConsecutiveActivities",
+            "InsertionBetweenConsecutiveActivities",
             pyo.Constraint(expr=(
                 pyo.quicksum(
                     [self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))]
                      for j in range(len(activities) - 1)]
-                ) == len(activities) - 3
+                ) == len(activities) - 2
             ))
         )
 
 
-###########################################
-# IPModelForSwap2bWithInstanceAlterations #
-###########################################
+################################################
+# MILPModelForInsertion2bWithInstanceAlterations #
+################################################
 
-class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterations):
+class MILPModelForInsertion2bWithInstanceAlterations(MILPModelForInsertionWithInstanceAlterations):
     """
-    IP model to compute explanation content for answering (Swp,2b) counterfactual question:
-    "How to make possible that employee {Employee} performs any non-performed task in place of one of their tasks?"
+    MILP model to compute explanation content for answering (Ins,2b) counterfactual question:
+    "How to make possible that employee {Employee} performs any non-performed task
+    between two consecutive activities of their planning?"
     """
 
     def __init__(self, sequence: SequenceForHeuristics, non_performed_tasks: list[Task],
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for swapping a non-performed task in a sequence.
+        Return a MILP model for inserting a non-performed task in a sequence.
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)
         :param non_performed_tasks: the non performed task (list[Task])
@@ -149,11 +151,6 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         """
         Add flow constraints to the model:
 
-        - the flow starts with a departure activity
-        - the flow ends with a comeback activity
-        - the flow is conserved at each activity
-        - the sequence of activities remains unchanged except that a task is inserted in the sequence
-
         :return: None
         """
         # Add original flow constraints:
@@ -165,12 +162,12 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
         # except that a task is inserted in the sequence
         activities = self._sequence.get_contained_activities()
         self._model.add_component(
-            "SwapBetweenConsecutiveActivities",
+            "InsertionBetweenConsecutiveActivities",
             pyo.Constraint(expr=(
                 pyo.quicksum(
                     [self.vars_U[(create_activity_key(activities[j]), create_activity_key(activities[j + 1]))]
                      for j in range(len(activities) - 1)]
-                ) == len(activities) - 3
+                ) == len(activities) - 2
             ))
         )
 
@@ -184,16 +181,15 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
 
         :return: None
         """
-        activities = self._sequence.get_contained_activities()
-        self._model.add_component(
-            "PerformedTaskCoveringConstraint",
-            pyo.Constraint(expr=(
-                pyo.quicksum([self.vars_U[(j, k)]
-                              for j in self._get_candidate_tasks_keys(including_pivot_task=False)
-                              for k in self.get_activities_keys(including_departure=False, including_comeback=True)
-                              if k != j]) == len(activities) - 3
-            ))
-        )
+        for j in self._get_candidate_tasks_keys(including_pivot_task=False):
+            self._model.add_component(
+                f"TaskCoveringConstraint[{j}]",
+                pyo.Constraint(expr=(
+                    pyo.quicksum([self.vars_U[(j, k)]
+                                  for k in self.get_activities_keys(including_departure=False, including_comeback=True)
+                                  if k != j]) == 1
+                ))
+            )
         self._model.add_component(
             "TaskCoveringConstraintPotentialPivots",
             pyo.Constraint(expr=(
@@ -346,7 +342,7 @@ class IPModelForSwap2bWithInstanceAlterations(IPModelForSwapWithInstanceAlterati
                     )
 
     #################################################
-    # Data extraction from IP solving results - All #
+    # Data extraction from MILP solving results - All #
     #################################################
 
     def _extract_data_from_IP_solving(self):

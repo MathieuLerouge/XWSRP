@@ -1,25 +1,25 @@
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.modeling.task import Task
-from src.explaining.computing.templates.counterfactual.ILP_model.transformation_with_alterations import \
-    IPModelForTransformationWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
+    MILPModelForTransformationWithInstanceAlterations
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
 ##############################################
-# IPModelForInsertionWithInstanceAlterations #
+# MILPModelForInsertionWithInstanceAlterations #
 ##############################################
 
-class IPModelForInsertionWithInstanceAlterations(IPModelForTransformationWithInstanceAlterations):
+class MILPModelForInsertionWithInstanceAlterations(MILPModelForTransformationWithInstanceAlterations):
     """
-    Base IP model to compute explanation content for answering counterfactual question about insertion
+    Base MILP model to compute explanation content for answering counterfactual question about insertion
     """
 
     def __init__(self, sequence: SequenceForHeuristics, task_to_insert: Task,
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
         """
-        Return an IP model for inserting a task in the sequence while allowing instance parameter alterations
+        Return a MILP model for inserting a task in the sequence while allowing instance parameter alterations
 
         :param sequence: the sequence to optimize (SequenceForHeuristics)
         :param task_to_insert: the task to insert (Task)
