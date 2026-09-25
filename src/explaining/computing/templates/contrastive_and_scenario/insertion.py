@@ -221,12 +221,14 @@ class InsertionApplier:
         if employee.is_capable_of_performing(task):
             model = InsertionApplier._build_model_3(solution, employee_name, task_name, solving_time_limit)
             MILPTransformationRunner.solve_or_raise(model)
-            support_solution, conflict, description_of_support_sequence = \
-                extract_support_sequence_and_conflict(solution, employee, task, model)
+            extraction = extract_support_sequence_and_conflict(solution, employee, task, model)
+            support_solution = extraction.support_solution
+            conflict = extraction.conflict
+            route_description = extraction.route_description
         else:
             support_solution = solution.copy(solution.name + "_support")
             conflict = SkillConflict(employee, task)
-            description_of_support_sequence = ""
+            route_description = ""
         descriptions = TransformationDescriptionBuilder.for_inserting_task_in_route(
-            task, employee, description_of_support_sequence)
+            task, employee, route_description)
         return TransformationResult(support_solution, conflict, descriptions)

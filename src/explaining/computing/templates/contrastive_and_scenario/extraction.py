@@ -1,5 +1,5 @@
 # Standard library
-from typing import Optional, Tuple
+from typing import Optional
 
 # Local libraries
 from src.explaining.computing.conflict.conflict import Conflict
@@ -11,9 +11,51 @@ from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
+#############################
+# SupportSequenceExtraction #
+#############################
+
+class SupportSequenceExtraction:
+    """
+    What the three category-3 transformations read off their solved MILP model.
+
+    Not a TransformationResult yet: the route still has to be worded into the sentence each kind of
+    question calls for, which is the one thing the three do differently.
+    """
+
+    def __init__(self, support_solution: EditableSolution, conflict: Optional[Conflict],
+                 route_description: str):
+        """
+        Return what was extracted from a solved model.
+
+        Args:
+            support_solution: The solution the transformation produced.
+            conflict: The conflict standing in the transformation's way, or None when it is feasible.
+            route_description: The support sequence written out as "[Start, T7, T3, Return]".
+        """
+        self._support_solution = support_solution
+        self._conflict = conflict
+        self._route_description = route_description
+
+    @property
+    def support_solution(self) -> EditableSolution:
+        """The solution the transformation produced."""
+        return self._support_solution
+
+    @property
+    def conflict(self) -> Optional[Conflict]:
+        """The conflict standing in the transformation's way, or None when it is feasible."""
+        return self._conflict
+
+    @property
+    def route_description(self) -> str:
+        """The support sequence written out as "[Start, T7, T3, Return]"."""
+        return self._route_description
+
+
 def extract_support_sequence_and_conflict(
         solution: EditableSolution, employee: Employee, task: Task, model: MILPModelForCategory3
-) -> Tuple[EditableSolution, Optional[Conflict], str]:
+) -> SupportSequenceExtraction:
     """
     Extract the support solution, the conflict if any and the support sequence as a text.
 
@@ -27,8 +69,7 @@ def extract_support_sequence_and_conflict(
         model: The solved MILP model used to compute the transformation.
 
     Returns:
-        The support solution, the conflict standing in the transformation's way (None when it is
-        feasible), and the support sequence written out as "[Start, T7, T3, Return]".
+        What the transformation produced, for its caller to word into a sentence.
     """
     # Save whether the transformation is feasible
     transformation_is_skill_feasible = employee.is_capable_of_performing(task)
@@ -54,4 +95,4 @@ def extract_support_sequence_and_conflict(
         )
     support_sequence_activities_names = [step.activity.name for step in support_sequence]
     description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
-    return support_solution, conflict, description_of_support_sequence
+    return SupportSequenceExtraction(support_solution, conflict, description_of_support_sequence)
