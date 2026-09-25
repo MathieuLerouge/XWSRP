@@ -341,9 +341,9 @@ class MILPModelForInsertion2bWithInstanceAlterations(MILPModelForInsertionWithIn
                         ))
                     )
 
-    #################################################
+    ###################################################
     # Data extraction from MILP solving results - All #
-    #################################################
+    ###################################################
 
     def _extract_data_from_IP_solving(self):
         """

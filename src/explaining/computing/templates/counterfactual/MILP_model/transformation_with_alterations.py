@@ -873,9 +873,9 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
             "NoComebackUBAlterationConstraint", pyo.Constraint(expr=(self.var_X_UB_e == 0))
         )
 
-    ######################################################
+    ########################################################
     # Data extraction from MILP solving results - Instance #
-    ######################################################
+    ########################################################
 
     def _extract_support_instance_alterations_from_IP_solving(self):
         """
@@ -926,9 +926,9 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         self._support_instance = EditableInstance.from_Instance(self.instance, name=self.instance.name + "_support")
         self._support_instance.alter(self._support_instance_alterations)
 
-    ######################################################
+    ########################################################
     # Data extraction from MILP solving results - Sequence #
-    ######################################################
+    ########################################################
 
     def _extract_ordered_steps(self):
         """
@@ -993,9 +993,9 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         sequence.compute_times_based_on_fixed_start_times()
         self._sequence_from_IP_solving = sequence
 
-    #################################################
+    ###################################################
     # Data extraction from MILP solving results - All #
-    #################################################
+    ###################################################
 
     def _extract_data_from_IP_solving(self):
         """
@@ -1007,9 +1007,9 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         self._extract_support_instance_from_IP_solving()
         self._extract_sequence_from_IP_solving()
 
-    #################################
+    ###################################
     # Exploiting MILP solving results #
-    #################################
+    ###################################
 
     def _is_task_performed_given_key(self, task_key: str):
         """
