@@ -5,11 +5,11 @@ from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.cate
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.insertion3 import MILPModelForInsertion3
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.reordering3 import MILPModelForReordering3
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.swap3 import MILPModelForSwap3
-from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
+from src.explaining.computing.conflict.conflict import SkillConflict
+from src.explaining.computing.templates.common.conflict_builder import TailoredConflictBuilder
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
-from src.optimization.heuristics.slacks import SlackTimeComputer
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
@@ -48,21 +48,12 @@ def extract_explanation_content_from_MILP_model_results(solution: EditableSoluti
     latest_start_time_for_downstream = model.pivot_task_start_time_for_forward
     conflict = None
     if not transformation_is_feasible:
-        if not transformation_is_skill_feasible:
-            conflict = SkillConflict(employee, task)
-        else:
+        if transformation_is_skill_feasible:
             support_sequence = support_solution.get_sequence(employee)
-            upstream_binding_step_index = \
-                SlackTimeComputer.find_bts_binding_step_index_from(support_sequence, step_index - 1)
-            downstream_binding_step_index = \
-                SlackTimeComputer.find_fts_binding_step_index_from(support_sequence, step_index + 1)
-            upstream_feasible = earliest_start_time_for_upstream + task.duration <= task.end_time_ub
-            downstream_feasible = latest_start_time_for_downstream >= task.start_time_lb
-            conflict = TimeConflict(
-                employee, task, upstream_feasible, downstream_feasible,
-                earliest_start_time_for_upstream, latest_start_time_for_downstream,
-                upstream_binding_step_index, downstream_binding_step_index
-            )
+        conflict = TailoredConflictBuilder.build_from_start_times(
+            employee, task, support_sequence, step_index, transformation_is_skill_feasible,
+            earliest_start_time_for_upstream, latest_start_time_for_downstream
+        )
     support_sequence_activities_names = [step.activity.name for step in support_sequence]
     description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
     # Return explanation content

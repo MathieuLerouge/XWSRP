@@ -1,6 +1,6 @@
 # Local libraries
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
+from src.explaining.computing.templates.common.conflict_builder import TailoredConflictBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditions, \
     EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.result import TransformationResult
@@ -9,7 +9,6 @@ from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.evaluation import InsertionEvaluation, ReplacementEvaluation, ReorderEvaluation
 from src.optimization.heuristics.evaluator import Evaluator
-from src.optimization.heuristics.slacks import SlackTimeComputer
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
@@ -48,21 +47,10 @@ def extract_explanation_content_for_insertion_from_evaluation(solution: Editable
             support_solution.insert_task_after_activity(
                 task, activity, evaluation.start_time, None, None, False, False, True
             )
-        if not evaluation.is_skill_feasible:
-            conflict = SkillConflict(employee, task)
-        else:
-            sequence = support_solution.get_sequence(employee)
-            index = sequence.get_step_index_of(activity) + 1
-            upstream_binding_step_index = \
-                SlackTimeComputer.find_bts_binding_step_index_from(sequence, index - 1)
-            downstream_binding_step_index = \
-                SlackTimeComputer.find_fts_binding_step_index_from(sequence, index + 1)
-            conflict = TimeConflict(
-                employee, task, evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
-                evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
-                upstream_binding_step_index=upstream_binding_step_index,
-                downstream_binding_step_index=downstream_binding_step_index
-            )
+        sequence = support_solution.get_sequence(employee)
+        conflict = TailoredConflictBuilder.build_from_evaluation(
+            employee, task, sequence, sequence.get_step_index_of(activity) + 1, evaluation
+        )
     if activity.name == "Start":
         activity_name_in_english = "Home"
         activity_name_in_french = "Domicile"
@@ -188,21 +176,10 @@ def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolut
             support_solution.replace_task_by_another(
                 leaving_task, replacing_task, evaluation.start_time, None, None, False, False, True
             )
-        if not evaluation.is_skill_feasible:
-            conflict = SkillConflict(employee, replacing_task)
-        else:
-            sequence = support_solution.get_sequence(employee)
-            index = sequence.get_step_index_of(replacing_task)
-            upstream_binding_step_index = \
-                SlackTimeComputer.find_bts_binding_step_index_from(sequence, index - 1)
-            downstream_binding_step_index = \
-                SlackTimeComputer.find_fts_binding_step_index_from(sequence, index + 1)
-            conflict = TimeConflict(
-                employee, replacing_task, evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
-                evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
-                upstream_binding_step_index=upstream_binding_step_index,
-                downstream_binding_step_index=downstream_binding_step_index
-            )
+        sequence = support_solution.get_sequence(employee)
+        conflict = TailoredConflictBuilder.build_from_evaluation(
+            employee, replacing_task, sequence, sequence.get_step_index_of(replacing_task), evaluation
+        )
     applying_transformation_text_in_various_languages = {
         LANGUAGE_ENGLISH_KEY:
             f"replacing {leaving_task.name} from {employee.name}'s planning by {replacing_task.name}",
@@ -334,16 +311,9 @@ def extract_explanation_content_for_reordering_from_evaluation(solution: Editabl
                     False, False
                 )
             support_sequence = support_solution.get_sequence(employee)
-            index = support_sequence.get_step_index_of(moving_task)
-            upstream_binding_step_index = \
-                SlackTimeComputer.find_bts_binding_step_index_from(support_sequence, index - 1)
-            downstream_binding_step_index = \
-                SlackTimeComputer.find_fts_binding_step_index_from(support_sequence, index + 1)
-            conflict = TimeConflict(
-                employee, moving_task, evaluation.is_upstream_feasible, evaluation.is_downstream_feasible,
-                evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
-                upstream_binding_step_index=upstream_binding_step_index,
-                downstream_binding_step_index=downstream_binding_step_index
+            conflict = TailoredConflictBuilder.build_from_evaluation(
+                employee, moving_task, support_sequence,
+                support_sequence.get_step_index_of(moving_task), evaluation
             )
         else:
             raise ValueError("The conflict should only be due to time considerations.")
