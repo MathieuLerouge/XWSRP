@@ -211,11 +211,11 @@ def compute_computation_time_analysis_of_explanations(
     explainer.disable_scenario_explanations()
     if explanations_are_contrastive:
         explainer.disable_counterfactual_explanations()
-        explainer.time_limit_for_contrastive_explanation_ILP_computation = \
+        explainer.time_limit_for_contrastive_explanation_MILP_computation = \
             EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION
     else:
         explainer.enable_counterfactual_explanations()
-        explainer.time_limit_for_counterfactual_explanation_ILP_computation = \
+        explainer.time_limit_for_counterfactual_explanation_MILP_computation = \
             EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION
     explainer.disable_using_already_computed_contrastive_explanations()
     explainer.disable_exporting_automatically_single_contrastive_explanations()

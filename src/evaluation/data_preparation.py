@@ -166,7 +166,7 @@ def check_explanations_negativity(solution: Solution, only_activated_questions_t
 
 def compute_and_export_contrastive_explanations(solution: Solution,
                                                 only_activated_questions_templates_for_evaluation: bool,
-                                                only_ILP_based_computation: bool = False):
+                                                only_MILP_based_computation: bool = False):
     """
     Computes and exports all contrastive explanations about a solution.
     NB: the explanations are exported in the default outputs directory.
@@ -174,8 +174,8 @@ def compute_and_export_contrastive_explanations(solution: Solution,
     :param solution: solution for evaluation which explanations are computed (Solution)
     :param only_activated_questions_templates_for_evaluation: if True, only activated questions templates for evaluation
     are considered (bool)
-    :param only_ILP_based_computation: if True, only questions which explanations computation is based on solving
-    an ILP model are considered (bool)
+    :param only_MILP_based_computation: if True, only questions which explanations computation is based on solving
+    a MILP model are considered (bool)
     :return: None
     """
     explainer = Explainer(solution)
@@ -192,8 +192,9 @@ def compute_and_export_contrastive_explanations(solution: Solution,
     else:
         questions_templates = explainer.activated_questions_templates
     for question_template in questions_templates:
-        if (not only_ILP_based_computation or
-                (only_ILP_based_computation and question_template.id in ILP_BASED_COMPUTATION_QUESTIONS_TEMPLATES_IDS)):
+        if (not only_MILP_based_computation or
+                (only_MILP_based_computation
+                 and question_template.id in MILP_BASED_COMPUTATION_QUESTIONS_TEMPLATES_IDS)):
             if question_template in explainer.activated_questions_templates:
                 print("Computing explanations related to:", question_template.id)
                 all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)

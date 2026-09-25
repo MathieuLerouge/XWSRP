@@ -48,7 +48,7 @@ class Explainer:
         self._history = History(self._root_solution)
         self._current_solution = self._root_solution
         # Contrastive explanations
-        self._time_limit_for_contrastive_explanation_ILP_computation = None
+        self._time_limit_for_contrastive_explanation_MILP_computation = None
         self._contrastive_explanations_inputs_directory_relative_path = DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
         self._contrastive_explanations_outputs_directory_relative_path = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
         self._automatically_exporting_single_contrastive_explanations_is_enabled = False
@@ -63,7 +63,7 @@ class Explainer:
         self._nb_scenario_explanations_asked_by_ids = \
             dict([(id, 0) for id in self._activated_questions_templates.keys()])
         # Counterfactual explanations
-        self._time_limit_for_counterfactual_explanation_ILP_computation = None
+        self._time_limit_for_counterfactual_explanation_MILP_computation = None
         self._counterfactual_explanations_are_enabled = False
         self._last_counterfactual_explanation = None
         self._nb_counterfactual_explanations_asked_by_ids = \
@@ -355,12 +355,12 @@ class Explainer:
     #####################################
 
     @property
-    def time_limit_for_contrastive_explanation_ILP_computation(self):
-        return self._time_limit_for_contrastive_explanation_ILP_computation
+    def time_limit_for_contrastive_explanation_MILP_computation(self):
+        return self._time_limit_for_contrastive_explanation_MILP_computation
 
-    @time_limit_for_contrastive_explanation_ILP_computation.setter
-    def time_limit_for_contrastive_explanation_ILP_computation(self, time_limit: int):
-        self._time_limit_for_contrastive_explanation_ILP_computation = time_limit
+    @time_limit_for_contrastive_explanation_MILP_computation.setter
+    def time_limit_for_contrastive_explanation_MILP_computation(self, time_limit: int):
+        self._time_limit_for_contrastive_explanation_MILP_computation = time_limit
 
     def _create_contrastive_question(self, question_template_id: str, fields_values: list[str]):
         if question_template_id not in self._activated_questions_templates:
@@ -371,7 +371,7 @@ class Explainer:
         contrastive_support_solution, conflict, all_descriptions_of_applied_transformation = \
             apply_transformation_induced_by_contrastive_or_scenario_question(
                 self.current_solution, contrastive_question,
-                self.time_limit_for_contrastive_explanation_ILP_computation
+                self.time_limit_for_contrastive_explanation_MILP_computation
             )
         contrastive_explanation = create_explanation(contrastive_question, contrastive_support_solution,
                                                      conflict, all_descriptions_of_applied_transformation)
@@ -500,12 +500,12 @@ class Explainer:
     ##############################
 
     @property
-    def time_limit_for_counterfactual_explanation_ILP_computation(self):
-        return self._time_limit_for_counterfactual_explanation_ILP_computation
+    def time_limit_for_counterfactual_explanation_MILP_computation(self):
+        return self._time_limit_for_counterfactual_explanation_MILP_computation
 
-    @time_limit_for_counterfactual_explanation_ILP_computation.setter
-    def time_limit_for_counterfactual_explanation_ILP_computation(self, time_limit: int):
-        self._time_limit_for_counterfactual_explanation_ILP_computation = time_limit
+    @time_limit_for_counterfactual_explanation_MILP_computation.setter
+    def time_limit_for_counterfactual_explanation_MILP_computation(self, time_limit: int):
+        self._time_limit_for_counterfactual_explanation_MILP_computation = time_limit
 
     @property
     def activated_counterfactual_questions_templates_ids(self):
@@ -549,7 +549,7 @@ class Explainer:
              description_of_applied_transformation, instance_alterations) = \
                 apply_transformation_induced_by_counterfactual_question(
                     counterfactual_solution, counterfactual_question,
-                    self.time_limit_for_counterfactual_explanation_ILP_computation
+                    self.time_limit_for_counterfactual_explanation_MILP_computation
                 )
             counterfactual_explanation = \
                 create_explanation(counterfactual_question, counterfactual_support_solution, conflict,
