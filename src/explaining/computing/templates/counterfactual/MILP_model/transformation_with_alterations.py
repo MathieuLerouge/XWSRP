@@ -118,7 +118,7 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         :return: the backward start time of the pivot task (int)
         """
         if self.has_solution_sequence:
-            return pyo.value(self.var_T_backward)
+            return round(pyo.value(self.var_T_backward))
         else:
             raise AttributeError("There is no solution sequence stored")
 
@@ -130,7 +130,7 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         :return: the forward start time of the pivot task (int)
         """
         if self.has_solution_sequence:
-            return pyo.value(self.var_T_forward)
+            return round(pyo.value(self.var_T_forward))
         else:
             raise AttributeError("There is no solution sequence stored")
 

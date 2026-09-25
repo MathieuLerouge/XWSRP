@@ -1696,8 +1696,8 @@
         "type": "time",
         "upstream feasible": 0,
         "downstream feasible": 1,
-        "early start time": 827.0,
-        "late start time": 767.0,
+        "early start time": 827,
+        "late start time": 767,
         "upstream critical index": 3,
         "downstream critical index": 6
       },
@@ -1773,8 +1773,8 @@
         "type": "time",
         "upstream feasible": 1,
         "downstream feasible": 0,
-        "early start time": 570.0,
-        "late start time": 529.0,
+        "early start time": 570,
+        "late start time": 529,
         "upstream critical index": 0,
         "downstream critical index": 3
       },
@@ -1917,8 +1917,8 @@
         "type": "time",
         "upstream feasible": 1,
         "downstream feasible": 0,
-        "early start time": 557.0,
-        "late start time": 523.0,
+        "early start time": 557,
+        "late start time": 523,
         "upstream critical index": 0,
         "downstream critical index": 6
       },
