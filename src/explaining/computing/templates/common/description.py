@@ -10,11 +10,11 @@ from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 HOME_NAMES = {LANGUAGE_ENGLISH_KEY: "Home", LANGUAGE_FRENCH_KEY: "Domicile"}
 
 
-##############################
-# TransformationDescriptions #
-##############################
+####################################
+# TransformationDescriptionBuilder #
+####################################
 
-class TransformationDescriptions:
+class TransformationDescriptionBuilder:
     """
     Builds the sentence describing an applied transformation, in each of the languages explanations are given in.
 
@@ -23,6 +23,10 @@ class TransformationDescriptions:
     The other two name a route's departure and come-back steps as the employee's home,
     which the sentences spelling out a route are built from.
     """
+
+    #####################
+    # Route description #
+    #####################
 
     @staticmethod
     def rename_route_ends_into_home_steps(route_description: str, language_key: str) -> str:
@@ -42,12 +46,16 @@ class TransformationDescriptions:
     @staticmethod
     def write_route_by_language(route_description: str) -> dict[str, str]:
         """Return the route description with its ends named as home, keyed by language."""
-        return {language_key: TransformationDescriptions.rename_route_ends_into_home_steps(
+        return {language_key: TransformationDescriptionBuilder.rename_route_ends_into_home_steps(
                     route_description, language_key)
                 for language_key in (LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY)}
 
+    #############
+    # Insertion #
+    #############
+
     @staticmethod
-    def for_insertion_after_activity(task: Task, activity: Activity, employee: Employee) -> dict[str, str]:
+    def for_inserting_task_after_activity(task: Task, activity: Activity, employee: Employee) -> dict[str, str]:
         """
         Describe inserting the task right after the given activity of the employee's planning.
 
@@ -72,7 +80,34 @@ class TransformationDescriptions:
         }
 
     @staticmethod
-    def for_swap(leaving_task: Task, replacing_task: Task, employee: Employee) -> dict[str, str]:
+    def for_inserting_task_in_route(task: Task, employee: Employee, route_description: str) -> dict[str, str]:
+        """
+        Describe adding a task to the employee's planning, spelling out the route it takes to fit in.
+
+        Args:
+            task: The added task.
+            employee: The employee whose planning is changed.
+            route_description: The route the transformation settled on.
+
+        Returns:
+            The sentence keyed by language.
+        """
+        routes = TransformationDescriptionBuilder.write_route_by_language(route_description)
+        return {
+            LANGUAGE_ENGLISH_KEY:
+                f"adding {task.name} in {employee.name}'s planning "
+                f"according to the following route {routes[LANGUAGE_ENGLISH_KEY]}",
+            LANGUAGE_FRENCH_KEY:
+                f"ajoutant {task.name} dans le planning de {employee.name} "
+                f"selon la route suivante {routes[LANGUAGE_FRENCH_KEY]}"
+        }
+
+    #############
+    # Replacing #
+    #############
+
+    @staticmethod
+    def for_replacing_task_with_another(leaving_task: Task, replacing_task: Task, employee: Employee) -> dict[str, str]:
         """
         Describe replacing one task of the employee's planning with another, leaving the route's order alone.
 
@@ -92,7 +127,36 @@ class TransformationDescriptions:
         }
 
     @staticmethod
-    def for_move_after(moving_task: Task, fixed_task: Task, employee: Employee) -> dict[str, str]:
+    def for_replacing_task_in_route(replaced_task: Task, replacing_task: Task, employee: Employee,
+                                    route_description: str) -> dict[str, str]:
+        """
+        Describe replacing one task of the employee's planning with another, spelling out the resulting route.
+
+        Args:
+            replaced_task: The task dropped from the planning.
+            replacing_task: The task taking its place.
+            employee: The employee whose planning is changed.
+            route_description: The route the transformation settled on.
+
+        Returns:
+            The sentence keyed by language.
+        """
+        routes = TransformationDescriptionBuilder.write_route_by_language(route_description)
+        return {
+            LANGUAGE_ENGLISH_KEY:
+                f"replacing {replaced_task.name} with {replacing_task.name} "
+                f"in {employee.name}'s planning according to the following route {routes[LANGUAGE_ENGLISH_KEY]}",
+            LANGUAGE_FRENCH_KEY:
+                f"remplaçant {replaced_task.name} par {replacing_task.name} "
+                f"dans le planning de {employee.name} selon la route suivante {routes[LANGUAGE_FRENCH_KEY]}"
+        }
+
+    #################
+    # Repositioning #
+    #################
+
+    @staticmethod
+    def for_repositioning_after(moving_task: Task, fixed_task: Task, employee: Employee) -> dict[str, str]:
         """
         Describe moving a task later in the employee's planning, to just after a task that stays put.
 
@@ -112,7 +176,7 @@ class TransformationDescriptions:
         }
 
     @staticmethod
-    def for_move_before(moving_task: Task, fixed_task: Task, employee: Employee) -> dict[str, str]:
+    def for_repositioning_before(moving_task: Task, fixed_task: Task, employee: Employee) -> dict[str, str]:
         """
         Describe moving a task earlier in the employee's planning, to just before a task that stays put.
 
@@ -132,77 +196,32 @@ class TransformationDescriptions:
         }
 
     @staticmethod
-    def for_insertion_route(task: Task, employee: Employee, route_description: str) -> dict[str, str]:
+    def for_repositioning_task_in_route(moving_task: Task, employee: Employee,
+                                        route_description: str) -> dict[str, str]:
         """
-        Describe adding a task to the employee's planning, spelling out the route it takes to fit in.
+        Describe moving one task within the employee's planning, spelling out the resulting route.
 
         Args:
-            task: The added task.
+            moving_task: The task being moved.
             employee: The employee whose planning is changed.
             route_description: The route the transformation settled on.
 
         Returns:
             The sentence keyed by language.
         """
-        routes = TransformationDescriptions.write_route_by_language(route_description)
+        routes = TransformationDescriptionBuilder.write_route_by_language(route_description)
         return {
             LANGUAGE_ENGLISH_KEY:
-                f"adding {task.name} in {employee.name}'s planning "
+                f"moving {moving_task.name} in {employee.name}'s planning "
                 f"according to the following route {routes[LANGUAGE_ENGLISH_KEY]}",
             LANGUAGE_FRENCH_KEY:
-                f"ajoutant {task.name} dans le planning de {employee.name} "
+                f"déplaçant {moving_task.name} dans le planning de {employee.name} "
                 f"selon la route suivante {routes[LANGUAGE_FRENCH_KEY]}"
         }
 
-    @staticmethod
-    def for_swap_and_rerouting(leaving_task: Task, replacing_task: Task, employee: Employee,
-                               route_description: str) -> dict[str, str]:
-        """
-        Describe swapping a task of the employee's planning and rerouting around it.
-
-        Args:
-            leaving_task: The task dropped from the planning.
-            replacing_task: The task taking its place.
-            employee: The employee whose planning is changed.
-            route_description: The route the transformation settled on.
-
-        Returns:
-            The sentence keyed by language.
-        """
-        routes = TransformationDescriptions.write_route_by_language(route_description)
-        return {
-            LANGUAGE_ENGLISH_KEY:
-                f"replacing {leaving_task.name} by {replacing_task.name} in {employee.name}'s "
-                f"and applying the following route {routes[LANGUAGE_ENGLISH_KEY]}",
-            LANGUAGE_FRENCH_KEY:
-                f"remplaçant {leaving_task.name} par {replacing_task.name} dans le planning de {employee.name} "
-                f"et en appliquant l'itinéraire suivant {routes[LANGUAGE_FRENCH_KEY]}"
-        }
-
-    @staticmethod
-    def for_swap_route(replaced_task: Task, replacing_task: Task, employee: Employee,
-                       route_description: str) -> dict[str, str]:
-        """
-        Describe replacing one task of the employee's planning with another, spelling out the resulting route.
-
-        Args:
-            replaced_task: The task dropped from the planning.
-            replacing_task: The task taking its place.
-            employee: The employee whose planning is changed.
-            route_description: The route the transformation settled on.
-
-        Returns:
-            The sentence keyed by language.
-        """
-        routes = TransformationDescriptions.write_route_by_language(route_description)
-        return {
-            LANGUAGE_ENGLISH_KEY:
-                f"replacing {replaced_task.name} with {replacing_task.name} "
-                f"in {employee.name}'s planning according to the following route {routes[LANGUAGE_ENGLISH_KEY]}",
-            LANGUAGE_FRENCH_KEY:
-                f"remplaçant {replaced_task.name} par {replacing_task.name} "
-                f"dans le planning de {employee.name} selon la route suivante {routes[LANGUAGE_FRENCH_KEY]}"
-        }
+    ##############
+    # Reordering #
+    ##############
 
     @staticmethod
     def for_reordering_route(employee: Employee, route_description: str) -> dict[str, str]:
@@ -216,7 +235,7 @@ class TransformationDescriptions:
         Returns:
             The sentence keyed by language.
         """
-        routes = TransformationDescriptions.write_route_by_language(route_description)
+        routes = TransformationDescriptionBuilder.write_route_by_language(route_description)
         return {
             LANGUAGE_ENGLISH_KEY:
                 f"reordering {employee.name}'s route into the following route {routes[LANGUAGE_ENGLISH_KEY]}",
@@ -224,28 +243,9 @@ class TransformationDescriptions:
                 f"réordonnant l'itinéraire de {employee.name} en l'itinéraire suivant {routes[LANGUAGE_FRENCH_KEY]}"
         }
 
-    @staticmethod
-    def for_task_moving_route(moving_task: Task, employee: Employee, route_description: str) -> dict[str, str]:
-        """
-        Describe moving one task within the employee's planning, spelling out the resulting route.
-
-        Args:
-            moving_task: The task being moved.
-            employee: The employee whose planning is changed.
-            route_description: The route the transformation settled on.
-
-        Returns:
-            The sentence keyed by language.
-        """
-        routes = TransformationDescriptions.write_route_by_language(route_description)
-        return {
-            LANGUAGE_ENGLISH_KEY:
-                f"moving {moving_task.name} in {employee.name}'s planning "
-                f"according to the following route {routes[LANGUAGE_ENGLISH_KEY]}",
-            LANGUAGE_FRENCH_KEY:
-                f"déplaçant {moving_task.name} dans le planning de {employee.name} "
-                f"selon la route suivante {routes[LANGUAGE_FRENCH_KEY]}"
-        }
+    ########
+    # None #
+    ########
 
     @staticmethod
     def none() -> dict[str, str]:

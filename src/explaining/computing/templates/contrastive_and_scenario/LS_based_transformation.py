@@ -1,9 +1,9 @@
 # Local libraries
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.computing.templates.common.conflict_builder import TailoredConflictBuilder
-from src.explaining.computing.templates.common.preconditions import TransformationPreconditions, \
+from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
+from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
     EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
-from src.explaining.computing.templates.common.description import TransformationDescriptions
+from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
@@ -51,7 +51,7 @@ def build_transformation_result_for_insertion(solution: EditableSolution, employ
         conflict = TailoredConflictBuilder.build_from_evaluation(
             employee, task, sequence, sequence.get_step_index_of(activity) + 1, evaluation
         )
-    descriptions = TransformationDescriptions.for_insertion_after_activity(task, activity, employee)
+    descriptions = TransformationDescriptionBuilder.for_inserting_task_after_activity(task, activity, employee)
     return TransformationResult(support_solution, conflict, descriptions)
 
 
@@ -102,7 +102,7 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
     :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
-    performable_non_performed_tasks = TransformationPreconditions.get_performable_non_performed_tasks(
+    performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
         solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
     )
     evaluation = Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
@@ -168,7 +168,8 @@ def build_transformation_result_for_swap(solution: EditableSolution, employee: E
         conflict = TailoredConflictBuilder.build_from_evaluation(
             employee, replacing_task, sequence, sequence.get_step_index_of(replacing_task), evaluation
         )
-    descriptions = TransformationDescriptions.for_swap(leaving_task, replacing_task, employee)
+    descriptions = TransformationDescriptionBuilder.for_replacing_task_with_another(
+        leaving_task, replacing_task, employee)
     return TransformationResult(support_solution, conflict, descriptions)
 
 
@@ -219,7 +220,7 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
     :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
-    performable_non_performed_tasks = TransformationPreconditions.get_performable_non_performed_tasks(
+    performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
         solution, employee, EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
     )
     evaluation = Evaluator.find_best_replacement_among_sets(
@@ -300,9 +301,9 @@ def build_transformation_result_for_reordering(solution: EditableSolution, emplo
         else:
             raise ValueError("The conflict should only be due to time considerations.")
     if is_moving_task_1_after_task_2:
-        descriptions = TransformationDescriptions.for_move_after(moving_task, fixed_task, employee)
+        descriptions = TransformationDescriptionBuilder.for_repositioning_after(moving_task, fixed_task, employee)
     else:
-        descriptions = TransformationDescriptions.for_move_before(moving_task, fixed_task, employee)
+        descriptions = TransformationDescriptionBuilder.for_repositioning_before(moving_task, fixed_task, employee)
     return TransformationResult(support_solution, conflict, descriptions)
 
 

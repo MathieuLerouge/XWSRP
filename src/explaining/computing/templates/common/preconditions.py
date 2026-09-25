@@ -14,11 +14,11 @@ NO_PERFORMABLE_NON_PERFORMED_TASK_MESSAGE = "All the non-performed task are too 
 SEQUENCE_IS_TOO_SHORT_TO_REORDER_MESSAGE = "Reordering a sequence with 3 activities or fewer is impossible"
 
 
-###############################
-# TransformationPreconditions #
-###############################
+#####################################
+# TransformationPreconditionChecker #
+#####################################
 
-class TransformationPreconditions:
+class TransformationPreconditionChecker:
     """
     Checks the conditions a solution must meet for a transformation to be applicable at all.
     """

@@ -4,11 +4,11 @@ from typing import Callable
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.computing.templates.common.conflict_builder import TailoredConflictBuilder
-from src.explaining.computing.templates.common.preconditions import TransformationPreconditions, \
+from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
+from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
     EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
-from src.explaining.computing.templates.common.description import TransformationDescriptions
+from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
     MILPModelForTransformationWithInstanceAlterations
@@ -45,20 +45,33 @@ from src.modeling.employee import Employee
 def describe_insertion(model: MILPModelForInsertionWithInstanceAlterations, employee: Employee,
                        route_description: str) -> dict[str, str]:
     """Describe the insertion the given model computed, in every language."""
-    return TransformationDescriptions.for_insertion_route(model.task_to_insert, employee, route_description)
+    return TransformationDescriptionBuilder.for_inserting_task_in_route(
+        model.task_to_insert, employee, route_description)
 
 
 def describe_swap(model: MILPModelForSwapWithInstanceAlterations, employee: Employee,
                   route_description: str) -> dict[str, str]:
     """Describe the swap the given model computed, in every language."""
-    return TransformationDescriptions.for_swap_route(
+    return TransformationDescriptionBuilder.for_replacing_task_in_route(
         model.replaced_task, model.replacing_task, employee, route_description)
+
+
+def describe_task_repositioning(model: MILPModelForReorderingWithInstanceAlterations, employee: Employee,
+                                route_description: str) -> dict[str, str]:
+    """Describe the repositioning of the model's moving task, in every language."""
+    return TransformationDescriptionBuilder.for_repositioning_task_in_route(
+        model.moving_task, employee, route_description)
 
 
 def describe_reordering(model: MILPModelForReorderingWithInstanceAlterations, employee: Employee,
                         route_description: str) -> dict[str, str]:
-    """Describe the reordering the given model computed, in every language."""
-    return TransformationDescriptions.for_task_moving_route(model.moving_task, employee, route_description)
+    """
+    Describe the reordering of the whole route, in every language.
+
+    NB: The model is not read. (Ord,3) asks for another order without naming a task, so the sentence names
+    none either, even though the model did pick a pivot task of its own to reorder around.
+    """
+    return TransformationDescriptionBuilder.for_reordering_route(employee, route_description)
 
 
 def build_transformation_result_from_milp_model(
@@ -178,7 +191,7 @@ def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
-    performable_non_performed_tasks = TransformationPreconditions.get_performable_non_performed_tasks(
+    performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
         solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
     )
     model = MILPModelForInsertion2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
@@ -275,7 +288,7 @@ def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
-    performable_non_performed_tasks = TransformationPreconditions.get_performable_non_performed_tasks(
+    performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
         solution, employee, EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
     )
     model = MILPModelForSwap2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
@@ -333,7 +346,7 @@ def apply_ctf_ord_1a(solution: EditableSolution, employee_name: str, task1_name:
     model = MILPModelForReordering1aWithInstanceAlterations(sequence, moving_task, fixed_task,
                                                             instance_parameter_alteration_bounds, solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
+    return build_transformation_result_from_milp_model(solution, model, describe_task_repositioning)
 
 
 def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name: str, task2_name: str,
@@ -358,7 +371,7 @@ def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name:
     model = MILPModelForReordering1bWithInstanceAlterations(sequence, moving_task, fixed_task,
                                                             instance_parameter_alteration_bounds, solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
+    return build_transformation_result_from_milp_model(solution, model, describe_task_repositioning)
 
 
 def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: str,
@@ -376,12 +389,12 @@ def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: 
     :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
-    TransformationPreconditions.check_sequence_is_reorderable(sequence)
+    TransformationPreconditionChecker.check_sequence_is_reorderable(sequence)
     moving_task = solution.instance.get_task_by_name(task_name)
     model = MILPModelForReordering2aWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                             solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
+    return build_transformation_result_from_milp_model(solution, model, describe_task_repositioning)
 
 
 def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: str,
@@ -399,12 +412,12 @@ def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: 
     :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
-    TransformationPreconditions.check_sequence_is_reorderable(sequence)
+    TransformationPreconditionChecker.check_sequence_is_reorderable(sequence)
     moving_task = solution.instance.get_task_by_name(task_name)
     model = MILPModelForReordering2bWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                             solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
+    return build_transformation_result_from_milp_model(solution, model, describe_task_repositioning)
 
 
 def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: str,
@@ -422,12 +435,12 @@ def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: 
     :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
-    TransformationPreconditions.check_sequence_is_reorderable(sequence)
+    TransformationPreconditionChecker.check_sequence_is_reorderable(sequence)
     moving_task = solution.instance.get_task_by_name(task_name)
     model = MILPModelForReordering2cWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                             solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
+    return build_transformation_result_from_milp_model(solution, model, describe_task_repositioning)
 
 
 def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
@@ -444,7 +457,7 @@ def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
     :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
-    TransformationPreconditions.check_sequence_is_reorderable(sequence)
+    TransformationPreconditionChecker.check_sequence_is_reorderable(sequence)
     model = MILPModelForReordering3WithInstanceAlterations(sequence, instance_parameter_alteration_bounds,
                                                            solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)

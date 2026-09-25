@@ -1,13 +1,13 @@
 # Local libraries
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.computing.templates.common.description import TransformationDescriptions
+from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.category3 import MILPModelForCategory3
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.insertion3 import MILPModelForInsertion3
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.reordering3 import MILPModelForReordering3
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.swap3 import MILPModelForSwap3
 from src.explaining.computing.conflict.conflict import SkillConflict
-from src.explaining.computing.templates.common.conflict_builder import TailoredConflictBuilder
+from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
@@ -90,7 +90,8 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
         support_solution = solution.copy(solution.name + "_support")
         conflict = SkillConflict(employee, task)
         description_of_support_sequence = ""
-    descriptions = TransformationDescriptions.for_insertion_route(task, employee, description_of_support_sequence)
+    descriptions = TransformationDescriptionBuilder.for_inserting_task_in_route(
+        task, employee, description_of_support_sequence)
     return TransformationResult(support_solution, conflict, descriptions)
 
 
@@ -121,13 +122,13 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
         support_solution, conflict, description_of_support_sequence = \
             extract_support_sequence_and_conflict(solution, employee, task, model)
         leaving_task = model.leaving_task
-        descriptions = TransformationDescriptions.for_swap_and_rerouting(
+        descriptions = TransformationDescriptionBuilder.for_replacing_task_in_route(
             leaving_task, task, employee, description_of_support_sequence
         )
     else:
         support_solution = solution.copy(solution.name + "_support")
         conflict = SkillConflict(employee, task)
-        descriptions = TransformationDescriptions.none()
+        descriptions = TransformationDescriptionBuilder.none()
     return TransformationResult(support_solution, conflict, descriptions)
 
 
@@ -154,5 +155,5 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
     pivot_task = model.pivot_task
     support_solution, conflict, description_of_support_sequence = \
         extract_support_sequence_and_conflict(solution, employee, pivot_task, model)
-    descriptions = TransformationDescriptions.for_reordering_route(employee, description_of_support_sequence)
+    descriptions = TransformationDescriptionBuilder.for_reordering_route(employee, description_of_support_sequence)
     return TransformationResult(support_solution, conflict, descriptions)

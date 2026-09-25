@@ -654,8 +654,8 @@
     "swp_3": {
       "conflict": null,
       "descriptions": {
-        "EN": "replacing T26 by T27 in Ellen's and applying the following route [Home, T7, T30, T8, T27, T17, T1, T3, Home]",
-        "FR": "remplaçant T26 par T27 dans le planning de Ellen et en appliquant l'itinéraire suivant [Domicile, T7, T30, T8, T27, T17, T1, T3, Domicile]"
+        "EN": "replacing T26 with T27 in Ellen's planning according to the following route [Home, T7, T30, T8, T27, T17, T1, T3, Home]",
+        "FR": "remplaçant T26 par T27 dans le planning de Ellen selon la route suivante [Domicile, T7, T30, T8, T27, T17, T1, T3, Domicile]"
       },
       "routes": {
         "Ellen": [
@@ -2054,8 +2054,8 @@
     "ord_3": {
       "conflict": null,
       "descriptions": {
-        "EN": "moving T23 in Carlotta's planning according to the following route [Home, T5, T2, T23, Home]",
-        "FR": "déplaçant T23 dans le planning de Carlotta selon la route suivante [Domicile, T5, T2, T23, Domicile]"
+        "EN": "reordering Carlotta's route into the following route [Home, T5, T2, T23, Home]",
+        "FR": "réordonnant l'itinéraire de Carlotta en l'itinéraire suivant [Domicile, T5, T2, T23, Domicile]"
       },
       "routes": {
         "Ellen": [
