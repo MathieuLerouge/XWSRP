@@ -26,6 +26,7 @@ from src.modeling.solution import Solution
 # rather than surfacing a confusing error from deep inside instructor/the provider SDK on the first extract() call.
 _PROVIDER_API_KEY_ENV_VARS = {
     "anthropic": "ANTHROPIC_API_KEY",
+    "mistral": "MISTRAL_API_KEY",
 }
 
 
