@@ -19,6 +19,8 @@ class MILPModelForReorderingWithInstanceAlterations(MILPModelForTransformationWi
     Base MILP model to compute explanation content for answering counterfactual question about reordering
     """
 
+    _pivot_task_is_new_to_employee = False
+
     def __init__(self, sequence: SequenceForHeuristics, moving_task: Task,
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):

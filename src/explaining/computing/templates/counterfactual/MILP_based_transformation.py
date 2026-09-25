@@ -1,3 +1,6 @@
+# Standard library
+from typing import Callable
+
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
@@ -32,53 +35,61 @@ from src.explaining.computing.templates.counterfactual.MILP_model.reordering2 im
     MILPModelForReordering2cWithInstanceAlterations
 from src.explaining.computing.templates.counterfactual.MILP_model.reordering3 import \
     MILPModelForReordering3WithInstanceAlterations
+from src.modeling.employee import Employee
 
 
-###################################################################################
-# All kinds of transformation - Extraction of explanation content from MILP model #
-###################################################################################
+###############################
+# All kinds of transformation #
+###############################
 
-def extract_explanation_content_from_MILP_model_results(solution: EditableSolution,
-                                                        model: MILPModelForTransformationWithInstanceAlterations):
+def describe_insertion(model: MILPModelForInsertionWithInstanceAlterations, employee: Employee,
+                       route_description: str) -> dict[str, str]:
+    """Describe the insertion the given model computed, in every language."""
+    return TransformationDescriptions.for_insertion_route(model.task_to_insert, employee, route_description)
+
+
+def describe_swap(model: MILPModelForSwapWithInstanceAlterations, employee: Employee,
+                  route_description: str) -> dict[str, str]:
+    """Describe the swap the given model computed, in every language."""
+    return TransformationDescriptions.for_swap_route(
+        model.replaced_task, model.replacing_task, employee, route_description)
+
+
+def describe_reordering(model: MILPModelForReorderingWithInstanceAlterations, employee: Employee,
+                        route_description: str) -> dict[str, str]:
+    """Describe the reordering the given model computed, in every language."""
+    return TransformationDescriptions.for_task_moving_route(model.moving_task, employee, route_description)
+
+
+def build_transformation_result_from_milp_model(
+        solution: EditableSolution, model: MILPModelForTransformationWithInstanceAlterations,
+        describe: Callable[[MILPModelForTransformationWithInstanceAlterations, Employee, str], dict[str, str]]
+) -> TransformationResult:
     """
-    Extract useful content for the explanation to build,
-    from the results of the MILP model used to compute the transformation
+    Build the result of the transformation,
+    from the results of the MILP model used to compute it
 
     :param solution: the solution to explain (EditableSolution)
     :param model: the MILP model used to compute the transformation (MILPModelForTransformationWithInstanceAlterations)
+    :param describe: the function wording the transformation the model computed (Callable)
     :return: the result of the applied transformation (TransformationResult)
     """
     # Define key employee and task
+    if model.pivot_task_is_new_to_employee is None:
+        raise ValueError(f"Unknown MILP model type {type(model)}: it does not say whether the employee "
+                         f"is being handed a task they do not already perform")
     key_employee = model.support_sequence.employee
-    if isinstance(model, MILPModelForInsertionWithInstanceAlterations):
-        key_task = model.task_to_insert
-        earliest_start_time_for_upstream = model.task_to_insert_start_time_for_backward
-        latest_start_time_for_downstream = model.task_to_insert_start_time_for_forward
-    elif isinstance(model, MILPModelForSwapWithInstanceAlterations):
-        key_task = model.replacing_task
-        earliest_start_time_for_upstream = model.replacing_task_start_time_for_backward
-        latest_start_time_for_downstream = model.replacing_task_start_time_for_forward
-    elif isinstance(model, MILPModelForReorderingWithInstanceAlterations):
-        key_task = model.moving_task
-        earliest_start_time_for_upstream = model.moving_task_start_time_for_backward
-        latest_start_time_for_downstream = model.moving_task_start_time_for_forward
-    else:
-        raise ValueError("Unknown MILP model type")
+    key_task = model.pivot_task
     # Save whether the transformation is feasible
-    if (isinstance(model, MILPModelForInsertionWithInstanceAlterations) or
-            isinstance(model, MILPModelForSwapWithInstanceAlterations)):
-        transformation_is_skill_feasible = key_employee.is_capable_of_performing(key_task)
-    else:
-        transformation_is_skill_feasible = True
+    transformation_is_skill_feasible = (not model.pivot_task_is_new_to_employee
+                                        or key_employee.is_capable_of_performing(key_task))
     transformation_is_feasible = transformation_is_skill_feasible and model.is_support_sequence_feasible
     # Build support instance and support solution
     support_solution = solution.copy(solution.name + "_support")
     support_solution.instance = model.support_instance
     support_sequence = model.support_sequence
-    if (isinstance(model, MILPModelForInsertionWithInstanceAlterations) or
-            isinstance(model, MILPModelForSwapWithInstanceAlterations)):
-        if support_solution.get_task_performance_status(key_task):
-            support_solution.remove_task(key_task, transformation_is_feasible, transformation_is_feasible)
+    if model.pivot_task_is_new_to_employee and support_solution.get_task_performance_status(key_task):
+        support_solution.remove_task(key_task, transformation_is_feasible, transformation_is_feasible)
     if transformation_is_feasible:
         support_sequence.compute_kpis()
     support_solution.replace_sequence_by_another(key_employee, support_sequence, transformation_is_feasible)
@@ -89,27 +100,13 @@ def extract_explanation_content_from_MILP_model_results(solution: EditableSoluti
         conflict = TailoredConflictBuilder.build_from_start_times(
             key_employee, key_task, support_solution.get_sequence(key_employee), step_index,
             transformation_is_skill_feasible,
-            earliest_start_time_for_upstream, latest_start_time_for_downstream
+            model.pivot_task_start_time_for_backward, model.pivot_task_start_time_for_forward
         )
     # Create description of applied transformation
     support_sequence_activities_names = [step.activity.name for step in support_sequence]
     description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
-    if isinstance(model, MILPModelForInsertionWithInstanceAlterations):
-        descriptions = TransformationDescriptions.for_insertion_route(
-            model.task_to_insert, key_employee, description_of_support_sequence
-        )
-    elif isinstance(model, MILPModelForSwapWithInstanceAlterations):
-        descriptions = TransformationDescriptions.for_swap_route(
-            model.replaced_task, model.replacing_task, key_employee, description_of_support_sequence
-        )
-    elif isinstance(model, MILPModelForReorderingWithInstanceAlterations):
-        descriptions = TransformationDescriptions.for_task_moving_route(
-            model.moving_task, key_employee, description_of_support_sequence
-        )
-    else:
-        raise NotImplementedError(f"text not implemented for MILP model type {type(model)}")
-    return TransformationResult(support_solution, conflict, descriptions,
-                                model.support_instance_alterations)
+    descriptions = describe(model, key_employee, description_of_support_sequence)
+    return TransformationResult(support_solution, conflict, descriptions, model.support_instance_alterations)
 
 
 ############################
@@ -138,7 +135,7 @@ def apply_ctf_ins_1(solution: EditableSolution, employee_name: str, task_name: s
     model = MILPModelForInsertion1WithInstanceAlterations(sequence, task, activity,
                                                           instance_parameter_alteration_bounds, solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_insertion)
 
 
 def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: str,
@@ -162,7 +159,7 @@ def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: 
     model = MILPModelForInsertion2aWithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
                                                            solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_insertion)
 
 
 def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
@@ -188,7 +185,7 @@ def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
                                                            instance_parameter_alteration_bounds,
                                                            solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_insertion)
 
 
 def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: str,
@@ -210,7 +207,7 @@ def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: s
     model = MILPModelForInsertion3WithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
                                                           solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_insertion)
 
 
 #######################
@@ -238,7 +235,7 @@ def apply_ctf_swp_1(solution: EditableSolution, employee_name: str, task1_name: 
     model = MILPModelForSwap1WithInstanceAlterations(sequence, replacing_task, replaced_task,
                                                      instance_parameter_alteration_bounds, solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_swap)
 
 
 def apply_ctf_swp_2a(solution: EditableSolution, employee_name: str, task_name: str,
@@ -260,7 +257,7 @@ def apply_ctf_swp_2a(solution: EditableSolution, employee_name: str, task_name: 
     model = MILPModelForSwap2aWithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
                                                       solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_swap)
 
 
 def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
@@ -285,7 +282,7 @@ def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
                                                       instance_parameter_alteration_bounds,
                                                       solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_swap)
 
 
 def apply_ctf_swp_3(solution: EditableSolution, employee_name: str, task_name: str,
@@ -307,7 +304,7 @@ def apply_ctf_swp_3(solution: EditableSolution, employee_name: str, task_name: s
     model = MILPModelForSwap3WithInstanceAlterations(sequence, replacing_task, instance_parameter_alteration_bounds,
                                                      solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_swap)
 
 
 #############################
@@ -336,7 +333,7 @@ def apply_ctf_ord_1a(solution: EditableSolution, employee_name: str, task1_name:
     model = MILPModelForReordering1aWithInstanceAlterations(sequence, moving_task, fixed_task,
                                                             instance_parameter_alteration_bounds, solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
 
 
 def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name: str, task2_name: str,
@@ -361,7 +358,7 @@ def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name:
     model = MILPModelForReordering1bWithInstanceAlterations(sequence, moving_task, fixed_task,
                                                             instance_parameter_alteration_bounds, solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
 
 
 def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: str,
@@ -384,7 +381,7 @@ def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: 
     model = MILPModelForReordering2aWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                             solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
 
 
 def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: str,
@@ -407,7 +404,7 @@ def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: 
     model = MILPModelForReordering2bWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                             solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
 
 
 def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: str,
@@ -430,7 +427,7 @@ def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: 
     model = MILPModelForReordering2cWithInstanceAlterations(sequence, moving_task, instance_parameter_alteration_bounds,
                                                             solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_reordering)
 
 
 def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
@@ -451,4 +448,4 @@ def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
     model = MILPModelForReordering3WithInstanceAlterations(sequence, instance_parameter_alteration_bounds,
                                                            solving_time_limit)
     MILPTransformationRunner.solve_or_raise(model)
-    return extract_explanation_content_from_MILP_model_results(solution, model)
+    return build_transformation_result_from_milp_model(solution, model, describe_reordering)

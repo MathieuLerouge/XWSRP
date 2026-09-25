@@ -16,11 +16,11 @@ from src.optimization.heuristics.evaluator import Evaluator
 # Insertion #
 #############
 
-def extract_explanation_content_for_insertion_from_evaluation(solution: EditableSolution, employee: Employee,
-                                                               task: Task, activity: Activity,
-                                                               evaluation: InsertionEvaluation):
+def build_transformation_result_for_insertion(solution: EditableSolution, employee: Employee,
+                                              task: Task, activity: Activity,
+                                              evaluation: InsertionEvaluation):
     """
-    Extract useful content for the explanation to build from the transformation evaluation
+    Build the result of the transformation the given evaluation evaluated
 
     :param solution: the solution to explain (EditableSolution)
     :param employee: the employee whose sequence is to be transformed (Employee)
@@ -70,7 +70,7 @@ def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, 
     task = solution.instance.get_task_by_name(task_name)
     activity = solution.instance.get_hypothetical_activity_by_names(activity_name, employee_name)
     evaluation = Evaluator.evaluate_insertion_after(solution.get_sequence(employee), task, activity, False)
-    return extract_explanation_content_for_insertion_from_evaluation(solution, employee, task, activity, evaluation)
+    return build_transformation_result_for_insertion(solution, employee, task, activity, evaluation)
 
 
 def apply_ins_2a(solution: EditableSolution, employee_name: str, task_name: str):
@@ -88,7 +88,7 @@ def apply_ins_2a(solution: EditableSolution, employee_name: str, task_name: str)
     evaluation = Evaluator.find_best_insertion_between_consecutive_activities(
         solution.get_sequence(employee), task, compute_times_only_if_skill_constraints_satisfied=False)
     activity = evaluation.activity_before_insertion
-    return extract_explanation_content_for_insertion_from_evaluation(solution, employee, task, activity, evaluation)
+    return build_transformation_result_for_insertion(solution, employee, task, activity, evaluation)
 
 
 def apply_ins_2b(solution: EditableSolution, employee_name: str):
@@ -110,7 +110,7 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
     )
     task = evaluation.inserted_task
     activity = evaluation.activity_before_insertion
-    return extract_explanation_content_for_insertion_from_evaluation(solution, employee, task, activity, evaluation)
+    return build_transformation_result_for_insertion(solution, employee, task, activity, evaluation)
 
 
 def apply_ins_2c(solution: EditableSolution, task_name: str):
@@ -128,18 +128,18 @@ def apply_ins_2c(solution: EditableSolution, task_name: str):
     )
     employee = evaluation.employee
     activity = evaluation.activity_before_insertion
-    return extract_explanation_content_for_insertion_from_evaluation(solution, employee, task, activity, evaluation)
+    return build_transformation_result_for_insertion(solution, employee, task, activity, evaluation)
 
 
 ########
 # Swap #
 ########
 
-def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolution, employee: Employee,
-                                                          replacing_task: Task, leaving_task: Task,
-                                                          evaluation: ReplacementEvaluation):
+def build_transformation_result_for_swap(solution: EditableSolution, employee: Employee,
+                                         replacing_task: Task, leaving_task: Task,
+                                         evaluation: ReplacementEvaluation):
     """
-    Extract useful content for the explanation to build from the transformation evaluation
+    Build the result of the transformation the given evaluation evaluated
     
     :param solution: the solution to explain (EditableSolution)
     :param employee: the employee whose sequence is to be transformed (Employee)
@@ -187,7 +187,7 @@ def apply_swp_1(solution: EditableSolution, employee_name: str, task1_name: str,
     task1 = solution.instance.get_task_by_name(task1_name)
     task2 = solution.instance.get_task_by_name(task2_name)
     evaluation = Evaluator.evaluate_replacing_task_with_another(solution.get_sequence(employee), task2, task1, False)
-    return extract_explanation_content_for_swap_from_evaluation(solution, employee, task1, task2, evaluation)
+    return build_transformation_result_for_swap(solution, employee, task1, task2, evaluation)
 
 
 def apply_swp_2a(solution: EditableSolution, employee_name: str, task_name: str):
@@ -205,8 +205,8 @@ def apply_swp_2a(solution: EditableSolution, employee_name: str, task_name: str)
     evaluation = Evaluator.find_best_task_to_be_replaced_with_given_task(
         solution.get_sequence(employee), entering_task, False)
     replaced_task = evaluation.replaced_task
-    return extract_explanation_content_for_swap_from_evaluation(solution, employee, entering_task, replaced_task,
-                                                                 evaluation)
+    return build_transformation_result_for_swap(solution, employee, entering_task, replaced_task,
+                                                evaluation)
 
 
 def apply_swp_2b(solution: EditableSolution, employee_name: str):
@@ -226,8 +226,8 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
         solution, [employee], performable_non_performed_tasks, False)
     replacing_task = evaluation.replacing_task
     replaced_task = evaluation.replaced_task
-    return extract_explanation_content_for_swap_from_evaluation(solution, employee, replacing_task, replaced_task,
-                                                                 evaluation)
+    return build_transformation_result_for_swap(solution, employee, replacing_task, replaced_task,
+                                                evaluation)
 
 
 def apply_swp_2c(solution: EditableSolution, task_name: str):
@@ -244,19 +244,19 @@ def apply_swp_2c(solution: EditableSolution, task_name: str):
         solution, solution.performing_employees, [replacing_task], False)
     employee = evaluation.employee
     replaced_task = evaluation.replaced_task
-    return extract_explanation_content_for_swap_from_evaluation(solution, employee, replacing_task, replaced_task,
-                                                                 evaluation)
+    return build_transformation_result_for_swap(solution, employee, replacing_task, replaced_task,
+                                                evaluation)
 
 
 ##############
 # Reordering #
 ##############
 
-def extract_explanation_content_for_reordering_from_evaluation(solution: EditableSolution, employee: Employee,
-                                                                moving_task: Task, fixed_task: Task,
-                                                                evaluation: ReorderEvaluation):
+def build_transformation_result_for_reordering(solution: EditableSolution, employee: Employee,
+                                               moving_task: Task, fixed_task: Task,
+                                               evaluation: ReorderEvaluation):
     """
-    Extract useful content for the explanation to build from the transformation evaluation
+    Build the result of the transformation the given evaluation evaluated
 
     :param solution: the solution to explain (EditableSolution)
     :param employee: the employee whose sequence is to be transformed (Employee)
@@ -321,7 +321,7 @@ def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name_1: st
     task_1 = solution.instance.get_task_by_name(task_name_1)
     task_2 = solution.instance.get_task_by_name(task_name_2)
     evaluation = Evaluator.evaluate_moving_after_a_task(solution.get_sequence(employee), task_1, task_2)
-    return extract_explanation_content_for_reordering_from_evaluation(solution, employee, task_1, task_2, evaluation)
+    return build_transformation_result_for_reordering(solution, employee, task_1, task_2, evaluation)
 
 
 def apply_ord_1b(solution: EditableSolution, employee_name: str, task_name_1: str, task_name_2: str):
@@ -339,7 +339,7 @@ def apply_ord_1b(solution: EditableSolution, employee_name: str, task_name_1: st
     task_1 = solution.instance.get_task_by_name(task_name_1)
     task_2 = solution.instance.get_task_by_name(task_name_2)
     evaluation = Evaluator.evaluate_moving_before_a_task(solution.get_sequence(employee), task_1, task_2)
-    return extract_explanation_content_for_reordering_from_evaluation(solution, employee, task_1, task_2, evaluation)
+    return build_transformation_result_for_reordering(solution, employee, task_1, task_2, evaluation)
 
 
 def apply_ord_2a(solution: EditableSolution, employee_name: str, task_name: str):
@@ -356,8 +356,8 @@ def apply_ord_2a(solution: EditableSolution, employee_name: str, task_name: str)
     moving_task = solution.instance.get_task_by_name(task_name)
     evaluation = Evaluator.find_best_reorder_to_perform_task_later(solution.get_sequence(employee), moving_task)
     fixed_task = evaluation.activity_before
-    return extract_explanation_content_for_reordering_from_evaluation(solution, employee, moving_task, fixed_task,
-                                                                       evaluation)
+    return build_transformation_result_for_reordering(solution, employee, moving_task, fixed_task,
+                                                      evaluation)
 
 
 def apply_ord_2b(solution: EditableSolution, employee_name: str, task_name: str):
@@ -374,8 +374,8 @@ def apply_ord_2b(solution: EditableSolution, employee_name: str, task_name: str)
     moving_task = solution.instance.get_task_by_name(task_name)
     evaluation = Evaluator.find_best_reorder_to_perform_task_earlier(solution.get_sequence(employee), moving_task)
     fixed_task = evaluation.activity_after
-    return extract_explanation_content_for_reordering_from_evaluation(solution, employee, moving_task, fixed_task,
-                                                                       evaluation)
+    return build_transformation_result_for_reordering(solution, employee, moving_task, fixed_task,
+                                                      evaluation)
 
 
 def apply_ord_2c(solution: EditableSolution, employee_name: str, task_name: str):
@@ -398,5 +398,5 @@ def apply_ord_2c(solution: EditableSolution, employee_name: str, task_name: str)
         fixed_task = evaluation.activity_after
     else:
         raise ValueError("The moving task is not moved")
-    return extract_explanation_content_for_reordering_from_evaluation(solution, employee, moving_task, fixed_task,
-                                                                       evaluation)
+    return build_transformation_result_for_reordering(solution, employee, moving_task, fixed_task,
+                                                      evaluation)

@@ -31,6 +31,8 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     Base MILP model to compute explanation content for answering counterfactual question about any transformation
     """
 
+    _pivot_task_is_new_to_employee: Optional[bool] = None
+
     def __init__(self, sequence: SequenceForHeuristics, pivot_task: Task,
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
@@ -76,6 +78,22 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     ####################################
     # Getters and setters - Pivot task #
     ####################################
+
+    @property
+    def pivot_task(self) -> Task:
+        """The task which plays a key role in the sequence optimization."""
+        return self._pivot_task
+
+    @property
+    def pivot_task_is_new_to_employee(self) -> Optional[bool]:
+        """
+        Whether the transformation hands the employee a task they are not already performing.
+
+        Returns:
+            True or False once the kind of transformation has answered, and None while it has not, which
+            the extraction refuses to guess at rather than quietly skipping the skill check.
+        """
+        return self._pivot_task_is_new_to_employee
 
     @property
     def _pivot_task_key(self):

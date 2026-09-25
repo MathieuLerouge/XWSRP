@@ -18,6 +18,8 @@ class MILPModelForSwapWithInstanceAlterations(MILPModelForTransformationWithInst
     Base MILP model to compute explanation content for answering counterfactual question about swap
     """
 
+    _pivot_task_is_new_to_employee = True
+
     def __init__(self, sequence: SequenceForHeuristics, replacing_task: Task,
                  instance_parameter_alteration_bounds: InstanceChanges = None,
                  solving_time_limit: int = None):
