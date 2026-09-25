@@ -3,13 +3,13 @@ from src.explaining.modeling.solution import EditableSolution
 from src.explaining.computing.templates.common.conflict_builder import TailoredConflictBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditions, \
     EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+from src.explaining.computing.templates.common.description import TransformationDescriptions
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.evaluation import InsertionEvaluation, ReplacementEvaluation, ReorderEvaluation
 from src.optimization.heuristics.evaluator import Evaluator
-from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
 #############
@@ -51,20 +51,8 @@ def extract_explanation_content_for_insertion_from_evaluation(solution: Editable
         conflict = TailoredConflictBuilder.build_from_evaluation(
             employee, task, sequence, sequence.get_step_index_of(activity) + 1, evaluation
         )
-    if activity.name == "Start":
-        activity_name_in_english = "Home"
-        activity_name_in_french = "Domicile"
-    else:
-        activity_name_in_english = activity.name
-        activity_name_in_french = activity.name
-    applying_transformation_text_in_various_languages = {
-        LANGUAGE_ENGLISH_KEY:
-            f"inserting {task.name} just after {activity_name_in_english} in {employee.name}'s planning",
-        LANGUAGE_FRENCH_KEY:
-            f"insérant {task.name} juste après {activity_name_in_french} dans le planning de {employee.name}",
-    }
-    return TransformationResult(support_solution, conflict,
-                                applying_transformation_text_in_various_languages)
+    descriptions = TransformationDescriptions.for_insertion_after_activity(task, activity, employee)
+    return TransformationResult(support_solution, conflict, descriptions)
 
 
 def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, activity_name: str):
@@ -180,14 +168,8 @@ def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolut
         conflict = TailoredConflictBuilder.build_from_evaluation(
             employee, replacing_task, sequence, sequence.get_step_index_of(replacing_task), evaluation
         )
-    applying_transformation_text_in_various_languages = {
-        LANGUAGE_ENGLISH_KEY:
-            f"replacing {leaving_task.name} from {employee.name}'s planning by {replacing_task.name}",
-        LANGUAGE_FRENCH_KEY:
-            f"remplaçant {leaving_task.name} du planning de {employee.name} par {replacing_task.name}"
-    }
-    return TransformationResult(support_solution, conflict,
-                                applying_transformation_text_in_various_languages)
+    descriptions = TransformationDescriptions.for_swap(leaving_task, replacing_task, employee)
+    return TransformationResult(support_solution, conflict, descriptions)
 
 
 def apply_swp_1(solution: EditableSolution, employee_name: str, task1_name: str, task2_name: str):
@@ -318,21 +300,10 @@ def extract_explanation_content_for_reordering_from_evaluation(solution: Editabl
         else:
             raise ValueError("The conflict should only be due to time considerations.")
     if is_moving_task_1_after_task_2:
-        applying_transformation_text_in_various_languages = {
-            LANGUAGE_ENGLISH_KEY:
-                f"moving {moving_task.name} just after {fixed_task.name} in {employee.name}'s planning",
-            LANGUAGE_FRENCH_KEY:
-                f"déplaçant {moving_task.name} juste après {fixed_task.name} dans le planning de {employee.name}"
-        }
+        descriptions = TransformationDescriptions.for_move_after(moving_task, fixed_task, employee)
     else:
-        applying_transformation_text_in_various_languages = {
-            LANGUAGE_ENGLISH_KEY:
-                f"moving {moving_task.name} just before {fixed_task.name} in {employee.name}'s planning",
-            LANGUAGE_FRENCH_KEY:
-                f"déplaçant {moving_task.name} juste avant {fixed_task.name} dans le planning de {employee.name}"
-        }
-    return TransformationResult(support_solution, conflict,
-                                applying_transformation_text_in_various_languages)
+        descriptions = TransformationDescriptions.for_move_before(moving_task, fixed_task, employee)
+    return TransformationResult(support_solution, conflict, descriptions)
 
 
 def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name_1: str, task_name_2: str):
