@@ -5,8 +5,8 @@ from src.explaining.computing.templates.common.conflict_builder import TailoredC
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditions, \
     EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
+from src.explaining.computing.templates.common.description import TransformationDescriptions
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
     MILPModelForTransformationWithInstanceAlterations
 from src.explaining.computing.templates.counterfactual.MILP_model.insertion_with_alterations import \
@@ -95,42 +95,20 @@ def extract_explanation_content_from_MILP_model_results(solution: EditableSoluti
     support_sequence_activities_names = [step.activity.name for step in support_sequence]
     description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
     if isinstance(model, MILPModelForInsertionWithInstanceAlterations):
-        applying_transformation_text_in_various_languages = {
-            LANGUAGE_ENGLISH_KEY:
-                f"adding {model.task_to_insert.name} in {key_employee.name}'s planning "
-                f"according to the following route "
-                f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
-            LANGUAGE_FRENCH_KEY:
-                f"ajoutant {model.task_to_insert.name} dans le planning de {key_employee.name} "
-                f"selon la route suivante "
-                f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
-        }
+        descriptions = TransformationDescriptions.for_insertion_route(
+            model.task_to_insert, key_employee, description_of_support_sequence
+        )
     elif isinstance(model, MILPModelForSwapWithInstanceAlterations):
-        applying_transformation_text_in_various_languages = {
-            LANGUAGE_ENGLISH_KEY:
-                f"replacing {model.replaced_task.name} with {model.replacing_task.name} "
-                f"in {key_employee.name}'s planning according to the following route "
-                f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
-            LANGUAGE_FRENCH_KEY:
-                f"remplaçant {model.replaced_task.name} par {model.replacing_task.name} "
-                f"dans le planning de {key_employee.name} selon la route suivante "
-                f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
-        }
+        descriptions = TransformationDescriptions.for_swap_route(
+            model.replaced_task, model.replacing_task, key_employee, description_of_support_sequence
+        )
     elif isinstance(model, MILPModelForReorderingWithInstanceAlterations):
-        applying_transformation_text_in_various_languages = {
-            LANGUAGE_ENGLISH_KEY:
-                f"moving {model.moving_task.name} in {key_employee.name}'s planning "
-                f"according to the following route "
-                f"{description_of_support_sequence.replace('Start', 'Home').replace('Return', 'Home')}",
-            LANGUAGE_FRENCH_KEY:
-                f"déplaçant {model.moving_task.name} dans le planning de {key_employee.name} "
-                f"selon la route suivante "
-                f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
-        }
+        descriptions = TransformationDescriptions.for_task_moving_route(
+            model.moving_task, key_employee, description_of_support_sequence
+        )
     else:
         raise NotImplementedError(f"text not implemented for MILP model type {type(model)}")
-    return TransformationResult(support_solution, conflict,
-                                applying_transformation_text_in_various_languages,
+    return TransformationResult(support_solution, conflict, descriptions,
                                 model.support_instance_alterations)
 
 
