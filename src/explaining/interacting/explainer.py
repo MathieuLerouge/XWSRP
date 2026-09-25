@@ -368,13 +368,11 @@ class Explainer:
         return ContrastiveQuestion(self._current_solution, question_template_id, fields_values)
 
     def _compute_contrastive_explanation(self, contrastive_question: ContrastiveQuestion):
-        contrastive_support_solution, conflict, all_descriptions_of_applied_transformation = \
-            apply_transformation_induced_by_contrastive_or_scenario_question(
-                self.current_solution, contrastive_question,
-                self.time_limit_for_contrastive_explanation_MILP_computation
-            )
-        contrastive_explanation = create_explanation(contrastive_question, contrastive_support_solution,
-                                                     conflict, all_descriptions_of_applied_transformation)
+        transformation_result = apply_transformation_induced_by_contrastive_or_scenario_question(
+            self.current_solution, contrastive_question,
+            self.time_limit_for_contrastive_explanation_MILP_computation
+        )
+        contrastive_explanation = create_explanation(contrastive_question, transformation_result)
         if self.is_using_already_computed_contrastive_explanations:
             self._add_contrastive_explanation_to_already_computed_ones(contrastive_explanation)
         if self.automatically_export_single_contrastive_explanations:
@@ -463,12 +461,10 @@ class Explainer:
             current_solution = self.current_solution
             scenario_current_solution = current_solution.copy(current_solution.name + "_scenario")
             scenario_current_solution.instance = scenario_instance
-            scenario_support_solution, conflict, description_of_applied_transformation = \
-                apply_transformation_induced_by_contrastive_or_scenario_question(
-                    scenario_current_solution, scenario_question
-                )
-            scenario_explanation = create_explanation(scenario_question, scenario_support_solution, conflict,
-                                                      description_of_applied_transformation)
+            transformation_result = apply_transformation_induced_by_contrastive_or_scenario_question(
+                scenario_current_solution, scenario_question
+            )
+            scenario_explanation = create_explanation(scenario_question, transformation_result)
             self._last_scenario_explanation = scenario_explanation
             return scenario_explanation
         else:
@@ -545,15 +541,11 @@ class Explainer:
             self._increase_question_asked_count(counterfactual_question)
             current_solution = self.current_solution
             counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
-            (counterfactual_support_solution, conflict,
-             description_of_applied_transformation, instance_alterations) = \
-                apply_transformation_induced_by_counterfactual_question(
-                    counterfactual_solution, counterfactual_question,
-                    self.time_limit_for_counterfactual_explanation_MILP_computation
-                )
-            counterfactual_explanation = \
-                create_explanation(counterfactual_question, counterfactual_support_solution, conflict,
-                                   description_of_applied_transformation, instance_alterations)
+            transformation_result = apply_transformation_induced_by_counterfactual_question(
+                counterfactual_solution, counterfactual_question,
+                self.time_limit_for_counterfactual_explanation_MILP_computation
+            )
+            counterfactual_explanation = create_explanation(counterfactual_question, transformation_result)
             self._last_counterfactual_explanation = counterfactual_explanation
             return counterfactual_explanation
         else:

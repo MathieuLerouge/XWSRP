@@ -6,9 +6,9 @@ from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.cate
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-##############################
+##########################
 # MILPModelForInsertion3 #
-##############################
+##########################
 
 class MILPModelForInsertion3(MILPModelForCategory3):
 

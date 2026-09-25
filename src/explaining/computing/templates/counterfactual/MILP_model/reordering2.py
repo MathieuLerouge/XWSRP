@@ -7,9 +7,9 @@ from src.explaining.computing.templates.counterfactual.MILP_model.reordering_wit
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-#################################################
+###################################################
 # MILPModelForReordering2aWithInstanceAlterations #
-#################################################
+###################################################
 
 class MILPModelForReordering2aWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """
@@ -72,9 +72,9 @@ class MILPModelForReordering2aWithInstanceAlterations(MILPModelForReorderingWith
         )
 
 
-#################################################
+###################################################
 # MILPModelForReordering2bWithInstanceAlterations #
-#################################################
+###################################################
 
 class MILPModelForReordering2bWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """
@@ -137,9 +137,9 @@ class MILPModelForReordering2bWithInstanceAlterations(MILPModelForReorderingWith
             )
 
 
-#################################################
+###################################################
 # MILPModelForReordering2cWithInstanceAlterations #
-#################################################
+###################################################
 
 class MILPModelForReordering2cWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """

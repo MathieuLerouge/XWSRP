@@ -5,9 +5,9 @@ from src.explaining.computing.templates.counterfactual.MILP_model.reordering_wit
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
-######################################################
-# Class MILPModelForReordering3WithInstanceAlterations #
-######################################################
+##################################################
+# MILPModelForReordering3WithInstanceAlterations #
+##################################################
 
 class MILPModelForReordering3WithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
     """

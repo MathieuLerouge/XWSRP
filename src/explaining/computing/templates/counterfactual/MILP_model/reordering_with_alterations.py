@@ -10,9 +10,9 @@ from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-###############################################
+#################################################
 # MILPModelForReorderingWithInstanceAlterations #
-###############################################
+#################################################
 
 class MILPModelForReorderingWithInstanceAlterations(MILPModelForTransformationWithInstanceAlterations):
     """

@@ -7,9 +7,9 @@ from src.modeling.sequence import Sequence
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-#########################
+###########################
 # MILPModelForReordering3 #
-#########################
+###########################
 
 class MILPModelForReordering3(MILPModelForCategory3):
 

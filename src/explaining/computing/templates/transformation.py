@@ -28,8 +28,7 @@ def apply_transformation_induced_by_contrastive_or_scenario_question(solution: E
     :param solution: the solution to explain (EditableSolution)
     :param question: the question that induces the transformation (Question)
     :param time_limit_for_MILP_computation: the time limit in seconds for MILP computation (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict if any 
-    and the text describing the transformation in various languages (dict)
+    :return: the result of the applied transformation (TransformationResult)
     """
     if isinstance(question, ContrastiveQuestion) or isinstance(question, ScenarioQuestion):
         question_template_id = question.template.id
@@ -85,8 +84,7 @@ def apply_transformation_induced_by_counterfactual_question(solution: EditableSo
     :param solution: the solution to explain (EditableSolution)
     :param question: the question to answer (Question)
     :param time_limit_for_MILP_computation: the time limit in seconds for MILP computation (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict) if any,
-    the texts describing the transformation in various languages (dict) and the instance changes (InstanceChanges)
+    :return: the result of the applied transformation (TransformationResult)
     """
     question_template_id = question.template.id
     fields_values = question.fields_values

@@ -6,9 +6,9 @@ from src.explaining.computing.templates.counterfactual.MILP_model.transformation
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
-##############################################
+################################################
 # MILPModelForInsertionWithInstanceAlterations #
-##############################################
+################################################
 
 class MILPModelForInsertionWithInstanceAlterations(MILPModelForTransformationWithInstanceAlterations):
     """

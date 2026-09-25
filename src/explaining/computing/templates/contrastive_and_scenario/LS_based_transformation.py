@@ -2,6 +2,7 @@
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
 from src.explaining.computing.exceptions import ImpossibleTransformationException
+from src.explaining.computing.templates.common.result import TransformationResult
 from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
@@ -26,8 +27,7 @@ def extract_explanation_content_for_insertion_from_evaluation(solution: Editable
     :param task: the task to insert (Task)
     :param activity: the activity after which the task is to be inserted (Activity)
     :param evaluation: the evaluation of the insertion (InsertionEvaluation)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     transformation_is_feasible = evaluation.is_feasible
     support_solution = solution.copy(solution.name + "_support")
@@ -74,7 +74,8 @@ def extract_explanation_content_for_insertion_from_evaluation(solution: Editable
         LANGUAGE_FRENCH_KEY:
             f"insérant {task.name} juste après {activity_name_in_french} dans le planning de {employee.name}",
     }
-    return support_solution, conflict, applying_transformation_text_in_various_languages
+    return TransformationResult(support_solution, conflict,
+                                applying_transformation_text_in_various_languages)
 
 
 def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, activity_name: str):
@@ -86,8 +87,7 @@ def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, 
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
     :param activity_name: the name of the activity mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
@@ -104,8 +104,7 @@ def apply_ins_2a(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
@@ -123,8 +122,7 @@ def apply_ins_2b(solution: EditableSolution, employee_name: str):
 
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     if len(solution.non_performed_tasks) == 0:
@@ -149,8 +147,7 @@ def apply_ins_2c(solution: EditableSolution, task_name: str):
 
     :param solution: the solution to explain (EditableSolution)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     task = solution.instance.get_task_by_name(task_name)
     evaluation = Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
@@ -176,8 +173,7 @@ def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolut
     :param replacing_task: the task that will replace the leaving task (Task)
     :param leaving_task: the task that will be replaced by the replacing task (Task)
     :param evaluation: the evaluation of the transformation (ReplacementEvaluation)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     transformation_is_feasible = evaluation.is_feasible  # Sequence-wise
     support_solution = solution.copy(solution.name + "_support")
@@ -216,7 +212,8 @@ def extract_explanation_content_for_swap_from_evaluation(solution: EditableSolut
         LANGUAGE_FRENCH_KEY:
             f"remplaçant {leaving_task.name} du planning de {employee.name} par {replacing_task.name}"
     }
-    return support_solution, conflict, applying_transformation_text_in_various_languages
+    return TransformationResult(support_solution, conflict,
+                                applying_transformation_text_in_various_languages)
 
 
 def apply_swp_1(solution: EditableSolution, employee_name: str, task1_name: str, task2_name: str):
@@ -228,8 +225,7 @@ def apply_swp_1(solution: EditableSolution, employee_name: str, task1_name: str,
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task1_name: the name of the first task mentioned in the question (str)
     :param task2_name: the name of the second task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task1 = solution.instance.get_task_by_name(task1_name)
@@ -246,8 +242,7 @@ def apply_swp_2a(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     entering_task = solution.instance.get_task_by_name(task_name)
@@ -265,8 +260,7 @@ def apply_swp_2b(solution: EditableSolution, employee_name: str):
 
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     if len(solution.non_performed_tasks) == 0:
@@ -291,8 +285,7 @@ def apply_swp_2c(solution: EditableSolution, task_name: str):
 
     :param solution: the solution to explain (EditableSolution)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     replacing_task = solution.instance.get_task_by_name(task_name)
     evaluation = Evaluator.find_best_replacement_among_sets(
@@ -318,8 +311,7 @@ def extract_explanation_content_for_reordering_from_evaluation(solution: Editabl
     :param moving_task: the task to be moved within the employee's sequence (Task)
     :param fixed_task: the fixed task before or after which the moving task is inserted (Task)
     :param evaluation: the evaluation of the transformation (ReorderEvaluation)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     support_sequence = solution.get_sequence(employee)
     if support_sequence.get_step_index_of(moving_task) < support_sequence.get_step_index_of(fixed_task):
@@ -376,7 +368,8 @@ def extract_explanation_content_for_reordering_from_evaluation(solution: Editabl
             LANGUAGE_FRENCH_KEY:
                 f"déplaçant {moving_task.name} juste avant {fixed_task.name} dans le planning de {employee.name}"
         }
-    return support_solution, conflict, applying_transformation_text_in_various_languages
+    return TransformationResult(support_solution, conflict,
+                                applying_transformation_text_in_various_languages)
 
 
 def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name_1: str, task_name_2: str):
@@ -388,8 +381,7 @@ def apply_ord_1a(solution: EditableSolution, employee_name: str, task_name_1: st
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name_1: the name of the first task mentioned in the question (str)
     :param task_name_2: the name of the second task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task_1 = solution.instance.get_task_by_name(task_name_1)
@@ -407,8 +399,7 @@ def apply_ord_1b(solution: EditableSolution, employee_name: str, task_name_1: st
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name_1: the name of the first task mentioned in the question (str)
     :param task_name_2: the name of the second task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task_1 = solution.instance.get_task_by_name(task_name_1)
@@ -425,8 +416,7 @@ def apply_ord_2a(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to be transformed (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     moving_task = solution.instance.get_task_by_name(task_name)
@@ -444,8 +434,7 @@ def apply_ord_2b(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to be transformed (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     moving_task = solution.instance.get_task_by_name(task_name)
@@ -463,8 +452,7 @@ def apply_ord_2c(solution: EditableSolution, employee_name: str, task_name: str)
     :param solution: the solution to be transformed (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     moving_task = solution.instance.get_task_by_name(task_name)

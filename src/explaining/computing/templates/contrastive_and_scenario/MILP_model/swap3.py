@@ -5,9 +5,9 @@ import pyomo.environ as pyo
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.category3 import MILPModelForCategory3
 
 
-#########################
+#####################
 # MILPModelForSwap3 #
-#########################
+#####################
 
 class MILPModelForSwap3(MILPModelForCategory3):
 

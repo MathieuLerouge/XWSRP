@@ -3,9 +3,9 @@ from src.explaining.computing.templates.counterfactual.MILP_model.insertion_with
     import MILPModelForInsertionWithInstanceAlterations
 
 
-#####################################################
-# Class MILPModelForInsertion3WithInstanceAlterations #
-#####################################################
+#################################################
+# MILPModelForInsertion3WithInstanceAlterations #
+#################################################
 
 class MILPModelForInsertion3WithInstanceAlterations(MILPModelForInsertionWithInstanceAlterations):
     """

@@ -9,9 +9,9 @@ from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
-#########################################
+###########################################
 # MILPModelForSwapWithInstanceAlterations #
-#########################################
+###########################################
 
 class MILPModelForSwapWithInstanceAlterations(MILPModelForTransformationWithInstanceAlterations):
     """

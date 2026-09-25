@@ -3,9 +3,9 @@ from src.explaining.computing.templates.counterfactual.MILP_model.swap_with_alte
     MILPModelForSwapWithInstanceAlterations
 
 
-################################################
-# Class MILPModelForSwap3WithInstanceAlterations #
-################################################
+############################################
+# MILPModelForSwap3WithInstanceAlterations #
+############################################
 
 class MILPModelForSwap3WithInstanceAlterations(MILPModelForSwapWithInstanceAlterations):
     """

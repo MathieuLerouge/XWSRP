@@ -10,9 +10,9 @@ from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key, LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 
 
-################################################
+##################################################
 # MILPModelForInsertion2aWithInstanceAlterations #
-################################################
+##################################################
 
 class MILPModelForInsertion2aWithInstanceAlterations(MILPModelForInsertionWithInstanceAlterations):
     """
@@ -74,9 +74,9 @@ class MILPModelForInsertion2aWithInstanceAlterations(MILPModelForInsertionWithIn
         )
 
 
-################################################
+##################################################
 # MILPModelForInsertion2bWithInstanceAlterations #
-################################################
+##################################################
 
 class MILPModelForInsertion2bWithInstanceAlterations(MILPModelForInsertionWithInstanceAlterations):
     """

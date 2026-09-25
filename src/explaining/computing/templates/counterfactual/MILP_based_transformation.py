@@ -3,6 +3,7 @@ from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
 from src.explaining.computing.exceptions import ImpossibleTransformationException
+from src.explaining.computing.templates.common.result import TransformationResult
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
     MILPModelForTransformationWithInstanceAlterations
@@ -33,21 +34,19 @@ from src.optimization.heuristics.slacks import SlackTimeComputer
 from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExceptionMapper
 
 
-##################################################################################
+###################################################################################
 # All kinds of transformation - Extraction of explanation content from MILP model #
-##################################################################################
+###################################################################################
 
 def extract_explanation_content_from_MILP_model_results(solution: EditableSolution,
-                                                       model: MILPModelForTransformationWithInstanceAlterations):
+                                                        model: MILPModelForTransformationWithInstanceAlterations):
     """
     Extract useful content for the explanation to build,
     from the results of the MILP model used to compute the transformation
 
     :param solution: the solution to explain (EditableSolution)
     :param model: the MILP model used to compute the transformation (MILPModelForTransformationWithInstanceAlterations)
-    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
-    the texts describing the transformation in various languages (dict) and
-    the instance parameter changes (InstanceChanges)
+    :return: the result of the applied transformation (TransformationResult)
     """
     # Define key employee and task
     key_employee = model.support_sequence.employee
@@ -140,8 +139,9 @@ def extract_explanation_content_from_MILP_model_results(solution: EditableSoluti
         }
     else:
         raise NotImplementedError(f"text not implemented for MILP model type {type(model)}")
-    return (support_solution, conflict, applying_transformation_text_in_various_languages,
-            model.support_instance_alterations)
+    return TransformationResult(support_solution, conflict,
+                                applying_transformation_text_in_various_languages,
+                                model.support_instance_alterations)
 
 
 ############################
@@ -161,9 +161,7 @@ def apply_ctf_ins_1(solution: EditableSolution, employee_name: str, task_name: s
     :param activity_name: the name of the activity mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
-    the texts describing the transformation in various languages (dict) and
-    the instance changes (InstanceChanges)
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
@@ -191,9 +189,7 @@ def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
-    the texts describing the transformation in various languages (dict) and
-    the instance changes (InstanceChanges)
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
@@ -219,9 +215,7 @@ def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
     :param employee_name: the name of the employee mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
-    the texts describing the transformation in various languages (dict) and
-    the instance changes (InstanceChanges)
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
@@ -254,9 +248,7 @@ def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: s
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the transformed solution (EditableSolution), the conflict (Conflict),
-    the texts describing the transformation in various languages (dict) and
-    the instance changes (InstanceChanges)
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     task = solution.instance.get_task_by_name(task_name)
@@ -286,8 +278,7 @@ def apply_ctf_swp_1(solution: EditableSolution, employee_name: str, task1_name: 
     :param task2_name: the name of the second task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     replacing_task = solution.instance.get_task_by_name(task1_name)
@@ -313,8 +304,7 @@ def apply_ctf_swp_2a(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     replacing_task = solution.instance.get_task_by_name(task_name)
@@ -338,8 +328,7 @@ def apply_ctf_swp_2b(solution: EditableSolution, employee_name: str,
     :param employee_name: the name of the employee mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
@@ -372,8 +361,7 @@ def apply_ctf_swp_3(solution: EditableSolution, employee_name: str, task_name: s
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     replacing_task = solution.instance.get_task_by_name(task_name)
@@ -404,8 +392,7 @@ def apply_ctf_ord_1a(solution: EditableSolution, employee_name: str, task1_name:
     :param task2_name: the name of the second task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     moving_task = solution.instance.get_task_by_name(task1_name)
@@ -433,8 +420,7 @@ def apply_ctf_ord_1b(solution: EditableSolution, employee_name: str, task1_name:
     :param task2_name: the name of the second task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     moving_task = solution.instance.get_task_by_name(task1_name)
@@ -460,8 +446,7 @@ def apply_ctf_ord_2a(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     if sequence.nb_steps <= 3:
@@ -488,8 +473,7 @@ def apply_ctf_ord_2b(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     if sequence.nb_steps <= 3:
@@ -516,8 +500,7 @@ def apply_ctf_ord_2c(solution: EditableSolution, employee_name: str, task_name: 
     :param task_name: the name of the task mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     if sequence.nb_steps <= 3:
@@ -543,8 +526,7 @@ def apply_ctf_ord_3(solution: EditableSolution, employee_name: str,
     :param employee_name: the name of the employee mentioned in the question (str)
     :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
     :param solving_time_limit: the solving time limit in seconds (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
     if sequence.nb_steps <= 3:

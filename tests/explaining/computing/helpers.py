@@ -54,10 +54,8 @@ def get_tailored_computation_pipeline_gap_and_solution(
     """
     editable_solution = EditableSolution.from_solution(solution)
     question = ContrastiveQuestion(editable_solution, template_id, fields_values)
-    support_solution, conflict, _ = apply_transformation_induced_by_contrastive_or_scenario_question(
-        editable_solution, question
-    )
-    return gap_from_conflict(conflict), support_solution, conflict
+    result = apply_transformation_induced_by_contrastive_or_scenario_question(editable_solution, question)
+    return gap_from_conflict(result.conflict), result.support_solution, result.conflict
 
 
 def get_neighborhood_computation_pipeline_gap_and_solution(

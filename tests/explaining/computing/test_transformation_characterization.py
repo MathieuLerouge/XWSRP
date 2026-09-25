@@ -13,17 +13,16 @@ Regenerate the baseline (only when a behaviour change is intended and reviewed) 
 # Standard libraries
 import json
 import os
-from typing import Any, Optional
+from typing import Any
 
 # Third-party library
 import pytest
 
 # Local libraries
+from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.transformation import \
     apply_transformation_induced_by_contrastive_or_scenario_question, \
     apply_transformation_induced_by_counterfactual_question
-from src.explaining.computing.conflict.conflict import Conflict
-from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import \
@@ -68,30 +67,27 @@ KPIS_KEY = "kpis"
 ALTERATIONS_KEY = "alterations"
 
 
-def build_snapshot(support_solution: EditableSolution, conflict: Optional[Conflict],
-                   descriptions: dict[str, str],
-                   instance_alterations: Optional[InstanceChanges] = None) -> dict[str, Any]:
+def build_snapshot(result: TransformationResult) -> dict[str, Any]:
     """
     Turn what a transformation returned into a JSON-serializable snapshot.
 
     Args:
-        support_solution: The transformed solution the transformation produced.
-        conflict: The conflict the transformation ran into, or None when it is feasible.
-        descriptions: The texts describing the applied transformation, keyed by language.
-        instance_alterations: The instance parameter changes, for counterfactual transformations only.
+        result: The result of the applied transformation.
 
     Returns:
         A dictionary holding the conflict, the descriptions, each employee's route, the solution's
         KPIs and the instance alterations.
     """
+    support_solution = result.support_solution
     routes = {employee.name: [step.activity.name for step in support_solution.get_sequence(employee)]
               for employee in support_solution.instance.employees}
     return {
-        CONFLICT_KEY: None if conflict is None else conflict.to_dict(),
-        DESCRIPTIONS_KEY: descriptions,
+        CONFLICT_KEY: None if result.conflict is None else result.conflict.to_dict(),
+        DESCRIPTIONS_KEY: result.descriptions,
         ROUTES_KEY: routes,
         KPIS_KEY: support_solution.kpis.to_dict() if support_solution.has_kpis else None,
-        ALTERATIONS_KEY: None if instance_alterations is None else instance_alterations.as_list_of_strings(),
+        ALTERATIONS_KEY: (None if result.instance_alterations is None
+                          else result.instance_alterations.as_list_of_strings()),
     }
 
 
@@ -99,9 +95,9 @@ def compute_contrastive_snapshot(solution: Solution, template_id: str, fields_va
     """Return the snapshot of the transformation the given contrastive question induces."""
     editable_solution = EditableSolution.from_solution(solution)
     question = ContrastiveQuestion(editable_solution, template_id, fields_values)
-    support_solution, conflict, descriptions = \
+    return build_snapshot(
         apply_transformation_induced_by_contrastive_or_scenario_question(editable_solution, question)
-    return build_snapshot(support_solution, conflict, descriptions)
+    )
 
 
 def compute_counterfactual_snapshot(solution: Solution, template_id: str, fields_values: list[str]) -> dict[str, Any]:
@@ -109,9 +105,9 @@ def compute_counterfactual_snapshot(solution: Solution, template_id: str, fields
     editable_solution = EditableSolution.from_solution(solution)
     contrastive_question = ContrastiveQuestion(editable_solution, template_id, fields_values)
     question = CounterfactualQuestion(contrastive_question)
-    support_solution, conflict, descriptions, instance_alterations = \
+    return build_snapshot(
         apply_transformation_induced_by_counterfactual_question(editable_solution, question)
-    return build_snapshot(support_solution, conflict, descriptions, instance_alterations)
+    )
 
 
 def build_reference_solution() -> Solution:

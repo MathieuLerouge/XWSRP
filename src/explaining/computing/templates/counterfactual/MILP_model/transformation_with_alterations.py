@@ -22,9 +22,9 @@ from src.optimization.milp.subproblems.sequencemodel import SequenceModel, LEAVI
 MAX_NB_ALTERATIONS = 2
 
 
-###################################################
+#####################################################
 # MILPModelForTransformationWithInstanceAlterations #
-###################################################
+#####################################################
 
 class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     """

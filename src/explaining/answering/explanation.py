@@ -9,6 +9,7 @@ from src.modeling.solution import Solution
 from src.explaining.questioning.question import Question, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
 from src.explaining.answering.explanations_templates_bank import EXPLANATIONS_TEMPLATES
 from src.explaining.computing.conflict.conflict import Conflict, SkillConflict, TimeConflict
+from src.explaining.computing.templates.common.result import TransformationResult
 from src.utils.constants import LINE_BREAK_STRING
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.utils.time import convert_nb_minutes_to_time_string, get_hour_format_associated_with_language
@@ -42,23 +43,34 @@ def emphasize(text: str, make_bold: bool = False):
         return text
 
 
-def create_explanation(question: Question, support_solution: Solution, conflict: Conflict,
-                       all_descriptions_of_applied_transformation: dict[str, str],
-                       instance_alterations: InstanceChanges = None):
+def create_explanation(question: Question, result: TransformationResult):
+    """
+    Return the explanation answering the given question, of the kind the transformation's result calls for.
+
+    Args:
+        question: The question to answer.
+        result: The result of the transformation the question induced.
+
+    Returns:
+        A positive, non-improving negative, skill negative or time negative explanation.
+
+    Raises:
+        TypeError: if the result holds a conflict that is neither a SkillConflict nor a TimeConflict.
+    """
+    support_solution = result.support_solution
+    conflict = result.conflict
+    descriptions = result.descriptions
+    instance_alterations = result.instance_alterations
     if conflict is None:
         if support_solution > question.solution:
-            return PositiveExplanation(question, support_solution,
-                                       all_descriptions_of_applied_transformation, instance_alterations)
+            return PositiveExplanation(question, support_solution, descriptions, instance_alterations)
         else:
-            return NonImprovingNegativeExplanation(question, support_solution,
-                                                   all_descriptions_of_applied_transformation, instance_alterations)
+            return NonImprovingNegativeExplanation(question, support_solution, descriptions, instance_alterations)
     else:
         if isinstance(conflict, SkillConflict):
-            return SkillNegativeExplanation(question, support_solution, conflict,
-                                            all_descriptions_of_applied_transformation, instance_alterations)
+            return SkillNegativeExplanation(question, support_solution, conflict, descriptions, instance_alterations)
         elif isinstance(conflict, TimeConflict):
-            return TimeNegativeExplanation(question, support_solution, conflict,
-                                           all_descriptions_of_applied_transformation, instance_alterations)
+            return TimeNegativeExplanation(question, support_solution, conflict, descriptions, instance_alterations)
         else:
             raise TypeError(f"There is a problem with the type of conflict which is {type(conflict)}")
 
@@ -89,8 +101,8 @@ def create_explanation_from_dict(dictionary, solution: Solution):
                 task.duration + traveling_time_to_return
             return_step.arrival_time, return_step.start_time, return_step.end_time = \
                 return_time, return_time, return_time
-    all_descriptions_of_applied_transformation = dictionary[TRANSFORMATION_KEY]
-    return create_explanation(question, support_solution, conflict, all_descriptions_of_applied_transformation)
+    descriptions = dictionary[TRANSFORMATION_KEY]
+    return create_explanation(question, TransformationResult(support_solution, conflict, descriptions))
 
 
 #####################

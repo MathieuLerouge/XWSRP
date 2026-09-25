@@ -10,9 +10,9 @@ from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key, LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 
 
-###########################################
+#############################################
 # MILPModelForSwap2aWithInstanceAlterations #
-###########################################
+#############################################
 
 class MILPModelForSwap2aWithInstanceAlterations(MILPModelForSwapWithInstanceAlterations):
     """
@@ -73,9 +73,9 @@ class MILPModelForSwap2aWithInstanceAlterations(MILPModelForSwapWithInstanceAlte
         )
 
 
-###########################################
+#############################################
 # MILPModelForSwap2bWithInstanceAlterations #
-###########################################
+#############################################
 
 class MILPModelForSwap2bWithInstanceAlterations(MILPModelForSwapWithInstanceAlterations):
     """

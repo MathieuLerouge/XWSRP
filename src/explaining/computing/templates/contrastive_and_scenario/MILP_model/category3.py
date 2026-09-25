@@ -15,9 +15,9 @@ from src.optimization.milp.subproblems.sequencemodel import SequenceModel, \
     LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
 
 
-#######################
+#########################
 # MILPModelForCategory3 #
-#######################
+#########################
 
 class MILPModelForCategory3(SequenceModel):
 

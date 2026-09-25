@@ -165,10 +165,10 @@ def test_skill_conflict_when_the_only_candidate_pairing_is_blocked():
     assert conflict.conflicting_task.name == "T5"
 
     editable_solution = EditableSolution.from_solution(solution)
-    _, tailored_conflict, _ = apply_transformation_induced_by_contrastive_or_scenario_question(
+    tailored_result = apply_transformation_induced_by_contrastive_or_scenario_question(
         editable_solution, ContrastiveQuestion(editable_solution, WHY_NOT_INS_2A, ["Fabian", "T5"])
     )
-    assert conflict.to_dict() == tailored_conflict.to_dict()
+    assert conflict.to_dict() == tailored_result.conflict.to_dict()
 
 
 def test_skill_conflict_when_every_candidate_pairing_is_blocked():

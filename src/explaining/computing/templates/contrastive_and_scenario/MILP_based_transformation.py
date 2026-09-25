@@ -1,5 +1,6 @@
 # Local libraries
 from src.explaining.modeling.solution import EditableSolution
+from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.category3 import MILPModelForCategory3
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.insertion3 import MILPModelForInsertion3
 from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.reordering3 import MILPModelForReordering3
@@ -13,12 +14,12 @@ from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExcep
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
-##################################################################################
+###################################################################################
 # All kinds of transformation - Extraction of explanation content from MILP model #
-##################################################################################
+###################################################################################
 
 def extract_explanation_content_from_MILP_model_results(solution: EditableSolution, employee: Employee,
-                                                       task: Task, model: MILPModelForCategory3):
+                                                        task: Task, model: MILPModelForCategory3):
     """
     Extract useful content for the explanation to build,
     from the results of the MILP model used to compute the transformation
@@ -81,8 +82,7 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task to be inserted mentioned in the question (str)
     :param time_limit: the time limit in seconds for the explanation computation (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
@@ -110,7 +110,8 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
             f"ajoutant {task.name} dans le planning de {employee.name} selon la route suivante "
             f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}",
     }
-    return support_solution, conflict, applying_transformation_text_in_various_languages
+    return TransformationResult(support_solution, conflict,
+                                applying_transformation_text_in_various_languages)
 
 
 #######################
@@ -127,8 +128,7 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
     :param employee_name: the name of the employee mentioned in the question (str)
     :param task_name: the name of the task mentioned in the question (str)
     :param time_limit: the time limit in seconds for the explanation computation (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     task = solution.instance.get_task_by_name(task_name)
@@ -157,7 +157,8 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
         support_solution = solution.copy(solution.name + "_support")
         conflict = SkillConflict(employee, task)
         applying_transformation_text_in_various_languages = {LANGUAGE_ENGLISH_KEY: "", LANGUAGE_FRENCH_KEY: ""}
-    return support_solution, conflict, applying_transformation_text_in_various_languages
+    return TransformationResult(support_solution, conflict,
+                                applying_transformation_text_in_various_languages)
 
 
 #############################
@@ -172,8 +173,7 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
     :param solution: the solution to explain (EditableSolution)
     :param employee_name: the name of the employee mentioned in the question (str)
     :param time_limit: the time limit in seconds for computing the transformation (int)
-    :return: a tuple containing the support solution (EditableSolution), the conflict if any (Conflict) and
-    the text of the transformation to apply in various languages (dict(str, str))
+    :return: the result of the applied transformation (TransformationResult)
     """
     employee = solution.instance.get_employee_by_name(employee_name)
     sequence = solution.get_sequence(employee)
@@ -195,4 +195,5 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
             f"réordonnant l'itinéraire de {employee.name} en l'itinéraire suivant "
             f"{description_of_support_sequence.replace('Start', 'Domicile').replace('Return', 'Domicile')}"
     }
-    return support_solution, conflict, applying_transformation_text_in_various_languages
+    return TransformationResult(support_solution, conflict,
+                                applying_transformation_text_in_various_languages)
