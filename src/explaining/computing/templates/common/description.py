@@ -18,8 +18,10 @@ class TransformationDescriptions:
     """
     Builds the sentence describing an applied transformation, in each of the languages explanations are given in.
 
-    Every method returns the same shape: the sentence keyed by language, ready to be carried by a
-    TransformationResult and stored on the Explanation built from it.
+    The for_* methods all return the same shape: the sentence keyed by language,
+    ready to be carried by a TransformationResult and stored on the Explanation built from it.
+    The other two name a route's departure and come-back steps as the employee's home,
+    which the sentences spelling out a route are built from.
     """
 
     @staticmethod
@@ -36,7 +38,6 @@ class TransformationDescriptions:
         """
         home_name = HOME_NAMES[language_key]
         return route_description.replace(LEAVING_HOME_STRING, home_name).replace(COMING_BACK_HOME_STRING, home_name)
-
 
     @staticmethod
     def write_route_by_language(route_description: str) -> dict[str, str]:
