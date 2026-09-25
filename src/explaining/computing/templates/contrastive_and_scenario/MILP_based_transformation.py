@@ -90,7 +90,7 @@ def apply_ins_3(solution: EditableSolution, employee_name: str, task_name: str, 
         sequence = solution.get_sequence(employee)
         model = MILPModelForInsertion3(sequence, task)
         if time_limit is not None:
-            model.time_limit = time_limit
+            model.solving_time_limit = time_limit
         # model.warm_start()
         MILPTransformationRunner.solve_or_raise(model)
         support_solution, conflict, description_of_support_sequence = \
@@ -133,7 +133,7 @@ def apply_swp_3(solution: EditableSolution, employee_name: str, task_name: str, 
         sequence = solution.get_sequence(employee)
         model = MILPModelForSwap3(sequence, task)
         if time_limit is not None:
-            model.time_limit = time_limit
+            model.solving_time_limit = time_limit
         MILPTransformationRunner.solve_or_raise(model)
         support_solution, conflict, description_of_support_sequence = \
             extract_explanation_content_from_MILP_model_results(solution, employee, task, model)
@@ -173,7 +173,7 @@ def apply_ord_3(solution: EditableSolution, employee_name: str, time_limit: int 
     sequence = solution.get_sequence(employee)
     model = MILPModelForReordering3(sequence)
     if time_limit is not None:
-        model.time_limit = time_limit
+        model.solving_time_limit = time_limit
     MILPTransformationRunner.solve_or_raise(model)
     pivot_task = model.pivot_task
     support_solution, conflict, description_of_support_sequence = \

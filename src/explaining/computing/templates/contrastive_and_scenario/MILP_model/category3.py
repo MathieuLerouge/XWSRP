@@ -80,14 +80,6 @@ class MILPModelForCategory3(SequenceModel):
     def support_sequence(self) -> Sequence:
         return self.solution_sequence
 
-    @property
-    def time_limit(self):
-        return self.solving_time_limit
-
-    @time_limit.setter
-    def time_limit(self, time_limit: int):
-        self.solving_time_limit = time_limit
-
     ######################
     # Decision variables #
     ######################
