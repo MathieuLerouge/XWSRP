@@ -2,133 +2,13 @@
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
-    EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+    EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.modeling.activity import Activity
 from src.modeling.employee import Employee
 from src.modeling.task import Task
-from src.optimization.heuristics.evaluation import InsertionEvaluation, ReplacementEvaluation, ReorderEvaluation
+from src.optimization.heuristics.evaluation import ReplacementEvaluation, ReorderEvaluation
 from src.optimization.heuristics.evaluator import Evaluator
-
-
-#############
-# Insertion #
-#############
-
-def build_transformation_result_for_insertion(solution: EditableSolution, employee: Employee,
-                                              task: Task, activity: Activity,
-                                              evaluation: InsertionEvaluation):
-    """
-    Build the result of the transformation the given evaluation evaluated
-
-    :param solution: the solution to explain (EditableSolution)
-    :param employee: the employee whose sequence is to be transformed (Employee)
-    :param task: the task to insert (Task)
-    :param activity: the activity after which the task is to be inserted (Activity)
-    :param evaluation: the evaluation of the insertion (InsertionEvaluation)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    transformation_is_feasible = evaluation.is_feasible
-    support_solution = solution.copy(solution.name + "_support")
-    if support_solution.get_task_performance_status(task):
-        support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)
-    conflict = None
-    if transformation_is_feasible:
-        support_solution.insert_task_after_activity(task, activity, start_time=evaluation.start_time)
-    else:
-        if not evaluation.is_time_feasible:
-            support_solution.insert_task_after_activity(
-                task, activity, evaluation.start_time,
-                evaluation.earliest_start_time_for_upstream, evaluation.latest_start_time_for_downstream,
-                False, False, (not evaluation.is_skill_feasible)
-            )
-        else:
-            support_solution.insert_task_after_activity(
-                task, activity, evaluation.start_time, None, None, False, False, True
-            )
-        sequence = support_solution.get_sequence(employee)
-        conflict = TailoredConflictBuilder.build_from_evaluation(
-            employee, task, sequence, sequence.get_step_index_of(activity) + 1, evaluation
-        )
-    descriptions = TransformationDescriptionBuilder.for_inserting_task_after_activity(task, activity, employee)
-    return TransformationResult(support_solution, conflict, descriptions)
-
-
-def apply_ins_1(solution: EditableSolution, employee_name: str, task_name: str, activity_name: str):
-    """
-    Apply induced transformation and get explanation content for answering (Ins,1) contrastive question:
-    "Why is employee {Employee} not performing task {Task} just after activity {Activity}?"
-
-    :param solution: the solution to explain (EditableSolution)
-    :param employee_name: the name of the employee mentioned in the question (str)
-    :param task_name: the name of the task mentioned in the question (str)
-    :param activity_name: the name of the activity mentioned in the question (str)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    employee = solution.instance.get_employee_by_name(employee_name)
-    task = solution.instance.get_task_by_name(task_name)
-    activity = solution.instance.get_hypothetical_activity_by_names(activity_name, employee_name)
-    evaluation = Evaluator.evaluate_insertion_after(solution.get_sequence(employee), task, activity, False)
-    return build_transformation_result_for_insertion(solution, employee, task, activity, evaluation)
-
-
-def apply_ins_2a(solution: EditableSolution, employee_name: str, task_name: str):
-    """
-    Apply induced transformation and get explanation content for answering (Ins,2a) contrastive question:
-    "Why is employee {Employee} not performing task {Task} between two consecutive activities of their planning?"
-
-    :param solution: the solution to explain (EditableSolution)
-    :param employee_name: the name of the employee mentioned in the question (str)
-    :param task_name: the name of the task mentioned in the question (str)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    employee = solution.instance.get_employee_by_name(employee_name)
-    task = solution.instance.get_task_by_name(task_name)
-    evaluation = Evaluator.find_best_insertion_between_consecutive_activities(
-        solution.get_sequence(employee), task, compute_times_only_if_skill_constraints_satisfied=False)
-    activity = evaluation.activity_before_insertion
-    return build_transformation_result_for_insertion(solution, employee, task, activity, evaluation)
-
-
-def apply_ins_2b(solution: EditableSolution, employee_name: str):
-    """
-    Apply induced transformation and get explanation content for answering (Ins,2b) contrastive question:
-    "Why is employee {Employee} not performing any non-performed task
-    between two consecutive activities of their planning?"
-
-    :param solution: the solution to explain (EditableSolution)
-    :param employee_name: the name of the employee mentioned in the question (str)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    employee = solution.instance.get_employee_by_name(employee_name)
-    performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
-        solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
-    )
-    evaluation = Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
-        solution, performable_non_performed_tasks, [employee], False
-    )
-    task = evaluation.inserted_task
-    activity = evaluation.activity_before_insertion
-    return build_transformation_result_for_insertion(solution, employee, task, activity, evaluation)
-
-
-def apply_ins_2c(solution: EditableSolution, task_name: str):
-    """
-    Apply induced transformation and get explanation content for answering (Ins,2c) contrastive question:
-    "Why is any employee not performing task {Task} between two consecutive activities of their planning?"
-
-    :param solution: the solution to explain (EditableSolution)
-    :param task_name: the name of the task mentioned in the question (str)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    task = solution.instance.get_task_by_name(task_name)
-    evaluation = Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
-        solution, [task], solution.instance.employees, False
-    )
-    employee = evaluation.employee
-    activity = evaluation.activity_before_insertion
-    return build_transformation_result_for_insertion(solution, employee, task, activity, evaluation)
 
 
 ########
