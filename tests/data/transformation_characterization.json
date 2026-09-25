@@ -1,0 +1,2122 @@
+{
+  "contrastive": {
+    "ins_1": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T27",
+        "type": "time",
+        "upstream feasible": 0,
+        "downstream feasible": 1,
+        "early start time": 947,
+        "late start time": 850,
+        "upstream critical index": 4,
+        "downstream critical index": 8
+      },
+      "descriptions": {
+        "EN": "inserting T27 just after T17 in Ellen's planning",
+        "FR": "insérant T27 juste après T17 dans le planning de Ellen"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T27",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "ins_2a": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T27",
+        "type": "time",
+        "upstream feasible": 1,
+        "downstream feasible": 0,
+        "early start time": 518,
+        "late start time": 454,
+        "upstream critical index": 0,
+        "downstream critical index": 8
+      },
+      "descriptions": {
+        "EN": "inserting T27 just after Home in Ellen's planning",
+        "FR": "insérant T27 juste après Domicile dans le planning de Ellen"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T27",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "ins_2b": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T15",
+        "type": "time",
+        "upstream feasible": 0,
+        "downstream feasible": 1,
+        "early start time": 816,
+        "late start time": 780,
+        "upstream critical index": 4,
+        "downstream critical index": 8
+      },
+      "descriptions": {
+        "EN": "inserting T15 just after T26 in Ellen's planning",
+        "FR": "insérant T15 juste après T26 dans le planning de Ellen"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T15",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "ins_2c": {
+      "conflict": {
+        "employee": "Alexander",
+        "task": "T27",
+        "type": "time",
+        "upstream feasible": 0,
+        "downstream feasible": 1,
+        "early start time": 895,
+        "late start time": 850,
+        "upstream critical index": 0,
+        "downstream critical index": 9
+      },
+      "descriptions": {
+        "EN": "inserting T27 just after T20 in Alexander's planning",
+        "FR": "insérant T27 juste après T20 dans le planning de Alexander"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T27",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "ins_3": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "adding T27 in Ellen's planning according to the following route [Home, T30, T7, T8, T27, T1, T17, T26, T3, Home]",
+        "FR": "ajoutant T27 dans le planning de Ellen selon la route suivante [Domicile, T30, T7, T8, T27, T1, T17, T26, T3, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T30",
+          "T7",
+          "T8",
+          "T27",
+          "T1",
+          "T17",
+          "T26",
+          "T3",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 28,
+        "total working duration": 1105,
+        "total traveling duration": 1221,
+        "total traveling distance": 1007.5456393658428,
+        "total idle time": 381
+      },
+      "alterations": null
+    },
+    "swp_1": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T27",
+        "type": "time",
+        "upstream feasible": 0,
+        "downstream feasible": 1,
+        "early start time": 895,
+        "late start time": 850,
+        "upstream critical index": 4,
+        "downstream critical index": 7
+      },
+      "descriptions": {
+        "EN": "replacing T17 from Ellen's planning by T27",
+        "FR": "remplaçant T17 du planning de Ellen par T27"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T27",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "swp_2a": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T27",
+        "type": "time",
+        "upstream feasible": 1,
+        "downstream feasible": 1,
+        "early start time": 758,
+        "late start time": 751,
+        "upstream critical index": 3,
+        "downstream critical index": 7
+      },
+      "descriptions": {
+        "EN": "replacing T26 from Ellen's planning by T27",
+        "FR": "remplaçant T26 du planning de Ellen par T27"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T27",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "swp_2b": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "replacing T26 from Ellen's planning by T15",
+        "FR": "remplaçant T26 du planning de Ellen par T15"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T15",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1040,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.2616485369158,
+        "total idle time": 381
+      },
+      "alterations": null
+    },
+    "swp_2c": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T27",
+        "type": "time",
+        "upstream feasible": 1,
+        "downstream feasible": 1,
+        "early start time": 758,
+        "late start time": 751,
+        "upstream critical index": 3,
+        "downstream critical index": 7
+      },
+      "descriptions": {
+        "EN": "replacing T26 from Ellen's planning by T27",
+        "FR": "remplaçant T26 du planning de Ellen par T27"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T27",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "swp_3": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "replacing T26 by T27 in Ellen's and applying the following route [Home, T7, T30, T8, T27, T17, T1, T3, Home]",
+        "FR": "remplaçant T26 par T27 dans le planning de Ellen et en appliquant l'itinéraire suivant [Domicile, T7, T30, T8, T27, T17, T1, T3, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T8",
+          "T27",
+          "T17",
+          "T1",
+          "T3",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1065,
+        "total traveling duration": 1199,
+        "total traveling distance": 988.5447005826724,
+        "total idle time": 406
+      },
+      "alterations": null
+    },
+    "ord_lat_1": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T30",
+        "type": "time",
+        "upstream feasible": 0,
+        "downstream feasible": 1,
+        "early start time": 827,
+        "late start time": 680,
+        "upstream critical index": 3,
+        "downstream critical index": 7
+      },
+      "descriptions": {
+        "EN": "moving T30 just after T26 in Ellen's planning",
+        "FR": "déplaçant T30 juste après T26 dans le planning de Ellen"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T3",
+          "T26",
+          "T30",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "ord_ear_1": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T26",
+        "type": "time",
+        "upstream feasible": 1,
+        "downstream feasible": 0,
+        "early start time": 720,
+        "late start time": 488,
+        "upstream critical index": 0,
+        "downstream critical index": 7
+      },
+      "descriptions": {
+        "EN": "moving T26 just before T7 in Ellen's planning",
+        "FR": "déplaçant T26 juste avant T7 dans le planning de Ellen"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T26",
+          "T7",
+          "T30",
+          "T3",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "ord_lat_2": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T3",
+        "type": "time",
+        "upstream feasible": 1,
+        "downstream feasible": 1,
+        "early start time": 773,
+        "late start time": 734,
+        "upstream critical index": 3,
+        "downstream critical index": 7
+      },
+      "descriptions": {
+        "EN": "moving T3 just after T26 in Ellen's planning",
+        "FR": "déplaçant T3 juste après T26 dans le planning de Ellen"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T26",
+          "T3",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "ord_ear_2": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T3",
+        "type": "time",
+        "upstream feasible": 1,
+        "downstream feasible": 0,
+        "early start time": 660,
+        "late start time": 524,
+        "upstream critical index": 1,
+        "downstream critical index": 7
+      },
+      "descriptions": {
+        "EN": "moving T3 just before T30 in Ellen's planning",
+        "FR": "déplaçant T3 juste avant T30 dans le planning de Ellen"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T3",
+          "T30",
+          "T26",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    },
+    "ord_2": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "moving T1 just after T17 in Ellen's planning",
+        "FR": "déplaçant T1 juste après T17 dans le planning de Ellen"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T17",
+          "T1",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 984.0794908271212,
+        "total idle time": 381
+      },
+      "alterations": null
+    },
+    "ord_3": {
+      "conflict": {
+        "employee": "Carlotta",
+        "task": "T23",
+        "type": "time",
+        "upstream feasible": 0,
+        "downstream feasible": 1,
+        "early start time": 922,
+        "late start time": 870,
+        "upstream critical index": 2,
+        "downstream critical index": 4
+      },
+      "descriptions": {
+        "EN": "reordering Carlotta's route into the following route [Home, T5, T2, T23, Home]",
+        "FR": "réordonnant l'itinéraire de Carlotta en l'itinéraire suivant [Domicile, T5, T2, T23, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T2",
+          "T23",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": null
+    }
+  },
+  "counterfactual": {
+    "ins_1": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "adding T27 in Ellen's planning according to the following route [Home, T7, T30, T3, T26, T1, T17, T27, T8, Home]",
+        "FR": "ajoutant T27 dans le planning de Ellen selon la route suivante [Domicile, T7, T30, T3, T26, T1, T17, T27, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T27",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 28,
+        "total working duration": 1105,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6564089416526,
+        "total idle time": 414
+      },
+      "alterations": [
+        "the latest end time of T8 is changed to 05:24PM instead of 04:40PM",
+        "the latest end time of T27 is changed to 04:37PM instead of 03:00PM"
+      ]
+    },
+    "ins_2a": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "adding T27 in Ellen's planning according to the following route [Home, T7, T30, T3, T26, T1, T17, T27, T8, Home]",
+        "FR": "ajoutant T27 dans le planning de Ellen selon la route suivante [Domicile, T7, T30, T3, T26, T1, T17, T27, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T27",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 28,
+        "total working duration": 1105,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6564089416526,
+        "total idle time": 414
+      },
+      "alterations": [
+        "the latest end time of T8 is changed to 05:24PM instead of 04:40PM",
+        "the latest end time of T27 is changed to 04:37PM instead of 03:00PM"
+      ]
+    },
+    "ins_2b": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "adding T27 in Ellen's planning according to the following route [Home, T7, T30, T3, T26, T1, T17, T27, T8, Home]",
+        "FR": "ajoutant T27 dans le planning de Ellen selon la route suivante [Domicile, T7, T30, T3, T26, T1, T17, T27, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T27",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 28,
+        "total working duration": 1105,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6564089416526,
+        "total idle time": 414
+      },
+      "alterations": [
+        "the latest end time of T8 is changed to 05:24PM instead of 04:40PM",
+        "the latest end time of T27 is changed to 04:37PM instead of 03:00PM"
+      ]
+    },
+    "ins_3": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "adding T27 in Ellen's planning according to the following route [Home, T7, T30, T3, T26, T17, T1, T27, T8, Home]",
+        "FR": "ajoutant T27 dans le planning de Ellen selon la route suivante [Domicile, T7, T30, T3, T26, T17, T1, T27, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T17",
+          "T1",
+          "T27",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 28,
+        "total working duration": 1105,
+        "total traveling duration": 1193,
+        "total traveling distance": 984.1013706484873,
+        "total idle time": 414
+      },
+      "alterations": [
+        "the latest end time of T8 is changed to 05:24PM instead of 04:40PM",
+        "the latest end time of T27 is changed to 04:37PM instead of 03:00PM"
+      ]
+    },
+    "swp_1": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "replacing T17 with T27 in Ellen's planning according to the following route [Home, T7, T30, T3, T26, T1, T27, T8, Home]",
+        "FR": "remplaçant T17 par T27 dans le planning de Ellen selon la route suivante [Domicile, T7, T30, T3, T26, T1, T27, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T27",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1065,
+        "total traveling duration": 1181,
+        "total traveling distance": 974.8391390893913,
+        "total idle time": 422
+      },
+      "alterations": [
+        "the earliest start time of T26 is changed to 11:53AM instead of 12:00PM",
+        "the latest end time of T27 is changed to 03:38PM instead of 03:00PM"
+      ]
+    },
+    "swp_2a": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "replacing T7 with T27 in Ellen's planning according to the following route [Home, T27, T30, T3, T26, T1, T17, T8, Home]",
+        "FR": "remplaçant T7 par T27 dans le planning de Ellen selon la route suivante [Domicile, T27, T30, T3, T26, T1, T17, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T27",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1075,
+        "total traveling duration": 1243,
+        "total traveling distance": 1024.5119015124737,
+        "total idle time": 381
+      },
+      "alterations": [
+        "the latest end time of T8 is changed to 05:11PM instead of 04:40PM"
+      ]
+    },
+    "swp_2b": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "replacing T7 with T27 in Ellen's planning according to the following route [Home, T27, T30, T3, T26, T1, T17, T8, Home]",
+        "FR": "remplaçant T7 par T27 dans le planning de Ellen selon la route suivante [Domicile, T27, T30, T3, T26, T1, T17, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T27",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1075,
+        "total traveling duration": 1243,
+        "total traveling distance": 1024.5119015124737,
+        "total idle time": 381
+      },
+      "alterations": [
+        "the latest end time of T8 is changed to 05:11PM instead of 04:40PM"
+      ]
+    },
+    "swp_3": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "replacing T7 with T27 in Ellen's planning according to the following route [Home, T30, T3, T26, T17, T1, T27, T8, Home]",
+        "FR": "remplaçant T7 par T27 dans le planning de Ellen selon la route suivante [Domicile, T30, T3, T26, T17, T1, T27, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T30",
+          "T3",
+          "T26",
+          "T17",
+          "T1",
+          "T27",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1075,
+        "total traveling duration": 1192,
+        "total traveling distance": 983.3722921629405,
+        "total idle time": 445
+      },
+      "alterations": [
+        "the latest end time of T8 is changed to 05:24PM instead of 04:40PM",
+        "the latest end time of T27 is changed to 04:37PM instead of 03:00PM"
+      ]
+    },
+    "ord_lat_1": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T30",
+        "type": "time",
+        "upstream feasible": 0,
+        "downstream feasible": 1,
+        "early start time": 827.0,
+        "late start time": 767.0,
+        "upstream critical index": 3,
+        "downstream critical index": 6
+      },
+      "descriptions": {
+        "EN": "moving T30 in Ellen's planning according to the following route [Home, T7, T3, T26, T30, T1, T17, T8, Home]",
+        "FR": "déplaçant T30 dans le planning de Ellen selon la route suivante [Domicile, T7, T3, T26, T30, T1, T17, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T3",
+          "T26",
+          "T30",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": [
+        "the latest end time of T30 is changed to 01:27PM instead of 12:00PM",
+        "the latest end time of T8 is changed to 05:22PM instead of 04:40PM"
+      ]
+    },
+    "ord_ear_1": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T26",
+        "type": "time",
+        "upstream feasible": 1,
+        "downstream feasible": 0,
+        "early start time": 570.0,
+        "late start time": 529.0,
+        "upstream critical index": 0,
+        "downstream critical index": 3
+      },
+      "descriptions": {
+        "EN": "moving T26 in Ellen's planning according to the following route [Home, T26, T7, T30, T3, T1, T17, T8, Home]",
+        "FR": "déplaçant T26 dans le planning de Ellen selon la route suivante [Domicile, T26, T7, T30, T3, T1, T17, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T26",
+          "T7",
+          "T30",
+          "T3",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": [
+        "the earliest start time of T26 is changed to 09:30AM instead of 12:00PM",
+        "the latest end time of T8 is changed to 05:21PM instead of 04:40PM"
+      ]
+    },
+    "ord_lat_2": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "moving T3 in Ellen's planning according to the following route [Home, T7, T30, T26, T3, T1, T17, T8, Home]",
+        "FR": "déplaçant T3 dans le planning de Ellen selon la route suivante [Domicile, T7, T30, T26, T3, T1, T17, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T26",
+          "T3",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1197,
+        "total traveling distance": 986.8390153981528,
+        "total idle time": 435
+      },
+      "alterations": [
+        "the earliest start time of T26 is changed to 11:40AM instead of 12:00PM",
+        "the latest end time of T8 is changed to 04:59PM instead of 04:40PM"
+      ]
+    },
+    "ord_ear_2": {
+      "conflict": {
+        "employee": "Ellen",
+        "task": "T3",
+        "type": "time",
+        "upstream feasible": 1,
+        "downstream feasible": 0,
+        "early start time": 557.0,
+        "late start time": 523.0,
+        "upstream critical index": 0,
+        "downstream critical index": 6
+      },
+      "descriptions": {
+        "EN": "moving T3 in Ellen's planning according to the following route [Home, T3, T7, T30, T26, T1, T17, T8, Home]",
+        "FR": "déplaçant T3 dans le planning de Ellen selon la route suivante [Domicile, T3, T7, T30, T26, T1, T17, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T3",
+          "T7",
+          "T30",
+          "T26",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 983.6536559836179,
+        "total idle time": 389
+      },
+      "alterations": [
+        "the earliest start time of T3 is changed to 09:17AM instead of 11:00AM",
+        "the latest end time of T8 is changed to 05:22PM instead of 04:40PM"
+      ]
+    },
+    "ord_2": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "moving T1 in Ellen's planning according to the following route [Home, T7, T30, T3, T26, T17, T1, T8, Home]",
+        "FR": "déplaçant T1 dans le planning de Ellen selon la route suivante [Domicile, T7, T30, T3, T26, T17, T1, T8, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T17",
+          "T1",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T23",
+          "T2",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1193,
+        "total traveling distance": 984.0794908271212,
+        "total idle time": 420
+      },
+      "alterations": []
+    },
+    "ord_3": {
+      "conflict": null,
+      "descriptions": {
+        "EN": "moving T23 in Carlotta's planning according to the following route [Home, T5, T2, T23, Home]",
+        "FR": "déplaçant T23 dans le planning de Carlotta selon la route suivante [Domicile, T5, T2, T23, Domicile]"
+      },
+      "routes": {
+        "Ellen": [
+          "Start",
+          "T7",
+          "T30",
+          "T3",
+          "T26",
+          "T1",
+          "T17",
+          "T8",
+          "Return"
+        ],
+        "Alexander": [
+          "Start",
+          "T28",
+          "T16",
+          "T25",
+          "T14",
+          "T20",
+          "T6",
+          "T19",
+          "Return"
+        ],
+        "Adam": [
+          "Start",
+          "T11",
+          "T9",
+          "T10",
+          "T24",
+          "Return"
+        ],
+        "Fabian": [
+          "Start",
+          "T13",
+          "T18",
+          "T21",
+          "T29",
+          "T4",
+          "T22",
+          "Return"
+        ],
+        "Carlotta": [
+          "Start",
+          "T5",
+          "T2",
+          "T23",
+          "Return"
+        ]
+      },
+      "kpis": {
+        "nb performed tasks": 27,
+        "total working duration": 1055,
+        "total traveling duration": 1167,
+        "total traveling distance": 961.7707963703937,
+        "total idle time": 351
+      },
+      "alterations": [
+        "the latest end time of T23 is changed to 03:26PM instead of 03:00PM",
+        "the earliest start time of T2 is changed to 01:34PM instead of 02:00PM"
+      ]
+    }
+  }
+}
