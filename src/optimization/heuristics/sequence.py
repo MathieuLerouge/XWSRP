@@ -47,7 +47,7 @@ class SequenceForHeuristics(Sequence):
         SlackTimeComputer.recompute_time_slacks(self)
 
     @classmethod
-    def from_sequence(cls, sequence: Sequence):
+    def from_sequence(cls, sequence: Sequence) -> "SequenceForHeuristics":
         steps = [StepForHeuristics.from_step(step) for step in sequence]
         return cls(sequence.instance, sequence.employee, steps)
 

@@ -1,25 +1,12 @@
-# Standard library
-from typing import Callable
-
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
-    EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+    EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
+from src.explaining.computing.templates.counterfactual.extraction import build_transformation_result_from_milp_model
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
-    MILPModelForTransformationWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.insertion_with_alterations import \
-    MILPModelForInsertionWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.insertion1 import \
-    MILPModelForInsertion1WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.insertion2 import \
-    MILPModelForInsertion2aWithInstanceAlterations, MILPModelForInsertion2bWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.insertion3 import \
-    MILPModelForInsertion3WithInstanceAlterations
 from src.explaining.computing.templates.counterfactual.MILP_model.swap_with_alterations import \
     MILPModelForSwapWithInstanceAlterations
 from src.explaining.computing.templates.counterfactual.MILP_model.swap1 import MILPModelForSwap1WithInstanceAlterations
@@ -36,17 +23,6 @@ from src.explaining.computing.templates.counterfactual.MILP_model.reordering2 im
 from src.explaining.computing.templates.counterfactual.MILP_model.reordering3 import \
     MILPModelForReordering3WithInstanceAlterations
 from src.modeling.employee import Employee
-
-
-###############################
-# All kinds of transformation #
-###############################
-
-def describe_insertion(model: MILPModelForInsertionWithInstanceAlterations, employee: Employee,
-                       route_description: str) -> dict[str, str]:
-    """Describe the insertion the given model computed, in every language."""
-    return TransformationDescriptionBuilder.for_inserting_task_in_route(
-        model.task_to_insert, employee, route_description)
 
 
 def describe_swap(model: MILPModelForSwapWithInstanceAlterations, employee: Employee,
@@ -72,155 +48,6 @@ def describe_reordering(model: MILPModelForReorderingWithInstanceAlterations, em
     none either, even though the model did pick a pivot task of its own to reorder around.
     """
     return TransformationDescriptionBuilder.for_reordering_route(employee, route_description)
-
-
-def build_transformation_result_from_milp_model(
-        solution: EditableSolution, model: MILPModelForTransformationWithInstanceAlterations,
-        describe: Callable[[MILPModelForTransformationWithInstanceAlterations, Employee, str], dict[str, str]]
-) -> TransformationResult:
-    """
-    Build the result of the transformation,
-    from the results of the MILP model used to compute it
-
-    :param solution: the solution to explain (EditableSolution)
-    :param model: the MILP model used to compute the transformation (MILPModelForTransformationWithInstanceAlterations)
-    :param describe: the function wording the transformation the model computed (Callable)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    # Define key employee and task
-    if model.pivot_task_is_new_to_employee is None:
-        raise ValueError(f"Unknown MILP model type {type(model)}: it does not say whether the employee "
-                         f"is being handed a task they do not already perform")
-    key_employee = model.support_sequence.employee
-    key_task = model.pivot_task
-    # Save whether the transformation is feasible
-    transformation_is_skill_feasible = (not model.pivot_task_is_new_to_employee
-                                        or key_employee.is_capable_of_performing(key_task))
-    transformation_is_feasible = transformation_is_skill_feasible and model.is_support_sequence_feasible
-    # Build support instance and support solution
-    support_solution = solution.copy(solution.name + "_support")
-    support_solution.instance = model.support_instance
-    support_sequence = model.support_sequence
-    if model.pivot_task_is_new_to_employee and support_solution.get_task_performance_status(key_task):
-        support_solution.remove_task(key_task, transformation_is_feasible, transformation_is_feasible)
-    if transformation_is_feasible:
-        support_sequence.compute_kpis()
-    support_solution.replace_sequence_by_another(key_employee, support_sequence, transformation_is_feasible)
-    # Build conflict (if any)
-    step_index = support_sequence.get_step_index_of(key_task)
-    conflict = None
-    if not transformation_is_feasible:
-        conflict = TailoredConflictBuilder.build_from_start_times(
-            key_employee, key_task, support_solution.get_sequence(key_employee), step_index,
-            transformation_is_skill_feasible,
-            model.pivot_task_start_time_for_backward, model.pivot_task_start_time_for_forward
-        )
-    # Create description of applied transformation
-    support_sequence_activities_names = [step.activity.name for step in support_sequence]
-    description_of_support_sequence = "[" + ", ".join(support_sequence_activities_names) + "]"
-    descriptions = describe(model, key_employee, description_of_support_sequence)
-    return TransformationResult(support_solution, conflict, descriptions, model.support_instance_alterations)
-
-
-############################
-# Insertion transformation #
-############################
-
-def apply_ctf_ins_1(solution: EditableSolution, employee_name: str, task_name: str, activity_name: str,
-                    instance_parameter_alteration_bounds: InstanceChanges = None,
-                    solving_time_limit: int = None):
-    """
-    Apply induced transformation and get explanation content for answering (Ins,1) counterfactual question:
-    "How to make possible that employee {Employee} performs task {Task} just after activity {Activity}?"
-
-    :param solution: the solution to explain (EditableSolution)
-    :param employee_name: the name of the employee mentioned in the question (str)
-    :param task_name: the name of the task mentioned in the question (str)
-    :param activity_name: the name of the activity mentioned in the question (str)
-    :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
-    :param solving_time_limit: the solving time limit in seconds (int)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    employee = solution.instance.get_employee_by_name(employee_name)
-    task = solution.instance.get_task_by_name(task_name)
-    activity = solution.instance.get_hypothetical_activity_by_names(activity_name, employee.name)
-    sequence = solution.get_sequence(employee)
-    model = MILPModelForInsertion1WithInstanceAlterations(sequence, task, activity,
-                                                          instance_parameter_alteration_bounds, solving_time_limit)
-    MILPTransformationRunner.solve_or_raise(model)
-    return build_transformation_result_from_milp_model(solution, model, describe_insertion)
-
-
-def apply_ctf_ins_2a(solution: EditableSolution, employee_name: str, task_name: str,
-                     instance_parameter_alteration_bounds: InstanceChanges = None,
-                     solving_time_limit: int = None):
-    """
-    Apply induced transformation and get explanation content for answering (Ins,2a) counterfactual question:
-    "How to make possible that employee {Employee} performs task {Task}
-    between two consecutive activities of their planning?"
-
-    :param solution: the solution to explain (EditableSolution)
-    :param employee_name: the name of the employee mentioned in the question (str)
-    :param task_name: the name of the task mentioned in the question (str)
-    :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
-    :param solving_time_limit: the solving time limit in seconds (int)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    employee = solution.instance.get_employee_by_name(employee_name)
-    task = solution.instance.get_task_by_name(task_name)
-    sequence = solution.get_sequence(employee)
-    model = MILPModelForInsertion2aWithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
-                                                           solving_time_limit)
-    MILPTransformationRunner.solve_or_raise(model)
-    return build_transformation_result_from_milp_model(solution, model, describe_insertion)
-
-
-def apply_ctf_ins_2b(solution: EditableSolution, employee_name: str,
-                     instance_parameter_alteration_bounds: InstanceChanges = None,
-                     solving_time_limit: int = None):
-    """
-    Apply induced transformation and get explanation content for answering (Ins,2b) counterfactual question:
-    "How to make possible that employee {Employee} performs any non-performed task
-    between two consecutive activities of their planning?"
-
-    :param solution: the solution to explain (EditableSolution)
-    :param employee_name: the name of the employee mentioned in the question (str)
-    :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
-    :param solving_time_limit: the solving time limit in seconds (int)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    employee = solution.instance.get_employee_by_name(employee_name)
-    sequence = solution.get_sequence(employee)
-    performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
-        solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
-    )
-    model = MILPModelForInsertion2bWithInstanceAlterations(sequence, performable_non_performed_tasks,
-                                                           instance_parameter_alteration_bounds,
-                                                           solving_time_limit)
-    MILPTransformationRunner.solve_or_raise(model)
-    return build_transformation_result_from_milp_model(solution, model, describe_insertion)
-
-
-def apply_ctf_ins_3(solution: EditableSolution, employee_name: str, task_name: str,
-                    instance_parameter_alteration_bounds: InstanceChanges = None,
-                    solving_time_limit: int = None):
-    """
-    Apply induced transformation and get explanation content for answering (Ins,3) counterfactual question:
-    "How to make possible that employee {Employee} performs task {Task} in addition to their activities?"
-
-    :param solution: the solution to explain (EditableSolution)
-    :param employee_name: the name of the employee mentioned in the question (str)
-    :param task_name: the name of the task mentioned in the question (str)
-    :param instance_parameter_alteration_bounds: the allowed variations of instance parameters (InstanceChanges)
-    :param solving_time_limit: the solving time limit in seconds (int)
-    :return: the result of the applied transformation (TransformationResult)
-    """
-    sequence = solution.get_sequence(solution.instance.get_employee_by_name(employee_name))
-    task = solution.instance.get_task_by_name(task_name)
-    model = MILPModelForInsertion3WithInstanceAlterations(sequence, task, instance_parameter_alteration_bounds,
-                                                          solving_time_limit)
-    MILPTransformationRunner.solve_or_raise(model)
-    return build_transformation_result_from_milp_model(solution, model, describe_insertion)
 
 
 #######################

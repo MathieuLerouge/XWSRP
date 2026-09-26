@@ -181,7 +181,7 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
             raise AttributeError("There is no solution sequence stored")
 
     @property
-    def support_sequence(self):
+    def support_sequence(self) -> SequenceForHeuristics:
         """
         Return the support sequence
 
