@@ -6,7 +6,7 @@ from src.explaining.computing.templates.common.description import Transformation
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
     INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.common.runner import MILPTransformationRunner
+from src.explaining.computing.templates.common.solver import TransformationModelSolver
 from src.explaining.computing.templates.counterfactual.result import build_transformation_result_from_milp_model
 from src.explaining.computing.templates.counterfactual.milp.insertion.insertion1 import Insertion1WithAlterationsModel
 from src.explaining.computing.templates.counterfactual.milp.insertion.insertion2 import \
@@ -59,7 +59,7 @@ class InsertionWithAlterationsApplier:
         model = Insertion1WithAlterationsModel(
             solution.get_sequence(employee), task, activity,
             instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, InsertionWithAlterationsApplier._describe
         )
@@ -87,7 +87,7 @@ class InsertionWithAlterationsApplier:
         task = solution.instance.get_task_by_name(task_name)
         model = Insertion2aWithAlterationsModel(
             solution.get_sequence(employee), task, instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, InsertionWithAlterationsApplier._describe
         )
@@ -121,7 +121,7 @@ class InsertionWithAlterationsApplier:
         model = Insertion2bWithAlterationsModel(
             solution.get_sequence(employee), performable_non_performed_tasks,
             instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, InsertionWithAlterationsApplier._describe
         )
@@ -148,7 +148,7 @@ class InsertionWithAlterationsApplier:
         task = solution.instance.get_task_by_name(task_name)
         model = Insertion3WithAlterationsModel(
             solution.get_sequence(employee), task, instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, InsertionWithAlterationsApplier._describe
         )

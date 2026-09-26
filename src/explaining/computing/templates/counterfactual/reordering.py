@@ -5,7 +5,7 @@ from typing import Optional
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.common.runner import MILPTransformationRunner
+from src.explaining.computing.templates.common.solver import TransformationModelSolver
 from src.explaining.computing.templates.counterfactual.result import build_transformation_result_from_milp_model
 from src.explaining.computing.templates.counterfactual.milp.reordering.reordering1 import \
     Reordering1aWithAlterationsModel, Reordering1bWithAlterationsModel
@@ -73,7 +73,7 @@ class ReorderingWithAlterationsApplier:
         model = Reordering1aWithAlterationsModel(
             solution.get_sequence(employee), moving_task, fixed_task,
             instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, ReorderingWithAlterationsApplier._describe_task_repositioning
         )
@@ -104,7 +104,7 @@ class ReorderingWithAlterationsApplier:
         model = Reordering1bWithAlterationsModel(
             solution.get_sequence(employee), moving_task, fixed_task,
             instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, ReorderingWithAlterationsApplier._describe_task_repositioning
         )
@@ -136,7 +136,7 @@ class ReorderingWithAlterationsApplier:
         moving_task = solution.instance.get_task_by_name(task_name)
         model = Reordering2aWithAlterationsModel(
             sequence, moving_task, instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, ReorderingWithAlterationsApplier._describe_task_repositioning
         )
@@ -168,7 +168,7 @@ class ReorderingWithAlterationsApplier:
         moving_task = solution.instance.get_task_by_name(task_name)
         model = Reordering2bWithAlterationsModel(
             sequence, moving_task, instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, ReorderingWithAlterationsApplier._describe_task_repositioning
         )
@@ -200,7 +200,7 @@ class ReorderingWithAlterationsApplier:
         moving_task = solution.instance.get_task_by_name(task_name)
         model = Reordering2cWithAlterationsModel(
             sequence, moving_task, instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, ReorderingWithAlterationsApplier._describe_task_repositioning
         )
@@ -230,7 +230,7 @@ class ReorderingWithAlterationsApplier:
         TransformationPreconditionChecker.check_sequence_is_reorderable(sequence)
         model = Reordering3WithAlterationsModel(
             sequence, instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
             solution, model, ReorderingWithAlterationsApplier._describe_reordering
         )

@@ -3,13 +3,13 @@ from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExcep
 from src.optimization.milp.subproblems.sequencemodel import SequenceModel
 
 
-############################
-# MILPTransformationRunner #
-############################
+#############################
+# TransformationModelSolver #
+#############################
 
-class MILPTransformationRunner:
+class TransformationModelSolver:
     """
-    Runs the MILP models computing transformations, turning a solve outcome holding no usable solution into a raise.
+    Solves the MILP models computing transformations, turning an outcome holding no usable solution into a raise.
     """
 
     @staticmethod

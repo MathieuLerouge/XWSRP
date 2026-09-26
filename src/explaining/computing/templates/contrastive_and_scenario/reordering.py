@@ -5,7 +5,7 @@ from typing import Optional
 from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.common.runner import MILPTransformationRunner
+from src.explaining.computing.templates.common.solver import TransformationModelSolver
 from src.explaining.computing.templates.contrastive_and_scenario.result import \
     build_transformation_result_from_milp_model
 from src.explaining.computing.templates.contrastive_and_scenario.milp.reordering import ReorderingModel
@@ -265,5 +265,5 @@ class ReorderingApplier:
             The result of the applied transformation.
         """
         model = ReorderingApplier._build_model_3(solution, employee_name, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(solution, model, ReorderingApplier._describe)

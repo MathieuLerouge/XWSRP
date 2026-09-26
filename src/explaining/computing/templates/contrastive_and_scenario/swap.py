@@ -8,7 +8,7 @@ from src.explaining.computing.templates.common.description import Transformation
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
     EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.common.runner import MILPTransformationRunner
+from src.explaining.computing.templates.common.solver import TransformationModelSolver
 from src.explaining.computing.templates.contrastive_and_scenario.result import \
     build_transformation_result_from_milp_model
 from src.explaining.computing.templates.contrastive_and_scenario.milp.swap import SwapModel
@@ -230,5 +230,5 @@ class SwapApplier:
                 TransformationDescriptionBuilder.none()
             )
         model = SwapApplier._build_model_3(solution, employee_name, task_name, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(solution, model, SwapApplier._describe)

@@ -6,7 +6,7 @@ from src.explaining.computing.templates.common.description import Transformation
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
     EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.common.runner import MILPTransformationRunner
+from src.explaining.computing.templates.common.solver import TransformationModelSolver
 from src.explaining.computing.templates.counterfactual.result import build_transformation_result_from_milp_model
 from src.explaining.computing.templates.counterfactual.milp.swap.swap1 import Swap1WithAlterationsModel
 from src.explaining.computing.templates.counterfactual.milp.swap.swap2 import \
@@ -59,7 +59,7 @@ class SwapWithAlterationsApplier:
         model = Swap1WithAlterationsModel(
             solution.get_sequence(employee), replacing_task, replaced_task,
             instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(solution, model, SwapWithAlterationsApplier._describe)
 
     @staticmethod
@@ -85,7 +85,7 @@ class SwapWithAlterationsApplier:
         model = Swap2aWithAlterationsModel(
             solution.get_sequence(employee), replacing_task,
             instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(solution, model, SwapWithAlterationsApplier._describe)
 
     @staticmethod
@@ -117,7 +117,7 @@ class SwapWithAlterationsApplier:
         model = Swap2bWithAlterationsModel(
             solution.get_sequence(employee), performable_non_performed_tasks,
             instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(solution, model, SwapWithAlterationsApplier._describe)
 
     @staticmethod
@@ -143,5 +143,5 @@ class SwapWithAlterationsApplier:
         model = Swap3WithAlterationsModel(
             solution.get_sequence(employee), replacing_task,
             instance_parameter_alteration_bounds, solving_time_limit)
-        MILPTransformationRunner.solve_or_raise(model)
+        TransformationModelSolver.solve_or_raise(model)
         return build_transformation_result_from_milp_model(solution, model, SwapWithAlterationsApplier._describe)

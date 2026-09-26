@@ -59,7 +59,7 @@ In `templates` subpackage:
   since only the MILP-based three take a solving time limit, and the counterfactual ones share a single table.
 - `common` holds what both kinds share: `TransformationPreconditionChecker`, `TransformationDescriptionBuilder`,
   `TransformationResult` (the support solution, the conflict if any, the per-language descriptions, 
-  and the instance alterations for counterfactual questions), `TailoredConflictBuilder`, and `MILPTransformationRunner`.
+  and the instance alterations for counterfactual questions), `TailoredConflictBuilder`, and `TransformationModelSolver`.
 - `contrastive_and_scenario/{insertion,swap,reordering}.py` contain: 
   `InsertionApplier`, `SwapApplier` and `ReorderingApplier`. 
   Each gathers its family's templates, polynomial and MILP-based alike, 
