@@ -8,8 +8,7 @@ import pytest
 from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
 from src.explaining.computing.conflict.extractor import ConflictExtractor
 from src.explaining.computing.model import NeighborhoodModel
-from src.explaining.computing.templates.transformation import \
-    apply_transformation_induced_by_contrastive_or_scenario_question
+from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskRelocation
@@ -165,7 +164,7 @@ def test_skill_conflict_when_the_only_candidate_pairing_is_blocked():
     assert conflict.conflicting_task.name == "T5"
 
     editable_solution = EditableSolution.from_solution(solution)
-    tailored_result = apply_transformation_induced_by_contrastive_or_scenario_question(
+    tailored_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
         editable_solution, ContrastiveQuestion(editable_solution, WHY_NOT_INS_2A, ["Fabian", "T5"])
     )
     assert conflict.to_dict() == tailored_result.conflict.to_dict()

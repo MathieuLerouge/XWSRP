@@ -8,9 +8,7 @@ from src.explaining.questioning.question import ContrastiveQuestion, Counterfact
 from src.explaining.questioning.questions_templates_bank import *
 from src.explaining.importing.explanation import import_single_explanation_from_json_file, \
     import_multiple_explanations_from_json_file
-from src.explaining.computing.templates.transformation import \
-    apply_transformation_induced_by_contrastive_or_scenario_question, \
-    apply_transformation_induced_by_counterfactual_question
+from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.exporting.explanation import define_single_contrastive_explanation_json_file_name, \
     export_single_contrastive_explanation_to_json_file, define_multiple_contrastive_explanations_json_file_name, \
     export_multiple_contrastive_explanations_to_json_file
@@ -368,7 +366,7 @@ class Explainer:
         return ContrastiveQuestion(self._current_solution, question_template_id, fields_values)
 
     def _compute_contrastive_explanation(self, contrastive_question: ContrastiveQuestion):
-        transformation_result = apply_transformation_induced_by_contrastive_or_scenario_question(
+        transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
             self.current_solution, contrastive_question,
             self.time_limit_for_contrastive_explanation_MILP_computation
         )
@@ -461,7 +459,7 @@ class Explainer:
             current_solution = self.current_solution
             scenario_current_solution = current_solution.copy(current_solution.name + "_scenario")
             scenario_current_solution.instance = scenario_instance
-            transformation_result = apply_transformation_induced_by_contrastive_or_scenario_question(
+            transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
                 scenario_current_solution, scenario_question
             )
             scenario_explanation = create_explanation(scenario_question, transformation_result)
@@ -541,7 +539,7 @@ class Explainer:
             self._increase_question_asked_count(counterfactual_question)
             current_solution = self.current_solution
             counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
-            transformation_result = apply_transformation_induced_by_counterfactual_question(
+            transformation_result = TransformationDispatcher.handle_counterfactual_question(
                 counterfactual_solution, counterfactual_question,
                 self.time_limit_for_counterfactual_explanation_MILP_computation
             )

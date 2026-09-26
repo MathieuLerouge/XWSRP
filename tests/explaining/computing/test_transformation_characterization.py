@@ -20,9 +20,7 @@ import pytest
 
 # Local libraries
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.transformation import \
-    apply_transformation_induced_by_contrastive_or_scenario_question, \
-    apply_transformation_induced_by_counterfactual_question
+from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.questioning.questions_templates_bank import \
@@ -96,7 +94,7 @@ def compute_contrastive_snapshot(solution: Solution, template_id: str, fields_va
     editable_solution = EditableSolution.from_solution(solution)
     question = ContrastiveQuestion(editable_solution, template_id, fields_values)
     return build_snapshot(
-        apply_transformation_induced_by_contrastive_or_scenario_question(editable_solution, question)
+        TransformationDispatcher.handle_contrastive_or_scenario_question(editable_solution, question)
     )
 
 
@@ -106,7 +104,7 @@ def compute_counterfactual_snapshot(solution: Solution, template_id: str, fields
     contrastive_question = ContrastiveQuestion(editable_solution, template_id, fields_values)
     question = CounterfactualQuestion(contrastive_question)
     return build_snapshot(
-        apply_transformation_induced_by_counterfactual_question(editable_solution, question)
+        TransformationDispatcher.handle_counterfactual_question(editable_solution, question)
     )
 
 

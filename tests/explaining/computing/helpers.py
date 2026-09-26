@@ -5,8 +5,7 @@ from typing import Optional
 from src.explaining.computing.conflict.conflict import Conflict, TimeConflict
 from src.explaining.computing.conflict.extractor import ConflictExtractor
 from src.explaining.computing.model import NeighborhoodModel
-from src.explaining.computing.templates.transformation import \
-    apply_transformation_induced_by_contrastive_or_scenario_question
+from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.questioning.question import ContrastiveQuestion
@@ -54,7 +53,7 @@ def get_tailored_computation_pipeline_gap_and_solution(
     """
     editable_solution = EditableSolution.from_solution(solution)
     question = ContrastiveQuestion(editable_solution, template_id, fields_values)
-    result = apply_transformation_induced_by_contrastive_or_scenario_question(editable_solution, question)
+    result = TransformationDispatcher.handle_contrastive_or_scenario_question(editable_solution, question)
     return gap_from_conflict(result.conflict), result.support_solution, result.conflict
 
 
