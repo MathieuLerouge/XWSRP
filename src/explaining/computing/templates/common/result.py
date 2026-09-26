@@ -2,7 +2,7 @@
 from typing import Optional
 
 # Local libraries
-from src.explaining.computing.conflict.conflict import Conflict
+from src.explaining.computing.conflict import Conflict
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.modeling.solution import Solution
 

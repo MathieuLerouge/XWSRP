@@ -5,9 +5,9 @@ from typing import Optional
 import pytest
 
 # Local libraries
-from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
-from src.explaining.computing.conflict.extractor import ConflictExtractor
-from src.explaining.computing.model import NeighborhoodModel
+from src.explaining.computing.conflict import SkillConflict, TimeConflict
+from src.explaining.computing.neighborhood.extractor import ConflictExtractor
+from src.explaining.computing.neighborhood.model import NeighborhoodModel
 from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.neighborhood.neighborhood import Neighborhood

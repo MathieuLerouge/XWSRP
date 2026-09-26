@@ -3,7 +3,7 @@ import pytest
 
 # Local libraries
 from src.explaining.computing.exceptions import ImpossibleTransformationException
-from src.explaining.computing.model import NeighborhoodModel
+from src.explaining.computing.neighborhood.model import NeighborhoodModel
 from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import (

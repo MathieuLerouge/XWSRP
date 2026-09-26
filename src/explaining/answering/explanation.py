@@ -8,7 +8,7 @@ from src.explaining.questioning.questions_templates_bank import \
 from src.modeling.solution import Solution
 from src.explaining.questioning.question import Question, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
 from src.explaining.answering.explanations_templates_bank import EXPLANATIONS_TEMPLATES
-from src.explaining.computing.conflict.conflict import Conflict, SkillConflict, TimeConflict
+from src.explaining.computing.conflict import Conflict, SkillConflict, TimeConflict
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.utils.constants import LINE_BREAK_STRING
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY

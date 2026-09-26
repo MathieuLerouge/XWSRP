@@ -2,7 +2,7 @@
 from typing import Optional
 
 # Local libraries
-from src.explaining.computing.conflict.conflict import SkillConflict
+from src.explaining.computing.conflict import SkillConflict
 from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \

@@ -10,7 +10,7 @@ from dash.exceptions import PreventUpdate
 import numpy as np
 
 # Local libraries
-from src.explaining.computing.conflict.conflict import SkillConflict
+from src.explaining.computing.conflict import SkillConflict
 from src.explaining.interacting.interface.figures import build_map_figure, build_routes_figure, \
     build_schedules_figure, build_instance_metrics_figures, build_solution_metrics_figures
 from src.explaining.interacting.interface.panels import build_routes_figure_panel, build_schedules_figure_panel, \

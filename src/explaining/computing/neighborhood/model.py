@@ -5,7 +5,7 @@ from typing import cast
 import pyomo.environ as pyo
 
 # Local libraries
-from src.explaining.computing.checker import ModelCompatibilityChecker
+from src.explaining.computing.neighborhood.checker import ModelCompatibilityChecker
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskDeletion, TaskInsertion, TaskRepositioning
 from src.explaining.neighborhood.restriction import (

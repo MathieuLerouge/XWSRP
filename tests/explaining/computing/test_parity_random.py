@@ -5,8 +5,8 @@ import random
 import pytest
 
 # Local libraries
-from src.explaining.computing.conflict.extractor import ConflictExtractor
-from src.explaining.computing.exceptions import UnattributableFeasibilityShortfallException
+from src.explaining.computing.neighborhood.extractor import ConflictExtractor
+from src.explaining.computing.neighborhood.exceptions import UnattributableFeasibilityShortfallException
 from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.questioning.question import ContrastiveQuestion
 from src.explaining.questioning.questions_templates_bank import (

@@ -23,7 +23,7 @@ the three order-free `*,3` templates need a joint re-optimization instead and ge
 `counterfactual` is MILP-based throughout: it searches for the minimal instance alterations 
 that would make the requested action feasible.
 
-The **neighborhood pipeline** (`model.py`) is the generic alternative. 
+The **neighborhood pipeline** (`neighborhood`) is the generic alternative. 
 `NeighborhoodModel` turns any `Neighborhood` into one MILP, rather than having a handwritten function per template. 
 It reports a **feasibility shortfall**: 0 when the requested arrangement fits, 
 otherwise how much the conflicting task's start time has to be stretched for it to. \
@@ -35,22 +35,25 @@ contrastive/scenario ones.
 
 # 2. Description of the files
 
-`model.py` contains `NeighborhoodModel`, described above.
+The module is laid out by which pipeline a file serves: `templates` for the tailored one, 
+`neighborhood` for the generic one, and at the top level the two files both of them need.
 
-`checker.py` contains `ModelCompatibilityChecker`, the one place saying 
-which neighborhoods `NeighborhoodModel` can be built for and why not when it can't. 
-Both `NeighborhoodModel` and `neighborhood`'s `Assembler` consult it rather than restating its rules, 
-so there is a single place to widen.
+Shared by both pipelines:
+- `conflict.py` contains `Conflict` and its two subclasses, `SkillConflict` and `TimeConflict`. 
+  It is what either pipeline hands to `answering`.
+- `exceptions.py` contains `ImpossibleTransformationException`, 
+  raised when a question asks for something the given solution makes meaningless 
+  (e.g. inserting a non-performed task when every task is already performed). 
+  Both pipelines raise it: the tailored one from `templates/common/preconditions.py`, 
+  the generic one from `explaining.neighborhood`'s own question mappers.
 
-`exceptions.py` contains `ImpossibleTransformationException`, 
-raised when a question asks for something the given solution makes meaningless 
-(e.g. inserting a non-performed task when every task is already performed),
-and `UnattributableFeasibilityShortfallException`, described in section 3.
-
-In `conflict` subpackage:
-- `conflict.py` contains `Conflict` and its two subclasses, `SkillConflict` and `TimeConflict`, described in section 3.
+In `neighborhood` subpackage:
+- `model.py` contains `NeighborhoodModel`, described above.
+- `checker.py` contains `ModelCompatibilityChecker`, which tells 
+  which neighborhoods can be built for `NeighborhoodModel`  and why not when it can't.
 - `extractor.py` contains `ConflictExtractor`, which maps a `Neighborhood` to a `SkillConflict`
   and a solved `NeighborhoodModel` to a `TimeConflict`.
+- `exceptions.py` contains `UnattributableFeasibilityShortfallException`.
 
 In `templates` subpackage:
 - `dispatch.py` contains `TransformationDispatcher`, 
@@ -58,8 +61,8 @@ In `templates` subpackage:
   Three tables hold that mapping: the contrastive ones are split by how they are computed, 
   since only the MILP-based three take a solving time limit, and the counterfactual ones share a single table.
 - `common` holds what both kinds share: `TransformationPreconditionChecker`, `TransformationDescriptionBuilder`,
-  `TransformationResult` (the support solution, the conflict if any, the per-language descriptions, 
-  and the instance alterations for counterfactual questions), `TailoredConflictBuilder`, and `TransformationModelSolver`.
+  `TransformationResult` (the support solution, the conflict if any, the per-language descriptions, and
+  the instance alterations for counterfactual questions), `TailoredConflictBuilder`, and `TransformationModelSolver`.
 - `contrastive_and_scenario/{insertion,swap,reordering}.py` contain: 
   `InsertionApplier`, `SwapApplier` and `ReorderingApplier`. 
   Each gathers its family's templates, polynomial and MILP-based alike, 

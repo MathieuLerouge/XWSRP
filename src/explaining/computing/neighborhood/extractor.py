@@ -2,9 +2,9 @@
 from typing import cast, Optional
 
 # Local libraries
-from src.explaining.computing.conflict.conflict import SkillConflict, TimeConflict
-from src.explaining.computing.exceptions import UnattributableFeasibilityShortfallException
-from src.explaining.computing.model import NeighborhoodModel
+from src.explaining.computing.conflict import SkillConflict, TimeConflict
+from src.explaining.computing.neighborhood.exceptions import UnattributableFeasibilityShortfallException
+from src.explaining.computing.neighborhood.model import NeighborhoodModel
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import Operator, TaskInsertion, TaskRelocation
 from src.modeling.employee import Employee

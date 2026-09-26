@@ -2,7 +2,7 @@
 
 This module implements a vocabulary for describing a search space around a solution: a `Neighborhood`.
 It is as an alternative to `computing/templates`' per-template tailored transformation functions. \
-It backs `computing/model.py`'s `NeighborhoodModel`, which turns a `Neighborhood` into a solvable MILP.
+It backs `computing/neighborhood/model.py`'s `NeighborhoodModel`, which turns a `Neighborhood` into a solvable MILP.
 
 
 # 1. Overview of the neighborhood abstraction

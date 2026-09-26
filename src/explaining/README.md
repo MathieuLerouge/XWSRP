@@ -31,9 +31,10 @@ each alteration is also recorded in an `InstanceChanges`.
 
 An alternative to the tailored pipeline, covering the `(Ins,*)`, `(Swp,*)` and `(Ord,*)` contrastive question families.
 For a `ContrastiveQuestion`, `neighborhood/templates`'s `Mapper` maps it to a `Neighborhood`.
-Then, if `computing/conflict/extractor.py`'s, `ConflictExtractor` identifies a `SkillConflict` from the `Neighborhood`,
+Then, if `computing/neighborhood/extractor.py`'s `ConflictExtractor` 
+identifies a `SkillConflict` from the `Neighborhood`,
 this conflict will be used as a basis for explanations;
-Otherwise, `computing/model.py`'s `NeighborhoodModel` turns the `Neighborhood` into a solvable MILP
+Otherwise, `computing/neighborhood/model.py`'s `NeighborhoodModel` turns the `Neighborhood` into a solvable MILP
 (in place of `computing/templates`' per-template transformation function),
 whose solve results are used by the `ConflictExtractor` to identify a `TimeConflict` (if any).
 

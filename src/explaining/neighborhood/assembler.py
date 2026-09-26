@@ -1,5 +1,5 @@
 # Local libraries
-from src.explaining.computing.checker import ModelCompatibilityChecker
+from src.explaining.computing.neighborhood.checker import ModelCompatibilityChecker
 from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import Operator

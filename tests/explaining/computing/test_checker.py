@@ -2,8 +2,8 @@
 import pytest
 
 # Local libraries
-from src.explaining.computing.checker import ModelCompatibilityChecker
-from src.explaining.computing.model import NeighborhoodModel
+from src.explaining.computing.neighborhood.checker import ModelCompatibilityChecker
+from src.explaining.computing.neighborhood.model import NeighborhoodModel
 from src.explaining.neighborhood.assembler import Assembler
 from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.neighborhood.neighborhood import Neighborhood

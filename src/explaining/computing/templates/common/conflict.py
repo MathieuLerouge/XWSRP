@@ -2,7 +2,7 @@
 from typing import Optional, cast
 
 # Local libraries
-from src.explaining.computing.conflict.conflict import Conflict, SkillConflict, TimeConflict
+from src.explaining.computing.conflict import Conflict, SkillConflict, TimeConflict
 from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.evaluation import Evaluation

@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 # Local libraries
 from src.explaining.interacting.interface.assets.styles import UI_FONT_COLOR, UI_PANEL_CONTENT_COLOR, UI_LINE_COLOR, \
     UI_CONFLICT_TASK_COLOR, UI_CONFLICT_BOUND_COLOR
-from src.explaining.computing.conflict.conflict import Conflict, TimeConflict
+from src.explaining.computing.conflict import Conflict, TimeConflict
 from src.modeling.activity import Activity
 from src.modeling.comeback import ComeBack
 from src.modeling.departure import Departure
