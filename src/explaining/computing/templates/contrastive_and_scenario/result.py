@@ -7,7 +7,6 @@ from src.explaining.computing.templates.common.result import TransformationResul
 from src.explaining.computing.templates.contrastive_and_scenario.milp.base import TransformationBaseModel
 from src.explaining.modeling.solution import EditableSolution
 from src.modeling.employee import Employee
-from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 # Type variable for a subclass of TransformationBaseModel
 SolvedMILPModel = TypeVar("SolvedMILPModel", bound=TransformationBaseModel)
@@ -45,9 +44,9 @@ def build_transformation_result_from_milp_model(
     # Save whether the transformation is feasible
     transformation_is_skill_feasible = (not model.pivot_task_is_new_to_employee
                                         or employee.is_capable_of_performing(task))
-    transformation_is_feasible = transformation_is_skill_feasible and (model.pivot_task_time_gap == 0)
+    transformation_is_feasible = transformation_is_skill_feasible and model.is_support_sequence_feasible
     # Build support solution
-    support_sequence = SequenceForHeuristics.from_sequence(model.solution_sequence)
+    support_sequence = model.support_sequence
     support_solution = solution.copy(solution.name + "_support")
     if model.pivot_task_is_new_to_employee and support_solution.get_task_performance_status(task):
         support_solution.remove_task(task, transformation_is_feasible, transformation_is_feasible)

@@ -11,6 +11,7 @@ from src.modeling.departure import Departure
 from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
+from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.solver.solver import Solver
 from src.optimization.milp.subproblems.sequencemodel import SequenceModel, \
     LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
@@ -45,6 +46,8 @@ class TransformationBaseModel(SequenceModel, ABC):
         """
         self._pivot_task = pivot_task
         self._sequence = sequence
+        self._support_sequence: Optional[SequenceForHeuristics] = None
+        self._support_sequence_source: Optional[Sequence] = None
         super().__init__(sequence.instance, sequence.employee, self._compute_candidate_tasks())
 
     @abstractmethod
@@ -156,9 +159,17 @@ class TransformationBaseModel(SequenceModel, ABC):
             return [task.name for task in self.candidate_tasks if task != self._pivot_task]
 
     @property
-    def support_sequence(self) -> Sequence:
-        """The route the solved model settled on."""
-        return self.solution_sequence
+    def support_sequence(self) -> SequenceForHeuristics:
+        """The route the solved model settled on, as one object stable across accesses."""
+        if self._support_sequence_source is not self.solution_sequence:
+            self._support_sequence_source = self.solution_sequence
+            self._support_sequence = SequenceForHeuristics.from_sequence(self._support_sequence_source)
+        return self._support_sequence
+
+    @property
+    def is_support_sequence_feasible(self) -> bool:
+        """Whether the route the solved model settled on fits the pivot task."""
+        return self.pivot_task_time_gap == 0
 
     ######################
     # Decision variables #

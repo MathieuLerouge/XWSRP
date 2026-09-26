@@ -109,11 +109,6 @@ class SequenceAddingModel(SequenceModel):
         else:
             raise AttributeError("There is no solution sequence stored")
 
-    @property
-    def support_sequence(self) -> Sequence:
-        """The solution sequence found, including the new task."""
-        return self.solution_sequence
-
     ######################
     # Decision variables #
     ######################

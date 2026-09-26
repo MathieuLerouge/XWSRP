@@ -11,6 +11,7 @@ from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.sequence import EditableSequence
 from src.modeling.comeback import ComeBack
 from src.modeling.departure import Departure
+from src.modeling.sequence import Sequence
 from src.modeling.step import Step
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
@@ -48,6 +49,8 @@ class TransformationWithAlterationsBaseModel(SequenceModel):
         self._pivot_task = pivot_task
         self._sequence = sequence
         self._instance_parameter_alteration_bounds = instance_parameter_alteration_bounds
+        self._support_sequence: Optional[SequenceForHeuristics] = None
+        self._support_sequence_source: Optional[Sequence] = None
         super().__init__(sequence.instance, sequence.employee, self._compute_candidate_tasks())
         if solving_time_limit is not None:
             self.solving_time_limit = solving_time_limit
@@ -157,12 +160,15 @@ class TransformationWithAlterationsBaseModel(SequenceModel):
 
     @property
     def support_sequence(self) -> SequenceForHeuristics:
-        """The support sequence."""
-        return SequenceForHeuristics.from_sequence(self.solution_sequence)
+        """The route the solved model settled on, as one object stable across accesses."""
+        if self._support_sequence_source is not self.solution_sequence:
+            self._support_sequence_source = self.solution_sequence
+            self._support_sequence = SequenceForHeuristics.from_sequence(self._support_sequence_source)
+        return self._support_sequence
 
     @property
-    def is_support_sequence_feasible(self):
-        """Whether the support sequence is feasible or not."""
+    def is_support_sequence_feasible(self) -> bool:
+        """Whether the route the solved model settled on fits the pivot task."""
         return self.pivot_task_time_gap == 0
 
     ############################
