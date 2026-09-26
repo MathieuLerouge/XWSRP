@@ -12,16 +12,16 @@ Both feed directly into `answering`.
 There are two independent pipelines, and they answer the same questions.
 
 The **tailored pipeline** (`templates`) dispatches each question template to its own transformation
-function. \
-`transformation.py` routes a `ContrastiveQuestion`/`ScenarioQuestion` to
-`contrastive_and_scenario` and a `CounterfactualQuestion` to `counterfactual`. \
-Inside `contrastive_and_scenario`, most templates are answered by local search
-(`LS_based_transformation.py`, one `apply_<template>` function per template, built on
-`optimization.heuristics`' `Evaluator` and `SlackTimeComputer`); the three order-free `*,3` templates need a
-joint re-optimization instead and get their own small MILPs (`ILP_based_transformation.py` +
-`ILP_model`). \
-`counterfactual` is MILP-based throughout: it searches for the minimal instance alterations that would make
-the requested action feasible.
+method. \
+`dispatch.py` routes a `ContrastiveQuestion`/`ScenarioQuestion` to `contrastive_and_scenario` 
+and a `CounterfactualQuestion` to `counterfactual`, through lookup tables keyed by template id. \
+Either way the transformations are grouped by family (insertion, swap, reordering) one file and one `*Applier` each, 
+whose `apply_<template>` static methods all return a `TransformationResult`. \
+Inside `contrastive_and_scenario`, most templates are answered by polynomial algorithms 
+(built on `optimization.heuristics`' `Evaluator` and `SlackTimeComputer`); 
+the three order-free `*,3` templates need a joint re-optimization instead and get their own small MILPs (`milp`). \
+`counterfactual` is MILP-based throughout: it searches for the minimal instance alterations 
+that would make the requested action feasible.
 
 The **neighborhood pipeline** (`model.py`) is the generic alternative. 
 `NeighborhoodModel` turns any `Neighborhood` into one MILP, rather than having a handwritten function per template. 
@@ -53,13 +53,32 @@ In `conflict` subpackage:
   and a solved `NeighborhoodModel` to a `TimeConflict`.
 
 In `templates` subpackage:
-- `transformation.py` dispatches a `Question` to its matching transformation function.
-- `contrastive_and_scenario/LS_based_transformation.py` contains the local-search transformations, one
-  `apply_<template>` function per template.
-- `contrastive_and_scenario/ILP_based_transformation.py` and its `ILP_model` subpackage contain the
-  MILP-based transformations for the order-free `(Ins,3)`/`(Swp,3)`/`(Ord,3)` templates.
-- `counterfactual/ILP_based_transformation.py` and its `ILP_model` subpackage contain the counterfactual
-  transformations (`apply_ctf_*`), searching for minimal instance alterations.
+- `dispatch.py` contains `TransformationDispatcher`, 
+  which hands a `Question` to the transformation its template calls for. 
+  Three tables hold that mapping: the contrastive ones are split by how they are computed, 
+  since only the MILP-based three take a solving time limit, and the counterfactual ones share a single table.
+- `common` holds what both kinds share: `TransformationPreconditionChecker`, `TransformationDescriptionBuilder`,
+  `TransformationResult` (the support solution, the conflict if any, the per-language descriptions, 
+  and the instance alterations for counterfactual questions), `TailoredConflictBuilder`, and `MILPTransformationRunner`.
+- `contrastive_and_scenario/{insertion,swap,reordering}.py` contain: 
+  `InsertionApplier`, `SwapApplier` and `ReorderingApplier`. 
+  Each gathers its family's templates, polynomial and MILP-based alike, 
+  and its `milp` subpackage holds the models the `*,3` template needs.
+- `counterfactual/{insertion,swap,reordering}.py` contain: 
+  `InsertionWithAlterationsApplier`, `SwapWithAlterationsApplier` and `ReorderingWithAlterationsApplier`, 
+  laid out the same way, their `milp` subpackage carrying one model per template 
+  since every counterfactual template needs one.
+- Each kind has a `result.py` with a `build_transformation_result_from_milp_model` function, 
+  shared by its family appliers. It reads the support solution, the conflict and the route off a solved model, 
+  and takes from its caller the function wording that route into a sentence — the one thing the families do differently.
+
+The `*,3` models give the task the question is about — the pivot task — two start times rather than one:
+a backward one, pushed later by everything the route does before it, 
+and a forward one, pulled earlier by everything it does after. 
+An arrangement fits when the two meet. 
+The gap between them is minimized ahead of anything else, 
+so a route that cannot fit the task still comes back with the arrangement that misses by the least, 
+which is what the `TimeConflict` then reports.
 
 
 # 3. `Conflict`
