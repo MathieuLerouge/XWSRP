@@ -7,8 +7,7 @@ from src.explaining.computing.templates.contrastive_and_scenario.reordering impo
 from src.explaining.computing.templates.contrastive_and_scenario.swap import SwapApplier
 from src.explaining.computing.templates.counterfactual.insertion import InsertionWithAlterationsApplier
 from src.explaining.computing.templates.counterfactual.swap import SwapWithAlterationsApplier
-from src.explaining.computing.templates.counterfactual.MILP_based_transformation import \
-    apply_ctf_ord_1a, apply_ctf_ord_1b, apply_ctf_ord_2a, apply_ctf_ord_2b, apply_ctf_ord_2c, apply_ctf_ord_3
+from src.explaining.computing.templates.counterfactual.reordering import ReorderingWithAlterationsApplier
 
 
 #####################################
@@ -117,23 +116,29 @@ def apply_transformation_induced_by_counterfactual_question(solution: EditableSo
             solution, fields_values[0], fields_values[1],
             question.instance_parameter_alteration_bounds, milp_solving_time_limit)
     elif question_template_id == WHY_NOT_ORD_LAT_1:
-        return apply_ctf_ord_1a(solution, fields_values[0], fields_values[1], fields_values[2],
-                                question.instance_parameter_alteration_bounds, milp_solving_time_limit)
+        return ReorderingWithAlterationsApplier.apply_1a(
+            solution, fields_values[0], fields_values[1], fields_values[2],
+            question.instance_parameter_alteration_bounds, milp_solving_time_limit)
     elif question_template_id == WHY_NOT_ORD_EAR_1:
-        return apply_ctf_ord_1b(solution, fields_values[0], fields_values[1], fields_values[2],
-                                question.instance_parameter_alteration_bounds, milp_solving_time_limit)
+        return ReorderingWithAlterationsApplier.apply_1b(
+            solution, fields_values[0], fields_values[1], fields_values[2],
+            question.instance_parameter_alteration_bounds, milp_solving_time_limit)
     elif question_template_id == WHY_NOT_ORD_LAT_2:
-        return apply_ctf_ord_2a(solution, fields_values[0], fields_values[1],
-                                question.instance_parameter_alteration_bounds, milp_solving_time_limit)
+        return ReorderingWithAlterationsApplier.apply_2a(
+            solution, fields_values[0], fields_values[1],
+            question.instance_parameter_alteration_bounds, milp_solving_time_limit)
     elif question_template_id == WHY_NOT_ORD_EAR_2:
-        return apply_ctf_ord_2b(solution, fields_values[0], fields_values[1],
-                                question.instance_parameter_alteration_bounds, milp_solving_time_limit)
+        return ReorderingWithAlterationsApplier.apply_2b(
+            solution, fields_values[0], fields_values[1],
+            question.instance_parameter_alteration_bounds, milp_solving_time_limit)
     elif question_template_id == WHY_NOT_ORD_2:
-        return apply_ctf_ord_2c(solution, fields_values[0], fields_values[1],
-                                question.instance_parameter_alteration_bounds, milp_solving_time_limit)
+        return ReorderingWithAlterationsApplier.apply_2c(
+            solution, fields_values[0], fields_values[1],
+            question.instance_parameter_alteration_bounds, milp_solving_time_limit)
     elif question_template_id == WHY_NOT_ORD_3:
-        return apply_ctf_ord_3(solution, fields_values[0],
-                               question.instance_parameter_alteration_bounds, milp_solving_time_limit)
+        return ReorderingWithAlterationsApplier.apply_3(
+            solution, fields_values[0],
+            question.instance_parameter_alteration_bounds, milp_solving_time_limit)
     else:
         raise NotImplementedError(f"The transformation induced by the template {question_template_id} is not handled "
                                   f"for counterfactual questions")
