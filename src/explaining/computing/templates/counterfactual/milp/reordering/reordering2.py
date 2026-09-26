@@ -2,16 +2,16 @@
 import pyomo.environ as pyo
 
 # Local libraries
-from src.explaining.computing.templates.counterfactual.MILP_model.reordering_with_alterations import \
-    MILPModelForReorderingWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.milp.reordering.base import \
+    ReorderingWithAlterationsBaseModel
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-###################################################
-# MILPModelForReordering2aWithInstanceAlterations #
-###################################################
+####################################
+# Reordering2aWithAlterationsModel #
+####################################
 
-class MILPModelForReordering2aWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
+class Reordering2aWithAlterationsModel(ReorderingWithAlterationsBaseModel):
     """
     MILP model to compute explanation content for answering (Ord,2a) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} later in their route?"
@@ -35,8 +35,6 @@ class MILPModelForReordering2aWithInstanceAlterations(MILPModelForReorderingWith
         - the order of the activities in the first part of the sequence, before the moving task, remains unchanged
         - the order of the activities in the second part of the sequence, after the moving task, remains unchanged
         except that the moving task must be inserted in that portion
-
-        :return: None
         """
         moving_task_step_index = self._sequence.get_step_index_of(self._pivot_task)
         activities = self._sequence.get_contained_activities()
@@ -72,11 +70,11 @@ class MILPModelForReordering2aWithInstanceAlterations(MILPModelForReorderingWith
         )
 
 
-###################################################
-# MILPModelForReordering2bWithInstanceAlterations #
-###################################################
+####################################
+# Reordering2bWithAlterationsModel #
+####################################
 
-class MILPModelForReordering2bWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
+class Reordering2bWithAlterationsModel(ReorderingWithAlterationsBaseModel):
     """
     MILP model to compute explanation content for answering (Ord,2b) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} earlier in their route?"
@@ -100,8 +98,6 @@ class MILPModelForReordering2bWithInstanceAlterations(MILPModelForReorderingWith
         - the order of the activities in the first part of the sequence, before the moving task, remains unchanged
         except that the moving task must be inserted in that portion
         - the order of the activities in the second part of the sequence, after the moving task, remains unchanged
-
-        :return: None
         """
         moving_task_step_index = self._sequence.get_step_index_of(self._pivot_task)
         activities = self._sequence.get_contained_activities()
@@ -137,11 +133,11 @@ class MILPModelForReordering2bWithInstanceAlterations(MILPModelForReorderingWith
             )
 
 
-###################################################
-# MILPModelForReordering2cWithInstanceAlterations #
-###################################################
+####################################
+# Reordering2cWithAlterationsModel #
+####################################
 
-class MILPModelForReordering2cWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
+class Reordering2cWithAlterationsModel(ReorderingWithAlterationsBaseModel):
     """
     MILP model to compute explanation content for answering (Ord,2c) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} at another position in their route?"
@@ -163,8 +159,6 @@ class MILPModelForReordering2cWithInstanceAlterations(MILPModelForReorderingWith
         Add constraints on the order of activities in the sequence:
         the order of the activities in the first part of the sequence remains unchanged
         except that the moving task must be moved to another position in the sequence
-
-        :return: None
         """
         moving_task_step_index = self._sequence.get_step_index_of(self._pivot_task)
         activities = self._sequence.get_contained_activities()

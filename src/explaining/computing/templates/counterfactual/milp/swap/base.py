@@ -1,19 +1,22 @@
+# Standard library
+from typing import Optional
+
 # Third-party library
 import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
-    MILPModelForTransformationWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.milp.base import \
+    TransformationWithAlterationsBaseModel
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
-###########################################
-# MILPModelForSwapWithInstanceAlterations #
-###########################################
+################################
+# SwapWithAlterationsBaseModel #
+################################
 
-class MILPModelForSwapWithInstanceAlterations(MILPModelForTransformationWithInstanceAlterations):
+class SwapWithAlterationsBaseModel(TransformationWithAlterationsBaseModel):
     """
     Base MILP model to compute explanation content for answering counterfactual question about swap
     """
@@ -21,16 +24,17 @@ class MILPModelForSwapWithInstanceAlterations(MILPModelForTransformationWithInst
     _pivot_task_is_new_to_employee = True
 
     def __init__(self, sequence: SequenceForHeuristics, replacing_task: Task,
-                 instance_parameter_alteration_bounds: InstanceChanges = None,
-                 solving_time_limit: int = None):
+                 instance_parameter_alteration_bounds: Optional[InstanceChanges] = None,
+                 solving_time_limit: Optional[int] = None):
         """
         Return a MILP model for replacing a task of the sequence by the replacing task
         while allowing instance parameter alterations
 
-        :param sequence: the sequence to optimize (SequenceForHeuristics)
-        :param replacing_task: the replacing task (Task)
-        :param instance_parameter_alteration_bounds: the bounds of instance parameter alterations (InstanceChanges)
-        :param solving_time_limit: the solving time limit in seconds (int)
+        Args:
+            sequence: The sequence to optimize.
+            replacing_task: The replacing task.
+            instance_parameter_alteration_bounds: The bounds of instance parameter alterations.
+            solving_time_limit: The solving time limit in seconds.
         """
         super().__init__(sequence, replacing_task, instance_parameter_alteration_bounds, solving_time_limit)
 
@@ -40,47 +44,27 @@ class MILPModelForSwapWithInstanceAlterations(MILPModelForTransformationWithInst
 
     @property
     def replacing_task(self):
-        """
-        Return the replacing task
-
-        :return: the replacing task (Task)
-        """
+        """The replacing task."""
         return self._pivot_task
 
     @property
     def replacing_task_time_gap(self):
-        """
-        Return the time gap between backward and forward start times of the replacing task
-
-        :return: the time gap between backward and forward start times of the replacing task (int)
-        """
+        """The time gap between backward and forward start times of the replacing task."""
         return self.pivot_task_time_gap
 
     @property
     def replacing_task_start_time(self):
-        """
-        Return the start time of the replacing task
-
-        :return: the start time of the replacing task (int)
-        """
+        """The start time of the replacing task."""
         return self.pivot_task_start_time
 
     @property
     def replacing_task_start_time_for_backward(self):
-        """
-        Return the start time of the replacing task which respects time constraints in backward direction
-
-        :return: the backward start time of the replacing task (int)
-        """
+        """The start time of the replacing task which respects time constraints in backward direction."""
         return self.pivot_task_start_time_for_backward
 
     @property
     def replacing_task_start_time_for_forward(self):
-        """
-        Return the start time of the replacing task which respects time constraints in forward direction
-
-        :return: the forward start time of the replacing task (int)
-        """
+        """The start time of the replacing task which respects time constraints in forward direction."""
         return self.pivot_task_start_time_for_forward
 
     #######################################
@@ -89,12 +73,7 @@ class MILPModelForSwapWithInstanceAlterations(MILPModelForTransformationWithInst
 
     @property
     def replaced_task(self):
-        """
-        Return the task replaced by the replacing task,
-        which is deduced from the results of the sequence optimization
-
-        :return: the replaced task (Task)
-        """
+        """The task replaced by the replacing task, which is deduced from the results of the sequence optimization."""
         for task_key in self._get_candidate_tasks_keys(including_pivot_task=False):
             if not self._is_task_performed_given_key(task_key):
                 return self.get_candidate_task_by_key(task_key)
@@ -130,8 +109,6 @@ class MILPModelForSwapWithInstanceAlterations(MILPModelForTransformationWithInst
         - the replacing task must be performed
         - all other tasks must be performed at most once
         - there must be as many task performed as there are tasks in the sequence before the transformation
-
-        :return: None
         """
         # Constraint ensuring that the replacing task is performed
         j = self._pivot_task_key

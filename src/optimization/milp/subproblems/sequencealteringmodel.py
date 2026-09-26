@@ -527,11 +527,11 @@ class SequenceAlteringModel(SequenceModel):
         start_times_and_steps.sort()
         return [step for _, step in start_times_and_steps]
 
-    def _extract_sequence_from_IP_solving(self):
+    def _extract_sequence_from_milp_solving(self):
         self._extract_instance_alterations()
         self._altered_instance = self.instance  # TODO alter instance with alterations
         altered_employee = self._altered_instance.get_employee_by_name(self.employee.name)
         steps = self._extract_ordered_steps()
         sequence = Sequence(self._altered_instance, altered_employee, steps)
         sequence.compute_times_based_on_fixed_start_times()
-        self._sequence_from_IP_solving = sequence
+        self._sequence_from_milp_solving = sequence

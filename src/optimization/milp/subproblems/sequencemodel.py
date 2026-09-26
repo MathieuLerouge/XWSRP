@@ -86,7 +86,7 @@ class SequenceModel:
         self._model = pyo.ConcreteModel()
         self._decision_variables: dict[str, pyo.Var] = dict()
         self._solving_time_limit: Optional[int] = None
-        self._sequence_from_IP_solving: Optional[Sequence] = None
+        self._sequence_from_milp_solving: Optional[Sequence] = None
         self._solve_outcome: Optional[Outcome] = None
         self._add_decision_variables()
         self._add_objective_function()
@@ -179,7 +179,7 @@ class SequenceModel:
     @property
     def has_solution_sequence(self):
         """Whether a solution sequence has been extracted."""
-        return self._sequence_from_IP_solving is not None
+        return self._sequence_from_milp_solving is not None
 
     @property
     def solution_sequence(self) -> Sequence:
@@ -190,7 +190,7 @@ class SequenceModel:
             AttributeError: if solve() hasn't been called yet, or found no feasible solution.
         """
         if self.has_solution_sequence:
-            return self._sequence_from_IP_solving
+            return self._sequence_from_milp_solving
         else:
             raise AttributeError("There is no solution sequence stored")
 
@@ -490,7 +490,7 @@ class SequenceModel:
         """
         self._solve_outcome = self._solve(mute=mute, solver_name=solver_name)
         if self._solve_outcome.has_incumbent:
-            self._extract_data_from_IP_solving()
+            self._extract_data_from_milp_solving()
             self._solve_outcome.solution = self.solution_sequence
         return self._solve_outcome
 
@@ -547,11 +547,11 @@ class SequenceModel:
             raise Exception(f"The last activity of the sequence is not a comeback but {last_step}")
         return [step for _, step in start_times_and_steps]
 
-    def _extract_sequence_from_IP_solving(self):
+    def _extract_sequence_from_milp_solving(self):
         steps = self._extract_ordered_steps()
         sequence = Sequence(self.instance, self.employee, steps)
         sequence.compute_times_based_on_fixed_start_times()
-        self._sequence_from_IP_solving = sequence
+        self._sequence_from_milp_solving = sequence
 
-    def _extract_data_from_IP_solving(self):
-        self._extract_sequence_from_IP_solving()
+    def _extract_data_from_milp_solving(self):
+        self._extract_sequence_from_milp_solving()

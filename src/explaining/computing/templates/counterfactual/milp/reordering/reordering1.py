@@ -1,20 +1,23 @@
+# Standard library
+from typing import Optional
+
 # Third-party library
 import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.MILP_model.reordering_with_alterations import \
-    MILPModelForReorderingWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.milp.reordering.base import \
+    ReorderingWithAlterationsBaseModel
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-###################################################
-# MILPModelForReordering1aWithInstanceAlterations #
-###################################################
+####################################
+# Reordering1aWithAlterationsModel #
+####################################
 
-class MILPModelForReordering1aWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
+class Reordering1aWithAlterationsModel(ReorderingWithAlterationsBaseModel):
     """
     MILP model to compute explanation content for answering (Ord,1a) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} later in their route,
@@ -22,17 +25,18 @@ class MILPModelForReordering1aWithInstanceAlterations(MILPModelForReorderingWith
     """
 
     def __init__(self, sequence: SequenceForHeuristics, moving_task: Task, fixed_task: Task,
-                 instance_parameter_alteration_bounds: InstanceChanges = None,
-                 solving_time_limit: int = None):
+                 instance_parameter_alteration_bounds: Optional[InstanceChanges] = None,
+                 solving_time_limit: Optional[int] = None):
         """
         Return a MILP model for moving a task of the sequence after another task of the sequence.
         while allowing instance parameter alterations
 
-        :param sequence: the sequence to optimize (SequenceForHeuristics)
-        :param moving_task: the moving task (Task)
-        :param fixed_task: the task after which the moving task is moved (Task)
-        :param instance_parameter_alteration_bounds: the bounds of instance parameter alterations (InstanceChanges)
-        :param solving_time_limit: the solving time limit in seconds (int)
+        Args:
+            sequence: The sequence to optimize.
+            moving_task: The moving task.
+            fixed_task: The task after which the moving task is moved.
+            instance_parameter_alteration_bounds: The bounds of instance parameter alterations.
+            solving_time_limit: The solving time limit in seconds.
         """
         self._fixed_task = fixed_task
         super().__init__(sequence, moving_task, instance_parameter_alteration_bounds, solving_time_limit)
@@ -53,8 +57,6 @@ class MILPModelForReordering1aWithInstanceAlterations(MILPModelForReorderingWith
         Add constraints on the order of activities in the sequence:
         the order of the activities of the sequence remains unchanged
         except that the moving task must be inserted after the fixed task
-
-        :return: None
         """
         moving_task_step_index = self._sequence.get_step_index_of(self._pivot_task)
         fixed_task_step_index = self._sequence.get_step_index_of(self._fixed_task)
@@ -113,11 +115,11 @@ class MILPModelForReordering1aWithInstanceAlterations(MILPModelForReorderingWith
             )
 
 
-###################################################
-# MILPModelForReordering1bWithInstanceAlterations #
-###################################################
+####################################
+# Reordering1bWithAlterationsModel #
+####################################
 
-class MILPModelForReordering1bWithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
+class Reordering1bWithAlterationsModel(ReorderingWithAlterationsBaseModel):
     """
     MILP model to compute explanation content for answering (Ord,1b) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} earlier in their route,
@@ -125,17 +127,18 @@ class MILPModelForReordering1bWithInstanceAlterations(MILPModelForReorderingWith
     """
 
     def __init__(self, sequence: SequenceForHeuristics, moving_task: Task, fixed_task: Task,
-                 instance_parameter_alteration_bounds: InstanceChanges = None,
-                 solving_time_limit: int = None):
+                 instance_parameter_alteration_bounds: Optional[InstanceChanges] = None,
+                 solving_time_limit: Optional[int] = None):
         """
         Return a MILP model for moving a task of the sequence after another task of the sequence.
         while allowing instance parameter alterations
 
-        :param sequence: the sequence to optimize (SequenceForHeuristics)
-        :param moving_task: the moving task (Task)
-        :param fixed_task: the task before which the moving task is moved (Task)
-        :param instance_parameter_alteration_bounds: the bounds of instance parameter alterations (InstanceChanges)
-        :param solving_time_limit: the solving time limit in seconds (int)
+        Args:
+            sequence: The sequence to optimize.
+            moving_task: The moving task.
+            fixed_task: The task before which the moving task is moved.
+            instance_parameter_alteration_bounds: The bounds of instance parameter alterations.
+            solving_time_limit: The solving time limit in seconds.
         """
         self._fixed_task = fixed_task
         super().__init__(sequence, moving_task, instance_parameter_alteration_bounds, solving_time_limit)
@@ -156,8 +159,6 @@ class MILPModelForReordering1bWithInstanceAlterations(MILPModelForReorderingWith
         Add constraints on the order of activities in the sequence:
         the order of the activities of the sequence remains unchanged
         except that the moving task must be inserted before the fixed task
-
-        :return: None
         """
         moving_task_step_index = self._sequence.get_step_index_of(self._pivot_task)
         fixed_task_step_index = self._sequence.get_step_index_of(self._fixed_task)

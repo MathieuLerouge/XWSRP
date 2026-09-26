@@ -1,16 +1,19 @@
+# Standard library
+from typing import Optional
+
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.modeling.task import Task
-from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
-    MILPModelForTransformationWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.milp.base import \
+    TransformationWithAlterationsBaseModel
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
-################################################
-# MILPModelForInsertionWithInstanceAlterations #
-################################################
+#####################################
+# InsertionWithAlterationsBaseModel #
+#####################################
 
-class MILPModelForInsertionWithInstanceAlterations(MILPModelForTransformationWithInstanceAlterations):
+class InsertionWithAlterationsBaseModel(TransformationWithAlterationsBaseModel):
     """
     Base MILP model to compute explanation content for answering counterfactual question about insertion
     """
@@ -18,15 +21,16 @@ class MILPModelForInsertionWithInstanceAlterations(MILPModelForTransformationWit
     _pivot_task_is_new_to_employee = True
 
     def __init__(self, sequence: SequenceForHeuristics, task_to_insert: Task,
-                 instance_parameter_alteration_bounds: InstanceChanges = None,
-                 solving_time_limit: int = None):
+                 instance_parameter_alteration_bounds: Optional[InstanceChanges] = None,
+                 solving_time_limit: Optional[int] = None):
         """
         Return a MILP model for inserting a task in the sequence while allowing instance parameter alterations
 
-        :param sequence: the sequence to optimize (SequenceForHeuristics)
-        :param task_to_insert: the task to insert (Task)
-        :param instance_parameter_alteration_bounds: the bounds of instance parameter alterations (InstanceChanges)
-        :param solving_time_limit: the solving time limit in seconds (int)
+        Args:
+            sequence: The sequence to optimize.
+            task_to_insert: The task to insert.
+            instance_parameter_alteration_bounds: The bounds of instance parameter alterations.
+            solving_time_limit: The solving time limit in seconds.
         """
         super().__init__(sequence, task_to_insert, instance_parameter_alteration_bounds, solving_time_limit)
 
@@ -36,47 +40,27 @@ class MILPModelForInsertionWithInstanceAlterations(MILPModelForTransformationWit
 
     @property
     def task_to_insert(self):
-        """
-        Return the task to insert
-
-        :return: the task to insert (Task)
-        """
+        """The task to insert."""
         return self._pivot_task
 
     @property
     def task_to_insert_time_gap(self):
-        """
-        Return the time gap between backward and forward start times of the task to insert
-
-        :return: the time gap between backward and forward start times of the task to insert (int)
-        """
+        """The time gap between backward and forward start times of the task to insert."""
         return self.pivot_task_time_gap
 
     @property
     def task_to_insert_start_time(self):
-        """
-        Return the start time of the task to insert
-
-        :return: the start time of the task to insert (int)
-        """
+        """The start time of the task to insert."""
         return self.pivot_task_start_time
 
     @property
     def task_to_insert_start_time_for_backward(self):
-        """
-        Return the start time of the task to insert which respects time constraints in backward direction
-
-        :return: the backward start time of the task to insert (int)
-        """
+        """The start time of the task to insert which respects time constraints in backward direction."""
         return self.pivot_task_start_time_for_backward
 
     @property
     def task_to_insert_start_time_for_forward(self):
-        """
-        Return the start time of the task to insert which respects time constraints in forward direction
-
-        :return: the forward start time of the task to insert (int)
-        """
+        """The start time of the task to insert which respects time constraints in forward direction."""
         return self.pivot_task_start_time_for_forward
 
     ######################

@@ -6,16 +6,14 @@ from src.explaining.computing.templates.common.description import Transformation
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
-from src.explaining.computing.templates.counterfactual.extraction import build_transformation_result_from_milp_model
-from src.explaining.computing.templates.counterfactual.MILP_model.reordering1 import \
-    MILPModelForReordering1aWithInstanceAlterations, MILPModelForReordering1bWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.reordering2 import \
-    MILPModelForReordering2aWithInstanceAlterations, MILPModelForReordering2bWithInstanceAlterations, \
-    MILPModelForReordering2cWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.reordering3 import \
-    MILPModelForReordering3WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.reordering_with_alterations import \
-    MILPModelForReorderingWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.result import build_transformation_result_from_milp_model
+from src.explaining.computing.templates.counterfactual.milp.reordering.reordering1 import \
+    Reordering1aWithAlterationsModel, Reordering1bWithAlterationsModel
+from src.explaining.computing.templates.counterfactual.milp.reordering.reordering2 import \
+    Reordering2aWithAlterationsModel, Reordering2bWithAlterationsModel, Reordering2cWithAlterationsModel
+from src.explaining.computing.templates.counterfactual.milp.reordering.reordering3 import \
+    Reordering3WithAlterationsModel
+from src.explaining.computing.templates.counterfactual.milp.reordering.base import ReorderingWithAlterationsBaseModel
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.modeling.employee import Employee
@@ -31,7 +29,7 @@ class ReorderingWithAlterationsApplier:
     """
 
     @staticmethod
-    def _describe_task_repositioning(model: MILPModelForReorderingWithInstanceAlterations, employee: Employee,
+    def _describe_task_repositioning(model: ReorderingWithAlterationsBaseModel, employee: Employee,
                                      route_description: str) -> dict[str, str]:
         """Describe the repositioning of the model's moving task, in every language."""
         return TransformationDescriptionBuilder.for_repositioning_task_in_route(
@@ -39,7 +37,7 @@ class ReorderingWithAlterationsApplier:
         )
 
     @staticmethod
-    def _describe_reordering(model: MILPModelForReorderingWithInstanceAlterations, employee: Employee,
+    def _describe_reordering(model: ReorderingWithAlterationsBaseModel, employee: Employee,
                              route_description: str) -> dict[str, str]:
         """
         Describe the reordering of the whole route, in every language.
@@ -72,7 +70,7 @@ class ReorderingWithAlterationsApplier:
         employee = solution.instance.get_employee_by_name(employee_name)
         moving_task = solution.instance.get_task_by_name(task1_name)
         fixed_task = solution.instance.get_task_by_name(task2_name)
-        model = MILPModelForReordering1aWithInstanceAlterations(
+        model = Reordering1aWithAlterationsModel(
             solution.get_sequence(employee), moving_task, fixed_task,
             instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
@@ -103,7 +101,7 @@ class ReorderingWithAlterationsApplier:
         employee = solution.instance.get_employee_by_name(employee_name)
         moving_task = solution.instance.get_task_by_name(task1_name)
         fixed_task = solution.instance.get_task_by_name(task2_name)
-        model = MILPModelForReordering1bWithInstanceAlterations(
+        model = Reordering1bWithAlterationsModel(
             solution.get_sequence(employee), moving_task, fixed_task,
             instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
@@ -136,7 +134,7 @@ class ReorderingWithAlterationsApplier:
         sequence = solution.get_sequence(employee)
         TransformationPreconditionChecker.check_sequence_is_reorderable(sequence)
         moving_task = solution.instance.get_task_by_name(task_name)
-        model = MILPModelForReordering2aWithInstanceAlterations(
+        model = Reordering2aWithAlterationsModel(
             sequence, moving_task, instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
@@ -168,7 +166,7 @@ class ReorderingWithAlterationsApplier:
         sequence = solution.get_sequence(employee)
         TransformationPreconditionChecker.check_sequence_is_reorderable(sequence)
         moving_task = solution.instance.get_task_by_name(task_name)
-        model = MILPModelForReordering2bWithInstanceAlterations(
+        model = Reordering2bWithAlterationsModel(
             sequence, moving_task, instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
@@ -200,7 +198,7 @@ class ReorderingWithAlterationsApplier:
         sequence = solution.get_sequence(employee)
         TransformationPreconditionChecker.check_sequence_is_reorderable(sequence)
         moving_task = solution.instance.get_task_by_name(task_name)
-        model = MILPModelForReordering2cWithInstanceAlterations(
+        model = Reordering2cWithAlterationsModel(
             sequence, moving_task, instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
@@ -230,7 +228,7 @@ class ReorderingWithAlterationsApplier:
         employee = solution.instance.get_employee_by_name(employee_name)
         sequence = solution.get_sequence(employee)
         TransformationPreconditionChecker.check_sequence_is_reorderable(sequence)
-        model = MILPModelForReordering3WithInstanceAlterations(
+        model = Reordering3WithAlterationsModel(
             sequence, instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
         return build_transformation_result_from_milp_model(

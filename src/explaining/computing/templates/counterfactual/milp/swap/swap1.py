@@ -1,37 +1,41 @@
+# Standard library
+from typing import Optional
+
 # Third-party library
 import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.MILP_model.swap_with_alterations import \
-    MILPModelForSwapWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.milp.swap.base import \
+    SwapWithAlterationsBaseModel
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-############################################
-# MILPModelForSwap1WithInstanceAlterations #
-############################################
+#############################
+# Swap1WithAlterationsModel #
+#############################
 
-class MILPModelForSwap1WithInstanceAlterations(MILPModelForSwapWithInstanceAlterations):
+class Swap1WithAlterationsModel(SwapWithAlterationsBaseModel):
     """
     MILP model to compute explanation content for answering (Swp,1) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task1} in place of task {Task2}?"
     """
 
     def __init__(self, sequence: SequenceForHeuristics, replacing_task: Task, replaced_task: Task,
-                 instance_parameter_alteration_bounds: InstanceChanges = None,
-                 solving_time_limit: int = None):
+                 instance_parameter_alteration_bounds: Optional[InstanceChanges] = None,
+                 solving_time_limit: Optional[int] = None):
         """
         Return a MILP model for replacing a given task of the sequence by the replacing task
         while allowing instance parameter alterations
 
-        :param sequence: the sequence to optimize (SequenceForHeuristics)
-        :param replacing_task: the replacing task (Task)
-        :param replaced_task: the replaced task (Task)
-        :param instance_parameter_alteration_bounds: the bounds of instance parameter alterations (InstanceChanges)
-        :param solving_time_limit: the solving time limit in seconds (int)
+        Args:
+            sequence: The sequence to optimize.
+            replacing_task: The replacing task.
+            replaced_task: The replaced task.
+            instance_parameter_alteration_bounds: The bounds of instance parameter alterations.
+            solving_time_limit: The solving time limit in seconds.
         """
         self._replaced_task = replaced_task
         super().__init__(sequence, replacing_task, instance_parameter_alteration_bounds, solving_time_limit)
@@ -42,11 +46,7 @@ class MILPModelForSwap1WithInstanceAlterations(MILPModelForSwapWithInstanceAlter
 
     @property
     def replaced_task(self):
-        """
-        Return the task replaced by the replacing task
-
-        :return: the replaced task (Task)
-        """
+        """The task replaced by the replacing task."""
         return self._replaced_task
 
     ######################
@@ -80,8 +80,6 @@ class MILPModelForSwap1WithInstanceAlterations(MILPModelForSwapWithInstanceAlter
         - the flow ends with a comeback activity
         - the flow is conserved at each activity
         - the sequence of activities remains unchanged except that the replaced task is replaced by the replacing task
-
-        :return: None
         """
         # Add original flow constraints:
         # - the flow starts with a departure activity
@@ -127,8 +125,6 @@ class MILPModelForSwap1WithInstanceAlterations(MILPModelForSwapWithInstanceAlter
         - the replaced task must not be performed
         - the replacing task must be performed
         - all other tasks must be performed
-
-        :return: None
         """
         replaced_task_key = create_activity_key(self._replaced_task)
         # Constraint ensuring that the replaced task is not performed

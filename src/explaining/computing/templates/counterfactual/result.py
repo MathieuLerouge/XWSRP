@@ -4,17 +4,16 @@ from typing import Callable, TypeVar
 # Local libraries
 from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.counterfactual.MILP_model.transformation_with_alterations import \
-    MILPModelForTransformationWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.milp.base import TransformationWithAlterationsBaseModel
 from src.explaining.modeling.solution import EditableSolution
 from src.modeling.employee import Employee
 
-# Type variable for a subclass of MILPModelForTransformationWithInstanceAlterations
-SolvedMILPModel = TypeVar("SolvedMILPModel", bound=MILPModelForTransformationWithInstanceAlterations)
+# Type variable for a subclass of TransformationWithAlterationsBaseModel
+SolvedMILPModel = TypeVar("SolvedMILPModel", bound=TransformationWithAlterationsBaseModel)
 
 
 def build_transformation_result_from_milp_model(
-        solution: EditableSolution, model: MILPModelForTransformationWithInstanceAlterations,
+        solution: EditableSolution, model: TransformationWithAlterationsBaseModel,
         describe: Callable[[SolvedMILPModel, Employee, str], dict[str, str]]
 ) -> TransformationResult:
     """

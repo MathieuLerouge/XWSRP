@@ -7,15 +7,12 @@ from src.explaining.computing.templates.common.preconditions import Transformati
     INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
-from src.explaining.computing.templates.counterfactual.extraction import build_transformation_result_from_milp_model
-from src.explaining.computing.templates.counterfactual.MILP_model.insertion1 import \
-    MILPModelForInsertion1WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.insertion2 import \
-    MILPModelForInsertion2aWithInstanceAlterations, MILPModelForInsertion2bWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.insertion3 import \
-    MILPModelForInsertion3WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.insertion_with_alterations import \
-    MILPModelForInsertionWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.result import build_transformation_result_from_milp_model
+from src.explaining.computing.templates.counterfactual.milp.insertion.insertion1 import Insertion1WithAlterationsModel
+from src.explaining.computing.templates.counterfactual.milp.insertion.insertion2 import \
+    Insertion2aWithAlterationsModel, Insertion2bWithAlterationsModel
+from src.explaining.computing.templates.counterfactual.milp.insertion.insertion3 import Insertion3WithAlterationsModel
+from src.explaining.computing.templates.counterfactual.milp.insertion.base import InsertionWithAlterationsBaseModel
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.modeling.employee import Employee
@@ -31,7 +28,7 @@ class InsertionWithAlterationsApplier:
     """
 
     @staticmethod
-    def _describe(model: MILPModelForInsertionWithInstanceAlterations, employee: Employee,
+    def _describe(model: InsertionWithAlterationsBaseModel, employee: Employee,
                   route_description: str) -> dict[str, str]:
         """Describe the insertion the given model computed, in every language."""
         return TransformationDescriptionBuilder.for_inserting_task_in_route(
@@ -59,7 +56,7 @@ class InsertionWithAlterationsApplier:
         employee = solution.instance.get_employee_by_name(employee_name)
         task = solution.instance.get_task_by_name(task_name)
         activity = solution.instance.get_hypothetical_activity_by_names(activity_name, employee.name)
-        model = MILPModelForInsertion1WithInstanceAlterations(
+        model = Insertion1WithAlterationsModel(
             solution.get_sequence(employee), task, activity,
             instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
@@ -88,7 +85,7 @@ class InsertionWithAlterationsApplier:
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         task = solution.instance.get_task_by_name(task_name)
-        model = MILPModelForInsertion2aWithInstanceAlterations(
+        model = Insertion2aWithAlterationsModel(
             solution.get_sequence(employee), task, instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
         return build_transformation_result_from_milp_model(
@@ -121,7 +118,7 @@ class InsertionWithAlterationsApplier:
         performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
             solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
         )
-        model = MILPModelForInsertion2bWithInstanceAlterations(
+        model = Insertion2bWithAlterationsModel(
             solution.get_sequence(employee), performable_non_performed_tasks,
             instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
@@ -149,7 +146,7 @@ class InsertionWithAlterationsApplier:
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         task = solution.instance.get_task_by_name(task_name)
-        model = MILPModelForInsertion3WithInstanceAlterations(
+        model = Insertion3WithAlterationsModel(
             solution.get_sequence(employee), task, instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
         return build_transformation_result_from_milp_model(

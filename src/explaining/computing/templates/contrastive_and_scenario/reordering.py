@@ -6,9 +6,9 @@ from src.explaining.computing.templates.common.conflict import TailoredConflictB
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
-from src.explaining.computing.templates.contrastive_and_scenario.extraction import \
-    extract_support_sequence_and_conflict
-from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.reordering3 import MILPModelForReordering3
+from src.explaining.computing.templates.contrastive_and_scenario.result import \
+    build_transformation_result_from_milp_model
+from src.explaining.computing.templates.contrastive_and_scenario.milp.reordering import ReorderingModel
 from src.explaining.modeling.solution import EditableSolution
 from src.modeling.employee import Employee
 from src.modeling.task import Task
@@ -217,8 +217,18 @@ class ReorderingApplier:
     ########
 
     @staticmethod
+    def _describe(model: ReorderingModel, employee: Employee, route_description: str) -> dict[str, str]:
+        """
+        Describe the reordering of the whole route, in every language.
+
+        NB: The model is not read. (Ord,3) asks for another order without naming a task, so the sentence
+        names none either, even though the model did pick a pivot task of its own to reorder around.
+        """
+        return TransformationDescriptionBuilder.for_reordering_route(employee, route_description)
+
+    @staticmethod
     def _build_model_3(solution: EditableSolution, employee_name: str,
-                       solving_time_limit: Optional[int] = None) -> MILPModelForReordering3:
+                       solving_time_limit: Optional[int] = None) -> ReorderingModel:
         """
         Build the MILP model answering the (Ord,3) question, without solving it.
 
@@ -231,7 +241,7 @@ class ReorderingApplier:
             The model, ready to be solved.
         """
         employee = solution.instance.get_employee_by_name(employee_name)
-        model = MILPModelForReordering3(solution.get_sequence(employee))
+        model = ReorderingModel(solution.get_sequence(employee))
         if solving_time_limit is not None:
             model.solving_time_limit = solving_time_limit
         return model
@@ -254,12 +264,6 @@ class ReorderingApplier:
         Returns:
             The result of the applied transformation.
         """
-        employee = solution.instance.get_employee_by_name(employee_name)
         model = ReorderingApplier._build_model_3(solution, employee_name, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
-        extraction = extract_support_sequence_and_conflict(solution, employee, model.pivot_task, model)
-        support_solution = extraction.support_solution
-        conflict = extraction.conflict
-        route_description = extraction.route_description
-        descriptions = TransformationDescriptionBuilder.for_reordering_route(employee, route_description)
-        return TransformationResult(support_solution, conflict, descriptions)
+        return build_transformation_result_from_milp_model(solution, model, ReorderingApplier._describe)

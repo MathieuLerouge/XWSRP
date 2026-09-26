@@ -1,38 +1,42 @@
+# Standard library
+from typing import Optional
+
 # Third-party library
 import pyomo.environ as pyo
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.MILP_model.insertion_with_alterations \
-    import MILPModelForInsertionWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.milp.insertion.base \
+    import InsertionWithAlterationsBaseModel
 from src.modeling.activity import Activity
 from src.modeling.task import Task
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.subproblems.sequencemodel import create_activity_key
 
 
-#################################################
-# MILPModelForInsertion1WithInstanceAlterations #
-#################################################
+##################################
+# Insertion1WithAlterationsModel #
+##################################
 
-class MILPModelForInsertion1WithInstanceAlterations(MILPModelForInsertionWithInstanceAlterations):
+class Insertion1WithAlterationsModel(InsertionWithAlterationsBaseModel):
     """
     MILP model to compute explanation content for answering (Ins,1) counterfactual question:
     "How to make possible that employee {Employee} performs task {Task} just after activity {Activity}?"
     """
 
     def __init__(self, sequence: SequenceForHeuristics, task_to_insert: Task, activity: Activity,
-                 instance_parameter_alteration_bounds: InstanceChanges = None,
-                 solving_time_limit: int = None):
+                 instance_parameter_alteration_bounds: Optional[InstanceChanges] = None,
+                 solving_time_limit: Optional[int] = None):
         """
         Return a MILP model for inserting the given task in the given sequence after the given activity
         while allowing instance parameter alterations
 
-        :param sequence: the sequence to optimize (SequenceForHeuristics)
-        :param task_to_insert: the task to insert (Task)
-        :param activity: the activity after which the task is inserted (Activity)
-        :param instance_parameter_alteration_bounds: the bounds of instance parameter alterations (InstanceChanges)
-        :param solving_time_limit: the solving time limit in seconds (int)
+        Args:
+            sequence: The sequence to optimize.
+            task_to_insert: The task to insert.
+            activity: The activity after which the task is inserted.
+            instance_parameter_alteration_bounds: The bounds of instance parameter alterations.
+            solving_time_limit: The solving time limit in seconds.
         """
         self._activity_before_insertion = activity
         super().__init__(sequence, task_to_insert, instance_parameter_alteration_bounds, solving_time_limit)
@@ -68,8 +72,6 @@ class MILPModelForInsertion1WithInstanceAlterations(MILPModelForInsertionWithIns
         - the flow ends with a comeback activity
         - the flow is conserved at each activity
         - the sequence of activities remains unchanged except that a task is inserted in the sequence at given position
-
-        :return: None
         """
         # Add original flow constraints:
         # - the flow starts with a departure activity

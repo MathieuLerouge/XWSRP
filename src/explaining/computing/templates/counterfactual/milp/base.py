@@ -22,11 +22,11 @@ from src.optimization.milp.subproblems.sequencemodel import SequenceModel, LEAVI
 MAX_NB_ALTERATIONS = 2
 
 
-#####################################################
-# MILPModelForTransformationWithInstanceAlterations #
-#####################################################
+##########################################
+# TransformationWithAlterationsBaseModel #
+##########################################
 
-class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
+class TransformationWithAlterationsBaseModel(SequenceModel):
     """
     Base MILP model to compute explanation content for answering counterfactual question about any transformation
     """
@@ -34,15 +34,16 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     _pivot_task_is_new_to_employee: Optional[bool] = None
 
     def __init__(self, sequence: SequenceForHeuristics, pivot_task: Task,
-                 instance_parameter_alteration_bounds: InstanceChanges = None,
-                 solving_time_limit: int = None):
+                 instance_parameter_alteration_bounds: Optional[InstanceChanges] = None,
+                 solving_time_limit: Optional[int] = None):
         """
         Return a MILP model for transforming a sequence while allowing instance parameter alterations
 
-        :param sequence: the sequence to optimize (SequenceForHeuristics)
-        :param pivot_task: the task which plays a key role in the sequence optimization (Task)
-        :param instance_parameter_alteration_bounds: the bounds of instance parameter alterations (InstanceChanges)
-        :param solving_time_limit: the solving time limit in seconds (int)
+        Args:
+            sequence: The sequence to optimize.
+            pivot_task: The task which plays a key role in the sequence optimization.
+            instance_parameter_alteration_bounds: The bounds of instance parameter alterations.
+            solving_time_limit: The solving time limit in seconds.
         """
         self._pivot_task = pivot_task
         self._sequence = sequence
@@ -56,7 +57,8 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         Return the list of candidate tasks i.e. the tasks that can be part of the employee's sequence
         NB: depending on the transformation, this method may need to be overridden
 
-        :return: the list of candidate tasks (List[Task])
+        Returns:
+            The list of candidate tasks.
         """
         return self._sequence.get_contained_tasks() + [self._pivot_task]
 
@@ -68,7 +70,8 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Return the list of candidate tasks keys i.e. the keys of the tasks that can be part of the employee's sequence
 
-        :return: the list of candidate tasks keys (List[str])
+        Returns:
+            The list of candidate tasks keys.
         """
         if including_pivot_task:
             return [task.name for task in self.candidate_tasks]
@@ -97,20 +100,12 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
 
     @property
     def _pivot_task_key(self):
-        """
-        Return the key of the pivot task
-
-        :return: the key of the pivot task (str)
-        """
+        """The key of the pivot task."""
         return self._pivot_task.name
 
     @property
     def pivot_task_time_gap(self):
-        """
-        Return the time gap between backward and forward start times of the pivot task
-
-        :return: the time gap between backward and forward start times of the pivot task (int)
-        """
+        """The time gap between backward and forward start times of the pivot task."""
         if self.has_solution_sequence:
             return round(pyo.value(self.var_T_backward) - pyo.value(self.var_T_forward))
         else:
@@ -118,11 +113,7 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
 
     @property
     def pivot_task_start_time(self):
-        """
-        Return the start time of the pivot task
-
-        :return: the start time of the pivot task (int)
-        """
+        """The start time of the pivot task."""
         if self.has_solution_sequence:
             return round(pyo.value(self.var_T_backward))
         else:
@@ -130,11 +121,7 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
 
     @property
     def pivot_task_start_time_for_backward(self):
-        """
-        Return the start time of the pivot task which respects time constraints in backward direction
-
-        :return: the backward start time of the pivot task (int)
-        """
+        """The start time of the pivot task which respects time constraints in backward direction."""
         if self.has_solution_sequence:
             return round(pyo.value(self.var_T_backward))
         else:
@@ -142,11 +129,7 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
 
     @property
     def pivot_task_start_time_for_forward(self):
-        """
-        Return the start time of the pivot task which respects time constraints in forward direction
-
-        :return: the forward start time of the pivot task (int)
-        """
+        """The start time of the pivot task which respects time constraints in forward direction."""
         if self.has_solution_sequence:
             return round(pyo.value(self.var_T_forward))
         else:
@@ -158,11 +141,7 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
 
     @property
     def support_instance_alterations(self):
-        """
-        Return the parameter alterations of the support instance
-
-        :return: the parameter alterations of the support instance (InstanceChanges)
-        """
+        """The parameter alterations of the support instance."""
         if self.has_solution_sequence:
             return self._support_instance_alterations
         else:
@@ -170,11 +149,7 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
 
     @property
     def support_instance(self):
-        """
-        Return the support instance
-
-        :return: the support instance (EditableInstance)
-        """
+        """The support instance."""
         if self.has_solution_sequence:
             return self._support_instance
         else:
@@ -182,20 +157,12 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
 
     @property
     def support_sequence(self) -> SequenceForHeuristics:
-        """
-        Return the support sequence
-
-        :return: the support sequence (SequenceForHeuristics)
-        """
+        """The support sequence."""
         return SequenceForHeuristics.from_sequence(self.solution_sequence)
 
     @property
     def is_support_sequence_feasible(self):
-        """
-        Return whether the support sequence is feasible or not
-
-        :return: a boolean indicating whether the support sequence is feasible or not (bool)
-        """
+        """Whether the support sequence is feasible or not."""
         return self.pivot_task_time_gap == 0
 
     ############################
@@ -205,8 +172,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _add_decision_variables(self):
         """
         Add all the decision variables to the model
-
-        :return: None
         """
         self._add_decision_variables_T()
         self._add_decision_variables_split_T()
@@ -222,8 +187,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the decision variables "T" to the model.
         These variables represent the start times of the tasks.
-
-        :return: None
         """
         self._model.T = pyo.Var(
             self._get_candidate_tasks_keys(including_pivot_task=False), domain=pyo.NonNegativeIntegers
@@ -238,8 +201,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         which respects time constraints in backward direction.
         The forward start time is the start time of the pivot task
         which respects time constraints in forward direction.
-
-        :return:
         """
         self._model.Tb = pyo.Var(domain=pyo.NonNegativeIntegers)
         self._model.Ta = pyo.Var(domain=pyo.NonNegativeIntegers)
@@ -260,8 +221,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the decision variables "X" to the model for the employee alterations.
         These variables enable the activations of the instance parameter alterations related to employees.
-
-        :return: None
         """
         bounds = self._instance_parameter_alteration_bounds
         employee = self.employee
@@ -287,8 +246,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the decision variables "X" to the model for the task alterations.
         These variables enable the activations of the instance parameter alterations related to tasks.
-
-        :return: None
         """
         bounds = self._instance_parameter_alteration_bounds
         if bounds is None:
@@ -322,8 +279,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the decision variables "X" to the model.
         These variables enable the activation of the parameter alterations.
-
-        :return: None
         """
         self._add_decision_variables_X_employee()
         self._add_decision_variables_X_tasks()
@@ -336,8 +291,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the decision variables "Delta" to the model for the employee alterations.
         These variables represent the values of the instance parameter alterations related to employees.
-
-        :return: None
         """
         bounds = self._instance_parameter_alteration_bounds
         employee = self.employee
@@ -366,8 +319,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the decision variables "Delta" to the model for the task alterations.
         These variables represent the values of the instance parameter alterations related to tasks.
-
-        :return: None
         """
         bounds = self._instance_parameter_alteration_bounds
         if bounds is None:
@@ -418,8 +369,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the decision variable "Delta_max" to the model.
         This variable represents the largest time value of instance parameter alterations.
-
-        :return: None
         """
         self._model.Delta_max = pyo.Var(domain=pyo.NonNegativeIntegers, bounds=(0, 24 * 60))
         self.var_D_max = self._model.Delta_max
@@ -428,8 +377,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the decision variables "Delta" to the model.
         These variables represent the values of the instance parameter alterations.
-
-        :return: None
         """
         self._add_decision_variables_Delta_employee()
         self._add_decision_variables_Delta_tasks()
@@ -442,8 +389,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _build_task_performances_expressions(self):
         """
         Build the expressions corresponding to whether each task is performed or not
-
-        :return: None
         """
         self._task_performances_expressions = dict([
             (j, pyo.quicksum([self.vars_U[j, k]
@@ -455,8 +400,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _build_total_working_time_expression(self):
         """
         Build the expression corresponding to the total working time of the employees
-
-        :return: None
         """
         self._total_working_time_expression = \
             pyo.quicksum([self._task_performances_expressions[j] * self.get_candidate_task_by_key(j).duration
@@ -465,8 +408,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _build_total_traveling_time_expression(self):
         """
         Build the expression corresponding to the total traveling time of the employees
-
-        :return: None
         """
         self._total_traveling_time_expression = \
             pyo.quicksum([self.vars_U[indices] *
@@ -477,16 +418,12 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Build the expression corresponding to the total time gap between
         forward and backward start times of the pivot task
-
-        :return: None
         """
         self._time_gap_expression = self.var_T_backward - self.var_T_forward
 
     def _build_nb_alterations_expression(self):
         """
         Build the expression corresponding to the number of instance parameter alterations
-
-        :return: None
         """
         self._nb_alterations_expression = \
             pyo.quicksum([(self.vars_X_LB_t[j] if self.vars_X_LB_t[j] is not None else 0) +
@@ -499,8 +436,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _build_total_task_duration_alterations_expression(self):
         """
         Build the expression corresponding to the total altered task duration
-
-        :return: None
         """
         self._total_altered_task_duration_expression = \
             pyo.quicksum([(self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0)
@@ -509,8 +444,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _build_total_time_alteration_expression(self):
         """
         Build the expression corresponding to the total time alteration task duration
-
-        :return: None
         """
         self._total_time_alterations_expression = \
             pyo.quicksum([(self.vars_D_dt_t[j] if self.vars_X_dt_t[j] is not None else 0)
@@ -525,8 +458,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _build_key_expressions(self):
         """
         Build the key expressions that are used in the objective function
-
-        :return: None
         """
         self._build_task_performances_expressions()
         self._build_total_working_time_expression()
@@ -554,8 +485,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
 
         Solved lexicographically (one solve per objective, see _solve) since Pyomo/HiGHS have no equivalent
         of Gurobi's setObjectiveN hierarchical multi-objective feature.
-
-        :return: None
         """
         self._build_key_expressions()
         self._objectives_in_priority_order = [
@@ -566,6 +495,16 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         ]
 
     def _solve(self, mute: bool, solver_name: str):
+        """
+        Solve the model one objective at a time, in priority order.
+
+        Args:
+            mute: Whether to silence the solver's own output.
+            solver_name: The name of the backend to solve with.
+
+        Returns:
+            The outcome of the last solve.
+        """
         solver = Solver(solver_name, mute=mute, time_limit=self._solving_time_limit)
         return solver.solve_lexicographically(self._model, self._objectives_in_priority_order)
 
@@ -584,8 +523,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         - split time constraints
         - instance parameter alterations bounds constraints
         - (no skill constraints)
-
-        :return: None
         """
         super()._add_constraints()
         self._add_time_gap_constraint()
@@ -599,8 +536,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the covering constraints to the model.
         All the candidate tasks (including the pivot task) must be performed.
-
-        :return: None
         """
         for j in self._get_candidate_tasks_keys():
             self._model.add_component(
@@ -627,8 +562,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         Add the time window constraints to the model.
         The tasks must be performed within their availability time windows.
         Time windows may get wider with the instance parameter alterations.
-
-        :return: None
         """
         for j in self._get_candidate_tasks_keys(including_pivot_task=False):
             self._model.add_component(
@@ -675,8 +608,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         Employees must have enough time to travel between tasks.
         Task durations may be shorter with the instance parameter alterations.
         Employee time windows may get wider with the instance parameter alterations.
-
-        :return: None
         """
         # Add departure-to-first-task time sequence constraints
         for k in self._get_candidate_tasks_keys(including_pivot_task=False):
@@ -763,8 +694,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         Add time gap constraint.
         The time gap is the difference between the backward and forward start time of the pivot task.
         This time gap must be non-negative.
-
-        :return: None
         """
         self._model.add_component(
             "TimeGapConstraint", pyo.Constraint(expr=(self.var_T_backward - self.var_T_forward >= 0))
@@ -777,8 +706,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _add_employee_related_alterations_bounds_constraints(self):
         """
         Add employee-related alterations bounds constraints.
-
-        :return: None
         """
         if self.var_X_LB_e is not None:
             self._model.add_component(
@@ -804,8 +731,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _add_alterations_bounds_constraints_tasks(self):
         """
         Add task-related alterations bounds constraints.
-
-        :return: None
         """
         for j in self._get_candidate_tasks_keys():
             if self.vars_X_LB_t[j] is not None:
@@ -848,8 +773,8 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Add the constraint that the number of alterations must be less than or equal to the given value
 
-        :param max_nb_alterations: rhe maximum number of alterations (int)
-        :return: None
+        Args:
+            max_nb_alterations: Rhe maximum number of alterations.
         """
         self._model.add_component(
             "MaximumNbAlterationsConstraint",
@@ -859,8 +784,6 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     def _add_alterations_bounds_constraints(self):
         """
         Add the constraints that the alterations must be within bounds
-
-        :return: None
         """
         self._add_employee_related_alterations_bounds_constraints()
         self._add_alterations_bounds_constraints_tasks()
@@ -877,12 +800,10 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
     # Data extraction from MILP solving results - Instance #
     ########################################################
 
-    def _extract_support_instance_alterations_from_IP_solving(self):
+    def _extract_support_instance_alterations_from_milp_solving(self):
         """
-        Extract the instance parameter alterations from the results obtained by solving the Integer Program.
+        Extract the instance parameter alterations from the results obtained by solving the MILP.
         By applying these alterations to the instance, we obtain a new instance that we call support instance.
-
-        :return: None
         """
         alterations = InstanceChanges()
         employee_start_time_lb_is_altered = (
@@ -917,11 +838,9 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
                 )
         self._support_instance_alterations = alterations
 
-    def _extract_support_instance_from_IP_solving(self):
+    def _extract_support_instance_from_milp_solving(self):
         """
-        Extract the support instance from the results obtained by solving the Integer Program
-
-        :return: None
+        Extract the support instance from the results obtained by solving the MILP.
         """
         self._support_instance = EditableInstance.from_Instance(self.instance, name=self.instance.name + "_support")
         self._support_instance.alter(self._support_instance_alterations)
@@ -934,7 +853,8 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Extract the sequence ordered steps from the results obtained by solving the Integer Program
 
-        :return: list of steps (List[Step])
+        Returns:
+            List of steps.
         """
         employee_start_time_lb = \
             self.employee.start_time_lb - (round(pyo.value(self.var_D_LB_e)) if self.var_X_LB_e is not None else 0)
@@ -981,31 +901,27 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
                             f"The list of start times and steps is {start_times_and_steps}.")
         return [step for _, step in start_times_and_steps]
 
-    def _extract_sequence_from_IP_solving(self):
+    def _extract_sequence_from_milp_solving(self):
         """
         Extract the sequence from the results obtained by solving the Integer Program
-
-        :return: None
         """
         steps = self._extract_ordered_steps()
         sequence = SequenceForHeuristics(self.instance, self.employee, steps)
         sequence = EditableSequence.from_Sequence(sequence, self._support_instance)
         sequence.compute_times_based_on_fixed_start_times()
-        self._sequence_from_IP_solving = sequence
+        self._sequence_from_milp_solving = sequence
 
     ###################################################
     # Data extraction from MILP solving results - All #
     ###################################################
 
-    def _extract_data_from_IP_solving(self):
+    def _extract_data_from_milp_solving(self):
         """
         Extract all the data from the results obtained by solving the Integer Program
-
-        :return: None
         """
-        self._extract_support_instance_alterations_from_IP_solving()
-        self._extract_support_instance_from_IP_solving()
-        self._extract_sequence_from_IP_solving()
+        self._extract_support_instance_alterations_from_milp_solving()
+        self._extract_support_instance_from_milp_solving()
+        self._extract_sequence_from_milp_solving()
 
     ###################################
     # Exploiting MILP solving results #
@@ -1015,8 +931,11 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Check if a task is performed given its key
 
-        :param task_key: the key of the task (str)
-        :return: True if the task is performed, False otherwise
+        Args:
+            task_key: The key of the task.
+
+        Returns:
+            True if the task is performed, False otherwise.
         """
         return round(pyo.value(self._task_performances_expressions[task_key])) == 1
 
@@ -1024,7 +943,10 @@ class MILPModelForTransformationWithInstanceAlterations(SequenceModel):
         """
         Check if a task is performed
 
-        :param task: the task (Task)
-        :return: True if the task is performed, False otherwise
+        Args:
+            task: The task.
+
+        Returns:
+            True if the task is performed, False otherwise.
         """
         return round(pyo.value(self._task_performances_expressions[create_activity_key(task)])) == 1

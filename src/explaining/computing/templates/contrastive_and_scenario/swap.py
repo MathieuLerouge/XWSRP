@@ -9,9 +9,9 @@ from src.explaining.computing.templates.common.preconditions import Transformati
     EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
-from src.explaining.computing.templates.contrastive_and_scenario.extraction import \
-    extract_support_sequence_and_conflict
-from src.explaining.computing.templates.contrastive_and_scenario.MILP_model.swap3 import MILPModelForSwap3
+from src.explaining.computing.templates.contrastive_and_scenario.result import \
+    build_transformation_result_from_milp_model
+from src.explaining.computing.templates.contrastive_and_scenario.milp.swap import SwapModel
 from src.explaining.modeling.solution import EditableSolution
 from src.modeling.employee import Employee
 from src.modeling.task import Task
@@ -175,8 +175,14 @@ class SwapApplier:
     ########
 
     @staticmethod
+    def _describe(model: SwapModel, employee: Employee, route_description: str) -> dict[str, str]:
+        """Describe the swap the given model computed, in every language."""
+        return TransformationDescriptionBuilder.for_replacing_task_in_route(
+            model.leaving_task, model.pivot_task, employee, route_description)
+
+    @staticmethod
     def _build_model_3(solution: EditableSolution, employee_name: str, task_name: str,
-                       solving_time_limit: Optional[int] = None) -> MILPModelForSwap3:
+                       solving_time_limit: Optional[int] = None) -> SwapModel:
         """
         Build the MILP model answering the (Swp,3) question, without solving it.
 
@@ -191,7 +197,7 @@ class SwapApplier:
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         task = solution.instance.get_task_by_name(task_name)
-        model = MILPModelForSwap3(solution.get_sequence(employee), task)
+        model = SwapModel(solution.get_sequence(employee), task)
         if solving_time_limit is not None:
             model.solving_time_limit = solving_time_limit
         return model
@@ -218,18 +224,11 @@ class SwapApplier:
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         task = solution.instance.get_task_by_name(task_name)
-        if employee.is_capable_of_performing(task):
-            model = SwapApplier._build_model_3(solution, employee_name, task_name, solving_time_limit)
-            MILPTransformationRunner.solve_or_raise(model)
-            extraction = extract_support_sequence_and_conflict(solution, employee, task, model)
-            support_solution = extraction.support_solution
-            conflict = extraction.conflict
-            route_description = extraction.route_description
-            descriptions = TransformationDescriptionBuilder.for_replacing_task_in_route(
-                model.leaving_task, task, employee, route_description
+        if not employee.is_capable_of_performing(task):
+            return TransformationResult(
+                solution.copy(solution.name + "_support"), SkillConflict(employee, task),
+                TransformationDescriptionBuilder.none()
             )
-        else:
-            support_solution = solution.copy(solution.name + "_support")
-            conflict = SkillConflict(employee, task)
-            descriptions = TransformationDescriptionBuilder.none()
-        return TransformationResult(support_solution, conflict, descriptions)
+        model = SwapApplier._build_model_3(solution, employee_name, task_name, solving_time_limit)
+        MILPTransformationRunner.solve_or_raise(model)
+        return build_transformation_result_from_milp_model(solution, model, SwapApplier._describe)

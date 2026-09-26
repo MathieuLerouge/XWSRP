@@ -1,29 +1,34 @@
+# Standard library
+from typing import Optional
+
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.computing.templates.counterfactual.MILP_model.reordering_with_alterations import \
-    MILPModelForReorderingWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.milp.reordering.base import \
+    ReorderingWithAlterationsBaseModel
 from src.optimization.heuristics.sequence import SequenceForHeuristics
 
 
-##################################################
-# MILPModelForReordering3WithInstanceAlterations #
-##################################################
+###################################
+# Reordering3WithAlterationsModel #
+###################################
 
-class MILPModelForReordering3WithInstanceAlterations(MILPModelForReorderingWithInstanceAlterations):
+class Reordering3WithAlterationsModel(ReorderingWithAlterationsBaseModel):
     """
     MILP model to compute explanation content for answering (Ord,3) counterfactual question:
     "How to make possible that employee {Employee} performs the activities of their route in another order?"
     """
 
-    def __init__(self, sequence: SequenceForHeuristics, instance_parameter_alteration_bounds: InstanceChanges = None,
-                 solving_time_limit: int = None):
+    def __init__(self, sequence: SequenceForHeuristics,
+                 instance_parameter_alteration_bounds: Optional[InstanceChanges] = None,
+                 solving_time_limit: Optional[int] = None):
         """
         Return a MILP model for moving a task of the sequence at another position
         while allowing instance parameter alterations
 
-        :param sequence: the sequence to optimize (SequenceForHeuristics)
-        :param instance_parameter_alteration_bounds: the bounds of instance parameter alterations (InstanceChanges)
-        :param solving_time_limit: the solving time limit in seconds (int)
+        Args:
+            sequence: The sequence to optimize.
+            instance_parameter_alteration_bounds: The bounds of instance parameter alterations.
+            solving_time_limit: The solving time limit in seconds.
         """
         self._sequence = sequence
         super().__init__(sequence, self._choose_moving_task(), instance_parameter_alteration_bounds, solving_time_limit)
@@ -32,7 +37,8 @@ class MILPModelForReordering3WithInstanceAlterations(MILPModelForReorderingWithI
         """
         Return the task to move which is chosen as the task in the middle of the sequence
 
-        :return: the task to move (Task)
+        Returns:
+            The task to move.
         """
         moving_task_index = int(self._sequence.nb_performed_tasks / 2)
         return self._sequence.get_contained_tasks(True)[moving_task_index]

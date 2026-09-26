@@ -7,13 +7,12 @@ from src.explaining.computing.templates.common.preconditions import Transformati
     EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.common.runner import MILPTransformationRunner
-from src.explaining.computing.templates.counterfactual.extraction import build_transformation_result_from_milp_model
-from src.explaining.computing.templates.counterfactual.MILP_model.swap1 import MILPModelForSwap1WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.swap2 import \
-    MILPModelForSwap2aWithInstanceAlterations, MILPModelForSwap2bWithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.swap3 import MILPModelForSwap3WithInstanceAlterations
-from src.explaining.computing.templates.counterfactual.MILP_model.swap_with_alterations import \
-    MILPModelForSwapWithInstanceAlterations
+from src.explaining.computing.templates.counterfactual.result import build_transformation_result_from_milp_model
+from src.explaining.computing.templates.counterfactual.milp.swap.swap1 import Swap1WithAlterationsModel
+from src.explaining.computing.templates.counterfactual.milp.swap.swap2 import \
+    Swap2aWithAlterationsModel, Swap2bWithAlterationsModel
+from src.explaining.computing.templates.counterfactual.milp.swap.swap3 import Swap3WithAlterationsModel
+from src.explaining.computing.templates.counterfactual.milp.swap.base import SwapWithAlterationsBaseModel
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.solution import EditableSolution
 from src.modeling.employee import Employee
@@ -29,7 +28,7 @@ class SwapWithAlterationsApplier:
     """
 
     @staticmethod
-    def _describe(model: MILPModelForSwapWithInstanceAlterations, employee: Employee,
+    def _describe(model: SwapWithAlterationsBaseModel, employee: Employee,
                   route_description: str) -> dict[str, str]:
         """Describe the swap the given model computed, in every language."""
         return TransformationDescriptionBuilder.for_replacing_task_in_route(
@@ -57,7 +56,7 @@ class SwapWithAlterationsApplier:
         employee = solution.instance.get_employee_by_name(employee_name)
         replacing_task = solution.instance.get_task_by_name(task1_name)
         replaced_task = solution.instance.get_task_by_name(task2_name)
-        model = MILPModelForSwap1WithInstanceAlterations(
+        model = Swap1WithAlterationsModel(
             solution.get_sequence(employee), replacing_task, replaced_task,
             instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
@@ -83,7 +82,7 @@ class SwapWithAlterationsApplier:
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         replacing_task = solution.instance.get_task_by_name(task_name)
-        model = MILPModelForSwap2aWithInstanceAlterations(
+        model = Swap2aWithAlterationsModel(
             solution.get_sequence(employee), replacing_task,
             instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
@@ -115,7 +114,7 @@ class SwapWithAlterationsApplier:
         performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
             solution, employee, EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
         )
-        model = MILPModelForSwap2bWithInstanceAlterations(
+        model = Swap2bWithAlterationsModel(
             solution.get_sequence(employee), performable_non_performed_tasks,
             instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
@@ -141,7 +140,7 @@ class SwapWithAlterationsApplier:
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         replacing_task = solution.instance.get_task_by_name(task_name)
-        model = MILPModelForSwap3WithInstanceAlterations(
+        model = Swap3WithAlterationsModel(
             solution.get_sequence(employee), replacing_task,
             instance_parameter_alteration_bounds, solving_time_limit)
         MILPTransformationRunner.solve_or_raise(model)
