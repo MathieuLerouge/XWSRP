@@ -69,9 +69,11 @@ They are the keys of the explanation files already stored under `data/*/explanat
 so renaming the classes must never change them — 
 which is why `'infeasibility'` survived `Infeasibility` being renamed to `Conflict`.
 
-
-### Next steps:
-`'transformation'` exists in two incompatible shapes across the stored files: 
-a plain already-resolved string in `data/demo/`, and the language-keyed dictionary `to_dict` writes today 
-in `data/evaluation/`. Importing an old-format file builds an explanation whose descriptions are a `str`, 
-which then raises `TypeError` on any read of `applying_support_solution_transformation`.
+`'transformation'` holds one sentence per language, keyed by language. \
+An earlier format stored a single already-resolved string instead, which carries no language 
+and so cannot be read back in the other one. \
+Every stored file has been migrated, and `applying_support_solution_transformation` now rejects 
+the old shape with a message naming the format rather than failing on a string subscript. \
+`tests/explaining/explanation/test_serialization.py` reads every file under `data/*/explanations/` back 
+in both languages, and fails if one is added that it does not cover — the two formats drifted apart 
+precisely because nothing exercised that round trip.

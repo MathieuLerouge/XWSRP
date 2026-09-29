@@ -176,8 +176,31 @@ class PredefinedExplanation(Explanation):
 
     @property
     def applying_support_solution_transformation(self):
-        """The sentence describing the transformation applied to reach the support solution."""
-        return self._typical_expressions['applying_support_solution_transformation'][self.language]
+        """
+        The sentence describing the transformation applied to reach the support solution,
+        in the language the explanation is phrased in, or None when no transformation was applied.
+
+        Raises:
+            TypeError: if the descriptions come from an explanation file exported in the old format,
+                which stored one already-resolved sentence rather than one per language.
+            KeyError: if they carry no sentence in the explanation's own language.
+        """
+        descriptions = self._typical_expressions['applying_support_solution_transformation']
+        if descriptions is None:
+            return None
+        if isinstance(descriptions, str):
+            raise TypeError(
+                f"The description of the applied transformation is a bare string ({descriptions!r}) "
+                f"rather than one sentence per language. It comes from an explanation file exported in the old "
+                f"single-language format, which has to be regenerated before the explanation can be read."
+            )
+        if self.language not in descriptions:
+            raise KeyError(
+                f"The explanation carries no {self.language} description of the applied transformation, "
+                f"only {sorted(descriptions)}. It comes from an explanation file exported in a "
+                f"single-language format, which has to be regenerated before the explanation can be read."
+            )
+        return descriptions[self.language]
 
     @property
     def _the_fact(self):
