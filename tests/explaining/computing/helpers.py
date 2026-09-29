@@ -3,9 +3,7 @@ from typing import Optional
 
 # Local libraries
 from src.explaining.computing.conflict import Conflict, SkillConflict, TimeConflict
-from src.explaining.computing.neighborhood.extractor import ConflictExtractor
-from src.explaining.computing.neighborhood.model import NeighborhoodModel
-from src.explaining.computing.neighborhood.result import build_transformation_result_from_neighborhood
+from src.explaining.computing.neighborhood.result import solve_neighborhood_into_transformation_result
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.modeling.solution import EditableSolution
@@ -78,13 +76,7 @@ def get_neighborhood_computation_pipeline_result(
     """
     solution.compute_kpis()
     neighborhood = Mapper.map(ContrastiveQuestion(solution, template_id, fields_values))
-    skill_conflict = ConflictExtractor.extract_from_neighborhood(neighborhood)
-    if skill_conflict is not None:
-        return build_transformation_result_from_neighborhood(neighborhood, None)
-    model = NeighborhoodModel(neighborhood)
-    outcome = model.solve(mute=True)
-    assert outcome.has_incumbent, "The neighborhood computation pipeline's MILP should be feasible by construction"
-    return build_transformation_result_from_neighborhood(neighborhood, model)
+    return solve_neighborhood_into_transformation_result(neighborhood)
 
 
 def get_tailored_computation_pipeline_gap_and_solution(

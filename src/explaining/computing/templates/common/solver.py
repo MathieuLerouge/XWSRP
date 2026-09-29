@@ -1,4 +1,8 @@
+# Standard library
+from typing import Union
+
 # Local libraries
+from src.optimization.milp.model import Model
 from src.optimization.milp.solver.outcometoexceptionmapper import OutcomeToExceptionMapper
 from src.optimization.milp.subproblems.sequencemodel import SequenceModel
 
@@ -13,12 +17,14 @@ class TransformationModelSolver:
     """
 
     @staticmethod
-    def solve_or_raise(model: SequenceModel):
+    def solve_or_raise(model: Union[Model, SequenceModel]):
         """
         Solve the given model, and raise whichever exception its outcome warrants.
 
         Args:
             model: The MILP model computing the transformation.
+                The tailored pipeline hands a SequenceModel and the neighborhood one a NeighborhoodModel;
+                the two share no base class, only a solve().
 
         Raises:
             InfeasibleModelException: if the model has no feasible solution.

@@ -6,11 +6,49 @@ from src.explaining.computing.neighborhood.description import NeighborhoodDescri
 from src.explaining.computing.neighborhood.extractor import ConflictExtractor
 from src.explaining.computing.neighborhood.model import NeighborhoodModel
 from src.explaining.computing.templates.common.result import TransformationResult
+from src.explaining.computing.templates.common.solver import TransformationModelSolver
 from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.templates.recognizer import Recognizer
 from src.explaining.question.predefined.question import ContrastiveQuestion
 from src.modeling.employee import Employee
+
+
+def solve_neighborhood_into_transformation_result(
+        neighborhood: Neighborhood, solving_time_limit: Optional[int] = None
+) -> tuple[ContrastiveQuestion, TransformationResult]:
+    """
+    Run the neighborhood computation pipeline over a neighborhood, from its operators to a phrasable result:
+    decide whether a skill conflict already settles the question,
+    otherwise build the MILP and solve it, then describe whichever of the two happened.
+
+    NB: It is what both the tailored-neighborhood route (via Mapper) and the free-text one (via the llm Extractor) run,
+    so that the two differ only in how the neighborhood was obtained.
+
+    Args:
+        neighborhood: The neighborhood the question induced.
+        solving_time_limit: The solving time limit in seconds, or None for no limit.
+
+    Returns:
+        A pair made of the recognized question and the result of the transformation it induced,
+        ready to be handed together to the explanation layer's create_explanation.
+
+    Raises:
+        NeighborhoodError: if the neighborhood is not one the question catalogue induces,
+            so that no explanation template exists to phrase an answer from.
+        NotImplementedError: if no NeighborhoodModel can be built for the neighborhood.
+        InfeasibleModelException: if the model has no feasible solution.
+        UnboundedModelException: if the model is unbounded.
+        TimeLimitReachedWithSolutionException: if the solving time limit was reached, with an incumbent found.
+        TimeLimitReachedWithoutSolutionException: if the solving time limit was reached with no incumbent.
+    """
+    if ConflictExtractor.extract_from_neighborhood(neighborhood) is not None:
+        return build_transformation_result_from_neighborhood(neighborhood, None)
+    model = NeighborhoodModel(neighborhood)
+    if solving_time_limit is not None:
+        model.solving_time_limit = solving_time_limit
+    TransformationModelSolver.solve_or_raise(model)
+    return build_transformation_result_from_neighborhood(neighborhood, model)
 
 
 def build_transformation_result_from_neighborhood(
