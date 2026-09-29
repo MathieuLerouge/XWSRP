@@ -1,7 +1,7 @@
 # Local libraries
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.templates import insertion, reordering, swap
-from src.explaining.question.predefined.question import ContrastiveQuestion, Question
+from src.explaining.question.predefined.question import ContrastiveQuestion, PredefinedQuestion
 from src.explaining.question.predefined.bank import (
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
     WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3,
@@ -20,7 +20,7 @@ class Mapper:
     """
 
     @staticmethod
-    def map(question: Question) -> Neighborhood:
+    def map(question: PredefinedQuestion) -> Neighborhood:
         """
         Return the Neighborhood induced by the given question.
 

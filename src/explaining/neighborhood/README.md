@@ -52,7 +52,7 @@ Restrictions are composable: an employee's tasks may be covered by several of th
 (e.g. `PrecedenceChain` together with one or more `ImmediatePrecedence`).
 
 Two subpackages turn a question into the `Neighborhood` it induces. 
-The `templates` subpackage maps a `Question` to it: 
+The `templates` subpackage maps a `PredefinedQuestion` to it: 
 `Mapper` (`mapper.py`) dispatches on the question's template id to a dedicated mapping function, 
 implemented per question family (`insertion.py` for the `(Ins,*)` family, etc.). \
 The `llm` subpackage is the free-text alternative: 

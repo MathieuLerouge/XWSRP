@@ -7,7 +7,7 @@ from src.explaining.question.predefined.bank import \
     BASED_ON_MOST_RELEVANT_NEIGHBORING_SOLUTION_QUESTIONS_TEMPLATES_IDS
 from src.modeling.solution import Solution
 from src.explaining.question.predefined.question import \
-    Question, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
+    PredefinedQuestion, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
 from src.explaining.explanation.predefined.bank import EXPLANATIONS_TEMPLATES
 from src.explaining.computing.conflict import Conflict, SkillConflict, TimeConflict
 from src.explaining.computing.templates.common.result import TransformationResult
@@ -44,7 +44,7 @@ def emphasize(text: str, make_bold: bool = False):
         return text
 
 
-def create_explanation(question: Question, result: TransformationResult):
+def create_explanation(question: PredefinedQuestion, result: TransformationResult):
     """
     Return the explanation answering the given question, of the kind the transformation's result calls for.
 
@@ -77,7 +77,7 @@ def create_explanation(question: Question, result: TransformationResult):
 
 
 def create_explanation_from_dict(dictionary, solution: Solution):
-    question = Question.from_dict(dictionary[QUESTION_KEY], solution)
+    question = PredefinedQuestion.from_dict(dictionary[QUESTION_KEY], solution)
     support_solution = Solution.from_dict(dictionary[SUPPORT_SOLUTION_KEY], solution.instance)
     conflict = None
     if CONFLICT_KEY in dictionary:
@@ -112,7 +112,7 @@ def create_explanation_from_dict(dictionary, solution: Solution):
 
 class Explanation:
 
-    def __init__(self, question: Question, support_solution: Solution,
+    def __init__(self, question: PredefinedQuestion, support_solution: Solution,
                  all_descriptions_of_applied_transformation: dict[str, str] = None,
                  instance_alterations: InstanceChanges = None):
         self._question = question
@@ -606,7 +606,7 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
 # Class InfeasibleNegativeExplanation
 class InfeasibleNegativeExplanation(NegativeExplanation):
 
-    def __init__(self, question: Question, support_solution: Solution, conflict: Conflict,
+    def __init__(self, question: PredefinedQuestion, support_solution: Solution, conflict: Conflict,
                  description_of_applied_transformation: str = None, instance_alterations: InstanceChanges = None):
         self._conflict = conflict
         super().__init__(question, support_solution, description_of_applied_transformation, instance_alterations)
@@ -640,7 +640,7 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
 # Class SkillNegativeExplanation
 class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 
-    def __init__(self, question: Question, support_solution: Solution, conflict: SkillConflict,
+    def __init__(self, question: PredefinedQuestion, support_solution: Solution, conflict: SkillConflict,
                  all_descriptions_of_applied_transformation: dict[str, str] = None,
                  instance_alterations: InstanceChanges = None):
         super().__init__(question, support_solution, conflict,
@@ -687,7 +687,7 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 # Class TimeNegativeExplanation
 class TimeNegativeExplanation(InfeasibleNegativeExplanation):
 
-    def __init__(self, question: Question, support_solution: Solution, conflict: TimeConflict,
+    def __init__(self, question: PredefinedQuestion, support_solution: Solution, conflict: TimeConflict,
                  all_descriptions_of_applied_transformation: dict[str, str] = None,
                  instance_alterations: InstanceChanges = None):
         super().__init__(question, support_solution, conflict,

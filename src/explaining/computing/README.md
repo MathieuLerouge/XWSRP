@@ -69,7 +69,7 @@ In `neighborhood` subpackage:
 
 In `templates` subpackage:
 - `dispatch.py` contains `TransformationDispatcher`, 
-  which hands a `Question` to the transformation its template calls for. 
+  which hands a `PredefinedQuestion` to the transformation its template calls for. 
   Three tables hold that mapping: the contrastive ones are split by how they are computed, 
   since only the MILP-based three take a solving time limit, and the counterfactual ones share a single table.
 - `common` holds what both kinds share: `TransformationPreconditionChecker`, `TransformationDescriptionBuilder`,

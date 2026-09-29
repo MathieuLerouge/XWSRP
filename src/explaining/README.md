@@ -12,7 +12,7 @@ either through a web interface or a terminal interface.
 
 A `Solution` is wrapped into an `Explainer` (from `interacting`), 
 which orchestrates the pipeline for each question asked about it:
-- a `Question` is built from `question`'s template bank;
+- a `PredefinedQuestion` is built from `question`'s template bank;
 - `computing/templates` applies the tailored transformation corresponding to that question to the solution/instance, 
 and returns a support solution together with feasibility information;
 - `explanation` turns that result into a typed `Explanation`;
@@ -57,8 +57,11 @@ the neighborhood pipeline can also answer it and gets the same (or a strictly be
 along with `InstanceChanges`, which tracks the alterations applied to an instance.
 
 `question` contains the question layer, split by the kind of question asked. \
-Its `predefined` subdirectory holds the template-based one: 
-the `Question` base class and its subclasses (`ContrastiveQuestion`, `ScenarioQuestion`, `CounterfactualQuestion`), 
+`question.py`'s abstract `Question` is what both kinds have in common: 
+the solution asked about, the text read by the end user, and the language that text is phrased in. \
+Its `predefined` subdirectory holds the template-based kind: 
+the `PredefinedQuestion` class and its subclasses 
+(`ContrastiveQuestion`, `ScenarioQuestion`, `CounterfactualQuestion`), 
 each parameterized by a `QuestionTemplate`. \
 `predefined/bank.py` instantiates every template (in English and French) 
 into the `QUESTIONS_TEMPLATES` dictionary, 
@@ -84,7 +87,7 @@ with `checker.py`'s `ModelCompatibilityChecker` saying which `Neighborhood`s it 
 and `conflict`'s `ConflictExtractor` turning a solved one into the same `Conflict` the tailored pipeline returns. \
 Its outputs (support solution, conflict, instance alterations) feed directly into `explanation`.
 
-`explanation` turns a `Question` and the result of `computing/templates` into a human-facing `Explanation`, 
+`explanation` turns a `PredefinedQuestion` and the result of `computing/templates` into a human-facing `Explanation`, 
 mirroring `question`'s split by the kind of question answered. \
 Its `predefined` subdirectory holds the template-based one: 
 `create_explanation(...)` selects the appropriate subclass (`PositiveExplanation`, `NonImprovingNegativeExplanation`, 

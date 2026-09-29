@@ -4,7 +4,8 @@ from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.interacting.history import History
-from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion
+from src.explaining.question.predefined.question import \
+    ContrastiveQuestion, CounterfactualQuestion, PredefinedQuestion, ScenarioQuestion
 from src.explaining.question.predefined.bank import *
 from src.explaining.importing.explanation import import_single_explanation_from_json_file, \
     import_multiple_explanations_from_json_file
@@ -153,7 +154,7 @@ class Explainer:
     def deactivate_all_questions_templates(self):
         self._activated_questions_templates = dict()
 
-    def _increase_question_asked_count(self, question: Question):
+    def _increase_question_asked_count(self, question: PredefinedQuestion):
         if isinstance(question, ContrastiveQuestion):
             self._nb_contrastive_explanations_asked_by_ids[question.template.id] += 1
         elif isinstance(question, ScenarioQuestion):
