@@ -369,6 +369,12 @@ class SequenceForHeuristics(Sequence):
             comeback_forward_time_shift = self[-1].start_time - comeback_former_time
             idle_time_variation_strictly_down_from_insertion = \
                 -former_idle_time_at_step_after + (comeback_forward_time_shift - forward_time_shift)
+        elif step_index + 1 == self.nb_steps - 1:
+            step_after_insertion.fts += difference_start_and_arrival_times_after
+            step_after_insertion.start_time = step_after_insertion.arrival_time
+            step_after_insertion.end_time = step_after_insertion.start_time
+            last_step_with_time_change_index = step_index + 1
+            idle_time_variation_strictly_down_from_insertion = -former_idle_time_at_step_after
         else:
             idle_time_variation_strictly_down_from_insertion = \
                 difference_start_and_arrival_times_after - former_idle_time_at_step_after
