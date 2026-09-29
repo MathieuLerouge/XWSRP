@@ -62,20 +62,20 @@ the solution asked about, the text read by the end user, and the language that t
 Its `predefined` subdirectory holds the template-based kind: 
 the `PredefinedQuestion` class and its subclasses 
 (`ContrastiveQuestion`, `ScenarioQuestion`, `CounterfactualQuestion`), 
-each parameterized by a `QuestionTemplate`. \
-`predefined/bank.py` instantiates every template (in English and French) 
-into the `QUESTIONS_TEMPLATES` dictionary, 
-which is the "why not" question catalogue used by `interacting`
-and mapped to transformation functions in `computing/templates`. \
+each parameterized by a `QuestionTemplate`, 
+with `predefined/bank.py` instantiating every template (in English and French) 
+into the `QUESTIONS_TEMPLATES` dictionary — the "why not" question catalogue. \
 Its `free` subdirectory holds the other kind, `FreeTextQuestion`: 
-a question the end user phrased themselves, which `neighborhood/llm`'s `Extractor` takes as its input.
+a question the end user phrased themselves, which `neighborhood/llm`'s `Extractor` takes as its input. \
+(see its own [`README.md`](question/README.md) for a description of its files.)
 
 `neighborhood` contains a vocabulary for describing a search space around a solution: 
 `Neighborhood` i.e. the employees and tasks in scope, together with 
 the `Operator`s that may transform their sequences 
 and the `Restriction`s that narrow how (scope restrictions). \
 Its `templates` subdirectory's `Mapper` translates a `ContrastiveQuestion` into the `Neighborhood` it induces, 
-and its `TemplateComplianceChecker` recognizes the shapes that translation produces.
+and its `TemplateComplianceChecker` recognizes the shapes that translation produces. \
+(see its own [`README.md`](neighborhood/README.md) for a description of its files.)
 
 `computing` contains the computational core that answers a question by attempting to modify the solution. 
 Its `templates` subdirectory dispatches each question template to a dedicated transformation function, 
@@ -87,7 +87,8 @@ with an ILP-based fallback for harder cases);
 turning a `Neighborhood` into a solvable MILP instead of a per-template transformation function, 
 with `checker.py`'s `ModelCompatibilityChecker` saying which `Neighborhood`s it can be built for 
 and `conflict`'s `ConflictExtractor` turning a solved one into the same `Conflict` the tailored pipeline returns. \
-Its outputs (support solution, conflict, instance alterations) feed directly into `explanation`.
+Its outputs (support solution, conflict, instance alterations) feed directly into `explanation`. \
+(see its own [`README.md`](computing/README.md) for a description of its files.)
 
 `explanation` turns a `Question` and the result of `computing/templates` into a human-facing `Explanation`, 
 mirroring `question`'s split by the kind of question answered. \
@@ -96,12 +97,13 @@ the question answered, the support solution backing the answer, the alterations 
 Its `predefined` subdirectory holds the template-based kind, `PredefinedExplanation`, 
 which words every sentence from the `ExplanationTemplate` matching the question's own template: 
 `create_explanation(...)` selects the appropriate subclass (`PositiveExplanation`, `NonImprovingNegativeExplanation`, 
-`InfeasibleNegativeExplanation`, `SkillNegativeExplanation`, `TimeNegativeExplanation`) 
+`SkillNegativeExplanation`, `TimeNegativeExplanation`) 
 depending on whether the support solution improves on the original solution
-and whether a conflict was found, and builds its text from `predefined/bank.py`. \
+and whether a conflict was found. \
 Its `free` subdirectory is the still-empty slot for answering a `FreeTextQuestion`: 
 the neighborhood pipeline currently gets there by having `Recognizer` recover a `ContrastiveQuestion` 
-from the `Neighborhood`, so that the template-based wording above still applies.
+from the `Neighborhood`, so that the template-based wording above still applies. \
+(see its own [`README.md`](explanation/README.md) for a description of its files.)
 
 `exporting` contains the scripts used for serializing `Explanation` objects to JSON files,
 both for caching purposes and for the batch analysis triggered from `__main__.py`. \

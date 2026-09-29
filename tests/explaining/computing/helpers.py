@@ -70,7 +70,7 @@ def get_neighborhood_computation_pipeline_result(
     Return (question, transformation result) following the neighborhood computation pipeline.
 
     The question returned is the one Recognizer recovered from the neighborhood, not the one Mapper was handed:
-    recovering it is the step that lets this pipeline reach the answering layer at all,
+    recovering it is the step that lets this pipeline reach the explanation layer at all,
     so the tests exercise it rather than short-circuiting it.
 
     NB: The given solution's KPIs are computed here, since the explanation compares the support solution against it

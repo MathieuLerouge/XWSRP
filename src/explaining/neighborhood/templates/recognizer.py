@@ -30,7 +30,7 @@ class Recognizer:
     Stateless collection of static methods recovering, from a Neighborhood alone,
     the contrastive question it is the image of under Mapper.map.
 
-    It is Mapper's inverse, and it is what lets the neighborhood computation pipeline reach the answering layer:
+    It is Mapper's inverse, and it is what lets the neighborhood computation pipeline reach the explanation layer:
     the recovered question carries the template id the explanation templates are keyed by,
     and the field values they are completed with.
 

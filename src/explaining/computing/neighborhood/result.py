@@ -17,12 +17,12 @@ def build_transformation_result_from_neighborhood(
         neighborhood: Neighborhood, model: Optional[NeighborhoodModel] = None
 ) -> tuple[ContrastiveQuestion, TransformationResult]:
     """
-    Build, from a neighborhood and the model solved from it, everything the answering layer needs.
+    Build, from a neighborhood and the model solved from it, everything the explanation layer needs.
 
     This is the neighborhood computation pipeline's counterpart to the tailored pipeline's
     build_transformation_result_from_milp_model.
     The extra step it takes is recovering the question the neighborhood came from:
-    the answering layer phrases an explanation from that question's template,
+    the explanation layer phrases an explanation from that question's template,
     which the tailored pipeline is handed and this one has to recognize.
 
     Pass model=None for a neighborhood blocked by a skill conflict.
@@ -35,7 +35,7 @@ def build_transformation_result_from_neighborhood(
 
     Returns:
         A pair made of the recognized question and the result of the transformation it induced,
-        ready to be handed together to answering's create_explanation.
+        ready to be handed together to explanation's create_explanation.
 
     Raises:
         NeighborhoodError: if the neighborhood is not one the question catalogue induces,

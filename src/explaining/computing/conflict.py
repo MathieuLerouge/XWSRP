@@ -26,7 +26,7 @@ TIME_CONFLICT_TYPE = 'time'
 class Conflict:
     """
     Why a requested transformation of a solution cannot be carried out, as an (employee, task) pair that clashes,
-    ready for the answering layer to phrase an explanation from.
+    ready for the explanation layer to phrase an explanation from.
     It is local to the one hypothetical arrangement a question asked about.
     """
 

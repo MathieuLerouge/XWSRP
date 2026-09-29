@@ -21,7 +21,7 @@ from src.optimization.heuristics.slacks import SlackTimeComputer
 class ConflictExtractor:
     """
     Stateless collection of static methods turning a Neighborhood, and the NeighborhoodModel solved from it,
-    into the Conflict the answering layer phrases explanations from, without mutating either.
+    into the Conflict the explanation layer phrases explanations from, without mutating either.
 
     The two kinds of Conflict are read off at different points of the pipeline,
     because they are visible at different points:
