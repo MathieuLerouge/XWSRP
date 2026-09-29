@@ -84,7 +84,8 @@ def complete_solution_from_file(solution: Solution, solution_file_path: str):
         solution_file_path: The path of the solution file.
 
     Returns:
-        The filled-in solution, whose sequences have been recomputed from its tasks performances.
+        The filled-in solution, whose sequences have been recomputed from its tasks performances
+        and whose KPIs have been computed from those sequences.
 
     Raises:
         ValueError: If the file mentions a task that is not among the instance's tasks.
@@ -124,6 +125,7 @@ def complete_solution_from_file(solution: Solution, solution_file_path: str):
                     solution.set_task_start_time(task, convert_time_string_to_nb_minutes(words[3]))
         line_index += 1
     solution.compute_sequences_based_on_tasks_performances()
+    solution.compute_kpis()
     return solution
 
 
@@ -208,8 +210,8 @@ def import_solution_from_txt_file(
         ignore_lunch_breaks: Whether the lunch breaks must be ignored.
 
     Returns:
-        The imported solution, as a SolutionForHeuristics when the file's name mentions a heuristic solving
-        method, and as a plain Solution otherwise.
+        The imported solution, with its KPIs computed, as a SolutionForHeuristics when the file's name
+        mentions a heuristic solving method, and as a plain Solution otherwise.
     """
     if does_solution_file_path_mention_solving_method(solution_file_path):
         solving_method = get_solving_method_in_solution_file_path(solution_file_path)
@@ -240,7 +242,7 @@ def import_solution(
         ignore_lunch_breaks: Whether the lunch breaks must be ignored.
 
     Returns:
-        The imported solution.
+        The imported solution, with its KPIs computed whichever of the two formats it was read from.
 
     Raises:
         ValueError: If the file is neither a json nor a txt one.
