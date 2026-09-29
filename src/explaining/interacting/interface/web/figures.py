@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objs as go
 
 # Local libraries
-from src.explaining.interacting.interface.assets.styles import UI_FONT_COLOR, UI_PANEL_CONTENT_COLOR, UI_LINE_COLOR, \
+from src.explaining.interacting.interface.web.assets.styles import UI_FONT_COLOR, UI_PANEL_CONTENT_COLOR, UI_LINE_COLOR, \
     UI_CONFLICT_TASK_COLOR, UI_CONFLICT_BOUND_COLOR
 from src.explaining.computing.conflict import Conflict, TimeConflict
 from src.modeling.activity import Activity

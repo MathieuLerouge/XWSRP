@@ -3,7 +3,7 @@ from src.evaluation.constants import ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALU
 from src.evaluation.prepared_data_extraction import get_solution_for_evaluation, \
     get_explanations_for_evaluation_directory_path
 from src.explaining.interacting.explainer import Explainer
-from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
+from src.explaining.interacting.interface.web.app import ExplainerWebGUI
 from src.explaining.question.predefined.bank import LANGUAGE_FRENCH_KEY
 from src.modeling.solution import Solution
 

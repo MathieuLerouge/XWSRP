@@ -3,7 +3,7 @@ from dash import dash_table
 
 # Local libraries
 from src.utils.language import check_if_language_is_english, check_if_language_is_french
-from src.explaining.interacting.interface.assets.styles import UI_TABLE_STYLE_HEADER, UI_TABLE_STYLE_DATA, \
+from src.explaining.interacting.interface.web.assets.styles import UI_TABLE_STYLE_HEADER, UI_TABLE_STYLE_DATA, \
     UI_TABLE_CELL_BACKGROUND_COLOR_BIS
 from src.modeling.instance import Instance
 from src.utils.language import LANGUAGE_ENGLISH_KEY

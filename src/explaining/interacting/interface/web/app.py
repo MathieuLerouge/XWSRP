@@ -11,14 +11,14 @@ import numpy as np
 
 # Local libraries
 from src.explaining.computing.conflict import SkillConflict
-from src.explaining.interacting.interface.figures import build_map_figure, build_routes_figure, \
+from src.explaining.interacting.interface.web.figures import build_map_figure, build_routes_figure, \
     build_schedules_figure, build_instance_metrics_figures, build_solution_metrics_figures
-from src.explaining.interacting.interface.panels import build_routes_figure_panel, build_schedules_figure_panel, \
+from src.explaining.interacting.interface.web.panels import build_routes_figure_panel, build_schedules_figure_panel, \
     build_instance_metrics_panel, build_solution_metrics_panel, build_tasks_data_panel, build_panel_banner, \
     build_employees_data_panel, build_text_panel
-from src.explaining.interacting.interface.tables import build_tasks_data_conditional_style, build_tasks_data, \
+from src.explaining.interacting.interface.web.tables import build_tasks_data_conditional_style, build_tasks_data, \
     build_employees_data_conditional_style, build_employees_data
-from src.explaining.interacting.interface.tools import convert_from_string_to_html
+from src.explaining.interacting.interface.web.tools import convert_from_string_to_html
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.question.predefined.bank import *
 from src.explaining.interacting.explainer import Explainer

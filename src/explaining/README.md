@@ -115,5 +115,5 @@ reconstructing `Explanation` objects from previously exported JSON files.
 and the methods (`get_contrastive_explanation`, `compute_scenario_explanation`, `compute_counterfactual_explanation`) 
 tying `question`, `computing/templates` and `explanation` together, 
 optionally short-circuiting via the `importing`/`exporting` caches. \
-`explainer_terminal.py` provides a terminal interaction mode, 
-while `interface` implements the Dash-based `ExplainerWebGUI` used by end users.
+`interface` holds the ways an end user reaches that `Explainer`: 
+the Dash-based `ExplainerWebGUI` and a terminal.

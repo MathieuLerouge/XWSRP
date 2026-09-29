@@ -10,7 +10,7 @@ from main_configuration import EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EA
     EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES
 from src.feasibility.checker import FeasibilityChecker
 from src.explaining.interacting.explainer import Explainer
-from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
+from src.explaining.interacting.interface.web.app import ExplainerWebGUI
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.question.predefined.bank import *
 from src.explaining.computing.exceptions import ImpossibleTransformationException

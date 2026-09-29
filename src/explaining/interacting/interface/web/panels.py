@@ -2,14 +2,14 @@
 from dash import dcc, html
 
 # Local libraries
-from src.explaining.interacting.explainer import check_if_language_is_french
-from src.explaining.interacting.interface.figures import build_routes_figure, build_schedules_figure, \
+from src.explaining.interacting.interface.web.figures import build_routes_figure, build_schedules_figure, \
     build_instance_metrics_figures, build_solution_metrics_figures
-from src.explaining.interacting.interface.tables import build_tasks_data_table, build_employees_data_table
-from src.explaining.interacting.interface.tools import convert_from_string_to_html
+from src.explaining.interacting.interface.web.tables import build_tasks_data_table, build_employees_data_table
+from src.explaining.interacting.interface.web.tools import convert_from_string_to_html
 from src.explaining.computing.conflict import Conflict
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
+from src.utils.language import check_if_language_is_french
 from src.utils.constants import LINE_BREAK_STRING
 from src.utils.language import LANGUAGE_ENGLISH_KEY, check_if_language_is_english
 
