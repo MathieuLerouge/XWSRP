@@ -2,12 +2,12 @@
 import random
 import time
 
-# Third-party libraries
+# Third-party library
 import numpy as np
 
 # Local libraries
 from main_configuration import EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION, \
-    EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES
+    EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES, EXTRACTOR_MODEL
 from src.feasibility.checker import FeasibilityChecker
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.web.app import ExplainerWebGUI
@@ -119,7 +119,7 @@ def launch_explainer_UI_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, e
     whether to enable using already computed contrastive explanations (bool)
     :return: None
     """
-    explainer = Explainer(get_demo_solution())
+    explainer = Explainer(get_demo_solution(), extractor_model=EXTRACTOR_MODEL)
     explainer.set_language(language)
     if enable_history:
         explainer.enable_history()
@@ -169,7 +169,7 @@ def launch_explainer_UI_on_default_solution(language: str, enable_history: bool 
     :param enable_counterfactual_explanations: whether to enable the counterfactual explanations (bool)
     :return: None
     """
-    explainer = Explainer(get_demo_solution())
+    explainer = Explainer(get_demo_solution(), extractor_model=EXTRACTOR_MODEL)
     explainer.set_language(language)
     if enable_history:
         explainer.enable_history()

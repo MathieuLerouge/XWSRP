@@ -12,9 +12,19 @@ from src.explaining.explanation.predefined.explanation import (
 )
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.modeling.instance import EditableInstance
+from src.explaining.neighborhood.assembler import Assembler
+from src.explaining.neighborhood.exceptions import NeighborhoodError
+from src.explaining.neighborhood.neighborhood import Neighborhood
+from src.explaining.neighborhood.operator import TaskInsertion
+from src.explaining.neighborhood.restriction import PrecedenceChain
+from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.processes import get_demo_solution
+from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.explaining.question.predefined.constants import WHY_NOT_INS_1
+from src.explaining.question.predefined.question import (
+    ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
+)
 from src.modeling.solution import Solution
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
@@ -50,17 +60,18 @@ def demo_solution() -> Solution:
     return get_demo_solution()
 
 
-def build_explainer(solution: Solution) -> Explainer:
+def build_explainer(solution: Solution, extractor_model: str = None) -> Explainer:
     """
     Returns an Explainer with every optional behaviour switched off, so a test turns on only what it exercises.
 
     Args:
         solution: The solution to explain.
+        extractor_model: The extractor model string, for the tests asking a free-text question.
 
     Returns:
         The hermetic Explainer: no history, no scenario or counterfactual questions, no cache, no export.
     """
-    explainer = Explainer(solution)
+    explainer = Explainer(solution, extractor_model=extractor_model)
     explainer.disable_history()
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
@@ -282,6 +293,132 @@ def test_a_stored_solution_is_reachable_by_name(demo_solution):
     explainer.store_solution(support_solution)
     assert support_solution.name in explainer.solutions_names
     assert explainer.get_solution_by_name(support_solution.name).name == support_solution.name
+
+
+############################
+# Routing by question kind #
+############################
+
+class StubExtractor:
+    """
+    Stands in for the llm Extractor, handing back a prepared neighborhood instead of calling a model.
+
+    It lets the free-text route be tested down to the explanation without an LLM backend:
+    everything past the extraction - solving, recognizing, phrasing - is the code under test.
+    """
+
+    def __init__(self, neighborhood):
+        """
+        Args:
+            neighborhood: The neighborhood every extraction returns.
+        """
+        self._neighborhood = neighborhood
+
+    def extract(self, question: FreeTextQuestion) -> Neighborhood:
+        """Returns the prepared neighborhood, whatever the question."""
+        return self._neighborhood
+
+
+def give_explainer_a_stub_extractor(explainer: Explainer, neighborhood: Neighborhood):
+    """
+    Plants a StubExtractor in the explainer, as though the LLM had extracted the given neighborhood.
+
+    Args:
+        explainer: The explainer to plant it in.
+        neighborhood: The neighborhood the extraction is to yield.
+    """
+    explainer._extractor = StubExtractor(neighborhood)
+    explainer._solution_the_extractor_was_built_for = explainer.current_solution
+
+
+def build_uncovered_neighborhood(solution: Solution) -> Neighborhood:
+    """
+    Builds a neighborhood NeighborhoodModel can solve but no question template's shape matches.
+
+    Offering several non-performed tasks without offering every one of them is no template's shape,
+    which is the case the free-text route cannot phrase an answer for.
+
+    Args:
+        solution: The solution the neighborhood is built around.
+
+    Returns:
+        The solvable but unrecognizable neighborhood.
+    """
+    instance = solution.instance
+    employee = instance.get_employee_by_name("Ellen")
+    some_non_performed_tasks_names = solution.non_performed_tasks_names[:2]
+    operator = TaskInsertion(
+        frozenset({employee}),
+        frozenset(instance.get_task_by_name(name) for name in some_non_performed_tasks_names)
+    )
+    performed_tasks = list(solution.get_sequence(employee).get_contained_tasks())
+    return Assembler.assemble([operator], [PrecedenceChain(performed_tasks)], solution)
+
+
+def test_a_contrastive_question_is_answered_the_same_whichever_entry_point_asks_it(demo_solution):
+    explainer = build_explainer(demo_solution)
+    fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]
+    through_the_question = explainer.get_explanation(
+        ContrastiveQuestion(explainer.current_solution, WHY_NOT_INS_1, fields_values))
+    through_the_template = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
+    assert type(through_the_question) is type(through_the_template)
+    assert through_the_question.text == through_the_template.text
+
+
+@pytest.mark.parametrize("build_follow_up_question,expected_method_name", [
+    (lambda explainer, contrastive_question: ScenarioQuestion(
+        contrastive_question, EditableInstance.from_Instance(explainer.current_instance)),
+     "compute_scenario_explanation"),
+    (lambda explainer, contrastive_question: CounterfactualQuestion(contrastive_question),
+     "compute_counterfactual_explanation"),
+])
+def test_a_follow_up_question_is_refused_with_the_method_that_asks_it(
+        demo_solution, build_follow_up_question, expected_method_name):
+    """
+    Scenario and counterfactual questions are follow-ups with their own entry points, not get_explanation's job.
+    """
+    explainer = build_explainer(demo_solution)
+    contrastive_question = ContrastiveQuestion(
+        explainer.current_solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    with pytest.raises(TypeError, match=expected_method_name):
+        explainer.get_explanation(build_follow_up_question(explainer, contrastive_question))
+
+
+def test_something_that_is_not_a_question_is_refused(demo_solution):
+    explainer = build_explainer(demo_solution)
+    with pytest.raises(TypeError, match="not handled by this explainer"):
+        explainer.get_explanation("Why isn't Ellen doing T2?")
+
+
+def test_a_free_text_question_needs_an_extractor_model(demo_solution):
+    """
+    An explainer built without a model must say so, rather than fail somewhere inside the llm package.
+    """
+    explainer = build_explainer(demo_solution)
+    with pytest.raises(ValueError, match="no extractor model"):
+        explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+
+
+def test_a_free_text_question_the_catalogue_covers_is_answered(demo_solution):
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    covered_neighborhood = Mapper.map(ContrastiveQuestion(
+        explainer.current_solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]))
+    give_explainer_a_stub_extractor(explainer, covered_neighborhood)
+    explanation = explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+    assert isinstance(explanation, TimeNegativeExplanation)
+    assert explanation.text
+    # A free-text answer is a contrastive one, so scenario and counterfactual follow-ups can build on it.
+    assert explainer.last_contrastive_explanation is explanation
+
+
+def test_a_free_text_question_the_catalogue_does_not_cover_says_so(demo_solution):
+    """
+    A question that is understood and solved but matches no template must fail saying exactly that.
+    """
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    give_explainer_a_stub_extractor(explainer, build_uncovered_neighborhood(explainer.current_solution))
+    with pytest.raises(NeighborhoodError, match="matches no question template"):
+        explainer.get_free_text_explanation("Why isn't Ellen doing one of those two tasks?")
 
 
 ############

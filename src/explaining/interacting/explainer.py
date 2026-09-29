@@ -1,9 +1,13 @@
 # Local libraries
+from src.explaining.computing.neighborhood.result import solve_neighborhood_into_transformation_result
 from src.explaining.explanation.predefined.explanation import *
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.interacting.history import History
+from src.explaining.neighborhood.exceptions import NeighborhoodError
+from src.explaining.question.free.question import FreeTextQuestion
+from src.explaining.question.question import Question
 from src.explaining.question.predefined.question import \
     ContrastiveQuestion, CounterfactualQuestion, PredefinedQuestion, ScenarioQuestion
 from src.explaining.question.predefined.bank import *
@@ -37,11 +41,22 @@ class Explainer:
         WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
     ]
 
-    def __init__(self, solution: Solution):
+    def __init__(self, solution: Solution, extractor_model: Optional[str] = None):
+        """
+        Args:
+            solution: The solution every question asked of this explainer is about.
+            extractor_model: The instructor model string the llm pipeline extracts a free-text question with
+                ("provider/model-name", e.g. main_configuration.EXTRACTOR_MODEL). Left as None when only
+                predefined questions are asked, which is what keeps the LLM backend optional.
+        """
         self._language_key = LANGUAGE_ENGLISH_KEY
         self._activated_questions_templates = dict([(id, QUESTIONS_TEMPLATES[id]) for id in QUESTIONS_TEMPLATES.keys()
                                                     if id in self._available_questions_templates_ids])
         self._root_solution = EditableSolution.from_solution(solution)
+        # Free-text questions
+        self._extractor_model = extractor_model
+        self._extractor = None
+        self._solution_the_extractor_was_built_for = None
         # History
         self._history_is_enabled = False
         self._history = History(self._root_solution)
@@ -380,12 +395,123 @@ class Explainer:
             )
         return contrastive_explanation
 
+    def _get_extractor(self):
+        """
+        Returns the Extractor turning a free-text question about the current solution into a neighborhood.
+
+        Built on first use and rebuilt whenever the solution being questioned changes,
+        since an Extractor grounds names against one solution and refuses a question asked about another.
+
+        Returns:
+            The Extractor bound to the current solution.
+
+        Raises:
+            ValueError: if this explainer was built with no extractor model, so free-text questions
+                cannot be answered at all.
+        """
+        if self._extractor_model is None:
+            raise ValueError(
+                "This explainer answers predefined questions only: it was built with no extractor model, "
+                "so there is no LLM backend to turn a free-text question into a neighborhood. "
+                "Pass extractor_model (e.g. main_configuration.EXTRACTOR_MODEL) to its constructor."
+            )
+        # NB: Imported here rather than at module level so that asking predefined questions needs
+        # neither the instructor package nor any LLM backend.
+        from src.explaining.neighborhood.llm.extractor import Extractor
+        if self._extractor is None or self._solution_the_extractor_was_built_for is not self._current_solution:
+            self._extractor = Extractor(self._current_solution, self._extractor_model)
+            self._solution_the_extractor_was_built_for = self._current_solution
+        return self._extractor
+
+    def _compute_free_text_explanation(self, question: FreeTextQuestion):
+        """
+        Answers a free-text question through the llm-neighborhood pipeline.
+
+        NB: the explanation is phrased from the template of the question the neighborhood is recognized as,
+        not from the end user's own words, which the catalogue has no way of reproducing.
+        The question is only answerable at all when the neighborhood it induces is one that catalogue covers.
+
+        Args:
+            question: The free-text question to answer, asked about the current solution.
+
+        Returns:
+            The explanation answering it.
+
+        Raises:
+            NeighborhoodExtractionError: if the question cannot be turned into a solvable neighborhood.
+            NeighborhoodError: if it can, but the neighborhood matches no question template.
+        """
+        neighborhood = self._get_extractor().extract(question)
+        try:
+            recognized_question, transformation_result = solve_neighborhood_into_transformation_result(
+                neighborhood, self.time_limit_for_contrastive_explanation_MILP_computation
+            )
+        except NeighborhoodError as error:
+            raise NeighborhoodError(
+                f"The question {question.text!r} was understood and the search space it induces was solved, "
+                f"but that space matches no question template, so no explanation can be phrased from it yet"
+            ) from error
+        recognized_question.set_language(self.language)
+        # NB: Not counted and not cached: both are keyed by template id and field values,
+        # which the question the end user actually asked has neither of.
+        free_text_explanation = create_explanation(recognized_question, transformation_result)
+        self._last_contrastive_explanation = free_text_explanation
+        self._last_scenario_explanation = None
+        self._last_counterfactual_explanation = None
+        return free_text_explanation
+
     #################################
     # Contrastive explanation - Get #
     #################################
 
+    def get_explanation(self, question: Question) -> Explanation:
+        """
+        Answers the given question, through whichever pipeline can answer it.
+
+        A predefined contrastive question goes through the tailored pipeline, which dispatches on its template.
+        A free-text one goes through the llm-neighborhood pipeline,
+        which extracts the search space it induces and solves it.
+
+        Args:
+            question: The question to answer.
+
+        Returns:
+            The explanation answering it.
+
+        Raises:
+            TypeError: if the question is a scenario or counterfactual one, which are follow-ups asked through
+                compute_scenario_explanation and compute_counterfactual_explanation, or of an unknown kind.
+        """
+        if isinstance(question, ContrastiveQuestion):
+            return self._get_contrastive_explanation_of_question(question)
+        if isinstance(question, FreeTextQuestion):
+            return self._compute_free_text_explanation(question)
+        if isinstance(question, (ScenarioQuestion, CounterfactualQuestion)):
+            follow_up_method_name = "compute_scenario_explanation" if isinstance(question, ScenarioQuestion) \
+                else "compute_counterfactual_explanation"
+            raise TypeError(
+                f"A {type(question).__name__} is a follow-up to a contrastive question, "
+                f"asked through {follow_up_method_name} rather than through get_explanation"
+            )
+        raise TypeError(f"Questions of type {type(question).__name__} are not handled by this explainer")
+
+    def get_free_text_explanation(self, question_text: str) -> Explanation:
+        """
+        Answers a question the end user phrased themselves, about the solution currently being questioned.
+
+        Args:
+            question_text: The question as the end user typed it.
+
+        Returns:
+            The explanation answering it.
+        """
+        return self.get_explanation(FreeTextQuestion(self._current_solution, question_text, self.language))
+
     def get_contrastive_explanation(self, question_template_id: str, fields_values: list[str]):
         contrastive_question = self._create_contrastive_question(question_template_id, fields_values)
+        return self._get_contrastive_explanation_of_question(contrastive_question)
+
+    def _get_contrastive_explanation_of_question(self, contrastive_question: ContrastiveQuestion):
         self._increase_question_asked_count(contrastive_question)
         contrastive_explanation = None
         if self.is_using_already_computed_contrastive_explanations:
