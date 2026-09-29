@@ -1,9 +1,9 @@
 # Standard libraries
 from typing import Union
 
-from src.explaining.questioning.constants import WHY_NOT_INS_2B, WHY_NOT_SWP_2B
+from src.explaining.question.constants import WHY_NOT_INS_2B, WHY_NOT_SWP_2B
 # Local libraries
-from src.explaining.questioning.question_template_field import *
+from src.explaining.question.question_template_field import *
 from src.modeling.comeback import COMING_BACK_HOME_STRING
 from src.modeling.departure import LEAVING_HOME_STRING
 from src.modeling.instance import Instance

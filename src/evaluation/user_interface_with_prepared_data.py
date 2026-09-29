@@ -4,7 +4,7 @@ from src.evaluation.prepared_data_extraction import get_solution_for_evaluation,
     get_explanations_for_evaluation_directory_path
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
-from src.explaining.questioning.questions_templates_bank import LANGUAGE_FRENCH_KEY
+from src.explaining.question.questions_templates_bank import LANGUAGE_FRENCH_KEY
 from src.modeling.solution import Solution
 
 

@@ -5,7 +5,7 @@ from src.explaining.neighborhood.operator import SequenceReordering, TaskReposit
 from src.explaining.neighborhood.restriction import (
     ForbiddenSequence, ImmediatePrecedence, Precedence, PrecedenceChain
 )
-from src.explaining.questioning.question import ContrastiveQuestion
+from src.explaining.question.question import ContrastiveQuestion
 
 
 def map_ord_1a(question: ContrastiveQuestion) -> Neighborhood:

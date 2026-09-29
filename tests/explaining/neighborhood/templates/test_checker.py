@@ -16,8 +16,8 @@ from src.explaining.neighborhood.templates.checker import (
     INSERTION_FAMILY, REORDERING_FAMILY, SWAP_FAMILY, TemplateComplianceChecker
 )
 from src.explaining.neighborhood.templates.mapper import Mapper
-from src.explaining.questioning.question import ContrastiveQuestion
-from src.explaining.questioning.questions_templates_bank import (
+from src.explaining.question.question import ContrastiveQuestion
+from src.explaining.question.questions_templates_bank import (
     QUESTIONS_TEMPLATES, WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
     WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3,
     WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3

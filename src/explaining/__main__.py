@@ -5,7 +5,7 @@ from src.feasibility.checker import FeasibilityChecker
 from src.explaining.configuration import *
 from src.explaining.processes import launch_explainer_UI_on_demo_solution, launch_explainer_UI_on_default_solution, \
     compute_computation_time_analysis_of_explanations
-from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
+from src.explaining.question.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.exporting.explanation import export_explanations_analysis_to_json_file
 from src.importing.solution import import_solution
 from src.utils.constants import RUN_EXPLAINER_ON_DEMO_SOLUTION_AS_EXPLANATION_PROCESS, \

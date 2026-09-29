@@ -3,7 +3,7 @@ from src.explaining.neighborhood.assembler import Assembler
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskDeletion, TaskInsertion
 from src.explaining.neighborhood.restriction import ForbiddenBackwardSubsequence, PrecedenceChain
-from src.explaining.questioning.question import ContrastiveQuestion
+from src.explaining.question.question import ContrastiveQuestion
 from src.explaining.computing.exceptions import ImpossibleTransformationException
 
 

@@ -1,9 +1,9 @@
 # Local libraries
-from src.explaining.questioning.constants import WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, \
+from src.explaining.question.constants import WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, \
     WHY_NOT_INS_3, WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3, WHY_NOT_ORD_LAT_1, \
     WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
-from src.explaining.questioning.question_template_field import *
-from src.explaining.questioning.question_template import QuestionTemplate
+from src.explaining.question.question_template_field import *
+from src.explaining.question.question_template import QuestionTemplate
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 # Categories

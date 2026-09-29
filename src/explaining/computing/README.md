@@ -4,7 +4,7 @@ This module is the computational core that answers a question by attempting to m
 Whatever the route taken, it produces the same `TransformationResult`: 
 a support `Solution` (the arrangement the question asked about, whether or not it works), 
 a `Conflict` saying why when it doesn't work, and the sentence describing what was done. \
-That result feeds directly into `answering`.
+That result feeds directly into `explanation`.
 
 
 # 1. Overview
@@ -29,7 +29,7 @@ It reports a **feasibility shortfall**: 0 when the requested arrangement fits,
 otherwise how much the conflicting task's start time has to be stretched for it to. \
 `ConflictExtractor` then turns that shortfall into the same `Conflict` the tailored pipeline would return.
 
-It reaches `answering` the same way the tailored one does, 
+It reaches `explanation` the same way the tailored one does, 
 through `result.py`'s `build_transformation_result_from_neighborhood`. \
 The step that costs it something the tailored pipeline gets for free is the question: 
 an explanation is phrased from a question template's typical expressions, 
@@ -49,7 +49,7 @@ The module is laid out by which pipeline a file serves: `templates` for the tail
 
 Shared by both pipelines:
 - `conflict.py` contains `Conflict` and its two subclasses, `SkillConflict` and `TimeConflict`. 
-  It is what either pipeline hands to `answering`.
+  It is what either pipeline hands to `explanation`.
 - `exceptions.py` contains `ImpossibleTransformationException`, 
   raised when a question asks for something the given solution makes meaningless 
   (e.g. inserting a non-performed task when every task is already performed). 

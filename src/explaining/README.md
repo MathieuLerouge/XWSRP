@@ -12,10 +12,10 @@ either through a web interface or a terminal interface.
 
 A `Solution` is wrapped into an `Explainer` (from `interacting`), 
 which orchestrates the pipeline for each question asked about it:
-- a `Question` is built from `questioning`'s template bank;
+- a `Question` is built from `question`'s template bank;
 - `computing/templates` applies the tailored transformation corresponding to that question to the solution/instance, 
 and returns a support solution together with feasibility information;
-- `answering` turns that result into a typed `Explanation`;
+- `explanation` turns that result into a typed `Explanation`;
 - `exporting`/`importing` (de)serialize `Explanation` objects to/from JSON, 
 so that previously computed explanations can be reused instead of recomputed;
 - `interacting` (terminal or web UI) presents the final explanation, and any supporting figures, to the user.
@@ -56,7 +56,7 @@ the neighborhood pipeline can also answer it and gets the same (or a strictly be
 (`EditableInstance`, `EditableSolution`, `EditableEmployee`, `EditableSequence`, `EditableTask`),
 along with `InstanceChanges`, which tracks the alterations applied to an instance.
 
-`questioning` contains the question layer: 
+`question` contains the question layer: 
 the `Question` base class and its subclasses (`ContrastiveQuestion`, `ScenarioQuestion`, `CounterfactualQuestion`), 
 each parameterized by a `QuestionTemplate`. \
 `questions_templates_bank.py` instantiates every template (in English and French) 
@@ -81,9 +81,9 @@ with an ILP-based fallback for harder cases);
 turning a `Neighborhood` into a solvable MILP instead of a per-template transformation function, 
 with `checker.py`'s `ModelCompatibilityChecker` saying which `Neighborhood`s it can be built for 
 and `conflict`'s `ConflictExtractor` turning a solved one into the same `Conflict` the tailored pipeline returns. \
-Its outputs (support solution, conflict, instance alterations) feed directly into `answering`.
+Its outputs (support solution, conflict, instance alterations) feed directly into `explanation`.
 
-`answering` turns a `Question` and the result of `computing/templates` into a human-facing `Explanation`. \
+`explanation` turns a `Question` and the result of `computing/templates` into a human-facing `Explanation`. \
 `create_explanation(...)` selects the appropriate subclass (`PositiveExplanation`, `NonImprovingNegativeExplanation`, 
 `InfeasibleNegativeExplanation`, `SkillNegativeExplanation`, `TimeNegativeExplanation`) 
 depending on whether the support solution improves on the original solution
@@ -97,7 +97,7 @@ reconstructing `Explanation` objects from previously exported JSON files.
 `interacting` contains the orchestration and user interface layer, centered on the `Explainer` class. \
 `Explainer` owns the root `EditableSolution`, an optional `History` of visited instances/solutions,
 and the methods (`get_contrastive_explanation`, `compute_scenario_explanation`, `compute_counterfactual_explanation`) 
-tying `questioning`, `computing/templates` and `answering` together, 
+tying `question`, `computing/templates` and `explanation` together, 
 optionally short-circuiting via the `importing`/`exporting` caches. \
 `explainer_terminal.py` provides a terminal interaction mode, 
 while `interface` implements the Dash-based `ExplainerWebGUI` used by end users.

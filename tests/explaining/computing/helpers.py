@@ -10,7 +10,7 @@ from src.explaining.computing.templates.common.result import TransformationResul
 from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.neighborhood.templates.mapper import Mapper
-from src.explaining.questioning.question import ContrastiveQuestion
+from src.explaining.question.question import ContrastiveQuestion
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.importing.instance import extract_instance_from_file

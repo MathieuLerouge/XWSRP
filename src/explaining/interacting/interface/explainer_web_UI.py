@@ -20,7 +20,7 @@ from src.explaining.interacting.interface.tables import build_tasks_data_conditi
     build_employees_data_conditional_style, build_employees_data
 from src.explaining.interacting.interface.tools import convert_from_string_to_html
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.questioning.questions_templates_bank import *
+from src.explaining.question.questions_templates_bank import *
 from src.explaining.interacting.explainer import Explainer
 from src.modeling.solution import Solution
 from src.utils.constants import LINE_BREAK_STRING

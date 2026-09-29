@@ -11,8 +11,8 @@ from main_configuration import EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EA
 from src.feasibility.checker import FeasibilityChecker
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.explainer_web_UI import ExplainerWebGUI
-from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
-from src.explaining.questioning.questions_templates_bank import *
+from src.explaining.question.question import ContrastiveQuestion, CounterfactualQuestion
+from src.explaining.question.questions_templates_bank import *
 from src.explaining.computing.exceptions import ImpossibleTransformationException
 from src.explaining.exporting.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.modeling.solution import Solution

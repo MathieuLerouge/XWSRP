@@ -2,8 +2,8 @@
 import json
 
 # Local libraries
-from src.explaining.answering.explanation import Explanation
-from src.explaining.questioning.question import ContrastiveQuestion, CounterfactualQuestion
+from src.explaining.explanation.explanation import Explanation
+from src.explaining.question.question import ContrastiveQuestion, CounterfactualQuestion
 from src.modeling.solution import Solution
 from src.utils.constants import DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import make_absolute_path_from_relative_one

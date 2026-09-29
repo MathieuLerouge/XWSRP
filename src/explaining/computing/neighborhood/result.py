@@ -9,7 +9,7 @@ from src.explaining.computing.templates.common.result import TransformationResul
 from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.templates.recognizer import Recognizer
-from src.explaining.questioning.question import ContrastiveQuestion
+from src.explaining.question.question import ContrastiveQuestion
 from src.modeling.employee import Employee
 
 
