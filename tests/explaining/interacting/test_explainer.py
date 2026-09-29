@@ -21,7 +21,7 @@ from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
-from src.explaining.question.predefined.constants import WHY_NOT_INS_1
+from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_SWP_1
 from src.explaining.question.predefined.question import (
     ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
 )
@@ -39,6 +39,7 @@ FIELDS_VALUES_BY_EXPLANATION_TYPE = {
     NonImprovingNegativeExplanation: ['Adam', 'T1', 'T24'],
 }
 STORED_DEMO_EXPLANATIONS_PATH = "data/demo/explanations/explanations_solution_demo.json"
+FIELDS_VALUES_FOR_SWAP = ['Ellen', 'T2', 'T1']
 
 
 @pytest.fixture(autouse=True)
@@ -122,7 +123,7 @@ def test_asking_counts_are_tracked_per_template(demo_solution):
         explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
     assert explainer.get_contrastive_questions_asked_count(WHY_NOT_INS_1) == \
         len(FIELDS_VALUES_BY_EXPLANATION_TYPE)
-    explainer.reset_questions_asked_counts()
+    explainer.reset_asked_predefined_question_counts()
     assert explainer.get_contrastive_questions_asked_count(WHY_NOT_INS_1) == 0
 
 
@@ -435,3 +436,111 @@ def test_the_language_reaches_the_explanation_text(demo_solution):
     french_explanation = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
     assert french_explanation.language_is_french
     assert french_explanation.text != english_explanation.text
+
+
+#############################################
+# Counts across activation and reactivation #
+#############################################
+
+def test_a_reactivated_template_can_be_asked_again(demo_solution):
+    """
+    Re-activating a template after a counts reset must leave it askable.
+
+    Both the constructor and reset_questions_asked_counts key the counters off the activated templates,
+    while activating one adds it to that set without adding a counter key, so asking it raised KeyError.
+    """
+    explainer = build_explainer(demo_solution)
+    explainer.activate_only_questions_templates([WHY_NOT_INS_1])
+    explainer.reset_asked_predefined_question_counts()
+    explainer.activate_question_template(WHY_NOT_SWP_1)
+    explanation = explainer.get_contrastive_explanation(WHY_NOT_SWP_1, FIELDS_VALUES_FOR_SWAP)
+    assert explanation.text
+    assert explainer.get_contrastive_questions_asked_count(WHY_NOT_SWP_1) == 1
+
+
+def test_a_template_that_was_never_asked_has_a_count_of_zero(demo_solution):
+    """
+    A count must read zero for a template nobody asked, rather than raising.
+
+    The web UI reads this straight into the contrastive tab's statistics text.
+    """
+    explainer = build_explainer(demo_solution)
+    explainer.deactivate_question_template(WHY_NOT_SWP_1)
+    explainer.reset_asked_predefined_question_counts()
+    explainer.activate_question_template(WHY_NOT_SWP_1)
+    assert explainer.get_contrastive_questions_asked_count(WHY_NOT_SWP_1) == 0
+
+
+def test_a_question_built_outside_the_activated_set_is_still_counted(demo_solution):
+    """
+    get_explanation takes a question already built, so its template need not be an activated one.
+    """
+    explainer = build_explainer(demo_solution)
+    question = ContrastiveQuestion(
+        explainer.current_solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    explainer.deactivate_all_questions_templates()
+    explainer.reset_asked_predefined_question_counts()
+    assert explainer.get_explanation(question).text
+    assert explainer.get_contrastive_questions_asked_count(WHY_NOT_INS_1) == 1
+
+
+###################################
+# Naming a saved support solution #
+###################################
+
+def test_a_saved_scenario_support_solution_is_named_after_a_new_instance(demo_solution):
+    explainer = build_explainer(demo_solution)
+    explainer.enable_history()
+    explainer.enable_scenario_explanations()
+    root_solution_name, root_instance_name = explainer.current_solution.name, explainer.current_instance.name
+    explainer.get_contrastive_explanation(
+        WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    explainer.compute_scenario_explanation(EditableInstance.from_Instance(explainer.current_instance))
+    if explainer.last_scenario_explanation.support_solution_is_feasible:
+        explainer.save_last_scenario_support_solution()
+        saved = explainer.last_scenario_explanation.support_solution
+        assert saved.instance.name == f"{root_instance_name.rsplit('.', 1)[0]}.2"
+        assert saved.name == f"{root_solution_name.rsplit('.', 2)[0]}.2.1"
+
+
+def test_a_saved_counterfactual_support_solution_is_named_the_same_way(demo_solution):
+    """
+    A counterfactual save names its solution exactly as a scenario save does: both alter the instance.
+    """
+    explainer = build_explainer(demo_solution)
+    explainer.enable_history()
+    explainer.enable_counterfactual_explanations()
+    root_solution_name, root_instance_name = explainer.current_solution.name, explainer.current_instance.name
+    explainer.compute_counterfactual_explanation(
+        WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    if explainer.last_counterfactual_explanation.support_solution_is_feasible:
+        explainer.save_last_counterfactual_support_solution()
+        saved = explainer.last_counterfactual_explanation.support_solution
+        assert saved.instance.name == f"{root_instance_name.rsplit('.', 1)[0]}.2"
+        assert saved.name == f"{root_solution_name.rsplit('.', 2)[0]}.2.1"
+
+
+#####################
+# Exporting in bulk #
+#####################
+
+def test_exporting_every_computed_explanation_honours_the_configured_directory(demo_solution, tmp_path):
+    """
+    The bulk export must write where the explainer was configured to write, as the single one does.
+
+    It used to pass its own None straight through, letting the exporter fall back to the default
+    outputs directory and silently ignore the configured one.
+    """
+    outputs_directory_relative_path = f"outputs/{tmp_path.name}"
+    outputs_directory_path = os.path.join(os.getcwd(), outputs_directory_relative_path)
+    os.makedirs(outputs_directory_path, exist_ok=True)
+    try:
+        explainer = build_explainer(demo_solution)
+        explainer.enable_using_already_computed_contrastive_explanations()
+        explainer.contrastive_explanations_outputs_directory_relative_path = outputs_directory_relative_path
+        explainer.get_contrastive_explanation(
+            WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+        explainer.export_all_already_computed_contrastive_explanations()
+        assert os.listdir(outputs_directory_path), "the bulk export wrote nothing into the configured directory"
+    finally:
+        shutil.rmtree(outputs_directory_path, ignore_errors=True)

@@ -169,17 +169,19 @@ class Explainer:
     def deactivate_all_questions_templates(self):
         self._activated_questions_templates = dict()
 
-    def _increase_question_asked_count(self, question: PredefinedQuestion):
+    def _increase_asked_predefined_question_count(self, question: PredefinedQuestion):
         if isinstance(question, ContrastiveQuestion):
-            self._nb_contrastive_explanations_asked_by_ids[question.template.id] += 1
+            asked_predefined_question_counts = self._nb_contrastive_explanations_asked_by_ids
         elif isinstance(question, ScenarioQuestion):
-            self._nb_scenario_explanations_asked_by_ids[question.template.id] += 1
+            asked_predefined_question_counts = self._nb_scenario_explanations_asked_by_ids
         elif isinstance(question, CounterfactualQuestion):
-            self._nb_counterfactual_explanations_asked_by_ids[question.template.id] += 1
+            asked_predefined_question_counts = self._nb_counterfactual_explanations_asked_by_ids
         else:
             raise ValueError(f"Unknown question type: {type(question)}")
+        asked_predefined_question_counts[question.template.id] = \
+            asked_predefined_question_counts.get(question.template.id, 0) + 1
 
-    def reset_questions_asked_counts(self):
+    def reset_asked_predefined_question_counts(self):
         self._nb_contrastive_explanations_asked_by_ids = \
             dict([(id, 0) for id in self._activated_questions_templates.keys()])
         self._nb_scenario_explanations_asked_by_ids = \
@@ -188,7 +190,16 @@ class Explainer:
             dict([(id, 0) for id in self._activated_questions_templates.keys()])
 
     def get_contrastive_questions_asked_count(self, question_template_id: str):
-        return self._nb_contrastive_explanations_asked_by_ids[question_template_id]
+        """
+        Returns how many contrastive questions were asked of the given template, zero if none was.
+
+        Args:
+            question_template_id: Id of the template to count the questions of.
+
+        Returns:
+            The number of questions asked of it since the last reset.
+        """
+        return self._nb_contrastive_explanations_asked_by_ids.get(question_template_id, 0)
 
     ###########
     # History #
@@ -263,7 +274,7 @@ class Explainer:
         return self._contrastive_explanations_inputs_directory_relative_path
 
     @contrastive_explanations_inputs_directory_relative_path.setter
-    def contrastive_explanations_inputs_directory_relative_path(self, directory_relative_path: bool):
+    def contrastive_explanations_inputs_directory_relative_path(self, directory_relative_path: str):
         self._contrastive_explanations_inputs_directory_relative_path = directory_relative_path
 
     @property
@@ -271,7 +282,7 @@ class Explainer:
         return self._contrastive_explanations_outputs_directory_relative_path
 
     @contrastive_explanations_outputs_directory_relative_path.setter
-    def contrastive_explanations_outputs_directory_relative_path(self, directory_relative_path: bool):
+    def contrastive_explanations_outputs_directory_relative_path(self, directory_relative_path: str):
         self._contrastive_explanations_outputs_directory_relative_path = directory_relative_path
 
     def enable_exporting_automatically_single_contrastive_explanations(self):
@@ -292,6 +303,15 @@ class Explainer:
             self.disable_exporting_automatically_single_contrastive_explanations()
 
     def export_all_already_computed_contrastive_explanations(self, outputs_directory_relative_path: str = None):
+        """
+        Exports every explanation computed so far into one JSON file.
+
+        Args:
+            outputs_directory_relative_path: The directory to write into,
+                defaulting to the one this explainer is configured with, as the single-explanation exports do.
+        """
+        if outputs_directory_relative_path is None:
+            outputs_directory_relative_path = self.contrastive_explanations_outputs_directory_relative_path
         export_multiple_contrastive_explanations_to_json_file(self.already_computed_contrastive_explanations,
                                                               outputs_directory_relative_path)
 
@@ -512,7 +532,7 @@ class Explainer:
         return self._get_contrastive_explanation_of_question(contrastive_question)
 
     def _get_contrastive_explanation_of_question(self, contrastive_question: ContrastiveQuestion):
-        self._increase_question_asked_count(contrastive_question)
+        self._increase_asked_predefined_question_count(contrastive_question)
         contrastive_explanation = None
         if self.is_using_already_computed_contrastive_explanations:
             if self._check_if_contrastive_explanation_is_in_already_computed_ones(contrastive_question):
@@ -582,7 +602,7 @@ class Explainer:
     def compute_scenario_explanation(self, scenario_instance: EditableInstance):
         if self.scenario_explanations_are_enabled:
             scenario_question = self._create_scenario_question(scenario_instance)
-            self._increase_question_asked_count(scenario_question)
+            self._increase_asked_predefined_question_count(scenario_question)
             current_solution = self.current_solution
             scenario_current_solution = current_solution.copy(current_solution.name + "_scenario")
             scenario_current_solution.instance = scenario_instance
@@ -595,10 +615,10 @@ class Explainer:
         else:
             raise PermissionError("Scenario explanations are not enabled")
 
-    def _get_name_for_scenario_support_solution_instance(self):
+    def _get_name_for_next_support_solution_instance(self):
         return f"{self._root_solution.instance.name}.{str(self.nb_instances + 1)}"
 
-    def _get_name_for_scenario_support_solution(self):
+    def _get_name_for_next_support_solution(self):
         return f"{self._root_solution.name}.{str(self.nb_instances + 1)}.1"
 
     @property
@@ -610,8 +630,8 @@ class Explainer:
     def save_last_scenario_support_solution(self):
         last_scenario_support_solution = self.last_scenario_explanation.support_solution
         if self.last_scenario_explanation.support_solution_is_feasible:
-            last_scenario_support_solution.instance.name = self._get_name_for_scenario_support_solution_instance()
-            last_scenario_support_solution.name = self._get_name_for_scenario_support_solution()
+            last_scenario_support_solution.instance.name = self._get_name_for_next_support_solution_instance()
+            last_scenario_support_solution.name = self._get_name_for_next_support_solution()
             self.store_solution(last_scenario_support_solution)
         else:
             raise PermissionError("Cannot save the last scenario support solution as it is not feasible")
@@ -663,7 +683,7 @@ class Explainer:
             else:
                 raise ValueError("Question template id and fields values must be either both None or both not None")
             counterfactual_question = self._create_counterfactual_question(contrastive_question, instance_slacks)
-            self._increase_question_asked_count(counterfactual_question)
+            self._increase_asked_predefined_question_count(counterfactual_question)
             current_solution = self.current_solution
             counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
             transformation_result = TransformationDispatcher.handle_counterfactual_question(
@@ -676,11 +696,6 @@ class Explainer:
         else:
             raise PermissionError("Counterfactual explanations are not enabled")
 
-    def _get_name_for_counterfactual_support_solution_instance(self):
-        return self._get_name_for_scenario_support_solution_instance()
-
-    def _get_name_for_counterfactual_support_solution(self):
-        return self._get_name_for_scenario_support_solution()
 
     @property
     def last_counterfactual_explanation(self):
@@ -691,8 +706,8 @@ class Explainer:
     def save_last_counterfactual_support_solution(self):
         last_counterfactual_support_solution = self.last_counterfactual_explanation.support_solution
         if self.last_counterfactual_explanation.support_solution_is_feasible:
-            last_counterfactual_support_solution.instance.name = self._get_name_for_scenario_support_solution_instance()
-            last_counterfactual_support_solution.name = self._get_name_for_scenario_support_solution()
+            last_counterfactual_support_solution.instance.name = self._get_name_for_next_support_solution_instance()
+            last_counterfactual_support_solution.name = self._get_name_for_next_support_solution()
             self.store_solution(last_counterfactual_support_solution)
         else:
             raise PermissionError("Cannot save the last counterfactual support solution as it is not feasible")

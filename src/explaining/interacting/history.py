@@ -33,7 +33,7 @@ class History:
         elif isinstance(obj, SolutionForHeuristics):
             return self.contain_solution(obj)
         else:
-            return TypeError(f"The object type which is {type(obj)} must be {Instance} or {SolutionForHeuristics}")
+            raise TypeError(f"The object type which is {type(obj)} must be {Instance} or {SolutionForHeuristics}")
 
     @property
     def nb_instances(self):

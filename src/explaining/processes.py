@@ -169,7 +169,7 @@ def launch_explainer_UI_on_default_solution(language: str, enable_history: bool 
     :param enable_counterfactual_explanations: whether to enable the counterfactual explanations (bool)
     :return: None
     """
-    explainer = Explainer(get_demo_solution(), extractor_model=EXTRACTOR_MODEL)
+    explainer = Explainer(get_default_solution(), extractor_model=EXTRACTOR_MODEL)
     explainer.set_language(language)
     if enable_history:
         explainer.enable_history()
