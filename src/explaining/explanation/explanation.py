@@ -266,10 +266,9 @@ class Explanation(ABC):
             else:
                 text += f"{'The' if start_with_cap else 'the'} total traveling duration of the new solution "
             text += f"is {new_solution.total_traveling_duration}min, which is "
-            # WIP: compares working rather than traveling durations, unlike the French branch just below.
-            if new_solution.total_working_duration < current_solution.total_working_duration:
+            if new_solution.total_traveling_duration < current_solution.total_traveling_duration:
                 text += "shorter than "
-            elif new_solution.total_working_duration > current_solution.total_working_duration:
+            elif new_solution.total_traveling_duration > current_solution.total_traveling_duration:
                 text += "longer than "
             else:
                 text += "equal to "
