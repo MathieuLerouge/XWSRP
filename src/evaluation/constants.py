@@ -1,5 +1,5 @@
 # Local library
-from src.explaining.question.questions_templates_bank import *
+from src.explaining.question.predefined.bank import *
 
 
 # Global variables - Instances and solutions

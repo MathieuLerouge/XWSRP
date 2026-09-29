@@ -1,6 +1,6 @@
 # Local libraries
-from src.explaining.explanation.explanation_template import ExplanationTemplate
-from src.explaining.question.questions_templates_bank import *
+from src.explaining.explanation.predefined.template import ExplanationTemplate
+from src.explaining.question.predefined.bank import *
 
 # Why-not / contrastive explanations templates
 EXPLANATIONS_TEMPLATES_LIST = [

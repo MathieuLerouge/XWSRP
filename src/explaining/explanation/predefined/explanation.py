@@ -3,11 +3,12 @@ from abc import abstractmethod
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.question.questions_templates_bank import \
+from src.explaining.question.predefined.bank import \
     BASED_ON_MOST_RELEVANT_NEIGHBORING_SOLUTION_QUESTIONS_TEMPLATES_IDS
 from src.modeling.solution import Solution
-from src.explaining.question.question import Question, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
-from src.explaining.explanation.explanations_templates_bank import EXPLANATIONS_TEMPLATES
+from src.explaining.question.predefined.question import \
+    Question, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
+from src.explaining.explanation.predefined.bank import EXPLANATIONS_TEMPLATES
 from src.explaining.computing.conflict import Conflict, SkillConflict, TimeConflict
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.utils.constants import LINE_BREAK_STRING

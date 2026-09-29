@@ -56,10 +56,11 @@ the neighborhood pipeline can also answer it and gets the same (or a strictly be
 (`EditableInstance`, `EditableSolution`, `EditableEmployee`, `EditableSequence`, `EditableTask`),
 along with `InstanceChanges`, which tracks the alterations applied to an instance.
 
-`question` contains the question layer: 
+`question` contains the question layer, split by the kind of question asked. \
+Its `predefined` subdirectory holds the template-based one: 
 the `Question` base class and its subclasses (`ContrastiveQuestion`, `ScenarioQuestion`, `CounterfactualQuestion`), 
 each parameterized by a `QuestionTemplate`. \
-`questions_templates_bank.py` instantiates every template (in English and French) 
+`predefined/bank.py` instantiates every template (in English and French) 
 into the `QUESTIONS_TEMPLATES` dictionary, 
 which is the "why not" question catalogue used by `interacting`
 and mapped to transformation functions in `computing/templates`.
@@ -83,11 +84,13 @@ with `checker.py`'s `ModelCompatibilityChecker` saying which `Neighborhood`s it 
 and `conflict`'s `ConflictExtractor` turning a solved one into the same `Conflict` the tailored pipeline returns. \
 Its outputs (support solution, conflict, instance alterations) feed directly into `explanation`.
 
-`explanation` turns a `Question` and the result of `computing/templates` into a human-facing `Explanation`. \
+`explanation` turns a `Question` and the result of `computing/templates` into a human-facing `Explanation`, 
+mirroring `question`'s split by the kind of question answered. \
+Its `predefined` subdirectory holds the template-based one: 
 `create_explanation(...)` selects the appropriate subclass (`PositiveExplanation`, `NonImprovingNegativeExplanation`, 
 `InfeasibleNegativeExplanation`, `SkillNegativeExplanation`, `TimeNegativeExplanation`) 
 depending on whether the support solution improves on the original solution
-and whether a conflict was found, and builds its text from `explanations_templates_bank.py`.
+and whether a conflict was found, and builds its text from `predefined/bank.py`.
 
 `exporting` contains the scripts used for serializing `Explanation` objects to JSON files,
 both for caching purposes and for the batch analysis triggered from `__main__.py`. \

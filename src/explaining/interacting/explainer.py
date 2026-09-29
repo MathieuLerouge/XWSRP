@@ -1,11 +1,11 @@
 # Local libraries
-from src.explaining.explanation.explanation import *
+from src.explaining.explanation.predefined.explanation import *
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.interacting.history import History
-from src.explaining.question.question import ContrastiveQuestion, CounterfactualQuestion
-from src.explaining.question.questions_templates_bank import *
+from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion
+from src.explaining.question.predefined.bank import *
 from src.explaining.importing.explanation import import_single_explanation_from_json_file, \
     import_multiple_explanations_from_json_file
 from src.explaining.computing.templates.dispatch import TransformationDispatcher

@@ -1,6 +1,6 @@
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
-from src.explaining.question.questions_templates_bank import QUESTIONS_TEMPLATES
+from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 

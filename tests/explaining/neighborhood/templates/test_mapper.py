@@ -3,8 +3,8 @@ import pytest
 
 # Local libraries
 from src.explaining.neighborhood.templates.mapper import Mapper
-from src.explaining.question.question import ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
-from src.explaining.question.questions_templates_bank import WHY_NOT_INS_2A
+from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
+from src.explaining.question.predefined.bank import WHY_NOT_INS_2A
 from tests.explaining.neighborhood.helpers import build_solution_with_task_performances
 from tests.modeling.helpers import build_instance
 

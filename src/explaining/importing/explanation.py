@@ -2,7 +2,7 @@
 import json
 
 # Local libraries
-from src.explaining.explanation.explanation import create_explanation_from_dict
+from src.explaining.explanation.predefined.explanation import create_explanation_from_dict
 from src.modeling.solution import Solution
 from src.utils.files import make_inputs_file_relative_path_from_file_name, check_inputs_file_existence
 

@@ -12,7 +12,7 @@ from src.explaining.neighborhood.llm.extractor import Extractor
 from src.explaining.neighborhood.templates.checker import (
     INSERTION_FAMILY, REORDERING_FAMILY, SWAP_FAMILY, TemplateComplianceChecker
 )
-from src.explaining.question.questions_templates_bank import (
+from src.explaining.question.predefined.bank import (
     QUESTIONS_TEMPLATES,
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
     WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3,

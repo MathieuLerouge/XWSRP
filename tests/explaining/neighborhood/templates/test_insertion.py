@@ -2,8 +2,8 @@
 from src.explaining.neighborhood.operator import TaskInsertion
 from src.explaining.neighborhood.restriction import ImmediatePrecedence, PrecedenceChain
 from src.explaining.neighborhood.templates import insertion
-from src.explaining.question.question import ContrastiveQuestion
-from src.explaining.question.questions_templates_bank import (
+from src.explaining.question.predefined.question import ContrastiveQuestion
+from src.explaining.question.predefined.bank import (
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3
 )
 from tests.explaining.neighborhood.helpers import build_solution_with_task_performances

@@ -7,7 +7,7 @@ from src.evaluation.constants import INSTANCES_FOR_EVALUATION_NAMES, SOLUTIONS_F
     ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION
 from src.evaluation.prepared_data_extraction import get_explanations_for_evaluation_directory_path
 from src.explaining.interacting.explainer import Explainer
-from src.explaining.question.questions_templates_bank import *
+from src.explaining.question.predefined.bank import *
 from src.explaining.exporting.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
