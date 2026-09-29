@@ -112,8 +112,12 @@ reconstructing `Explanation` objects from previously exported JSON files.
 
 `interacting` contains the orchestration and user interface layer, centered on the `Explainer` class. \
 `Explainer` owns the root `EditableSolution`, an optional `History` of visited instances/solutions,
-and the methods (`get_contrastive_explanation`, `compute_scenario_explanation`, `compute_counterfactual_explanation`) 
-tying `question`, `computing/templates` and `explanation` together, 
+and the methods tying `question`, `computing` and `explanation` together, 
 optionally short-circuiting via the `importing`/`exporting` caches. \
-`interface` holds the ways an end user reaches that `Explainer`: 
-the Dash-based `ExplainerWebGUI` and a terminal.
+`get_explanation` takes a question of either kind and picks the pipeline answering it: 
+a `ContrastiveQuestion` goes to `computing/templates`, 
+a `FreeTextQuestion` to `neighborhood/llm`'s `Extractor` and then `computing/neighborhood`, 
+while `compute_scenario_explanation` and `compute_counterfactual_explanation` ask the two kinds of follow-up. \
+`interface` holds the ways an end user reaches that `Explainer`. \
+WIP: Today the Dash-based `ExplainerWebGUI` alone, with a terminal one planned beside it. \
+(see its own [`README.md`](interacting/README.md) for a description of its files.)
