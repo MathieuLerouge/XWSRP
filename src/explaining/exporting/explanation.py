@@ -2,7 +2,7 @@
 import json
 
 # Local libraries
-from src.explaining.explanation.predefined.explanation import Explanation
+from src.explaining.explanation.explanation import Explanation
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion
 from src.modeling.solution import Solution
 from src.utils.constants import DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH

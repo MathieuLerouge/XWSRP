@@ -89,13 +89,19 @@ with `checker.py`'s `ModelCompatibilityChecker` saying which `Neighborhood`s it 
 and `conflict`'s `ConflictExtractor` turning a solved one into the same `Conflict` the tailored pipeline returns. \
 Its outputs (support solution, conflict, instance alterations) feed directly into `explanation`.
 
-`explanation` turns a `PredefinedQuestion` and the result of `computing/templates` into a human-facing `Explanation`, 
+`explanation` turns a `Question` and the result of `computing/templates` into a human-facing `Explanation`, 
 mirroring `question`'s split by the kind of question answered. \
-Its `predefined` subdirectory holds the template-based one: 
+`explanation.py`'s abstract `Explanation` is what both kinds have in common: 
+the question answered, the support solution backing the answer, the alterations it needed, and the resulting text. \
+Its `predefined` subdirectory holds the template-based kind, `PredefinedExplanation`, 
+which words every sentence from the `ExplanationTemplate` matching the question's own template: 
 `create_explanation(...)` selects the appropriate subclass (`PositiveExplanation`, `NonImprovingNegativeExplanation`, 
 `InfeasibleNegativeExplanation`, `SkillNegativeExplanation`, `TimeNegativeExplanation`) 
 depending on whether the support solution improves on the original solution
-and whether a conflict was found, and builds its text from `predefined/bank.py`.
+and whether a conflict was found, and builds its text from `predefined/bank.py`. \
+Its `free` subdirectory is the still-empty slot for answering a `FreeTextQuestion`: 
+the neighborhood pipeline currently gets there by having `Recognizer` recover a `ContrastiveQuestion` 
+from the `Neighborhood`, so that the template-based wording above still applies.
 
 `exporting` contains the scripts used for serializing `Explanation` objects to JSON files,
 both for caching purposes and for the batch analysis triggered from `__main__.py`. \

@@ -1,19 +1,20 @@
-# Standard library
+# Standard libraries
 from abc import abstractmethod
+from typing import Optional
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.question.predefined.bank import \
     BASED_ON_MOST_RELEVANT_NEIGHBORING_SOLUTION_QUESTIONS_TEMPLATES_IDS
 from src.modeling.solution import Solution
+from src.explaining.explanation.explanation import Explanation
 from src.explaining.question.predefined.question import \
     PredefinedQuestion, ContrastiveQuestion, ScenarioQuestion, CounterfactualQuestion
 from src.explaining.explanation.predefined.bank import EXPLANATIONS_TEMPLATES
 from src.explaining.computing.conflict import Conflict, SkillConflict, TimeConflict
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.utils.constants import LINE_BREAK_STRING
-from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
-from src.utils.time import convert_nb_minutes_to_time_string, get_hour_format_associated_with_language
+from src.utils.time import convert_nb_minutes_to_time_string
 
 # Global variables
 QUESTION_KEY = 'question'
@@ -106,123 +107,101 @@ def create_explanation_from_dict(dictionary, solution: Solution):
     return create_explanation(question, TransformationResult(support_solution, conflict, descriptions))
 
 
-#####################
-# Class Explanation #
-#####################
+#########################
+# PredefinedExplanation #
+#########################
 
-class Explanation:
+class PredefinedExplanation(Explanation):
+    """
+    An answer to a predefined question, worded from the ExplanationTemplate matching the question's own template.
+
+    Every sentence it can say comes from that template's typical expressions,
+    with the question's field values spliced into them,
+    which is what ties a question of the catalogue to the wording answering it.
+    """
 
     def __init__(self, question: PredefinedQuestion, support_solution: Solution,
-                 all_descriptions_of_applied_transformation: dict[str, str] = None,
-                 instance_alterations: InstanceChanges = None):
-        self._question = question
-        self._support_solution = support_solution
+                 all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
+                 instance_alterations: Optional[InstanceChanges] = None):
+        """
+        Args:
+            question: The predefined question being answered.
+            support_solution: The solution found while answering it, backing the explanation.
+            all_descriptions_of_applied_transformation: The sentence describing the transformation applied
+                to reach the support solution, keyed by language, or None when no transformation was applied.
+            instance_alterations: The instance parameter changes the support solution needed to become feasible,
+                or None when the question called for no alteration.
+        """
         self._is_based_on_most_relevant_neighboring_solution = \
             question.template.id in BASED_ON_MOST_RELEVANT_NEIGHBORING_SOLUTION_QUESTIONS_TEMPLATES_IDS
-        self._instance_alterations = instance_alterations
         fields_key_value_map = dict(zip(question.template.fields_keys, question.fields_values))
-        fields_key_value_map['SolutionName'] = self._question.solution.name
+        fields_key_value_map['SolutionName'] = question.solution.name
         template = EXPLANATIONS_TEMPLATES[question.template.id]
         template.set_language(question.language)
-        self._typical_expressions = dict(
+        self._typical_expressions: dict[str, str] = dict(
             [(id, complete_expression_with_field_values(expression, fields_key_value_map))
              for (id, expression) in template.typical_expressions.items()]
         )
         self._typical_expressions['applying_support_solution_transformation'] = \
             all_descriptions_of_applied_transformation
-        self._text = self._compute_text()
-
-    ############
-    # Language #
-    ############
-
-    @property
-    def language(self):
-        return self._question.language
-
-    @property
-    def language_is_english(self):
-        return self.language == LANGUAGE_ENGLISH_KEY
-
-    @property
-    def language_is_french(self):
-        return self.language == LANGUAGE_FRENCH_KEY
-
-    @property
-    def _hour_format(self):
-        return get_hour_format_associated_with_language(self.language)
+        super().__init__(question, support_solution, instance_alterations)
 
     ############
     # Question #
     ############
 
     @property
-    def question(self):
-        return self._question
-
-    @property
-    def is_contrastive(self):
+    def is_contrastive(self) -> bool:
+        """Whether the question answered is a plain contrastive one."""
         return isinstance(self._question, ContrastiveQuestion)
 
     @property
-    def is_scenario(self):
+    def is_scenario(self) -> bool:
+        """Whether the question answered is a scenario one, asked about an altered instance."""
         return isinstance(self._question, ScenarioQuestion)
 
     @property
-    def is_counterfactual(self):
+    def is_counterfactual(self) -> bool:
+        """Whether the question answered is a counterfactual one, asking which alterations would help."""
         return isinstance(self._question, CounterfactualQuestion)
-
-    @abstractmethod
-    def is_positive(self):
-        pass
-
-    @abstractmethod
-    def is_negative(self):
-        pass
-
-    @property
-    def current_solution(self):
-        return self._question.solution
-
-    @property
-    def support_solution(self):
-        return self._support_solution
-
-    @property
-    def new_solution(self):
-        return self.support_solution
-
-    @property
-    @abstractmethod
-    def support_solution_is_feasible(self) -> bool:
-        pass
 
     @property
     def is_based_on_most_relevant_neighboring_solution(self):
+        """Whether the question answered leaves the pipeline free to pick the best neighboring solution."""
         return self._is_based_on_most_relevant_neighboring_solution
+
+    #########################
+    # Template expressions #
+    #########################
 
     @property
     def applying_support_solution_transformation(self):
+        """The sentence describing the transformation applied to reach the support solution."""
         return self._typical_expressions['applying_support_solution_transformation'][self.language]
 
     @property
     def _the_fact(self):
+        """The template's wording of what the current solution does."""
         return self._typical_expressions['the_fact']
 
     @property
     def _the_foil(self):
+        """The template's wording of what the end user expected instead."""
         return self._typical_expressions['the_foil']
 
     @property
     def _having_the_foil(self):
+        """The template's wording of the expected situation holding."""
         return self._typical_expressions['having_the_foil']
 
     @property
     def _applying_the_foil_transformation(self):
+        """The template's wording of the change bringing the expected situation about."""
         return self._typical_expressions['applying_the_foil_transformation']
 
     @property
     def _neighbors(self):
+        """The template's wording of the neighboring solutions the question opens up."""
         return self._typical_expressions['neighbors']
 
     @property
@@ -279,138 +258,6 @@ class Explanation:
         else:
             raise NotImplementedError("Non-supported language")
 
-    @property
-    def _assume_the_current_is_altered(self):
-        if self.language_is_english:
-            return f"assume that the following change" \
-                   f"{'s are ' if self._instance_alterations.nb_changes > 1 else ' is '}" \
-                   f"applied to the current instance: " \
-                   f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}" \
-                   f"{self._instance_alterations.as_string(language=self.language)}" \
-                   f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"
-        elif self.language_is_french:
-            return f"supposons que " \
-                   f"{'les changements' if self._instance_alterations.nb_changes > 1 else 'le changement'} " \
-                   f"suivant{'s' if self._instance_alterations.nb_changes > 1 else ''} " \
-                   f"soi{'en' if self._instance_alterations.nb_changes > 1 else ''}t " \
-                   f"appliqué{'s' if self._instance_alterations.nb_changes > 1 else ''} à l'instance : " \
-                   f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}" \
-                   f"{self._instance_alterations.as_string(language=self.language)}" \
-                   f"{LINE_BREAK_STRING if self._instance_alterations.nb_changes > 1 else ''}"
-
-    @property
-    def _Assume_the_current_is_altered(self):
-        if self.language_is_english:
-            return "A" + self._assume_the_current_is_altered[1:]
-        elif self.language_is_french:
-            return "S" + self._assume_the_current_is_altered[1:]
-
-    @property
-    def _activity(self):
-        if self.language_is_english:
-            if self.support_solution.instance.has_employee_unavailabilities:
-                return "activity"
-            else:
-                return "task"
-        elif self.language_is_french:
-            if self.support_solution.instance.has_employee_unavailabilities:
-                return "activité"
-            else:
-                return "tâche"
-        else:
-            raise NotImplementedError("Non-supported language")
-
-    @property
-    def _activities(self):
-        if self.language_is_english:
-            if self.support_solution.instance.has_employee_unavailabilities:
-                return "activities"
-            else:
-                return "tasks"
-        elif self.language_is_french:
-            if self.support_solution.instance.has_employee_unavailabilities:
-                return "activités"
-            else:
-                return "tâches"
-        else:
-            raise NotImplementedError("Non-supported language")
-
-    @property
-    def text(self):
-        return self._text
-
-    @abstractmethod
-    def _compute_text(self, with_bold_emphasis: bool = False):
-        pass
-
-    def _compare_total_working_duration(self, start_with_cap: bool = False, without_new_solution: bool = False):
-        if not self.support_solution_is_feasible:
-            raise AttributeError("Current and new solutions cannot be compared as new solution is infeasible.")
-        current_solution = self._question.solution
-        new_solution = self.support_solution
-        text = ""
-        if self.language_is_english:
-            if without_new_solution:
-                text += f"{'Its' if start_with_cap else 'its'} total working duration "
-            else:
-                text += f"{'The' if start_with_cap else 'the'} total working duration of the new solution "
-            text += f" is {new_solution.total_working_duration}min, which is "
-            if new_solution.total_working_duration < current_solution.total_working_duration:
-                text += "shorter than "
-            elif new_solution.total_working_duration > current_solution.total_working_duration:
-                text += "longer than "
-            else:
-                text += "equal to "
-            text += f"the one of the current solution {current_solution.total_working_duration}min"
-        elif self.language_is_french:
-            if without_new_solution:
-                text += f"{'Sa' if start_with_cap else 'sa'} durée totale de travail "
-            else:
-                text += f"{'La' if start_with_cap else 'la'} durée totale de travail de la nouvelle solution "
-            text += f" est de {new_solution.total_working_duration}min, soit une durée "
-            if new_solution.total_working_duration < current_solution.total_working_duration:
-                text += "inférieure "
-            elif new_solution.total_working_duration > current_solution.total_working_duration:
-                text += "supérieure "
-            else:
-                text += "égale "
-            text += f"à celle de la solution courante qui est de {current_solution.total_working_duration}min"
-        return text
-
-    def _compare_total_traveling_duration(self, start_with_cap: bool = False, without_new_solution: bool = False):
-        if not self.support_solution_is_feasible:
-            raise AttributeError("Current and new solutions cannot be compared as new solution is infeasible.")
-        current_solution = self._question.solution
-        new_solution = self.support_solution
-        text = ""
-        if self.language_is_english:
-            if without_new_solution:
-                text += f"{'Its' if start_with_cap else 'its'} total traveling duration "
-            else:
-                text += f"{'The' if start_with_cap else 'the'} total traveling duration of the new solution "
-            text += f"is {new_solution.total_traveling_duration}min, which is "
-            if new_solution.total_working_duration < current_solution.total_working_duration:
-                text += "shorter than "
-            elif new_solution.total_working_duration > current_solution.total_working_duration:
-                text += "longer than "
-            else:
-                text += "equal to "
-            text += f"the one of the current solution {current_solution.total_traveling_duration}min"
-        elif self.language_is_french:
-            if without_new_solution:
-                text += f"{'Sa' if start_with_cap else 'sa'} durée totale de déplacement "
-            else:
-                text += f"{'La' if start_with_cap else 'la'} durée totale de déplacement de la nouvelle solution "
-            text += f" est de {new_solution.total_traveling_duration}min, soit une durée "
-            if new_solution.total_traveling_duration < current_solution.total_traveling_duration:
-                text += "inférieure "
-            elif new_solution.total_traveling_duration > current_solution.total_traveling_duration:
-                text += "supérieure "
-            else:
-                text += "égale "
-            text += f"à celle de la solution courante qui est de {current_solution.total_traveling_duration}min"
-        return text
-
     def to_dict(self):
         dictionary = {
             QUESTION_KEY: self.question.to_dict(),
@@ -421,13 +268,11 @@ class Explanation:
         return dictionary
 
 
-########################
-# Positive Explanation #
-########################
+#######################
+# PositiveExplanation #
+#######################
 
-
-# Class PositiveExplanation
-class PositiveExplanation(Explanation):
+class PositiveExplanation(PredefinedExplanation):
 
     def is_positive(self):
         return True
@@ -481,13 +326,11 @@ class PositiveExplanation(Explanation):
         return text
 
 
-########################
-# Negative Explanation #
-########################
+#######################
+# NegativeExplanation #
+#######################
 
-
-# Class NegativeExplanation
-class NegativeExplanation(Explanation):
+class NegativeExplanation(PredefinedExplanation):
 
     def is_positive(self):
         return False
@@ -505,7 +348,10 @@ class NegativeExplanation(Explanation):
         pass
 
 
-# Class NonImprovingNegativeExplanation
+###################################
+# NonImprovingNegativeExplanation #
+###################################
+
 class NonImprovingNegativeExplanation(NegativeExplanation):
 
     @property
@@ -603,13 +449,28 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
         return text
 
 
-# Class InfeasibleNegativeExplanation
+#################################
+# InfeasibleNegativeExplanation #
+#################################
+
 class InfeasibleNegativeExplanation(NegativeExplanation):
 
     def __init__(self, question: PredefinedQuestion, support_solution: Solution, conflict: Conflict,
-                 description_of_applied_transformation: str = None, instance_alterations: InstanceChanges = None):
+                 all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
+                 instance_alterations: Optional[InstanceChanges] = None):
+        """
+        Args:
+            question: The predefined question being answered.
+            support_solution: The infeasible solution found while answering it.
+            conflict: The conflict making that solution infeasible.
+            all_descriptions_of_applied_transformation: The sentence describing the transformation applied
+                to reach the support solution, keyed by language, or None when no transformation was applied.
+            instance_alterations: The instance parameter changes the support solution needed to become feasible,
+                or None when the question called for no alteration.
+        """
+        # Set before delegating: the base class ends its own __init__ by wording the text, which reads the conflict.
         self._conflict = conflict
-        super().__init__(question, support_solution, description_of_applied_transformation, instance_alterations)
+        super().__init__(question, support_solution, all_descriptions_of_applied_transformation, instance_alterations)
 
     @property
     def conflict(self):
@@ -637,12 +498,15 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
         return dictionary
 
 
-# Class SkillNegativeExplanation
+############################
+# SkillNegativeExplanation #
+############################
+
 class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 
     def __init__(self, question: PredefinedQuestion, support_solution: Solution, conflict: SkillConflict,
-                 all_descriptions_of_applied_transformation: dict[str, str] = None,
-                 instance_alterations: InstanceChanges = None):
+                 all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
+                 instance_alterations: Optional[InstanceChanges] = None):
         super().__init__(question, support_solution, conflict,
                          all_descriptions_of_applied_transformation, instance_alterations)
 
@@ -684,12 +548,15 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
         return text
 
 
-# Class TimeNegativeExplanation
+###########################
+# TimeNegativeExplanation #
+###########################
+
 class TimeNegativeExplanation(InfeasibleNegativeExplanation):
 
     def __init__(self, question: PredefinedQuestion, support_solution: Solution, conflict: TimeConflict,
-                 all_descriptions_of_applied_transformation: dict[str, str] = None,
-                 instance_alterations: InstanceChanges = None):
+                 all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
+                 instance_alterations: Optional[InstanceChanges] = None):
         super().__init__(question, support_solution, conflict,
                          all_descriptions_of_applied_transformation, instance_alterations)
         self._conflict = conflict
