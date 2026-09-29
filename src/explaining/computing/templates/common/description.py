@@ -127,6 +127,37 @@ class TransformationDescriptionBuilder:
         }
 
     @staticmethod
+    def for_replacing_task_of_another_employee(leaving_task: Task, leaving_employee: Employee,
+                                               replacing_task: Task,
+                                               replacing_employee: Employee) -> dict[str, str]:
+        """
+        Describe a swap whose two halves land on different employees' plannings.
+
+        Only the neighborhood pipeline ever needs this:
+        its (Swp,2c) model is free to take the outgoing task from one employee
+        while handing the incoming one to another,
+        whereas every tailored transformation replaces a task within a single route
+        and so can name one employee throughout.
+
+        Args:
+            leaving_task: The task dropped from the planning.
+            leaving_employee: The employee whose planning it is dropped from.
+            replacing_task: The task added.
+            replacing_employee: The employee whose planning it is added to.
+
+        Returns:
+            The sentence keyed by language.
+        """
+        return {
+            LANGUAGE_ENGLISH_KEY:
+                f"removing {leaving_task.name} from {leaving_employee.name}'s planning "
+                f"and adding {replacing_task.name} to {replacing_employee.name}'s planning",
+            LANGUAGE_FRENCH_KEY:
+                f"retirant {leaving_task.name} du planning de {leaving_employee.name} "
+                f"et ajoutant {replacing_task.name} au planning de {replacing_employee.name}"
+        }
+
+    @staticmethod
     def for_replacing_task_in_route(replaced_task: Task, replacing_task: Task, employee: Employee,
                                     route_description: str) -> dict[str, str]:
         """

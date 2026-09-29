@@ -2,9 +2,11 @@
 from typing import Optional
 
 # Local libraries
-from src.explaining.computing.conflict import Conflict, TimeConflict
+from src.explaining.computing.conflict import Conflict, SkillConflict, TimeConflict
 from src.explaining.computing.neighborhood.extractor import ConflictExtractor
 from src.explaining.computing.neighborhood.model import NeighborhoodModel
+from src.explaining.computing.neighborhood.result import build_transformation_result_from_neighborhood
+from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.neighborhood.templates.mapper import Mapper
@@ -24,7 +26,7 @@ def build_austria_instance() -> Instance:
 
 
 def build_austria_solution() -> Solution:
-    return import_solution(_AUSTRIA_SOLUTION_PATH, True, True, True)
+    return import_solution(_AUSTRIA_SOLUTION_PATH, build_austria_instance(), True, True, True)
 
 
 def gap_from_conflict(conflict: Optional[Conflict]):
@@ -45,15 +47,53 @@ def gap_from_conflict(conflict: Optional[Conflict]):
             conflict.latest_downstream_feasible_start_time_of_conflicting_task)
 
 
+def get_tailored_computation_pipeline_result(
+        solution: Solution, template_id: str, fields_values: list[str]
+) -> tuple[ContrastiveQuestion, TransformationResult]:
+    """
+    Return (question, transformation result) following the tailored computation pipeline.
+
+    The question is asked about an EditableSolution copy of the given solution rather than the solution itself,
+    since that is what the tailored transformations mutate
+    - and what makes its KPIs available for the explanation to compare the support solution against.
+    """
+    editable_solution = EditableSolution.from_solution(solution)
+    question = ContrastiveQuestion(editable_solution, template_id, fields_values)
+    result = TransformationDispatcher.handle_contrastive_or_scenario_question(editable_solution, question)
+    return question, result
+
+
+def get_neighborhood_computation_pipeline_result(
+        solution: Solution, template_id: str, fields_values: list[str]
+) -> tuple[ContrastiveQuestion, TransformationResult]:
+    """
+    Return (question, transformation result) following the neighborhood computation pipeline.
+
+    The question returned is the one Recognizer recovered from the neighborhood, not the one Mapper was handed:
+    recovering it is the step that lets this pipeline reach the answering layer at all,
+    so the tests exercise it rather than short-circuiting it.
+
+    NB: The given solution's KPIs are computed here, since the explanation compares the support solution against it
+    and the neighborhood pipeline - unlike the tailored one - does not copy it into an EditableSolution first.
+    """
+    solution.compute_kpis()
+    neighborhood = Mapper.map(ContrastiveQuestion(solution, template_id, fields_values))
+    skill_conflict = ConflictExtractor.extract_from_neighborhood(neighborhood)
+    if skill_conflict is not None:
+        return build_transformation_result_from_neighborhood(neighborhood, None)
+    model = NeighborhoodModel(neighborhood)
+    outcome = model.solve(mute=True)
+    assert outcome.has_incumbent, "The neighborhood computation pipeline's MILP should be feasible by construction"
+    return build_transformation_result_from_neighborhood(neighborhood, model)
+
+
 def get_tailored_computation_pipeline_gap_and_solution(
         solution: Solution, template_id: str, fields_values: list[str]
 ):
     """
     Return (feasibility gap, support_solution, conflict) following the tailored computation pipeline.
     """
-    editable_solution = EditableSolution.from_solution(solution)
-    question = ContrastiveQuestion(editable_solution, template_id, fields_values)
-    result = TransformationDispatcher.handle_contrastive_or_scenario_question(editable_solution, question)
+    _, result = get_tailored_computation_pipeline_result(solution, template_id, fields_values)
     return gap_from_conflict(result.conflict), result.support_solution, result.conflict
 
 
@@ -66,15 +106,10 @@ def get_neighborhood_computation_pipeline_gap_and_solution(
     The gap and the support solution are both None when the neighborhood is blocked by a skill conflict:
     the MILP is never built for it, since no arrangement of it exists to search in the first place.
     """
-    question = ContrastiveQuestion(solution, template_id, fields_values)
-    neighborhood = Mapper.map(question)
-    skill_conflict = ConflictExtractor.extract_from_neighborhood(neighborhood)
-    if skill_conflict is not None:
-        return None, None, skill_conflict
-    model = NeighborhoodModel(neighborhood)
-    outcome = model.solve(mute=True)
-    assert outcome.has_incumbent, "The neighborhood computation pipeline's MILP should be feasible by construction"
-    return model.feasibility_shortfall, model.solution, ConflictExtractor.extract_from_solved_model(model)
+    _, result = get_neighborhood_computation_pipeline_result(solution, template_id, fields_values)
+    if isinstance(result.conflict, SkillConflict):
+        return None, None, result.conflict
+    return gap_from_conflict(result.conflict), result.support_solution, result.conflict
 
 
 def assert_same_conflict(tailored_conflict: Optional[Conflict],

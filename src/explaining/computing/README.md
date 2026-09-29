@@ -1,10 +1,10 @@
 # Description of the `computing` module
 
 This module is the computational core that answers a question by attempting to modify the solution. \
-Whatever the route taken, it produces the same two things: 
-a support `Solution` (the arrangement the question asked about, whether or not it works) and, 
-when it doesn't work, a **`Conflict`** saying why. \
-Both feed directly into `answering`.
+Whatever the route taken, it produces the same `TransformationResult`: 
+a support `Solution` (the arrangement the question asked about, whether or not it works), 
+a `Conflict` saying why when it doesn't work, and the sentence describing what was done. \
+That result feeds directly into `answering`.
 
 
 # 1. Overview
@@ -29,8 +29,17 @@ It reports a **feasibility shortfall**: 0 when the requested arrangement fits,
 otherwise how much the conflicting task's start time has to be stretched for it to. \
 `ConflictExtractor` then turns that shortfall into the same `Conflict` the tailored pipeline would return.
 
-Only the tailored pipeline handles counterfactual questions today; `NeighborhoodModel` covers the
-contrastive/scenario ones.
+It reaches `answering` the same way the tailored one does, 
+through `result.py`'s `build_transformation_result_from_neighborhood`. \
+The step that costs it something the tailored pipeline gets for free is the question: 
+an explanation is phrased from a question template's typical expressions, 
+and a `Neighborhood` on its own carries no template. \
+`explaining.neighborhood`'s `Recognizer` recovers one by reading the neighborhood's own primitives, 
+which is what lets a question asked in free text be answered in words rather than only solved. \
+A neighborhood outside the question catalogue still gets a support solution and a conflict, and no text.
+
+Only the tailored pipeline handles counterfactual questions today; 
+`NeighborhoodModel` covers the contrastive/scenario ones.
 
 
 # 2. Description of the files
@@ -53,6 +62,9 @@ In `neighborhood` subpackage:
   which neighborhoods can be built for `NeighborhoodModel`  and why not when it can't.
 - `extractor.py` contains `ConflictExtractor`, which maps a `Neighborhood` to a `SkillConflict`
   and a solved `NeighborhoodModel` to a `TimeConflict`.
+- `description.py` contains `NeighborhoodDescriptionBuilder`, which words what the solved model settled on.
+- `result.py` contains `build_transformation_result_from_neighborhood`, 
+  this pipeline's counterpart to `templates`' `build_transformation_result_from_milp_model`.
 - `exceptions.py` contains `UnattributableFeasibilityShortfallException`.
 
 In `templates` subpackage:
@@ -121,3 +133,19 @@ whereas the MILP jointly re-optimizes every affected task's time.
 The two `Conflict`s are compared field for field only once the two gaps are known to be equal 
 — a strictly smaller neighborhood gap means the pipelines landed on different arrangements, 
 which have no reason to agree beyond neither of them fitting.
+
+`test_explanation_parity.py` carries the same comparison one step further, 
+to the `descriptions` and to the `Explanation.text` built from them. \
+It asserts them equal for the `(Ins,*)` and `(Ord,*)` templates only 
+— the ones `test_parity.py` asserts identical KPIs for. \
+The `(Swp,*)` family is left out on purpose: its two pipelines legitimately swap different tasks. \
+For that family the test only asserts that both pipelines do produce a description and a text.
+
+One shape the neighborhood pipeline reaches and the tailored one cannot:
+`(Swp,2c)` offers every employee's performed tasks for removal and every employee as a destination, 
+so the solver may take the outgoing task from one employee while handing the incoming one to another. 
+No single-employee sentence covers that, 
+which is what `TransformationDescriptionBuilder.for_replacing_task_of_another_employee` is for 
+— the one description method the tailored pipeline never calls.
+
+TODO: This last case should not occur.
