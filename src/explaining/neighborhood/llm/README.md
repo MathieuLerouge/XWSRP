@@ -5,8 +5,8 @@ it turns a free-text contrastive question into the `Neighborhood` it induces, vi
 by freely composing primitives rather than dispatching on the fixed `QuestionTemplate` catalogue.
 
 `Extractor` (`extractor.py`) is the entry point: 
-`Extractor(solution, model).extract(question_text)` returns the induced `Neighborhood`, 
-or raises `NeighborhoodExtractionError` if the question can't be turned into one `NeighborhoodModel` can solve. 
+`Extractor(solution, model).extract(question)` takes a `FreeTextQuestion` and returns the induced `Neighborhood`, 
+or raises `NeighborhoodExtractionError` if the question can't be turned into one `NeighborhoodModel` can solve.
 It relies on the parent `neighborhood` package's `Assembler`/`NeighborhoodError` 
 for the final assemble-and-capability-check step, shared with whatever else might build a `Neighborhood`.
 

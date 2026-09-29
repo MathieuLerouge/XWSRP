@@ -17,6 +17,7 @@ from src.explaining.neighborhood.llm.grounder import Grounder
 from src.explaining.neighborhood.llm.neighborhood import ExtractedNeighborhood
 from src.explaining.neighborhood.llm.prompt import SYSTEM_PROMPT, build_user_prompt
 from src.explaining.neighborhood.neighborhood import Neighborhood
+from src.explaining.question.free.question import FreeTextQuestion
 from src.modeling.solution import Solution
 
 
@@ -68,23 +69,26 @@ class Extractor:
         self._solution = solution
         self._client = instructor.from_provider(model, mode=mode)
 
-    def extract(self, question_text: str) -> Neighborhood:
+    def extract(self, question: FreeTextQuestion) -> Neighborhood:
         """
         Args:
-            question_text: A free-text contrastive question.
+            question: A free-text contrastive question, asked about this Extractor's own solution.
 
         Returns:
             Neighborhood: The induced Neighborhood.
 
         Raises:
-            NeighborhoodExtractionError: If question_text cannot be turned into a Neighborhood
+            ValueError: If question is asked about another solution than the one this Extractor grounds against.
+            NeighborhoodExtractionError: If the question cannot be turned into a Neighborhood
                 that NeighborhoodModel can solve:
                 the LLM exhausted its retries without producing schema-valid output;
                 it explicitly reported the question as not coverable;
                 it named an entity unresolvable against solution;
                 or it named a primitive combination NeighborhoodModel doesn't support yet.
         """
-        user_prompt = build_user_prompt(self._solution, question_text)
+        if question.solution is not self._solution:
+            raise ValueError("The question must be asked about the solution this Extractor was built for")
+        user_prompt = build_user_prompt(self._solution, question.text)
         messages = [
             ChatCompletionSystemMessageParam(role="system", content=SYSTEM_PROMPT),
             ChatCompletionUserMessageParam(role="user", content=user_prompt),

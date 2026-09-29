@@ -66,7 +66,9 @@ each parameterized by a `QuestionTemplate`. \
 `predefined/bank.py` instantiates every template (in English and French) 
 into the `QUESTIONS_TEMPLATES` dictionary, 
 which is the "why not" question catalogue used by `interacting`
-and mapped to transformation functions in `computing/templates`.
+and mapped to transformation functions in `computing/templates`. \
+Its `free` subdirectory holds the other kind, `FreeTextQuestion`: 
+a question the end user phrased themselves, which `neighborhood/llm`'s `Extractor` takes as its input.
 
 `neighborhood` contains a vocabulary for describing a search space around a solution: 
 `Neighborhood` i.e. the employees and tasks in scope, together with 

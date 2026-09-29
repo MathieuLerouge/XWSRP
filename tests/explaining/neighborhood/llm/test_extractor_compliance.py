@@ -12,6 +12,7 @@ from src.explaining.neighborhood.llm.extractor import Extractor
 from src.explaining.neighborhood.templates.checker import (
     INSERTION_FAMILY, REORDERING_FAMILY, SWAP_FAMILY, TemplateComplianceChecker
 )
+from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.predefined.bank import (
     QUESTIONS_TEMPLATES,
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
@@ -108,7 +109,7 @@ def assert_every_extracted_neighborhood_matches_its_family(
     for fields_values in all_fields_values[:_MAX_SAMPLES_PER_TEMPLATE]:
         question_text = template.complete_text_with_fields_values(fields_values)
         try:
-            neighborhood = extractor.extract(question_text)
+            neighborhood = extractor.extract(FreeTextQuestion(solution, question_text))
         except NeighborhoodExtractionError as error:
             raise AssertionError(f"Extraction failed for {question_text!r}") from error
         assert TemplateComplianceChecker.match(neighborhood) == expected_family, (
