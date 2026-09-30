@@ -2,6 +2,11 @@
 from typing import Callable, Optional
 
 # Local libraries
+from explaining.explanation.explanation import Explanation
+from feasibility.checker import FeasibilityChecker
+from modeling.instance import Instance
+from optimization.heuristics.solution import SolutionForHeuristics
+from optimization.solution import SolutionOpti
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.neighborhood.exceptions import NeighborhoodError
@@ -414,109 +419,75 @@ class ExplainerCLI:
     # Helper Methods #
     ##################
 
-    def _format_explanation_output(self, explanation) -> str:
-        """Format an explanation for display."""
-        question_text = explanation.question.text
-        explanation_text = explanation.text
-        support_feasible = "Yes" if explanation.support_solution_is_feasible else "No"
-        support_name = explanation.support_solution.name
-
-        return f"""
-        Question: {question_text}
-        
-        Explanation:
-        {explanation_text}
-        
-        Support Solution Feasible: {support_feasible}
-        Support Solution Name: {support_name}
-        """
-
-    def _show_current_solution(self) -> str:
-        """Format current solution details."""
-        solution = self._explainer.current_solution
-        instance_name = solution.instance.name
-        feasible = "Yes" if solution.has_kpis else "Unknown"
-
-        try:
-            nb_employees = len(solution.instance.employees)
-            nb_tasks = len(solution.instance.tasks)
-        except AttributeError:
-            nb_employees = 0
-            nb_tasks = 0
-
-        # Get route summary
-        routes_summary = []
-        for employee in solution.instance.employees:
-            try:
-                seq = solution.get_sequence(employee)
-                tasks = [str(step.activity) for step in seq.get_steps() if hasattr(step.activity, 'name')]
-                routes_summary.append(f"{employee.name}: {' -> '.join(tasks)}")
-            except Exception:
-                pass
-
-        return f"""
-        Solution: {solution.name}
-        Instance: {instance_name}
-        Feasible: {feasible}
-        
-        Employees: {nb_employees}
-        Tasks: {nb_tasks}
-        Routes: {len(routes_summary)}
-        """
-
     def _show_current_instance(self) -> str:
         """Format current instance details."""
         instance = self._explainer.current_instance
         return self._format_instance_output(instance)
 
-    def _format_instance_output(self, instance) -> str:
+    @staticmethod
+    def _format_instance_output(instance: Instance) -> str:
         """Format an instance for display."""
-        lines = [f"Instance: {instance.name}", "", "Employees:"]
-
+        lines = [
+            f"Instance: {instance.name}",
+            f"Nb employees: {len(instance.employees)}",
+            f"Nb tasks: {len(instance.tasks)}",
+            ""
+        ]
+        # Employees
+        lines.append("Employees:")
         for employee in instance.employees:
-            lines.append(f"  - {employee.name}: skill={employee.skill_level}, "
-                        f"location={employee.location.name if hasattr(employee.location, 'name') else employee.location}")
-
+            lines.append(employee.__repr__())
         lines.append("")
+        # Tasks
         lines.append("Tasks:")
-
         for task in instance.tasks:
-            lines.append(f"  - {task.name}: duration={task.duration}, "
-                        f"location={task.location.name if hasattr(task.location, 'name') else task.location}")
-
+            lines.append(task.__repr__())
         return "\n".join(lines)
 
-    def _format_solution_output(self, solution) -> str:
+    def _show_current_solution(self) -> str:
+        """Format current solution details."""
+        solution = self._explainer.current_solution
+        return self._format_solution_output(solution)
+
+    @staticmethod
+    def _format_solution_output(solution: Solution) -> str:
         """Format a solution for display."""
-        instance_name = solution.instance.name
-        feasible = "Yes" if solution.has_kpis else "Unknown"
+        instance = solution.instance
+        lines = [
+            f"Solution: {solution.name}",
+            f"Instance: {instance.name}",
+            f"Feasible: {FeasibilityChecker(solution).is_feasible()}",
+            ""
+        ]
+        # Sequences
+        lines.append("Sequences:")
+        for employee in instance.employees:
+            sequence = solution.get_sequence(employee)
+            lines.append(f"{employee.name}: {sequence.__repr__()}")
+        lines.append("")
+        # KPIs
+        if not solution.has_kpis:
+            solution.compute_kpis()
+        lines.append("KPIs:")
+        for kpi_name, kpi_value in solution.kpis.to_dict().items():
+            lines.append(f"{kpi_name}: {kpi_value}")
+        return "\n".join(lines)
 
-        try:
-            nb_employees = len(solution.instance.employees)
-            nb_tasks = len(solution.instance.tasks)
-        except AttributeError:
-            nb_employees = 0
-            nb_tasks = 0
-
-        # Get route summary
-        routes_summary = []
-        for employee in solution.instance.employees:
-            try:
-                seq = solution.get_sequence(employee)
-                tasks = [str(step.activity) for step in seq.get_steps() if hasattr(step.activity, 'name')]
-                routes_summary.append(f"{employee.name}: {' -> '.join(tasks)}")
-            except Exception:
-                pass
-
-        return f"""
-        Solution: {solution.name}
-        Instance: {instance_name}
-        Feasible: {feasible}
-
-        Employees: {nb_employees}
-        Tasks: {nb_tasks}
-        Routes: {len(routes_summary)}
-        """
+    @staticmethod
+    def _format_explanation_output(explanation: Explanation) -> str:
+        """Format an explanation for display."""
+        question_text = explanation.question.text
+        explanation_text = explanation.text
+        support_feasible = "Yes" if explanation.support_solution_is_feasible else "No"
+        lines = [
+            f"Question: {question_text}",
+            f"",
+            f"Explanation:",
+            f"{explanation_text}",
+            f"",
+            f"Feasible support solution: {support_feasible}"
+        ]
+        return "\n".join(lines)
 
     def _show_last_explanation(self) -> str:
         """Format last explanation for display."""
