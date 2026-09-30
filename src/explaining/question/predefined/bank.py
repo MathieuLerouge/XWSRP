@@ -16,7 +16,7 @@ BASED_ON_MOST_RELEVANT_NEIGHBORING_SOLUTION_QUESTIONS_TEMPLATES_IDS = [
 ]
 
 # Why-not / contrastive questions templates
-QUESTIONS_TEMPLATES_LIST = [
+QUESTIONS_TEMPLATES_LIST: list[QuestionTemplate] = [
 
     # Insertion
     QuestionTemplate(

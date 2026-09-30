@@ -12,6 +12,7 @@ from src.feasibility.checker import FeasibilityChecker
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.web.app import ExplainerWebGUI
+from src.explaining.interacting.interface.cli import ExplainerCLI
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.question.predefined.bank import *
 from src.explaining.computing.exceptions import ImpossibleTransformationException
@@ -22,6 +23,7 @@ from src.optimization.milp.solver.exceptions import TimeLimitReachedWithSolution
 from src.importing.solution import import_solution
 from src.utils.constants import DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import get_project_directory_path, get_paths_of_solutions_files_in_given_directory
+from src.utils.language import LANGUAGE_ENGLISH_KEY
 
 
 ##############################
@@ -125,6 +127,36 @@ def launch_explainer_UI_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, e
     explainer = Explainer(get_demo_solution(), configuration)
     explainer_UI = ExplainerWebGUI(explainer)
     explainer_UI.launch()
+
+
+def launch_explainer_cli_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, enable_history: bool = True,
+                                         enable_scenario_explanations: bool = True,
+                                         enable_counterfactual_explanations: bool = True,
+                                         enable_using_already_computed_contrastive_explanations: bool = True):
+    """
+    Launch the explainer CLI on the demo solution.
+
+    :param language: the language to use (str)
+    :param enable_history: whether to enable the history (bool)
+    :param enable_scenario_explanations: whether to enable the scenario explanations (bool)
+    :param enable_counterfactual_explanations: whether to enable the counterfactual explanations (bool)
+    :param enable_using_already_computed_contrastive_explanations:
+    whether to enable using already computed contrastive explanations (bool)
+    :return: None
+    """
+    configuration = ExplainerConfiguration.web_ui(
+        extractor_model=EXTRACTOR_MODEL, language=language,
+        history_enabled=enable_history, scenario_explanations_enabled=enable_scenario_explanations,
+        counterfactual_explanations_enabled=enable_counterfactual_explanations,
+        using_already_computed_contrastive_explanations_enabled=enable_using_already_computed_contrastive_explanations,
+        contrastive_explanation_input_directory_relative_path=(
+            "data/demo/explanations" if enable_using_already_computed_contrastive_explanations
+            else DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
+        )
+    )
+    explainer = Explainer(get_demo_solution(), configuration)
+    cli = ExplainerCLI(explainer.current_solution, explainer)
+    cli.run()
 
 
 #################################
@@ -372,5 +404,6 @@ def compute_computation_time_analysis_of_explanations(
 
 if __name__ == '__main__':
     # compute_contrastive_explanations_about_demo_solution_in_one_file()
-    launch_explainer_UI_on_demo_solution()
+    # launch_explainer_UI_on_demo_solution()
+    launch_explainer_cli_on_demo_solution()
     # launch_explainer_UI_on_default_solution()
