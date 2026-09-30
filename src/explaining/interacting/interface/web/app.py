@@ -21,6 +21,7 @@ from src.explaining.interacting.interface.web.tables import build_tasks_data_con
 from src.explaining.interacting.interface.web.tools import convert_from_string_to_html
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.question.predefined.bank import *
+from src.explaining.interacting.counter import QuestionType
 from src.explaining.interacting.explainer import Explainer
 from src.modeling.solution import Solution
 from src.utils.constants import LINE_BREAK_STRING
@@ -1921,7 +1922,7 @@ class ExplainerWebGUI:
                 return contrastive_question_text_placeholder, 'empty-automated-text'
             # Case where the questions templates dropdown is non-empty
             else:
-                statistics_text = str(self._explainer.get_asked_contrastive_question_count(question_template_id))
+                statistics_text = str(self._explainer.explanation_counter.get_count(QuestionType.CONTRASTIVE, question_template_id))
                 return statistics_text, 'automated-text'
 
         ################################################

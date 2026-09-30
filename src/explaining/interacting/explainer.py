@@ -8,13 +8,12 @@ from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.interacting.configuration import ExplainerConfiguration
+from src.explaining.interacting.counter import ExplanationCounter
 from src.explaining.interacting.history import History
 from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.question import Question
-from src.explaining.question.predefined.question import (
-    ContrastiveQuestion, CounterfactualQuestion, PredefinedQuestion, ScenarioQuestion
-)
+from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
 from src.explaining.question.predefined.bank import *
 from src.explaining.importing.explanation import (
     import_single_explanation_from_json_file, import_multiple_explanations_from_json_file
@@ -55,40 +54,29 @@ class Explainer:
             configuration: The construction-time settings to build this explainer with,
                 defaulting to ExplainerConfiguration()'s own defaults (every optional behaviour off) when not given.
         """
+        # Configuration
         self._configuration = configuration if configuration is not None else ExplainerConfiguration()
+        # Free-text questions
+        self._extractor: Optional["Extractor"] = None
+        self._solution_the_extractor_was_built_for: Optional[EditableSolution] = None
+        # Predefined questions
         self._activated_question_templates: dict[str, QuestionTemplate] = dict(
             [(template_id, QUESTIONS_TEMPLATES[template_id])
              for template_id in self._configuration.activated_question_template_ids]
         )
-        self._root_solution = EditableSolution.from_solution(solution)
+        self._explanation_counter = ExplanationCounter(list(self._activated_question_templates.keys()))
         self.language = self._configuration.language
-        # Free-text questions
-        self._extractor: Optional["Extractor"] = None
-        self._solution_the_extractor_was_built_for: Optional[EditableSolution] = None
         # History
+        self._root_solution = EditableSolution.from_solution(solution)
         self._history = History(self._root_solution)
         self._current_solution = self._root_solution
-        # Contrastive explanations
-        self._already_computed_contrastive_explanations: dict[str, dict[str, Explanation]] = dict()
-        self._last_contrastive_explanation: Optional[Explanation] = None
-        self._nb_contrastive_explanations_asked_by_ids: dict[str, int] = dict(
-            [(template_id, 0) for template_id in self._activated_question_templates.keys()]
-        )
-        # Scenario explanations
-        self._last_scenario_explanation: Optional[Explanation] = None
-        self._nb_scenario_explanations_asked_by_ids: dict[str, int] = dict(
-            [(template_id, 0) for template_id in self._activated_question_templates.keys()]
-        )
-        # Counterfactual explanations
-        self._last_counterfactual_explanation: Optional[Explanation] = None
-        self._nb_counterfactual_explanations_asked_by_ids: dict[str, int] = dict(
-            [(template_id, 0) for template_id in self._activated_question_templates.keys()]
-        )
-        # NB: history_enabled/using_already_computed_contrastive_explanations_enabled do more than store a flag
-        # (a fresh solution/instance copy, resp. loading already exported explanations from disk);
-        # as neither can change after construction, applying that side effect here is the only time it is ever needed.
         if self._configuration.history_enabled:
             self._enable_history()
+        # Contrastive explanations
+        self._last_contrastive_explanation: Optional[Explanation] = None
+        self._last_scenario_explanation: Optional[Explanation] = None
+        self._last_counterfactual_explanation: Optional[Explanation] = None
+        self._already_computed_contrastive_explanations: dict[str, dict[str, Explanation]] = dict()
         if self._configuration.using_already_computed_contrastive_explanations_enabled:
             self._enable_using_already_computed_contrastive_explanations()
 
@@ -141,51 +129,10 @@ class Explainer:
         """Every question template activated for this explainer, fixed by its configuration at construction."""
         return list(self._activated_question_templates.values())
 
-    def _increase_asked_predefined_question_count(self, question: PredefinedQuestion):
-        """
-        Increases by one the asked count of the given question's template, in the count dict its kind keeps.
-
-        Args:
-            question: The predefined question that was just asked.
-
-        Raises:
-            ValueError: if the question is of a kind this explainer does not keep an asked count for.
-        """
-        if isinstance(question, ContrastiveQuestion):
-            asked_predefined_question_counts = self._nb_contrastive_explanations_asked_by_ids
-        elif isinstance(question, ScenarioQuestion):
-            asked_predefined_question_counts = self._nb_scenario_explanations_asked_by_ids
-        elif isinstance(question, CounterfactualQuestion):
-            asked_predefined_question_counts = self._nb_counterfactual_explanations_asked_by_ids
-        else:
-            raise ValueError(f"Unknown question type: {type(question)}")
-        asked_predefined_question_counts[question.template.id] = (
-            asked_predefined_question_counts.get(question.template.id, 0) + 1
-        )
-
-    def reset_asked_predefined_question_counts(self):
-        """Resets to zero the asked count of every activated question template, for every question kind."""
-        self._nb_contrastive_explanations_asked_by_ids = dict(
-            [(template_id, 0) for template_id in self._activated_question_templates.keys()]
-        )
-        self._nb_scenario_explanations_asked_by_ids = dict(
-            [(template_id, 0) for template_id in self._activated_question_templates.keys()]
-        )
-        self._nb_counterfactual_explanations_asked_by_ids = dict(
-            [(template_id, 0) for template_id in self._activated_question_templates.keys()]
-        )
-
-    def get_asked_contrastive_question_count(self, question_template_id: str):
-        """
-        Returns how many contrastive questions were asked of the given template, zero if none was.
-
-        Args:
-            question_template_id: Id of the template to count the questions of.
-
-        Returns:
-            The number of questions asked of it since the last reset.
-        """
-        return self._nb_contrastive_explanations_asked_by_ids.get(question_template_id, 0)
+    @property
+    def explanation_counter(self) -> ExplanationCounter:
+        """The counter tracking how many times each question template has been asked, for each question type."""
+        return self._explanation_counter
 
     ###########
     # History #
@@ -572,7 +519,7 @@ class Explainer:
         Returns:
             The explanation answering it.
         """
-        self._increase_asked_predefined_question_count(contrastive_question)
+        self.explanation_counter.increase_question_count(contrastive_question)
         contrastive_explanation = None
         if self._configuration.using_already_computed_contrastive_explanations_enabled:
             if self._check_if_contrastive_explanation_is_in_already_computed_ones(contrastive_question):
@@ -682,7 +629,7 @@ class Explainer:
         """
         if self._configuration.scenario_explanations_enabled:
             scenario_question = self._create_scenario_question(scenario_instance)
-            self._increase_asked_predefined_question_count(scenario_question)
+            self.explanation_counter.increase_question_count(scenario_question)
             current_solution = self.current_solution
             scenario_current_solution = current_solution.copy(current_solution.name + "_scenario")
             scenario_current_solution.instance = scenario_instance
@@ -798,7 +745,7 @@ class Explainer:
             else:
                 raise ValueError("Question template id and fields values must be either both None or both not None")
             counterfactual_question = self._create_counterfactual_question(contrastive_question, instance_slacks)
-            self._increase_asked_predefined_question_count(counterfactual_question)
+            self.explanation_counter.increase_question_count(counterfactual_question)
             current_solution = self.current_solution
             counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
             transformation_result = TransformationDispatcher.handle_counterfactual_question(

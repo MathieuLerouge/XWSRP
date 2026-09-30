@@ -12,6 +12,7 @@ from src.explaining.explanation.predefined.explanation import (
     NonImprovingNegativeExplanation, PositiveExplanation, SkillNegativeExplanation, TimeNegativeExplanation
 )
 from src.explaining.interacting.configuration import ExplainerConfiguration
+from src.explaining.interacting.counter import QuestionType
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.neighborhood.assembler import Assembler
@@ -132,13 +133,13 @@ def test_asking_an_unactivated_template_is_refused(demo_solution):
 
 def test_asking_counts_are_tracked_per_template(demo_solution):
     explainer = build_explainer(demo_solution)
-    assert explainer.get_asked_contrastive_question_count(WHY_NOT_INS_1) == 0
+    assert explainer.explanation_counter.get_count(QuestionType.CONTRASTIVE, WHY_NOT_INS_1) == 0
     for fields_values in FIELDS_VALUES_BY_EXPLANATION_TYPE.values():
         explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
-    assert explainer.get_asked_contrastive_question_count(WHY_NOT_INS_1) == \
+    assert explainer.explanation_counter.get_count(QuestionType.CONTRASTIVE, WHY_NOT_INS_1) == \
            len(FIELDS_VALUES_BY_EXPLANATION_TYPE)
-    explainer.reset_asked_predefined_question_counts()
-    assert explainer.get_asked_contrastive_question_count(WHY_NOT_INS_1) == 0
+    explainer.explanation_counter.reset()
+    assert explainer.explanation_counter.get_count(QuestionType.CONTRASTIVE, WHY_NOT_INS_1) == 0
 
 
 def test_the_last_contrastive_explanation_is_the_one_just_asked(demo_solution):
@@ -466,8 +467,8 @@ def test_a_template_that_was_never_asked_has_a_count_of_zero(demo_solution):
     The web UI reads this straight into the contrastive tab's statistics text.
     """
     explainer = build_explainer(demo_solution)
-    explainer.reset_asked_predefined_question_counts()
-    assert explainer.get_asked_contrastive_question_count(WHY_NOT_SWP_1) == 0
+    explainer.explanation_counter.reset()
+    assert explainer.explanation_counter.get_count(QuestionType.CONTRASTIVE, WHY_NOT_SWP_1) == 0
 
 
 def test_a_question_built_outside_the_activated_set_is_still_counted(demo_solution):
@@ -478,7 +479,7 @@ def test_a_question_built_outside_the_activated_set_is_still_counted(demo_soluti
     question = ContrastiveQuestion(
         explainer.current_solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
     assert explainer.get_explanation(question).text
-    assert explainer.get_asked_contrastive_question_count(WHY_NOT_INS_1) == 1
+    assert explainer.explanation_counter.get_count(QuestionType.CONTRASTIVE, WHY_NOT_INS_1) == 1
 
 
 ###################################
