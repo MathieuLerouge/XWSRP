@@ -9,6 +9,7 @@ import numpy as np
 from main_configuration import EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION, \
     EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES, EXTRACTOR_MODEL
 from src.feasibility.checker import FeasibilityChecker
+from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.web.app import ExplainerWebGUI
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion
@@ -58,14 +59,9 @@ def compute_contrastive_explanations_about_demo_solution_in_separate_files(quest
     :return: None
     """
     solution = get_demo_solution()
-    explainer = Explainer(solution)
-    explainer.disable_history()
-    explainer.disable_scenario_explanations()
-    explainer.disable_counterfactual_explanations()
-    explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_each_contrastive_explanation_automatically()
+    explainer = Explainer(solution, ExplainerConfiguration.batch())
     if questions_templates_ids is None:
-        questions_templates_ids = explainer.activated_question_template_ids
+        questions_templates_ids = explainer.configuration.activated_question_template_ids
     explanations = []
     for question_template_id in questions_templates_ids:
         question_template = QUESTIONS_TEMPLATES[question_template_id]
@@ -86,14 +82,11 @@ def compute_contrastive_explanations_about_demo_solution_in_one_file(questions_t
     :return: None
     """
     solution = get_demo_solution()
-    explainer = Explainer(solution)
-    explainer.disable_history()
-    explainer.disable_scenario_explanations()
-    explainer.disable_counterfactual_explanations()
-    explainer.enable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_each_contrastive_explanation_automatically()
+    explainer = Explainer(
+        solution, ExplainerConfiguration.batch(using_already_computed_contrastive_explanations_enabled=True)
+    )
     if questions_templates_ids is None:
-        questions_templates_ids = explainer.activated_question_template_ids
+        questions_templates_ids = explainer.configuration.activated_question_template_ids
     for question_template_id in questions_templates_ids:
         question_template = QUESTIONS_TEMPLATES[question_template_id]
         if question_template in explainer.activated_question_templates:
@@ -119,18 +112,17 @@ def launch_explainer_UI_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, e
     whether to enable using already computed contrastive explanations (bool)
     :return: None
     """
-    explainer = Explainer(get_demo_solution(), extractor_model=EXTRACTOR_MODEL)
-    explainer.set_language(language)
-    if enable_history:
-        explainer.enable_history()
-    if enable_scenario_explanations:
-        explainer.enable_scenario_explanations()
-    if enable_counterfactual_explanations:
-        explainer.enable_counterfactual_explanations()
-    if enable_using_already_computed_contrastive_explanations:
-        explainer.contrastive_explanation_input_directory_relative_path = "data/demo/explanations"
-        explainer.enable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_each_contrastive_explanation_automatically()
+    configuration = ExplainerConfiguration.web_ui(
+        extractor_model=EXTRACTOR_MODEL, language=language,
+        history_enabled=enable_history, scenario_explanations_enabled=enable_scenario_explanations,
+        counterfactual_explanations_enabled=enable_counterfactual_explanations,
+        using_already_computed_contrastive_explanations_enabled=enable_using_already_computed_contrastive_explanations,
+        contrastive_explanation_input_directory_relative_path=(
+            "data/demo/explanations" if enable_using_already_computed_contrastive_explanations
+            else DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
+        )
+    )
+    explainer = Explainer(get_demo_solution(), configuration)
     explainer_UI = ExplainerWebGUI(explainer)
     explainer_UI.launch()
 
@@ -169,16 +161,13 @@ def launch_explainer_UI_on_default_solution(language: str, enable_history: bool 
     :param enable_counterfactual_explanations: whether to enable the counterfactual explanations (bool)
     :return: None
     """
-    explainer = Explainer(get_default_solution(), extractor_model=EXTRACTOR_MODEL)
-    explainer.set_language(language)
-    if enable_history:
-        explainer.enable_history()
-    if enable_scenario_explanations:
-        explainer.enable_scenario_explanations()
-    if enable_counterfactual_explanations:
-        explainer.enable_counterfactual_explanations()
-    explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_each_contrastive_explanation_automatically()
+    configuration = ExplainerConfiguration.web_ui(
+        extractor_model=EXTRACTOR_MODEL, language=language,
+        history_enabled=enable_history, scenario_explanations_enabled=enable_scenario_explanations,
+        counterfactual_explanations_enabled=enable_counterfactual_explanations,
+        using_already_computed_contrastive_explanations_enabled=False
+    )
+    explainer = Explainer(get_default_solution(), configuration)
     explainer_UI = ExplainerWebGUI(explainer)
     explainer_UI.launch()
 
@@ -206,26 +195,25 @@ def compute_computation_time_analysis_of_explanations(
         explanations_are_contrastive = False
 
     # Prepare explainer
-    explainer = Explainer(solution)
-    explainer.disable_history()
-    explainer.disable_scenario_explanations()
-    if explanations_are_contrastive:
-        explainer.disable_counterfactual_explanations()
-        explainer.time_limit_for_contrastive_explanation_milp_computation = \
-            EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION
-    else:
-        explainer.enable_counterfactual_explanations()
-        explainer.time_limit_for_counterfactual_explanation_milp_computation = \
-            EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION
-    explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_each_contrastive_explanation_automatically()
+    configuration = ExplainerConfiguration(
+        history_enabled=False, scenario_explanations_enabled=False,
+        counterfactual_explanations_enabled=not explanations_are_contrastive,
+        time_limit_for_contrastive_explanation_milp_computation=(
+            EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION if explanations_are_contrastive else None
+        ),
+        time_limit_for_counterfactual_explanation_milp_computation=(
+            EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION if not explanations_are_contrastive
+            else None
+        )
+    )
+    explainer = Explainer(solution, configuration)
 
     # Define question templates to analyze
     if questions_templates_ids is None:
         if explanations_are_contrastive:
-            questions_templates_ids = explainer.activated_question_template_ids
+            questions_templates_ids = explainer.configuration.activated_question_template_ids
         else:
-            questions_templates_ids = explainer.activated_counterfactual_questions_templates_ids
+            questions_templates_ids = explainer.configuration.activated_counterfactual_questions_templates_ids
 
     # Run analysis
     analysis = dict()

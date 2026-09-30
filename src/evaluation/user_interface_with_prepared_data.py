@@ -2,6 +2,7 @@
 from src.evaluation.constants import ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION, EVALUATION_EXPERIMENTS_PARAMETERS
 from src.evaluation.prepared_data_extraction import get_solution_for_evaluation, \
     get_explanations_for_evaluation_directory_path
+from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.web.app import ExplainerWebGUI
 from src.explaining.question.predefined.bank import LANGUAGE_FRENCH_KEY
@@ -26,15 +27,12 @@ def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, en
     :param language: the language to use (str) (default language is French)
     :return: the explainer GUI (ExplainerWebGUI)
     """
-    explainer = Explainer(solution)
-    explainer.set_language(language)
-    explainer.activate_only_question_templates(ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION)
-    explainer.disable_history()
-    explainer.disable_scenario_explanations()
-    explainer.disable_counterfactual_explanations()
-    explainer.contrastive_explanation_input_directory_relative_path = get_explanations_for_evaluation_directory_path()
-    explainer.enable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_each_contrastive_explanation_automatically()
+    configuration = ExplainerConfiguration.batch(
+        language=language, using_already_computed_contrastive_explanations_enabled=True,
+        contrastive_explanation_input_directory_relative_path=get_explanations_for_evaluation_directory_path(),
+        activated_question_template_ids=ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION
+    )
+    explainer = Explainer(solution, configuration)
     if enable_explanations:
         title = "Visualize Plannings Plus"
         subtitle = "Outil de visualisation et d'explication des données de ComputePlannings"

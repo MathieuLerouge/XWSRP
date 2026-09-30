@@ -1,6 +1,7 @@
 # Standard libraries
 import os
 import shutil
+from typing import Optional
 
 # Third-party library
 import pytest
@@ -10,6 +11,7 @@ from src.explaining.exporting.explanation import define_multiple_contrastive_exp
 from src.explaining.explanation.predefined.explanation import (
     NonImprovingNegativeExplanation, PositiveExplanation, SkillNegativeExplanation, TimeNegativeExplanation
 )
+from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.neighborhood.assembler import Assembler
@@ -39,7 +41,6 @@ FIELDS_VALUES_BY_EXPLANATION_TYPE = {
     NonImprovingNegativeExplanation: ['Adam', 'T1', 'T24'],
 }
 STORED_DEMO_EXPLANATIONS_PATH = "data/demo/explanations/explanations_solution_demo.json"
-FIELDS_VALUES_FOR_SWAP = ['Ellen', 'T2', 'T1']
 
 
 @pytest.fixture(autouse=True)
@@ -61,24 +62,38 @@ def demo_solution() -> Solution:
     return get_demo_solution()
 
 
-def build_explainer(solution: Solution, extractor_model: str = None) -> Explainer:
+def build_explainer(solution: Solution, extractor_model: Optional[str] = None, history_enabled: bool = False,
+                    using_already_computed_contrastive_explanations_enabled: bool = False,
+                    activated_question_template_ids: Optional[list[str]] = None) -> Explainer:
     """
     Returns an Explainer with every optional behaviour switched off, so a test turns on only what it exercises.
+
+    history_enabled, using_already_computed_contrastive_explanations_enabled and
+    activated_question_template_ids are fixed at construction, so a test needing any of them other than
+    their default must ask for it here rather than changing it afterward.
 
     Args:
         solution: The solution to explain.
         extractor_model: The extractor model string, for the tests asking a free-text question.
+        history_enabled: Whether to keep every solution asked about or saved.
+        using_already_computed_contrastive_explanations_enabled: Whether to reuse already computed
+            contrastive explanations instead of recomputing them.
+        activated_question_template_ids: Ids of the question templates to activate,
+            or None to activate every available one.
 
     Returns:
-        The hermetic Explainer: no history, no scenario or counterfactual questions, no cache, no export.
+        The hermetic Explainer: no history, no scenario or counterfactual questions, no cache, no export
+        unless explicitly asked for above.
     """
-    explainer = Explainer(solution, extractor_model=extractor_model)
-    explainer.disable_history()
-    explainer.disable_scenario_explanations()
-    explainer.disable_counterfactual_explanations()
-    explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_each_contrastive_explanation_automatically()
-    return explainer
+    return Explainer(solution, ExplainerConfiguration(
+        extractor_model=extractor_model, history_enabled=history_enabled,
+        activated_question_template_ids=activated_question_template_ids,
+        scenario_explanations_enabled=False, counterfactual_explanations_enabled=False,
+        using_already_computed_contrastive_explanations_enabled=(
+            using_already_computed_contrastive_explanations_enabled
+        ),
+        exporting_each_contrastive_explanation_automatically_enabled=False
+    ))
 
 
 ##########################
@@ -110,8 +125,7 @@ def test_positive_and_negative_agree_with_the_solution_ordering(demo_solution):
 
 
 def test_asking_an_unactivated_template_is_refused(demo_solution):
-    explainer = build_explainer(demo_solution)
-    explainer.deactivate_question_template(WHY_NOT_INS_1)
+    explainer = build_explainer(demo_solution, activated_question_template_ids=[WHY_NOT_SWP_1])
     with pytest.raises(ValueError, match="not handled by this explainer"):
         explainer.get_contrastive_explanation(WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[PositiveExplanation])
 
@@ -144,8 +158,7 @@ def test_an_explanation_asked_twice_is_served_from_memory(demo_solution):
     """
     With the cache on, the second ask must hand back the very object the first one produced.
     """
-    explainer = build_explainer(demo_solution)
-    explainer.enable_using_already_computed_contrastive_explanations()
+    explainer = build_explainer(demo_solution, using_already_computed_contrastive_explanations_enabled=True)
     fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]
     first = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
     second = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
@@ -177,9 +190,10 @@ def test_stored_explanations_are_loaded_and_served_from_disk(demo_solution, tmp_
             os.path.join(inputs_directory_path,
                          define_multiple_contrastive_explanations_json_file_name(demo_solution))
         )
-        explainer = build_explainer(demo_solution)
-        explainer.contrastive_explanation_input_directory_relative_path = inputs_directory_relative_path
-        explainer.enable_using_already_computed_contrastive_explanations()
+        explainer = Explainer(demo_solution, ExplainerConfiguration.batch(
+            using_already_computed_contrastive_explanations_enabled=True,
+            contrastive_explanation_input_directory_relative_path=inputs_directory_relative_path
+        ))
         assert len(explainer.already_computed_contrastive_explanations) > 0
         explanation = explainer.get_contrastive_explanation(
             WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
@@ -203,14 +217,14 @@ def test_a_scenario_question_needs_scenario_explanations_enabled(demo_solution):
 
 def test_a_scenario_question_needs_a_contrastive_one_before_it(demo_solution):
     explainer = build_explainer(demo_solution)
-    explainer.enable_scenario_explanations()
+    explainer.configuration.scenario_explanations_enabled = True
     with pytest.raises(PermissionError):
         explainer.compute_scenario_explanation(EditableInstance.from_Instance(explainer.current_instance))
 
 
 def test_a_scenario_explanation_answers_the_last_contrastive_question(demo_solution):
     explainer = build_explainer(demo_solution)
-    explainer.enable_scenario_explanations()
+    explainer.configuration.scenario_explanations_enabled = True
     contrastive_explanation = explainer.get_contrastive_explanation(
         WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
     scenario_explanation = explainer.compute_scenario_explanation(
@@ -234,14 +248,14 @@ def test_a_counterfactual_question_needs_counterfactual_explanations_enabled(dem
 
 def test_a_counterfactual_question_refuses_half_of_a_question(demo_solution):
     explainer = build_explainer(demo_solution)
-    explainer.enable_counterfactual_explanations()
+    explainer.configuration.counterfactual_explanations_enabled = True
     with pytest.raises(ValueError, match="both None or both not None"):
         explainer.compute_counterfactual_explanation(WHY_NOT_INS_1)
 
 
 def test_a_counterfactual_explanation_is_built_from_a_given_question(demo_solution):
     explainer = build_explainer(demo_solution)
-    explainer.enable_counterfactual_explanations()
+    explainer.configuration.counterfactual_explanations_enabled = True
     explanation = explainer.compute_counterfactual_explanation(
         WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
     assert explanation.is_counterfactual
@@ -251,7 +265,7 @@ def test_a_counterfactual_explanation_is_built_from_a_given_question(demo_soluti
 
 def test_a_counterfactual_explanation_falls_back_on_the_last_contrastive_question(demo_solution):
     explainer = build_explainer(demo_solution)
-    explainer.enable_counterfactual_explanations()
+    explainer.configuration.counterfactual_explanations_enabled = True
     contrastive_explanation = explainer.get_contrastive_explanation(
         WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
     explanation = explainer.compute_counterfactual_explanation()
@@ -265,7 +279,7 @@ def test_a_counterfactual_explanation_falls_back_on_the_last_contrastive_questio
 
 def test_storing_a_solution_needs_history_enabled(demo_solution):
     explainer = build_explainer(demo_solution)
-    assert explainer.history_is_disabled
+    assert not explainer.configuration.history_enabled
     with pytest.raises(PermissionError, match="Historizing is disabled"):
         explainer.store_solution(demo_solution)
 
@@ -273,27 +287,30 @@ def test_storing_a_solution_needs_history_enabled(demo_solution):
 def test_enabling_history_works_on_a_renamed_copy_of_the_root_solution(demo_solution):
     """
     Enabling history must leave the root solution alone and question a renamed copy of it instead.
+
+    history_enabled is fixed at construction, so the with/without comparison is across two separate
+    Explainers rather than one toggled on then off.
     """
-    explainer = build_explainer(demo_solution)
-    root_solution_name = explainer.current_solution.name
-    explainer.enable_history()
-    assert explainer.history_is_enabled
-    assert explainer.current_solution.name != root_solution_name
-    assert explainer.current_solution.name in explainer.solutions_names
-    assert explainer.nb_instances == 1
-    explainer.disable_history()
-    assert explainer.history_is_disabled
-    assert explainer.current_solution.name == root_solution_name
+    root_explainer = build_explainer(demo_solution)
+    root_solution_name = root_explainer.current_solution.name
+
+    history_explainer = build_explainer(demo_solution, history_enabled=True)
+    assert history_explainer.configuration.history_enabled
+    assert history_explainer.current_solution.name != root_solution_name
+    assert history_explainer.current_solution.name in history_explainer.history.solutions_names
+    assert history_explainer.history.nb_instances == 1
+
+    assert not root_explainer.configuration.history_enabled
+    assert root_explainer.current_solution.name == root_solution_name
 
 
 def test_a_stored_solution_is_reachable_by_name(demo_solution):
-    explainer = build_explainer(demo_solution)
-    explainer.enable_history()
+    explainer = build_explainer(demo_solution, history_enabled=True)
     support_solution = explainer.get_contrastive_explanation(
         WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[PositiveExplanation]).support_solution
     explainer.store_solution(support_solution)
-    assert support_solution.name in explainer.solutions_names
-    assert explainer.get_solution_by_name(support_solution.name).name == support_solution.name
+    assert support_solution.name in explainer.history.solutions_names
+    assert explainer.history.get_solution_by_name(support_solution.name).name == support_solution.name
 
 
 ############################
@@ -431,32 +448,16 @@ def test_the_language_reaches_the_explanation_text(demo_solution):
     fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]
     english_explanation = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
     assert english_explanation.language_is_english
-    explainer.set_language(LANGUAGE_FRENCH_KEY)
+    explainer.language = LANGUAGE_FRENCH_KEY
     assert explainer.language_is_french
     french_explanation = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
     assert french_explanation.language_is_french
     assert french_explanation.text != english_explanation.text
 
 
-#############################################
-# Counts across activation and reactivation #
-#############################################
-
-def test_a_reactivated_template_can_be_asked_again(demo_solution):
-    """
-    Re-activating a template after a counts reset must leave it askable.
-
-    Both the constructor and reset_questions_asked_counts key the counters off the activated templates,
-    while activating one adds it to that set without adding a counter key, so asking it raised KeyError.
-    """
-    explainer = build_explainer(demo_solution)
-    explainer.activate_only_question_templates([WHY_NOT_INS_1])
-    explainer.reset_asked_predefined_question_counts()
-    explainer.activate_question_template(WHY_NOT_SWP_1)
-    explanation = explainer.get_contrastive_explanation(WHY_NOT_SWP_1, FIELDS_VALUES_FOR_SWAP)
-    assert explanation.text
-    assert explainer.get_asked_contrastive_question_count(WHY_NOT_SWP_1) == 1
-
+##########
+# Counts #
+##########
 
 def test_a_template_that_was_never_asked_has_a_count_of_zero(demo_solution):
     """
@@ -465,9 +466,7 @@ def test_a_template_that_was_never_asked_has_a_count_of_zero(demo_solution):
     The web UI reads this straight into the contrastive tab's statistics text.
     """
     explainer = build_explainer(demo_solution)
-    explainer.deactivate_question_template(WHY_NOT_SWP_1)
     explainer.reset_asked_predefined_question_counts()
-    explainer.activate_question_template(WHY_NOT_SWP_1)
     assert explainer.get_asked_contrastive_question_count(WHY_NOT_SWP_1) == 0
 
 
@@ -475,11 +474,9 @@ def test_a_question_built_outside_the_activated_set_is_still_counted(demo_soluti
     """
     get_explanation takes a question already built, so its template need not be an activated one.
     """
-    explainer = build_explainer(demo_solution)
+    explainer = build_explainer(demo_solution, activated_question_template_ids=[])
     question = ContrastiveQuestion(
         explainer.current_solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
-    explainer.deactivate_all_question_templates()
-    explainer.reset_asked_predefined_question_counts()
     assert explainer.get_explanation(question).text
     assert explainer.get_asked_contrastive_question_count(WHY_NOT_INS_1) == 1
 
@@ -489,9 +486,8 @@ def test_a_question_built_outside_the_activated_set_is_still_counted(demo_soluti
 ###################################
 
 def test_a_saved_scenario_support_solution_is_named_after_a_new_instance(demo_solution):
-    explainer = build_explainer(demo_solution)
-    explainer.enable_history()
-    explainer.enable_scenario_explanations()
+    explainer = build_explainer(demo_solution, history_enabled=True)
+    explainer.configuration.scenario_explanations_enabled = True
     root_solution_name, root_instance_name = explainer.current_solution.name, explainer.current_instance.name
     explainer.get_contrastive_explanation(
         WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
@@ -507,9 +503,8 @@ def test_a_saved_counterfactual_support_solution_is_named_the_same_way(demo_solu
     """
     A counterfactual save names its solution exactly as a scenario save does: both alter the instance.
     """
-    explainer = build_explainer(demo_solution)
-    explainer.enable_history()
-    explainer.enable_counterfactual_explanations()
+    explainer = build_explainer(demo_solution, history_enabled=True)
+    explainer.configuration.counterfactual_explanations_enabled = True
     root_solution_name, root_instance_name = explainer.current_solution.name, explainer.current_instance.name
     explainer.compute_counterfactual_explanation(
         WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
@@ -535,9 +530,8 @@ def test_exporting_every_computed_explanation_honours_the_configured_directory(d
     outputs_directory_path = os.path.join(os.getcwd(), outputs_directory_relative_path)
     os.makedirs(outputs_directory_path, exist_ok=True)
     try:
-        explainer = build_explainer(demo_solution)
-        explainer.enable_using_already_computed_contrastive_explanations()
-        explainer.contrastive_explanation_output_directory_relative_path = outputs_directory_relative_path
+        explainer = build_explainer(demo_solution, using_already_computed_contrastive_explanations_enabled=True)
+        explainer.configuration.contrastive_explanation_output_directory_relative_path = outputs_directory_relative_path
         explainer.get_contrastive_explanation(
             WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
         explainer.export_all_already_computed_contrastive_explanations()

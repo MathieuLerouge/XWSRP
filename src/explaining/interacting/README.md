@@ -29,9 +29,13 @@ so both kinds of question come back as the same kind of `Explanation`.
 
 `explainer.py` contains `Explainer`, described above and detailed in section 3.
 
+`configuration.py` contains `ExplainerConfiguration`, 
+the construction-time settings `Explainer` is built from, detailed in section 3.4.
+
 `history.py` contains `History`, a store of the instances and the solutions of each, keyed by name. \
 It is what lets an end user alter an instance, keep the solution that came out of it, and navigate back. \
-`Explainer` is its only user, and re-exposes most of it by delegation.
+`Explainer` is its only user, and exposes it directly through `explainer.history` (e.g.
+`explainer.history.solutions_names`) rather than re-exposing its methods one by one.
 
 In `interface` subpackage:
 
@@ -60,8 +64,9 @@ so each has its own entry point, `compute_scenario_explanation` and `compute_cou
 
 ## 3.2. Answering a free-text question
 
-The free-text route needs an LLM backend, so `Explainer` takes an `extractor_model` string
-(`main_configuration.EXTRACTOR_MODEL`, in the format `instructor.from_provider` expects). \
+The free-text route needs an LLM backend, so `Explainer` is built from an `extractor_model` string
+(`main_configuration.EXTRACTOR_MODEL`, in the format `instructor.from_provider` expects), 
+held in its `ExplainerConfiguration`. \
 It defaults to None, and the `Extractor` is built on first use rather than in the constructor, 
 so that asking predefined questions needs neither the `instructor` package nor any backend running. \
 The `Extractor` grounds names against one solution and refuses a question asked about another, 
@@ -88,6 +93,16 @@ A free-text explanation has neither, and `FreeTextQuestion` has no `to_dict`,
 so free-text answers are neither cached nor exported. 
 They do become the last contrastive explanation, so scenario and counterfactual follow-ups can still build on them.
 
+## 3.4. Configuration
+
+`configuration.py`'s `ExplainerConfiguration` holds every construction-time setting `Explainer` is built from: 
+language, extractor model, which question templates are activated, the history/scenario/counterfactual/
+reuse-already-computed/auto-export toggles, the contrastive explanation input/output directories, and the 
+two MILP time limits. \
+Two `@classmethod` presets cover the two configurations every construction site actually needs:
+`ExplainerConfiguration.batch(...)` (history, scenario, counterfactual and automatic export all off) 
+and `ExplainerConfiguration.web_ui(...)` (those three on by default).
+
 
 # 4. Launching an interface
 
@@ -100,8 +115,3 @@ They do become the last contrastive explanation, so scenario and counterfactual 
 Deployment does not call `launch()`. `evaluation/deployed_application.py` reaches through
 `ExplainerWebGUI.application.server` for gunicorn to serve, as the `Procfile` at the root spells out —
 so `application` is as much a part of the public contract as `launch()` is.
-
-
-### Next steps:
-`Explainer` is configured by a long series of `enable_*`/`disable_*` calls made in much the same order by
-each of its eight construction sites, which a configuration object would express better.

@@ -6,6 +6,7 @@ from src.feasibility.checker import FeasibilityChecker
 from src.evaluation.constants import INSTANCES_FOR_EVALUATION_NAMES, SOLUTIONS_FOR_EVALUATION_NAMES, \
     ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION
 from src.evaluation.prepared_data_extraction import get_explanations_for_evaluation_directory_path
+from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.question.predefined.bank import *
 from src.explaining.exporting.explanation import export_multiple_contrastive_explanations_to_json_file
@@ -15,6 +16,7 @@ from src.optimization.heuristics.solution import SolutionForHeuristics
 from src.optimization.milp.model import Model
 from src.importing.instance import extract_instance_from_file
 from src.importing.solution import import_solution
+from src.utils.constants import DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import get_default_inputs_directory_path
 
 
@@ -123,17 +125,14 @@ def check_explanations_negativity(solution: Solution, only_activated_questions_t
     :param use_already_computed_explanations: if True, use already computed explanations to check negativity
     :return:
     """
-    explainer = Explainer(solution)
-    explainer.disable_history()
-    explainer.disable_scenario_explanations()
-    explainer.disable_counterfactual_explanations()
-    if use_already_computed_explanations:
-        explainer.contrastive_explanation_input_directory_relative_path = \
-            get_explanations_for_evaluation_directory_path()
-        explainer.enable_using_already_computed_contrastive_explanations()
-    else:
-        explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_each_contrastive_explanation_automatically()
+    configuration = ExplainerConfiguration.batch(
+        using_already_computed_contrastive_explanations_enabled=use_already_computed_explanations,
+        contrastive_explanation_input_directory_relative_path=(
+            get_explanations_for_evaluation_directory_path() if use_already_computed_explanations
+            else DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
+        )
+    )
+    explainer = Explainer(solution, configuration)
     if only_activated_questions_templates_for_evaluation:
         questions_templates = \
             [QUESTIONS_TEMPLATES[question_template_id]
@@ -178,12 +177,7 @@ def compute_and_export_contrastive_explanations(solution: Solution,
     a MILP model are considered (bool)
     :return: None
     """
-    explainer = Explainer(solution)
-    explainer.disable_history()
-    explainer.disable_scenario_explanations()
-    explainer.disable_counterfactual_explanations()
-    explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_each_contrastive_explanation_automatically()
+    explainer = Explainer(solution, ExplainerConfiguration.batch())
     explanations = []
     if only_activated_questions_templates_for_evaluation:
         questions_templates = \

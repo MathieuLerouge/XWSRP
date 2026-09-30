@@ -82,9 +82,6 @@ class ExplainerWebGUI:
         self._contrastive_statistics_are_enabled = False
         if not self._explanations_are_enabled:
             self._explanations_representation_are_enabled = False
-            self.disable_history()
-            self.disable_scenario_explanations()
-            self.disable_counterfactual_explanations()
         else:
             self._explanations_representation_are_enabled = True
         if self.language_is_english:
@@ -114,7 +111,7 @@ class ExplainerWebGUI:
             Build the layout of the GUI: the banner at the top of the GUI and the layout underneath which is made of
             a vertical bar of navigation tabs on the left and the content of the selected tab on the right.
             """
-            if self._explainer.history_is_enabled:
+            if self._explainer.configuration.history_enabled:
                 return html.Div(
                     id="main-container",
                     children=[
@@ -193,13 +190,13 @@ class ExplainerWebGUI:
             current_instance_dropdown = dcc.Dropdown(
                 id='current-instance-dropdown', className='dropdown', style=dict(flex=1, marginRight='10px'),
                 options=[{'label': instance_name, 'value': instance_name}
-                         for instance_name in self._explainer.instances_names],
+                         for instance_name in self._explainer.history.instances_names],
                 value=self.current_instance.name, placeholder="Select current instance", clearable=False
             )
             current_solution_dropdown = dcc.Dropdown(
                 id='current-solution-dropdown', className='dropdown', style=dict(flex=1, marginRight='10px'),
                 options=[{'label': solution.name, 'value': solution.name}
-                         for solution in self._explainer.get_solutions_of_instance(self.current_instance)],
+                         for solution in self._explainer.history.get_solutions_of_instance(self.current_instance)],
                 value=self.current_solution.name, placeholder="Select current solution", clearable=False
             )
             explorer_title = ""
@@ -217,7 +214,7 @@ class ExplainerWebGUI:
             )
             return explorer_banner
 
-        if self._explainer.history_is_enabled:
+        if self._explainer.configuration.history_enabled:
             #
             @self._application.callback(
                 Output('home-tab', 'disabled'),
@@ -256,7 +253,7 @@ class ExplainerWebGUI:
                 else:
                     return False, False, False
 
-        if self._explainer.history_is_enabled:
+        if self._explainer.configuration.history_enabled:
             #
             @self._application.callback(
                 Output('current-instance-dropdown', 'disabled'),
@@ -278,11 +275,11 @@ class ExplainerWebGUI:
                 if current_instance_dropdown_disabled:
                     raise PreventUpdate
                 else:
-                    if len(current_instances_options) == len(self._explainer.instances_names):
+                    if len(current_instances_options) == len(self._explainer.history.instances_names):
                         raise PreventUpdate
                     else:
                         return [{'label': instance_name, 'value': instance_name}
-                                for instance_name in self._explainer.instances_names]
+                                for instance_name in self._explainer.history.instances_names]
 
             @self._application.callback(
                 Output('current-solution-dropdown', 'disabled'),
@@ -304,7 +301,7 @@ class ExplainerWebGUI:
                 if current_solution_dropdown_disabled:
                     raise PreventUpdate
                 else:
-                    solutions = self._explainer.get_solutions_of_instance_by_name(current_instance_name)
+                    solutions = self._explainer.history.get_solutions_of_instance_by_name(current_instance_name)
                     if (current_instance_name == self.current_instance.name and
                             len(current_solutions_options) == len(solutions)):
                         raise PreventUpdate
@@ -349,7 +346,7 @@ class ExplainerWebGUI:
                 dcc.Tab(id=EXPLAINER_TAB, className="tab-button", label=self._explainer_tab_title,
                         value=EXPLAINER_TAB, selected_className="tab-button--selected")
             ]
-            if self._explainer.history_is_enabled:
+            if self._explainer.configuration.history_enabled:
                 activated_tabs = available_tabs
             elif self.explanations_are_enabled:
                 activated_tabs = [available_tabs[0], available_tabs[1], available_tabs[3], available_tabs[5]]
@@ -378,7 +375,7 @@ class ExplainerWebGUI:
             else:
                 raise ValueError(f"GUI Error: There is no {tab_value} tab.")
 
-        if self._explainer.history_is_enabled:
+        if self._explainer.configuration.history_enabled:
             #
             @self._application.callback(
                 Output('tab-content', 'children'),
@@ -390,7 +387,7 @@ class ExplainerWebGUI:
                 by building the content corresponding to the selected tab.
                 """
                 if current_solution_name != self.current_solution.name:
-                    self.current_solution = self._explainer.get_solution_by_name(current_solution_name)
+                    self.current_solution = self._explainer.history.get_solution_by_name(current_solution_name)
                 return _build_tab_content(tab_value)
             #
         else:
@@ -618,7 +615,7 @@ class ExplainerWebGUI:
             One of the instance is the current one, the other can be selected by the end-user.
             """
 
-            if self._explainer.history_is_disabled:
+            if not self._explainer.configuration.history_enabled:
                 raise PermissionError("Instances comparison is not enabled as historizing is disabled")
 
             current_instance = self.current_instance
@@ -631,7 +628,7 @@ class ExplainerWebGUI:
                 dropdown = dcc.Dropdown(
                     id='other-instance-dropdown', className='dropdown',
                     options=[{'label': instance_name, 'value': instance_name}
-                             for instance_name in self._explainer.instances_names],
+                             for instance_name in self._explainer.history.instances_names],
                     value=other_instance.name, placeholder="Select other solution", clearable=False
                 )
                 return dropdown
@@ -719,7 +716,7 @@ class ExplainerWebGUI:
             by updating the figures about the other instance.
             """
             current_instance = self.current_instance
-            other_instance = self._explainer.get_instance_by_name(other_instance_name)
+            other_instance = self._explainer.history.get_instance_by_name(other_instance_name)
             employees_data = build_employees_data(other_instance, self.language)
             employees_style_data_conditional = build_employees_data_conditional_style(employees_data, current_instance)
             tasks_data = build_tasks_data(other_instance, self.language)
@@ -822,7 +819,7 @@ class ExplainerWebGUI:
             One of the solution is the current solution, the other can be selected by the end-user.
             """
 
-            if self._explainer.history_is_disabled:
+            if not self._explainer.configuration.history_enabled:
                 raise PermissionError("Solutions comparison is not enabled as historizing is disabled")
 
             current_solution = self.current_solution
@@ -836,7 +833,7 @@ class ExplainerWebGUI:
                 dropdown = dcc.Dropdown(
                     id='other-solution-dropdown', className='dropdown',
                     options=[{'label': solution.name, 'value': solution.name}
-                             for solution in self._explainer.get_solutions_of_instance(instance)],
+                             for solution in self._explainer.history.get_solutions_of_instance(instance)],
                     value=other_solution.name, placeholder="Select other solution", clearable=False
                 )
                 return dropdown
@@ -929,7 +926,7 @@ class ExplainerWebGUI:
             by updating the figures about the other solution.
             """
             current_solution = self.current_solution
-            other_solution = self._explainer.get_solution_by_name(other_solution_name)
+            other_solution = self._explainer.history.get_solution_by_name(other_solution_name)
             return (
                 build_routes_figure(solution=other_solution, language=self.language),
                 build_schedules_figure(solution=other_solution, language=self.language),
@@ -1222,17 +1219,17 @@ class ExplainerWebGUI:
                     buttons = \
                         [html.Button(id='contrastive-ok-button', className='button',
                                      children=contrastive_ok_button_text, disabled=True)]
-                    if self._explainer.history_is_enabled:
+                    if self._explainer.configuration.history_enabled:
                         buttons.append(
                             html.Button(id='contrastive-save-button', className='button', style=dict(marginTop='1rem'),
                                         children=save_button_text, disabled=True)
                         )
-                    if self._explainer.scenario_explanations_are_enabled:
+                    if self._explainer.configuration.scenario_explanations_enabled:
                         buttons.append(
                             html.Button(id='what-if-button', className='button', style=dict(marginTop='1rem'),
                                         children=what_if_button_text, disabled=True)
                         )
-                    if self._explainer.counterfactual_explanations_are_enabled:
+                    if self._explainer.configuration.counterfactual_explanations_enabled:
                         buttons.append(
                             html.Button(id='how-to-button', className='button', style=dict(marginTop='1rem'),
                                         children=how_to_button_text, disabled=True)
@@ -1414,7 +1411,7 @@ class ExplainerWebGUI:
                     else:
                         raise ValueError(f"Unsupported language: {self.language}")
                     buttons = [html.Button(id='scenario-ok-button', className='button', children="Ok", disabled=True)]
-                    if self._explainer.history_is_enabled:
+                    if self._explainer.configuration.history_enabled:
                         buttons.append(
                             html.Button(id='scenario-save-button', className='button', style=dict(marginTop='1rem'),
                                         children=save_button_text, disabled=True)
@@ -1494,7 +1491,7 @@ class ExplainerWebGUI:
                     buttons = [
                         html.Button(id='counterfactual-ok-button', className='button', children="Ok", disabled=True)
                     ]
-                    if self._explainer.history_is_enabled:
+                    if self._explainer.configuration.history_enabled:
                         buttons.append(
                             html.Button(id='counterfactual-save-button', className='button',
                                         style=dict(marginTop='1rem'), children=save_button_text, disabled=True)
@@ -1530,9 +1527,9 @@ class ExplainerWebGUI:
 
             blocks = [(_build_explainer_description_panel() if self.tab_description_panels_are_enabled else None),
                       _build_contrastive_question_block(), _build_contrastive_explanation_block()]
-            if self._explainer.scenario_explanations_are_enabled:
+            if self._explainer.configuration.scenario_explanations_enabled:
                 blocks.append(_build_scenario_block())
-            if self._explainer.counterfactual_explanations_are_enabled:
+            if self._explainer.configuration.counterfactual_explanations_enabled:
                 blocks.append(_build_how_to_block())
             tab_content = html.Div(id="explainer-tab-content", children=blocks)
             return tab_content
@@ -1775,9 +1772,9 @@ class ExplainerWebGUI:
                 else:
                     raise NotImplementedError("There is a problem with what-if or how-to buttons #clicks")
 
-        if self._explainer.scenario_explanations_are_disabled:
+        if not self._explainer.configuration.scenario_explanations_enabled:
             #
-            if self._explainer.counterfactual_explanations_are_disabled:
+            if not self._explainer.configuration.counterfactual_explanations_enabled:
                 @self._application.callback(
                     Output('contrastive-ok-button', 'disabled'), Input('contrastive-explanation-text', 'className')
                 )
@@ -1794,7 +1791,7 @@ class ExplainerWebGUI:
                                                                     None, how_to_button_click)
         #
         else:
-            if self._explainer.counterfactual_explanations_are_enabled:
+            if self._explainer.configuration.counterfactual_explanations_enabled:
                 @self._application.callback(
                     Output('contrastive-ok-button', 'disabled'), Input('contrastive-explanation-text', 'className'),
                     Input('what-if-button', 'n_clicks'), Input('how-to-button', 'n_clicks')
@@ -1813,7 +1810,7 @@ class ExplainerWebGUI:
                     return _update_contrastive_ok_button_status_aux(contrastive_explanation_text_style,
                                                                     what_if_button_click, None)
 
-        if self._explainer.history_is_enabled:
+        if self._explainer.configuration.history_enabled:
             #
             @self._application.callback(
                 Output('contrastive-save-button', 'disabled'),
@@ -1846,7 +1843,7 @@ class ExplainerWebGUI:
                 else:
                     return contrastive_save_button_click
 
-        if self._explainer.scenario_explanations_are_enabled:
+        if self._explainer.configuration.scenario_explanations_enabled:
             #
             @self._application.callback(
                 Output('what-if-button', 'disabled'), Input('contrastive-ok-button', 'disabled')
@@ -1871,7 +1868,7 @@ class ExplainerWebGUI:
                 else:
                     raise NotImplementedError("There is a problem with the scenario ok button #clicks")
 
-        if self._explainer.counterfactual_explanations_are_enabled:
+        if self._explainer.configuration.counterfactual_explanations_enabled:
             #
             @self._application.callback(
                 Output('how-to-button', 'disabled'), Input('contrastive-ok-button', 'disabled')
@@ -1885,7 +1882,7 @@ class ExplainerWebGUI:
                         return True
                     else:
                         if (contrastive_explanation.question.template.id in
-                                self._explainer.activated_counterfactual_questions_templates_ids):
+                                self._explainer.configuration.activated_counterfactual_questions_templates_ids):
                             return False
                         else:
                             return True
@@ -1931,7 +1928,7 @@ class ExplainerWebGUI:
         # Explainer tab content - Call back - Scenario #
         ################################################
 
-        if self._explainer.scenario_explanations_are_enabled:
+        if self._explainer.configuration.scenario_explanations_enabled:
             #
             @self._application.callback(
                 Output('scenario-question-block', 'style'), Input('what-if-button', 'n_clicks')
@@ -2261,7 +2258,7 @@ class ExplainerWebGUI:
                 else:
                     raise NotImplementedError("There is a problem with the scenario explanation text style")
 
-            if self._explainer.history_is_enabled:
+            if self._explainer.configuration.history_enabled:
                 #
                 @self._application.callback(
                     Output('scenario-save-button', 'disabled'),
@@ -2303,7 +2300,7 @@ class ExplainerWebGUI:
         # Explainer tab content - Call back - Counterfactual #
         ######################################################
 
-        if self._explainer.counterfactual_explanations_are_enabled:
+        if self._explainer.configuration.counterfactual_explanations_enabled:
             #
             @self._application.callback(
                 Output('counterfactual-question-block', 'style'), Input('how-to-button', 'n_clicks')
@@ -2384,7 +2381,7 @@ class ExplainerWebGUI:
                 else:
                     raise NotImplementedError("There is a problem with the counterfactual envelope style")
 
-            if self._explainer.history_is_enabled:
+            if self._explainer.configuration.history_enabled:
                 #
                 @self._application.callback(
                     Output('counterfactual-save-button', 'disabled'),
@@ -2536,18 +2533,6 @@ class ExplainerWebGUI:
     def explanations_are_disabled(self):
         return not self._explanations_are_enabled
 
-    # NB: cannot enable/disable explanations while GUI is launched
-
-    # def enable_explanations(self):
-    #     self._explanations_are_enabled = True
-
-    # def disable_explanations(self):
-    #     self._explanations_are_enabled = False
-    #     self.disable_explanations_representation()
-    #     self.disable_history()
-    #     self.disable_scenario_explanations()
-    #     self.disable_counterfactual_explanations()
-
     @property
     def nb_questions_templates(self):
         return len(self._questions_templates)
@@ -2568,50 +2553,12 @@ class ExplainerWebGUI:
 
     @property
     def history_is_enabled(self):
-        return self._explainer.history_is_enabled
-
-    @property
-    def history_is_disabled(self):
-        return self._explainer.history_is_disabled
-
-    def enable_history(self):
-        self._explainer.enable_history()
-
-    def disable_history(self):
-        self._explainer.disable_history()
-
-    @property
-    def scenario_explanations_are_enabled(self):
-        return self._explainer.scenario_explanations_are_enabled
-
-    @property
-    def scenario_explanations_are_disabled(self):
-        return self._explainer.scenario_explanations_are_disabled
-
-    def enable_scenario_explanations(self):
-        self._explainer.enable_scenario_explanations()
-
-    def disable_scenario_explanations(self):
-        self._explainer.disable_scenario_explanations()
-
-    @property
-    def counterfactual_explanations_are_enabled(self):
-        return self._explainer.counterfactual_explanations_are_enabled
-
-    @property
-    def counterfactual_explanations_are_disabled(self):
-        return self._explainer.counterfactual_explanations_are_disabled
-
-    def enable_counterfactual_explanations(self):
-        self._explainer.enable_counterfactual_explanations()
-
-    def disable_counterfactual_explanations(self):
-        self._explainer.disable_counterfactual_explanations()
+        return self._explainer.configuration.history_enabled
 
     @property
     def only_contrastive_questions_are_enabled(self):
-        return (self._explainer.scenario_explanations_are_disabled and
-                self._explainer.counterfactual_explanations_are_disabled)
+        return (not self._explainer.configuration.scenario_explanations_enabled and
+                not self._explainer.configuration.counterfactual_explanations_enabled)
 
     @property
     def explanations_representation_are_enabled(self):
