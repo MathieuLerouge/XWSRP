@@ -5,8 +5,6 @@ from typing import Callable, Optional
 from explaining.explanation.explanation import Explanation
 from feasibility.checker import FeasibilityChecker
 from modeling.instance import Instance
-from optimization.heuristics.solution import SolutionForHeuristics
-from optimization.solution import SolutionOpti
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.neighborhood.exceptions import NeighborhoodError
