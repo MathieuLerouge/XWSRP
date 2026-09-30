@@ -8,7 +8,9 @@ from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.modeling.solution import Solution
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
-from src.explaining.interacting.interface.cli.commands import Commands
+from src.explaining.interacting.interface.cli.commands import (
+    Commands, TemplateComputationMode, Language, Feature, Content,
+)
 
 
 ################
@@ -50,7 +52,7 @@ class ExplainerCLI:
         # CLI-specific state
         self._running = True
         self._last_command: Optional[str] = None
-        self._template_mode: str = "tailored"  # or "neighborhood"
+        self._template_mode: str = TemplateComputationMode.TAILORED.value
         # Commands handlers registry
         self._commands: dict[str, Callable[[list[str]], str]] = {}
         # Register all commands
@@ -153,10 +155,10 @@ class ExplainerCLI:
     def handle_template_mode(self, args: list[str]) -> str:
         """Handle /template-mode <mode> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.TEMPLATE_MODE.name} <tailored|neighborhood>"
+            return f"Usage: {Commands.TEMPLATE_MODE.name} <{'|'.join(TemplateComputationMode.list_values())}>"
         mode = args[0].lower()
-        if mode not in ["tailored", "neighborhood"]:
-            return f"Usage: {Commands.TEMPLATE_MODE.name} <tailored|neighborhood>"
+        if mode not in TemplateComputationMode.list_values():
+            return f"Usage: {Commands.TEMPLATE_MODE.name} <{'|'.join(TemplateComputationMode.list_values())}>"
         if mode == "neighborhood":
             return "NotImplementedError: Tailored-neighborhood pipeline for template questions is not yet implemented."
         self._template_mode = mode
@@ -273,10 +275,10 @@ class ExplainerCLI:
     def handle_language(self, args: list[str]) -> str:
         """Handle /language <en|fr> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.LANGUAGE.name} <en|fr>"
+            return f"Usage: {Commands.LANGUAGE.name} <{'|'.join(Language.list_values())}>"
         lang = args[0].lower()
-        if lang not in ["en", "fr", LANGUAGE_ENGLISH_KEY.lower(), LANGUAGE_FRENCH_KEY.lower()]:
-            return f"Usage: {Commands.LANGUAGE.name} <en|fr>"
+        if lang not in Language.list_values():
+            return f"Usage: {Commands.LANGUAGE.name} <{'|'.join(Language.list_values())}>"
         if lang == "en":
             lang = LANGUAGE_ENGLISH_KEY
         elif lang == "fr":
@@ -325,7 +327,7 @@ class ExplainerCLI:
         if len(args) < 1:
             return f"Usage: {Commands.ENABLE.name} <feature>"
         feature = args[0].lower()
-        valid_features = ["history", "scenario", "counterfactual", "auto-export"]
+        valid_features = Feature.list_values()
         if feature not in valid_features:
             return f"Unknown feature. Valid features: {', '.join(valid_features)}"
         if feature == "history":
@@ -344,7 +346,7 @@ class ExplainerCLI:
         if len(args) < 1:
             return f"Usage: {Commands.DISABLE.name} <feature>"
         feature = args[0].lower()
-        valid_features = ["history", "scenario", "counterfactual", "auto-export"]
+        valid_features = Feature.list_values()
         if feature not in valid_features:
             return f"Unknown feature. Valid features: {', '.join(valid_features)}"
         if feature == "history":
@@ -361,20 +363,20 @@ class ExplainerCLI:
     def handle_show(self, args: list[str]) -> str:
         """Handle /show <resource> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.SHOW.name} <resource> where resource is: solution, instance, explanation, history, config"
+            return f"Usage: {Commands.SHOW.name} <resource> where resource is: {', '.join(Content.list_values())}"
         resource = args[0].lower()
-        if resource == "solution":
+        if resource == Content.SOLUTION.value:
             return self._show_current_solution()
-        elif resource == "instance":
+        elif resource == Content.INSTANCE.value:
             return self._show_current_instance()
-        elif resource == "explanation":
+        elif resource == Content.EXPLANATION.value:
             return self._show_last_explanation()
-        elif resource == "history":
+        elif resource == Content.HISTORY.value:
             return self._show_history()
-        elif resource == "config":
+        elif resource == Content.CONFIG.value:
             return self._show_config()
         else:
-            return f"Unknown resource '{resource}'. Valid resources: solution, instance, explanation, history, config"
+            return f"Unknown resource '{resource}'. Valid resources: {', '.join(Content.list_values())}"
 
     def handle_show_instance(self, args: list[str]) -> str:
         """Handle /show-instance <instance_name> command."""

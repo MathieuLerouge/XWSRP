@@ -75,7 +75,7 @@ class Commands(Enum):
             f"  {cls.DISABLE.name} <feature>                {cls.DISABLE.description}",
             "",
             "Display Commands:",
-            f"  {cls.SHOW.name} <resource>           {cls.SHOW.description} (solution, instance, explanation, history, config)",
+            f"  {cls.SHOW.name} <resource>           {cls.SHOW.description} ({', '.join(Content.list_values())})",
             f"  {cls.SHOW_INSTANCE.name} <name>      {cls.SHOW_INSTANCE.description}",
             f"  {cls.SHOW_SOLUTION.name} <name>      {cls.SHOW_SOLUTION.description}",
             f"  {cls.HELP.name}                      {cls.HELP.description}",
@@ -84,3 +84,68 @@ class Commands(Enum):
             f"  {cls.QUIT.name}                      {cls.QUIT.description}",
         ]
         return "\n".join(lines)
+
+
+###########################
+# TemplateComputationMode #
+###########################
+
+class TemplateComputationMode(Enum):
+    """Enum for template computation mode options."""
+    TAILORED = "tailored"
+    NEIGHBORHOOD = "neighborhood"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid template computation mode values."""
+        return [member.value for member in cls]
+
+
+############
+# Language #
+############
+
+class Language(Enum):
+    """Enum for language options (lowercase, as entered by user)."""
+    EN = "en"
+    FR = "fr"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid language values."""
+        return [member.value for member in cls]
+
+
+###########
+# Feature #
+###########
+
+class Feature(Enum):
+    """Enum for feature names that can be enabled/disabled."""
+    HISTORY = "history"
+    SCENARIO = "scenario"
+    COUNTERFACTUAL = "counterfactual"
+    AUTO_EXPORT = "auto-export"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid feature name values."""
+        return [member.value for member in cls]
+
+
+###########
+# Content #
+###########
+
+class Content(Enum):
+    """Enum for contents that can be shown."""
+    SOLUTION = "solution"
+    INSTANCE = "instance"
+    EXPLANATION = "explanation"
+    HISTORY = "history"
+    CONFIG = "config"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid content values."""
+        return [member.value for member in cls]
