@@ -12,7 +12,7 @@ from src.feasibility.checker import FeasibilityChecker
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.web.app import ExplainerWebGUI
-from src.explaining.interacting.interface.cli import ExplainerCLI
+from src.explaining.interacting.interface.cli.cli import ExplainerCLI
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion
 from src.explaining.question.predefined.bank import *
 from src.explaining.computing.exceptions import ImpossibleTransformationException
