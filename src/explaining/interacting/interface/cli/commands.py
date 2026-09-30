@@ -2,6 +2,10 @@
 from enum import Enum
 
 
+############
+# Commands #
+############
+
 class Commands(Enum):
     """Enum of all CLI commands with their metadata."""
     
@@ -43,3 +47,40 @@ class Commands(Enum):
     def description(self) -> str:
         """Return the command description."""
         return self.value[1]
+
+    @classmethod
+    def list_string(cls) -> str:
+        """Generate the list string for all commands."""
+        lines = [
+            "Explainer CLI - Available Commands",
+            "",
+            "Core Commands:",
+            f"  {cls.LLM_MODEL.name} <model>          {cls.LLM_MODEL.description}",
+            f"  {cls.TEMPLATE_MODE.name} <mode>       {cls.TEMPLATE_MODE.description}",
+            f"  {cls.ASK.name} <question>             {cls.ASK.description}",
+            f"  {cls.CONTRASTIVE.name} <id> <vals>    {cls.CONTRASTIVE.description}",
+            f"  {cls.SAVE_SOLUTION.name}              {cls.SAVE_SOLUTION.description}",
+            f"  {cls.LIST_TEMPLATES.name}             {cls.LIST_TEMPLATES.description}",
+            f"  {cls.LIST_INSTANCES.name}             {cls.LIST_INSTANCES.description}",
+            f"  {cls.LIST_SOLUTIONS.name}             {cls.LIST_SOLUTIONS.description}",
+            f"  {cls.SWITCH_INSTANCE.name} <name>     {cls.SWITCH_INSTANCE.description}",
+            f"  {cls.SWITCH_SOLUTION.name} <name>     {cls.SWITCH_SOLUTION.description}",
+            f"  {cls.LANGUAGE.name} <en|fr>           {cls.LANGUAGE.description}",
+            f"  {cls.EXPORT.name}                     {cls.EXPORT.description}",
+            "",
+            "Configuration Commands:",
+            f"  {cls.TIME_LIMIT_CONTRASTIVE.name} <s>       {cls.TIME_LIMIT_CONTRASTIVE.description}",
+            f"  {cls.TIME_LIMIT_COUNTERFACTUAL.name} <s>    {cls.TIME_LIMIT_COUNTERFACTUAL.description}",
+            f"  {cls.ENABLE.name} <feature>                 {cls.ENABLE.description}",
+            f"  {cls.DISABLE.name} <feature>                {cls.DISABLE.description}",
+            "",
+            "Display Commands:",
+            f"  {cls.SHOW.name} <resource>           {cls.SHOW.description} (solution, instance, explanation, history, config)",
+            f"  {cls.SHOW_INSTANCE.name} <name>      {cls.SHOW_INSTANCE.description}",
+            f"  {cls.SHOW_SOLUTION.name} <name>      {cls.SHOW_SOLUTION.description}",
+            f"  {cls.HELP.name}                      {cls.HELP.description}",
+            "",
+            "Session Commands:",
+            f"  {cls.QUIT.name}                      {cls.QUIT.description}",
+        ]
+        return "\n".join(lines)

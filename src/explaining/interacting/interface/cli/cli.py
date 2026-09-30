@@ -11,6 +11,10 @@ from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.explaining.interacting.interface.cli.commands import Commands
 
 
+################
+# ExplainerCLI #
+################
+
 class ExplainerCLI:
     """
     REPL-style terminal interface for the Explainer class.
@@ -244,8 +248,6 @@ class ExplainerCLI:
             return f"Usage: {Commands.SWITCH_INSTANCE.name} <instance_name>"
         instance_name = args[0]
         try:
-            instance = self._explainer.history.get_instance_by_name(instance_name)
-            # Find a solution associated with this instance
             solutions = self._explainer.history.get_solutions_of_instance_by_name(instance_name)
             if solutions:
                 solution = solutions[0]
@@ -275,7 +277,6 @@ class ExplainerCLI:
         lang = args[0].lower()
         if lang not in ["en", "fr", LANGUAGE_ENGLISH_KEY.lower(), LANGUAGE_FRENCH_KEY.lower()]:
             return f"Usage: {Commands.LANGUAGE.name} <en|fr>"
-        # Normalize to uppercase
         if lang == "en":
             lang = LANGUAGE_ENGLISH_KEY
         elif lang == "fr":
@@ -379,7 +380,6 @@ class ExplainerCLI:
         """Handle /show-instance <instance_name> command."""
         if len(args) < 1:
             return f"Usage: {Commands.SHOW_INSTANCE.name} <instance_name>"
-
         instance_name = args[0]
         try:
             instance = self._explainer.history.get_instance_by_name(instance_name)
@@ -391,7 +391,6 @@ class ExplainerCLI:
         """Handle /show-solution <solution_name> command."""
         if len(args) < 1:
             return f"Usage: {Commands.SHOW_SOLUTION.name} <solution_name>"
-
         solution_name = args[0]
         try:
             solution = self._explainer.history.get_solution_by_name(solution_name)
@@ -399,38 +398,10 @@ class ExplainerCLI:
         except KeyError:
             return f"Solution '{solution_name}' not found."
 
-    def handle_help(self, args: list[str]) -> str:
+    @staticmethod
+    def handle_help(args: list[str]) -> str:
         """Handle /help command."""
-        return f"""Explainer CLI - Available Commands
-
-Core Commands:
-  {Commands.LLM_MODEL.name} <model>          {Commands.LLM_MODEL.description}
-  {Commands.TEMPLATE_MODE.name} <mode>       {Commands.TEMPLATE_MODE.description}
-  {Commands.ASK.name} <question>             {Commands.ASK.description}
-  {Commands.CONTRASTIVE.name} <id> <vals>    {Commands.CONTRASTIVE.description}
-  {Commands.SAVE_SOLUTION.name}              {Commands.SAVE_SOLUTION.description}
-  {Commands.LIST_TEMPLATES.name}             {Commands.LIST_TEMPLATES.description}
-  {Commands.LIST_INSTANCES.name}             {Commands.LIST_INSTANCES.description}
-  {Commands.LIST_SOLUTIONS.name}             {Commands.LIST_SOLUTIONS.description}
-  {Commands.SWITCH_INSTANCE.name} <name>     {Commands.SWITCH_INSTANCE.description}
-  {Commands.SWITCH_SOLUTION.name} <name>    {Commands.SWITCH_SOLUTION.description}
-  {Commands.LANGUAGE.name} <en|fr>           {Commands.LANGUAGE.description}
-  {Commands.EXPORT.name}                     {Commands.EXPORT.description}
-
-Configuration Commands:
-  {Commands.TIME_LIMIT_CONTRASTIVE.name} <s>    {Commands.TIME_LIMIT_CONTRASTIVE.description}
-  {Commands.TIME_LIMIT_COUNTERFACTUAL.name} <s> {Commands.TIME_LIMIT_COUNTERFACTUAL.description}
-  {Commands.ENABLE.name} <feature>              {Commands.ENABLE.description}
-  {Commands.DISABLE.name} <feature>             {Commands.DISABLE.description}
-
-Display Commands:
-  {Commands.SHOW.name} <resource>            {Commands.SHOW.description} (solution, instance, explanation, history, config)
-  {Commands.SHOW_INSTANCE.name} <name>      {Commands.SHOW_INSTANCE.description}
-  {Commands.SHOW_SOLUTION.name} <name>     {Commands.SHOW_SOLUTION.description}
-  {Commands.HELP.name}                      {Commands.HELP.description}
-
-Session Commands:
-  {Commands.QUIT.name}                      {Commands.QUIT.description}"""
+        return Commands.list_string()
 
     def handle_quit(self, args: list[str]) -> str:
         """Handle /quit command."""
@@ -567,14 +538,15 @@ Session Commands:
     def _show_config(self) -> str:
         """Format configuration for display."""
         config = self._explainer.configuration
-        lines = ["Configuration:"]
-        lines.append(f"  LLM Model: {config.extractor_model or 'None'}")
-        lines.append(f"  Template Mode: {self._template_mode}")
-        lines.append(f"  Language: {config.language}")
-        lines.append(f"  History Enabled: {'Yes' if config.history_enabled else 'No'}")
-        lines.append(f"  Scenario Enabled: {'Yes' if config.scenario_explanations_enabled else 'No'}")
-        lines.append(f"  Counterfactual Enabled: {'Yes' if config.counterfactual_explanations_enabled else 'No'}")
-        lines.append(f"  Auto-Export Enabled: {'Yes' if config.exporting_each_contrastive_explanation_automatically_enabled else 'No'}")
-        lines.append(f"  Contrastive Time Limit: {config.time_limit_for_contrastive_explanation_milp_computation or 'None'}")
-        lines.append(f"  Counterfactual Time Limit: {config.time_limit_for_counterfactual_explanation_milp_computation or 'None'}")
+        lines = [
+            "Configuration:",
+            f"  LLM Model: {config.extractor_model or 'None'}",
+            f"  Template Mode: {self._template_mode}", f"  Language: {config.language}",
+            f"  History Enabled: {'Yes' if config.history_enabled else 'No'}",
+            f"  Scenario Enabled: {'Yes' if config.scenario_explanations_enabled else 'No'}",
+            f"  Counterfactual Enabled: {'Yes' if config.counterfactual_explanations_enabled else 'No'}",
+            f"  Auto-Export Enabled: {'Yes' if config.exporting_each_contrastive_explanation_automatically_enabled else 'No'}",
+            f"  Contrastive Time Limit: {config.time_limit_for_contrastive_explanation_milp_computation or 'None'}",
+            f"  Counterfactual Time Limit: {config.time_limit_for_counterfactual_explanation_milp_computation or 'None'}"
+        ]
         return "\n".join(lines)
