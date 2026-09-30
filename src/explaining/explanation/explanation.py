@@ -64,9 +64,9 @@ class Explanation(ABC):
         """The format times are spelled in, in the explanation's language."""
         return get_hour_format_associated_with_language(self.language)
 
-    #########################
+    ##########################
     # Question and solutions #
-    #########################
+    ##########################
 
     @property
     def question(self) -> Question:

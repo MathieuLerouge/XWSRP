@@ -63,13 +63,13 @@ def compute_contrastive_explanations_about_demo_solution_in_separate_files(quest
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
     explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    explainer.disable_exporting_each_contrastive_explanation_automatically()
     if questions_templates_ids is None:
-        questions_templates_ids = explainer.activated_questions_templates_ids
+        questions_templates_ids = explainer.activated_question_template_ids
     explanations = []
     for question_template_id in questions_templates_ids:
         question_template = QUESTIONS_TEMPLATES[question_template_id]
-        if question_template in explainer.activated_questions_templates:
+        if question_template in explainer.activated_question_templates:
             print("Computing explanations related to:", question_template.id)
             all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
             for fields_values in all_fields_valid_values:
@@ -91,12 +91,12 @@ def compute_contrastive_explanations_about_demo_solution_in_one_file(questions_t
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
     explainer.enable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    explainer.disable_exporting_each_contrastive_explanation_automatically()
     if questions_templates_ids is None:
-        questions_templates_ids = explainer.activated_questions_templates_ids
+        questions_templates_ids = explainer.activated_question_template_ids
     for question_template_id in questions_templates_ids:
         question_template = QUESTIONS_TEMPLATES[question_template_id]
-        if question_template in explainer.activated_questions_templates:
+        if question_template in explainer.activated_question_templates:
             print("Computing explanations related to:", question_template.id)
             all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
             for fields_values in all_fields_valid_values:
@@ -128,9 +128,9 @@ def launch_explainer_UI_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, e
     if enable_counterfactual_explanations:
         explainer.enable_counterfactual_explanations()
     if enable_using_already_computed_contrastive_explanations:
-        explainer.contrastive_explanations_inputs_directory_relative_path = "data/demo/explanations"
+        explainer.contrastive_explanation_input_directory_relative_path = "data/demo/explanations"
         explainer.enable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    explainer.disable_exporting_each_contrastive_explanation_automatically()
     explainer_UI = ExplainerWebGUI(explainer)
     explainer_UI.launch()
 
@@ -178,7 +178,7 @@ def launch_explainer_UI_on_default_solution(language: str, enable_history: bool 
     if enable_counterfactual_explanations:
         explainer.enable_counterfactual_explanations()
     explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    explainer.disable_exporting_each_contrastive_explanation_automatically()
     explainer_UI = ExplainerWebGUI(explainer)
     explainer_UI.launch()
 
@@ -211,19 +211,19 @@ def compute_computation_time_analysis_of_explanations(
     explainer.disable_scenario_explanations()
     if explanations_are_contrastive:
         explainer.disable_counterfactual_explanations()
-        explainer.time_limit_for_contrastive_explanation_MILP_computation = \
+        explainer.time_limit_for_contrastive_explanation_milp_computation = \
             EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION
     else:
         explainer.enable_counterfactual_explanations()
-        explainer.time_limit_for_counterfactual_explanation_MILP_computation = \
+        explainer.time_limit_for_counterfactual_explanation_milp_computation = \
             EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION
     explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    explainer.disable_exporting_each_contrastive_explanation_automatically()
 
     # Define question templates to analyze
     if questions_templates_ids is None:
         if explanations_are_contrastive:
-            questions_templates_ids = explainer.activated_questions_templates_ids
+            questions_templates_ids = explainer.activated_question_template_ids
         else:
             questions_templates_ids = explainer.activated_counterfactual_questions_templates_ids
 
@@ -231,7 +231,7 @@ def compute_computation_time_analysis_of_explanations(
     analysis = dict()
     for question_template_id in questions_templates_ids:
         question_template = QUESTIONS_TEMPLATES[question_template_id]
-        if question_template in explainer.activated_questions_templates:
+        if question_template in explainer.activated_question_templates:
 
             # Prepare fields values
             all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)

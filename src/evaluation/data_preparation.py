@@ -128,18 +128,18 @@ def check_explanations_negativity(solution: Solution, only_activated_questions_t
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
     if use_already_computed_explanations:
-        explainer.contrastive_explanations_inputs_directory_relative_path = \
+        explainer.contrastive_explanation_input_directory_relative_path = \
             get_explanations_for_evaluation_directory_path()
         explainer.enable_using_already_computed_contrastive_explanations()
     else:
         explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    explainer.disable_exporting_each_contrastive_explanation_automatically()
     if only_activated_questions_templates_for_evaluation:
         questions_templates = \
             [QUESTIONS_TEMPLATES[question_template_id]
              for question_template_id in ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION]
     else:
-        questions_templates = explainer.activated_questions_templates
+        questions_templates = explainer.activated_question_templates
     for question_template in questions_templates:
         print("Checking explanations related to:", question_template.id)
         all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
@@ -183,19 +183,19 @@ def compute_and_export_contrastive_explanations(solution: Solution,
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
     explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    explainer.disable_exporting_each_contrastive_explanation_automatically()
     explanations = []
     if only_activated_questions_templates_for_evaluation:
         questions_templates = \
             [QUESTIONS_TEMPLATES[question_template_id]
              for question_template_id in ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION]
     else:
-        questions_templates = explainer.activated_questions_templates
+        questions_templates = explainer.activated_question_templates
     for question_template in questions_templates:
         if (not only_MILP_based_computation or
                 (only_MILP_based_computation
                  and question_template.id in MILP_BASED_COMPUTATION_QUESTIONS_TEMPLATES_IDS)):
-            if question_template in explainer.activated_questions_templates:
+            if question_template in explainer.activated_question_templates:
                 print("Computing explanations related to:", question_template.id)
                 all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
                 for fields_values in all_fields_valid_values:

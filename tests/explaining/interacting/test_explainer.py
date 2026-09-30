@@ -77,7 +77,7 @@ def build_explainer(solution: Solution, extractor_model: str = None) -> Explaine
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
     explainer.disable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    explainer.disable_exporting_each_contrastive_explanation_automatically()
     return explainer
 
 
@@ -118,13 +118,13 @@ def test_asking_an_unactivated_template_is_refused(demo_solution):
 
 def test_asking_counts_are_tracked_per_template(demo_solution):
     explainer = build_explainer(demo_solution)
-    assert explainer.get_contrastive_questions_asked_count(WHY_NOT_INS_1) == 0
+    assert explainer.get_asked_contrastive_question_count(WHY_NOT_INS_1) == 0
     for fields_values in FIELDS_VALUES_BY_EXPLANATION_TYPE.values():
         explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
-    assert explainer.get_contrastive_questions_asked_count(WHY_NOT_INS_1) == \
-        len(FIELDS_VALUES_BY_EXPLANATION_TYPE)
+    assert explainer.get_asked_contrastive_question_count(WHY_NOT_INS_1) == \
+           len(FIELDS_VALUES_BY_EXPLANATION_TYPE)
     explainer.reset_asked_predefined_question_counts()
-    assert explainer.get_contrastive_questions_asked_count(WHY_NOT_INS_1) == 0
+    assert explainer.get_asked_contrastive_question_count(WHY_NOT_INS_1) == 0
 
 
 def test_the_last_contrastive_explanation_is_the_one_just_asked(demo_solution):
@@ -178,7 +178,7 @@ def test_stored_explanations_are_loaded_and_served_from_disk(demo_solution, tmp_
                          define_multiple_contrastive_explanations_json_file_name(demo_solution))
         )
         explainer = build_explainer(demo_solution)
-        explainer.contrastive_explanations_inputs_directory_relative_path = inputs_directory_relative_path
+        explainer.contrastive_explanation_input_directory_relative_path = inputs_directory_relative_path
         explainer.enable_using_already_computed_contrastive_explanations()
         assert len(explainer.already_computed_contrastive_explanations) > 0
         explanation = explainer.get_contrastive_explanation(
@@ -450,12 +450,12 @@ def test_a_reactivated_template_can_be_asked_again(demo_solution):
     while activating one adds it to that set without adding a counter key, so asking it raised KeyError.
     """
     explainer = build_explainer(demo_solution)
-    explainer.activate_only_questions_templates([WHY_NOT_INS_1])
+    explainer.activate_only_question_templates([WHY_NOT_INS_1])
     explainer.reset_asked_predefined_question_counts()
     explainer.activate_question_template(WHY_NOT_SWP_1)
     explanation = explainer.get_contrastive_explanation(WHY_NOT_SWP_1, FIELDS_VALUES_FOR_SWAP)
     assert explanation.text
-    assert explainer.get_contrastive_questions_asked_count(WHY_NOT_SWP_1) == 1
+    assert explainer.get_asked_contrastive_question_count(WHY_NOT_SWP_1) == 1
 
 
 def test_a_template_that_was_never_asked_has_a_count_of_zero(demo_solution):
@@ -468,7 +468,7 @@ def test_a_template_that_was_never_asked_has_a_count_of_zero(demo_solution):
     explainer.deactivate_question_template(WHY_NOT_SWP_1)
     explainer.reset_asked_predefined_question_counts()
     explainer.activate_question_template(WHY_NOT_SWP_1)
-    assert explainer.get_contrastive_questions_asked_count(WHY_NOT_SWP_1) == 0
+    assert explainer.get_asked_contrastive_question_count(WHY_NOT_SWP_1) == 0
 
 
 def test_a_question_built_outside_the_activated_set_is_still_counted(demo_solution):
@@ -478,10 +478,10 @@ def test_a_question_built_outside_the_activated_set_is_still_counted(demo_soluti
     explainer = build_explainer(demo_solution)
     question = ContrastiveQuestion(
         explainer.current_solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
-    explainer.deactivate_all_questions_templates()
+    explainer.deactivate_all_question_templates()
     explainer.reset_asked_predefined_question_counts()
     assert explainer.get_explanation(question).text
-    assert explainer.get_contrastive_questions_asked_count(WHY_NOT_INS_1) == 1
+    assert explainer.get_asked_contrastive_question_count(WHY_NOT_INS_1) == 1
 
 
 ###################################
@@ -537,7 +537,7 @@ def test_exporting_every_computed_explanation_honours_the_configured_directory(d
     try:
         explainer = build_explainer(demo_solution)
         explainer.enable_using_already_computed_contrastive_explanations()
-        explainer.contrastive_explanations_outputs_directory_relative_path = outputs_directory_relative_path
+        explainer.contrastive_explanation_output_directory_relative_path = outputs_directory_relative_path
         explainer.get_contrastive_explanation(
             WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
         explainer.export_all_already_computed_contrastive_explanations()

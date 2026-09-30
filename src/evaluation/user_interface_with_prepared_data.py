@@ -28,13 +28,13 @@ def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, en
     """
     explainer = Explainer(solution)
     explainer.set_language(language)
-    explainer.activate_only_questions_templates(ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION)
+    explainer.activate_only_question_templates(ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION)
     explainer.disable_history()
     explainer.disable_scenario_explanations()
     explainer.disable_counterfactual_explanations()
-    explainer.contrastive_explanations_inputs_directory_relative_path = get_explanations_for_evaluation_directory_path()
+    explainer.contrastive_explanation_input_directory_relative_path = get_explanations_for_evaluation_directory_path()
     explainer.enable_using_already_computed_contrastive_explanations()
-    explainer.disable_exporting_automatically_single_contrastive_explanations()
+    explainer.disable_exporting_each_contrastive_explanation_automatically()
     if enable_explanations:
         title = "Visualize Plannings Plus"
         subtitle = "Outil de visualisation et d'explication des données de ComputePlannings"

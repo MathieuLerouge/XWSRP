@@ -145,10 +145,16 @@ class PredefinedExplanation(Explanation):
         self._typical_expressions['applying_support_solution_transformation'] = \
             all_descriptions_of_applied_transformation
         super().__init__(question, support_solution, instance_alterations)
+        self._question = question
 
     ############
     # Question #
     ############
+
+    @property
+    def question(self) -> PredefinedQuestion:
+        """The question being answered."""
+        return self._question
 
     @property
     def is_contrastive(self) -> bool:

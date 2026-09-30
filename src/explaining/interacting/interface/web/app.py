@@ -67,7 +67,7 @@ class ExplainerWebGUI:
         # Explainer
         self._explainer = explainer
         self._questions_templates = dict([(question_template.id, QUESTIONS_TEMPLATES[question_template.id])
-                                          for question_template in self._explainer.activated_questions_templates
+                                          for question_template in self._explainer.activated_question_templates
                                           if question_template.id in self._available_questions_templates_ids])
         self._available_questions_templates_ids = list(self._questions_templates.keys())
         self._scenario_instance_alterations = InstanceChanges()
@@ -1924,7 +1924,7 @@ class ExplainerWebGUI:
                 return contrastive_question_text_placeholder, 'empty-automated-text'
             # Case where the questions templates dropdown is non-empty
             else:
-                statistics_text = str(self._explainer.get_contrastive_questions_asked_count(question_template_id))
+                statistics_text = str(self._explainer.get_asked_contrastive_question_count(question_template_id))
                 return statistics_text, 'automated-text'
 
         ################################################
