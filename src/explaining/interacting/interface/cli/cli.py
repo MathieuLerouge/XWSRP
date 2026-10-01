@@ -1,10 +1,13 @@
 # Standard library
 from typing import Callable, Optional
 
+# Third-party library
+from prompt_toolkit import PromptSession
+
 # Local libraries
-from explaining.explanation.explanation import Explanation
-from feasibility.checker import FeasibilityChecker
-from modeling.instance import Instance
+from src.explaining.explanation.explanation import Explanation
+from src.feasibility.checker import FeasibilityChecker
+from src.modeling.instance import Instance
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.neighborhood.exceptions import NeighborhoodError
@@ -14,6 +17,7 @@ from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.explaining.interacting.interface.cli.commands import (
     Commands, TemplateComputationMode, Language, Feature, Content,
 )
+from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
 
 
 ################
@@ -60,6 +64,15 @@ class ExplainerCLI:
         self._commands: dict[str, Callable[[list[str]], str]] = {}
         # Register all commands
         self._register_commands()
+        # Interactive prompt with tab-completion
+        self._session: PromptSession = PromptSession(
+            completer=ExplainerCLICompleter(self), complete_while_typing=True
+        )
+
+    @property
+    def explainer(self) -> Explainer:
+        """The Explainer this CLI drives."""
+        return self._explainer
 
     def _register_commands(self) -> None:
         """Register all command handlers."""
@@ -98,7 +111,7 @@ class ExplainerCLI:
         while self._running:
             try:
                 # Show prompt
-                user_input = input("> ").strip()
+                user_input = self._session.prompt("> ").strip()
                 if not user_input:
                     continue
                 # Store for potential multi-part commands

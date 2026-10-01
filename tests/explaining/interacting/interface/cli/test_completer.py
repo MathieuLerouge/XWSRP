@@ -1,0 +1,121 @@
+# Third-party library
+import pytest
+from prompt_toolkit.document import Document
+
+# Local libraries
+from src.explaining.interacting.configuration import ExplainerConfiguration
+from src.explaining.interacting.explainer import Explainer
+from src.explaining.interacting.interface.cli.cli import ExplainerCLI
+from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
+from src.explaining.processes import get_demo_solution
+from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_SWP_1
+from src.modeling.solution import Solution
+
+
+def complete(completer: ExplainerCLICompleter, text: str) -> list[str]:
+    """Return the completion texts for text, with the cursor placed at the end of it."""
+    document = Document(text=text, cursor_position=len(text))
+    return [completion.text for completion in completer.get_completions(document, None)]
+
+
+@pytest.fixture(scope="module")
+def demo_solution() -> Solution:
+    """The demo solution every test here completes against."""
+    return get_demo_solution()
+
+
+@pytest.fixture
+def cli(demo_solution: Solution) -> ExplainerCLI:
+    """An ExplainerCLI with history enabled, so instance/solution-name completion has data to draw from."""
+    explainer = Explainer(demo_solution, ExplainerConfiguration(history_enabled=True))
+    return ExplainerCLI(demo_solution, explainer)
+
+
+@pytest.fixture
+def completer(cli: ExplainerCLI) -> ExplainerCLICompleter:
+    """The completer under test, bound to the history-enabled cli fixture."""
+    return ExplainerCLICompleter(cli)
+
+
+@pytest.fixture
+def cli_without_history(demo_solution: Solution) -> ExplainerCLI:
+    """An ExplainerCLI with history disabled, still seeded with the root instance/solution."""
+    explainer = Explainer(demo_solution, ExplainerConfiguration(history_enabled=False))
+    return ExplainerCLI(demo_solution, explainer)
+
+
+@pytest.fixture
+def completer_without_history(cli_without_history: ExplainerCLI) -> ExplainerCLICompleter:
+    """The completer under test, bound to the history-disabled cli_without_history fixture."""
+    return ExplainerCLICompleter(cli_without_history)
+
+
+def test_empty_input_offers_all_command_names(completer: ExplainerCLICompleter):
+    results = complete(completer, "")
+    assert "/contrastive" in results
+    assert "/help" in results
+    assert "/quit" in results
+
+
+def test_command_name_prefix_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/con") == ["/contrastive"]
+
+
+def test_unknown_command_offers_no_argument_completions(completer: ExplainerCLICompleter):
+    assert complete(completer, "/not-a-command ") == []
+
+
+def test_contrastive_template_id_completion(completer: ExplainerCLICompleter):
+    results = complete(completer, f"/contrastive {WHY_NOT_INS_1[:-2]}")
+    assert WHY_NOT_INS_1 in results
+
+
+def test_contrastive_invalid_template_id_offers_no_field_completions(completer: ExplainerCLICompleter):
+    assert complete(completer, "/contrastive NOT_A_TEMPLATE ") == []
+
+
+def test_contrastive_first_field_value_completion(completer: ExplainerCLICompleter):
+    results = complete(completer, f"/contrastive {WHY_NOT_INS_1} ")
+    assert "Ellen" in results
+
+
+def test_contrastive_second_field_value_narrowed_by_first(completer: ExplainerCLICompleter):
+    # (Swp,1)'s second field is a task not performed by the employee given as the first field; the demo
+    # solution has Ellen performing T1, so T1 must appear for Carlotta's set but not for Ellen's.
+    results_for_ellen = complete(completer, f"/contrastive {WHY_NOT_SWP_1} Ellen ")
+    results_for_carlotta = complete(completer, f"/contrastive {WHY_NOT_SWP_1} Carlotta ")
+    assert "T1" not in results_for_ellen
+    assert "T1" in results_for_carlotta
+
+
+def test_contrastive_too_many_field_values_offers_nothing(completer: ExplainerCLICompleter):
+    assert complete(completer, f"/contrastive {WHY_NOT_INS_1} Ellen T2 Start extra ") == []
+
+
+def test_language_enum_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/language e") == ["en"]
+
+
+def test_show_enum_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/show sol") == ["solution"]
+
+
+def test_switch_instance_completion_from_history(completer: ExplainerCLICompleter, cli: ExplainerCLI):
+    results = complete(completer, "/switch-instance ")
+    assert set(results) == set(cli.explainer.history.instances_names)
+
+
+def test_switch_solution_completion_from_history(completer: ExplainerCLICompleter, cli: ExplainerCLI):
+    results = complete(completer, "/switch-solution ")
+    assert set(results) == set(cli.explainer.history.solutions_names)
+
+
+def test_history_disabled_still_completes_from_the_root_instance_and_solution(
+        completer_without_history: ExplainerCLICompleter, cli_without_history: ExplainerCLI
+):
+    # Explainer.history always returns a History seeded with the root instance/solution, even when
+    # history_enabled is False - disabling it only stops further solutions from being stored into it.
+    instance_results = complete(completer_without_history, "/switch-instance ")
+    solution_results = complete(completer_without_history, "/switch-solution ")
+    assert set(instance_results) == set(cli_without_history.explainer.history.instances_names)
+    assert set(solution_results) == set(cli_without_history.explainer.history.solutions_names)
