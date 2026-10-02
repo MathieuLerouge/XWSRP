@@ -4,7 +4,7 @@ from typing import Optional
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
-from src.explaining.question.question import Question
+from src.explaining.question.question import Question, QuestionModes
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 
@@ -33,7 +33,7 @@ class PredefinedQuestion(Question):
             question_template_id: Id of the template in QUESTIONS_TEMPLATES the question instantiates.
             fields_values: Value of each of the template's fields, in the order the template declares them.
         """
-        super().__init__(solution)
+        super().__init__(solution, QuestionModes.TEMPLATE.value)
         self._template = QUESTIONS_TEMPLATES[question_template_id]
         self._template.check_fields_values_validity(solution, fields_values, raise_error=True)
         self._fields_values: list[str] = fields_values

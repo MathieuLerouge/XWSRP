@@ -561,12 +561,11 @@ class ExplainerCLI:
             f"{explanation_text}"
         ]
         if self._mode == Modes.DEVELOPER.value:
-            lines += [
-                f"",
-                self._gray(f"Support solution: {feasibility}")
-            ]
+            lines.append("")
+            lines.append(self._gray(f"Questioning mode: {explanation.question.mode}"))
             if explanation.computation_time is not None:
                 lines.append(self._gray(f"Computation time: {explanation.computation_time:.3f}s"))
+            lines.append(self._gray(f"Support solution: {feasibility}"))
         return "\n".join(lines)
 
     def _show_last_explanation(self) -> str:

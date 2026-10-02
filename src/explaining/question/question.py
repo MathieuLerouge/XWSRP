@@ -1,5 +1,6 @@
-# Standard library
+# Standard libraries
 from abc import ABC, abstractmethod
+from enum import Enum
 
 # Local libraries
 from src.modeling.solution import Solution
@@ -18,12 +19,14 @@ class Question(ABC):
     the text it reads as, and the language that text is phrased in.
     """
 
-    def __init__(self, solution: Solution):
+    def __init__(self, solution: Solution, mode: str):
         """
         Args:
             solution: The solution the question is asked about.
+            mode: The mode of the question (template or free-text).
         """
         self._solution = solution
+        self._mode = mode
 
     def __repr__(self):
         return self.text
@@ -32,6 +35,11 @@ class Question(ABC):
     def solution(self) -> Solution:
         """The solution the question is asked about."""
         return self._solution
+
+    @property
+    def mode(self) -> str:
+        """The mode of the question (template or free-text)."""
+        return self._mode
 
     @property
     @abstractmethod
@@ -65,3 +73,22 @@ class Question(ABC):
     def language_is_french(self) -> bool:
         """Whether the question is currently phrased in French."""
         return check_if_language_is_french(self.language)
+
+
+#################
+# QuestionModes #
+#################
+
+class QuestionModes(Enum):
+    """Enum for question mode options."""
+    TEMPLATE = "template"
+    FREE_TEXT = "free-text"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid question mode values."""
+        return [member.value for member in cls]
+
+    def __contains__(self, value):
+        """Check if a value is a valid mode."""
+        return value in self.list_values()
