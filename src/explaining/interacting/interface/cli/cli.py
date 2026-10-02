@@ -121,7 +121,7 @@ class ExplainerCLI:
         print(f"{self._blue('XWSRP CLI')} - Interactive CLI for explaining WSRP solutions")
         print(f"Type {self._yellow(Commands.HELP.name)} for commands")
         print()
-        print(f"Loaded solution: {self._solution.name}")
+        print(self._gray(f"Loaded solution: {self._solution.name}"))
         print()
         while self._running:
             try:
