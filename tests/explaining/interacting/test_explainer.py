@@ -86,15 +86,16 @@ def build_explainer(solution: Solution, extractor_model: Optional[str] = None, h
         The hermetic Explainer: no history, no scenario or counterfactual questions, no cache, no export
         unless explicitly asked for above.
     """
-    return Explainer(solution, ExplainerConfiguration(
-        extractor_model=extractor_model, history_enabled=history_enabled,
+    configuration = ExplainerConfiguration(
+        history_enabled=history_enabled,
+        neighborhood_llm_model=extractor_model,
         activated_question_template_ids=activated_question_template_ids,
-        scenario_explanations_enabled=False, counterfactual_explanations_enabled=False,
-        using_already_computed_contrastive_explanations_enabled=(
-            using_already_computed_contrastive_explanations_enabled
-        ),
+        scenario_explanations_enabled=False,
+        counterfactual_explanations_enabled=False,
+        using_already_computed_contrastive_explanations_enabled=using_already_computed_contrastive_explanations_enabled,
         exporting_each_contrastive_explanation_automatically_enabled=False
-    ))
+    )
+    return Explainer(solution, configuration)
 
 
 ##########################

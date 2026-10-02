@@ -4,9 +4,11 @@ from typing import TYPE_CHECKING, cast
 # Local libraries
 from src.explaining.computing.neighborhood.result import solve_neighborhood_into_transformation_result
 from src.explaining.explanation.predefined.explanation import *
+from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.modeling.solution import EditableSolution
+from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.counter import ExplanationCounter
 from src.explaining.interacting.history import History
@@ -27,6 +29,7 @@ from src.modeling.solution import Solution
 from src.utils.files import check_inputs_file_existence
 from src.utils.language import check_if_language_is_english, check_if_language_is_french
 
+# Library for type checking only (to avoid circular imports)
 if TYPE_CHECKING:
     from src.explaining.neighborhood.llm.extractor import Extractor
 
@@ -231,25 +234,25 @@ class Explainer:
     #######################
 
     @property
-    def extractor_model(self):
-        """The instructor model string the llm pipeline extracts a free-text question with, if any."""
-        return self._configuration.extractor_model
+    def neighborhood_extraction_llm_model(self):
+        """The instructor model string used in the llm pipeline to extract a neighborhood from a free-text question."""
+        return self._configuration.neighborhood_extraction_llm_model
 
-    def set_extractor_model(self, extractor_model: Optional[str]):
+    def set_neighborhood_extraction_llm_model(self, neighborhood_extraction_llm_model: Optional[str]):
         """
         Sets the instructor model string free-text questions are extracted with from now on.
 
         Args:
-            extractor_model: The instructor model string to switch to ("provider/model-name"),
+            neighborhood_extraction_llm_model: The instructor model string to switch to ("provider/model-name"),
                 or None to go back to answering predefined questions only.
         """
-        self._configuration.extractor_model = extractor_model
+        self._configuration.neighborhood_extraction_llm_model = neighborhood_extraction_llm_model
         self._extractor = None
         self._solution_the_extractor_was_built_for = None
 
-    @extractor_model.setter
-    def extractor_model(self, extractor_model: Optional[str]):
-        self.set_extractor_model(extractor_model)
+    @neighborhood_extraction_llm_model.setter
+    def neighborhood_extraction_llm_model(self, neighborhood_extraction_llm_model: Optional[str]):
+        self.set_neighborhood_extraction_llm_model(neighborhood_extraction_llm_model)
 
     def _get_extractor(self) -> "Extractor":
         """
@@ -262,20 +265,20 @@ class Explainer:
             The Extractor bound to the current solution.
 
         Raises:
-            ValueError: if this explainer was built with no extractor model, so free-text questions
-                cannot be answered at all.
+            ValueError: if this explainer was built with no neighborhood_extraction_llm_model,
+                so free-text questions cannot be answered at all.
         """
-        if self._configuration.extractor_model is None:
+        if self._configuration.neighborhood_extraction_llm_model is None:
             raise ValueError(
-                "This explainer answers predefined questions only: it was built with no extractor model, "
+                "This explainer answers predefined questions only: it was built with no neighborhood_llm_model, "
                 "so there is no LLM backend to turn a free-text question into a neighborhood. "
-                "Pass extractor_model (e.g. main_configuration.EXTRACTOR_MODEL) to its constructor."
+                "Pass neighborhood_llm_model (e.g. main_configuration.EXTRACTOR_MODEL) to its constructor."
             )
         # NB: Imported here rather than at module level so that asking predefined questions needs
         # neither the instructor package nor any LLM backend.
         from src.explaining.neighborhood.llm.extractor import Extractor
         if self._extractor is None or self._solution_the_extractor_was_built_for is not self._current_solution:
-            self._extractor = Extractor(self._current_solution, self._configuration.extractor_model)
+            self._extractor = Extractor(self._current_solution, self._configuration.neighborhood_extraction_llm_model)
             self._solution_the_extractor_was_built_for = self._current_solution
         return cast("Extractor", self._extractor)
 
@@ -283,7 +286,7 @@ class Explainer:
         """
         Answers a free-text question through the llm-neighborhood pipeline.
 
-        NB: the explanation is phrased from the template of the question the neighborhood is recognized as,
+        NB: The explanation is phrased from the template of the question the neighborhood is recognized as,
         not from the end user's own words, which the catalogue has no way of reproducing.
         The question is only answerable at all when the neighborhood it induces is one that catalogue covers.
 
@@ -478,10 +481,14 @@ class Explainer:
         Returns:
             The explanation answering it.
         """
-        transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
-            self.current_solution, contrastive_question,
-            self._configuration.time_limit_for_contrastive_explanation_milp_computation
-        )
+        solving_time_limit = self._configuration.time_limit_for_contrastive_explanation_milp_computation
+        if self._configuration.template_computation_mode == TemplateComputationModes.TAILORED:
+            transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
+                self.current_solution, contrastive_question, solving_time_limit
+            )
+        else:
+            neighborhood = Mapper().map(contrastive_question)
+            _, transformation_result = solve_neighborhood_into_transformation_result(neighborhood, solving_time_limit)
         contrastive_explanation = create_explanation(contrastive_question, transformation_result)
         if self._configuration.using_already_computed_contrastive_explanations_enabled:
             self._add_contrastive_explanation_to_already_computed_ones(contrastive_explanation)

@@ -88,21 +88,6 @@ class Commands(Enum):
         return "\n".join(lines)
 
 
-###########################
-# TemplateComputationMode #
-###########################
-
-class TemplateComputationMode(Enum):
-    """Enum for template computation mode options."""
-    TAILORED = "tailored"
-    NEIGHBORHOOD = "neighborhood"
-
-    @classmethod
-    def list_values(cls) -> list[str]:
-        """Return list of all valid template computation mode values."""
-        return [member.value for member in cls]
-
-
 ############
 # Language #
 ############

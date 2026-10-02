@@ -18,8 +18,9 @@ from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.modeling.solution import Solution
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, TemplateComputationMode, Language, Feature, Content,
+    Commands, Language, Feature, Content,
 )
+from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
 
 
@@ -49,11 +50,11 @@ class ExplainerCLI:
             self._solution = solution
         else:
             configuration = ExplainerConfiguration(
-                extractor_model=None,  # Set via /llm-model
                 language=LANGUAGE_ENGLISH_KEY,
                 history_enabled=True,
-                scenario_explanations_enabled=False,  # TODO: Not yet implemented
-                counterfactual_explanations_enabled=False,  # TODO: Not yet implemented
+                neighborhood_llm_model=None,
+                scenario_explanations_enabled=False,
+                counterfactual_explanations_enabled=False,
                 using_already_computed_contrastive_explanations_enabled=False,
                 exporting_each_contrastive_explanation_automatically_enabled=False,
             )
@@ -62,7 +63,7 @@ class ExplainerCLI:
         # CLI-specific state
         self._running = True
         self._last_command: Optional[str] = None
-        self._template_mode: str = TemplateComputationMode.TAILORED.value
+        self._template_mode: str = self._explainer.configuration.template_computation_mode
         # Commands handlers registry
         self._commands: dict[str, Callable[[list[str]], str]] = {}
         # Register all commands
@@ -184,20 +185,18 @@ class ExplainerCLI:
         # Basic validation: should contain a slash
         if "/" not in model:
             return f"Invalid model format '{model}'. Expected format: 'provider/model'"
-        self._explainer.extractor_model = model
+        self._explainer.neighborhood_extraction_llm_model = model
         return f"LLM model set to {model}"
 
     def handle_template_mode(self, args: list[str]) -> str:
         """Handle /template-mode <mode> command."""
         if len(args) < 1:
             return (f"Usage: {self._yellow(Commands.TEMPLATE_MODE.name)} "
-                    f"<{'|'.join(TemplateComputationMode.list_values())}>")
+                    f"<{'|'.join(TemplateComputationModes.list_values())}>")
         mode = args[0].lower()
-        if mode not in TemplateComputationMode.list_values():
+        if mode not in TemplateComputationModes.list_values():
             return (f"Usage: {self._yellow(Commands.TEMPLATE_MODE.name)} "
-                    f"<{'|'.join(TemplateComputationMode.list_values())}>")
-        if mode == "neighborhood":
-            return "NotImplementedError: Tailored-neighborhood pipeline for template questions is not yet implemented."
+                    f"<{'|'.join(TemplateComputationModes.list_values())}>")
         self._template_mode = mode
         return f"Template mode set to {mode}"
 
@@ -205,7 +204,7 @@ class ExplainerCLI:
         """Handle /ask <question> command."""
         if len(args) < 1:
             return f"Usage: {self._yellow(Commands.ASK.name)} <free-text-question>"
-        if self._explainer.extractor_model is None:
+        if self._explainer.neighborhood_extraction_llm_model is None:
             return (f"No LLM model configured. "
                     f"Use {self._yellow(Commands.LLM_MODEL.name)} <provider/model> first.")
         question_text = " ".join(args)
@@ -573,7 +572,7 @@ class ExplainerCLI:
         config = self._explainer.configuration
         lines = [
             "Configuration:",
-            f"  LLM Model: {config.extractor_model or 'None'}",
+            f"  LLM Model: {config.neighborhood_extraction_llm_model or 'None'}",
             f"  Template Mode: {self._template_mode}", f"  Language: {config.language}",
             f"  History Enabled: {'Yes' if config.history_enabled else 'No'}",
             f"  Scenario Enabled: {'Yes' if config.scenario_explanations_enabled else 'No'}",

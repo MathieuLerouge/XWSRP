@@ -7,9 +7,9 @@ from prompt_toolkit.completion import Completer, Completion, CompleteEvent
 from prompt_toolkit.document import Document
 
 # Local libraries
+from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, Content, Feature, Language, TemplateComputationMode,
-)
+    Commands, Content, Feature, Language, )
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 
 # Library for type checking only (to avoid circular imports)
@@ -100,7 +100,7 @@ class ExplainerCLICompleter(Completer):
         if command_name == Commands.LANGUAGE.name and token_index == 1:
             return self._matching(partial_token, Language.list_values())
         if command_name == Commands.TEMPLATE_MODE.name and token_index == 1:
-            return self._matching(partial_token, TemplateComputationMode.list_values())
+            return self._matching(partial_token, TemplateComputationModes.list_values())
         if command_name in (Commands.ENABLE.name, Commands.DISABLE.name) and token_index == 1:
             return self._matching(partial_token, Feature.list_values())
         if command_name == Commands.SHOW.name and token_index == 1:

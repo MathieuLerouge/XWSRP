@@ -1,4 +1,5 @@
-# Standard library
+# Standard libraries
+from enum import Enum
 from typing import Optional
 
 # Local libraries
@@ -30,15 +31,16 @@ AVAILABLE_COUNTERFACTUAL_QUESTION_TEMPLATE_IDS: list[str] = [
 
 class ExplainerConfiguration:
     """
-    The construction-time settings an Explainer is built from: language, the extractor model,
-    every enable_*/disable_* toggle, the contrastive-explanation directories and the MILP time limits.
+    The settings an Explainer is built from:
+    language, template computation mode, every enable_*/disable_* toggle,
+    the contrastive-explanation directories and the MILP time limits.
     """
 
     def __init__(
-            self, extractor_model: Optional[str] = None, language: str = LANGUAGE_ENGLISH_KEY,
+            self, language: str = LANGUAGE_ENGLISH_KEY, history_enabled: bool = False,
+            neighborhood_llm_model: Optional[str] = None,
             activated_question_template_ids: Optional[list[str]] = None,
-            history_enabled: bool = False, scenario_explanations_enabled: bool = False,
-            counterfactual_explanations_enabled: bool = False,
+            scenario_explanations_enabled: bool = False, counterfactual_explanations_enabled: bool = False,
             using_already_computed_contrastive_explanations_enabled: bool = False,
             exporting_each_contrastive_explanation_automatically_enabled: bool = False,
             contrastive_explanation_input_directory_relative_path: str = DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH,
@@ -48,12 +50,12 @@ class ExplainerConfiguration:
     ):
         """
         Args:
-            extractor_model: The instructor model string the llm pipeline extracts a free-text question with.
-                Left as None when only predefined questions are asked, which is what keeps the LLM backend optional.
             language: The language to phrase questions and explanations in.
+            history_enabled: Whether to keep every solution asked about or saved.
+            neighborhood_llm_model: The instructor model string the llm pipeline extracts a free-text question with.
+                Left as None when only predefined questions are asked, which is what keeps the LLM backend optional.
             activated_question_template_ids: Ids of the question templates to activate, skipping any not in
                 AVAILABLE_QUESTION_TEMPLATE_IDS, or None to activate every available one.
-            history_enabled: Whether to keep every solution asked about or saved.
             scenario_explanations_enabled: Whether to allow scenario follow-up questions.
             counterfactual_explanations_enabled: Whether to allow counterfactual follow-up questions.
             using_already_computed_contrastive_explanations_enabled: Whether to reuse already computed
@@ -69,15 +71,19 @@ class ExplainerConfiguration:
             time_limit_for_counterfactual_explanation_milp_computation: Time limit, in seconds, given to the
                 MILP solve of a counterfactual explanation, or None for no limit.
         """
-        self._extractor_model: Optional[str] = extractor_model
         self._language = language
+        self._history_enabled = history_enabled
+        self._neighborhood_llm_model: Optional[str] = neighborhood_llm_model
+        self._template_computation_mode: str = (
+            TemplateComputationModes.NEIGHBORHOOD.value if neighborhood_llm_model is not None
+            else TemplateComputationModes.TAILORED.value
+        )
         if activated_question_template_ids is None:
             activated_question_template_ids = AVAILABLE_QUESTION_TEMPLATE_IDS
         self._activated_question_template_ids: list[str] = [
             template_id for template_id in activated_question_template_ids
             if template_id in AVAILABLE_QUESTION_TEMPLATE_IDS
         ]
-        self._history_enabled = history_enabled
         self._scenario_explanations_enabled = scenario_explanations_enabled
         self._counterfactual_explanations_enabled = counterfactual_explanations_enabled
         self._using_already_computed_contrastive_explanations_enabled = \
@@ -113,7 +119,7 @@ class ExplainerConfiguration:
             The configuration so built.
         """
         return cls(
-            extractor_model=extractor_model,
+            neighborhood_llm_model=extractor_model,
             using_already_computed_contrastive_explanations_enabled=(
                 using_already_computed_contrastive_explanations_enabled
             ),
@@ -150,7 +156,7 @@ class ExplainerConfiguration:
             The configuration so built.
         """
         return cls(
-            extractor_model=extractor_model, language=language,
+            neighborhood_llm_model=extractor_model, language=language,
             history_enabled=history_enabled, scenario_explanations_enabled=scenario_explanations_enabled,
             counterfactual_explanations_enabled=counterfactual_explanations_enabled,
             using_already_computed_contrastive_explanations_enabled=(
@@ -163,15 +169,6 @@ class ExplainerConfiguration:
         )
 
     @property
-    def extractor_model(self) -> Optional[str]:
-        """The instructor model string the llm pipeline extracts a free-text question with, if any."""
-        return self._extractor_model
-
-    @extractor_model.setter
-    def extractor_model(self, extractor_model: Optional[str]):
-        self._extractor_model = extractor_model
-
-    @property
     def language(self) -> str:
         """The language to phrase questions and explanations in."""
         return self._language
@@ -179,6 +176,39 @@ class ExplainerConfiguration:
     @language.setter
     def language(self, language: str):
         self._language = language
+
+    @property
+    def history_enabled(self) -> bool:
+        """
+        Whether every solution asked about or saved is kept, so it can be retrieved again later.
+
+        Fixed at construction; not settable afterward, since enabling history does more than store this
+        flag (Explainer also copies the root solution/instance and rebinds its History to the copy).
+        """
+        return self._history_enabled
+
+    @property
+    def neighborhood_extraction_llm_model(self) -> Optional[str]:
+        """The instructor model string the llm pipeline extracts a free-text question with, if any."""
+        return self._neighborhood_llm_model
+
+    @neighborhood_extraction_llm_model.setter
+    def neighborhood_extraction_llm_model(self, neighborhood_llm_model: Optional[str]):
+        self._neighborhood_llm_model = neighborhood_llm_model
+
+    @property
+    def template_computation_mode(self) -> str:
+        """The template computation mode (tailored or neighborhood), if any."""
+        return self._template_computation_mode
+
+    @template_computation_mode.setter
+    def template_computation_mode(self, mode: str):
+        if mode not in TemplateComputationModes:
+            raise ValueError(
+                f"Invalid template computation mode '{mode}'. "
+                f"Valid modes are: {TemplateComputationModes}"
+            )
+        self._template_computation_mode = mode
 
     @property
     def activated_question_template_ids(self) -> list[str]:
@@ -197,16 +227,6 @@ class ExplainerConfiguration:
             template_id for template_id in self._activated_question_template_ids
             if template_id in AVAILABLE_COUNTERFACTUAL_QUESTION_TEMPLATE_IDS
         ]
-
-    @property
-    def history_enabled(self) -> bool:
-        """
-        Whether every solution asked about or saved is kept, so it can be retrieved again later.
-
-        Fixed at construction; not settable afterward, since enabling history does more than store this
-        flag (Explainer also copies the root solution/instance and rebinds its History to the copy).
-        """
-        return self._history_enabled
 
     @property
     def scenario_explanations_enabled(self) -> bool:
@@ -280,3 +300,29 @@ class ExplainerConfiguration:
     @time_limit_for_counterfactual_explanation_milp_computation.setter
     def time_limit_for_counterfactual_explanation_milp_computation(self, time_limit: Optional[int]):
         self._time_limit_for_counterfactual_explanation_milp_computation = time_limit
+
+
+
+############################
+# TemplateComputationModes #
+############################
+
+class TemplateComputationModes(Enum):
+    """Enum for template computation mode options."""
+    TAILORED = "tailored"
+    NEIGHBORHOOD = "neighborhood"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid template computation mode values."""
+        return [member.value for member in cls]
+
+    @classmethod
+    def __contains__(cls, value) -> bool:
+        """Check if a value is a valid enum value."""
+        return value in cls.list_values()
+
+    @classmethod
+    def __repr__(self):
+        """Return a string representation of the enum values."""
+        return f"{', '.join(self.list_values())}"

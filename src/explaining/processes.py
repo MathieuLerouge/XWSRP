@@ -18,8 +18,9 @@ from src.explaining.question.predefined.bank import *
 from src.explaining.computing.exceptions import ImpossibleTransformationException
 from src.explaining.exporting.explanation import export_multiple_contrastive_explanations_to_json_file
 from src.modeling.solution import Solution
-from src.optimization.milp.solver.exceptions import TimeLimitReachedWithSolutionException, \
-    TimeLimitReachedWithoutSolutionException
+from src.optimization.milp.solver.exceptions import (
+    TimeLimitReachedWithSolutionException, TimeLimitReachedWithoutSolutionException
+)
 from src.importing.solution import import_solution
 from src.utils.constants import DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
 from src.utils.files import get_project_directory_path, get_paths_of_solutions_files_in_given_directory
@@ -228,10 +229,12 @@ def compute_computation_time_analysis_of_explanations(
 
     # Prepare explainer
     configuration = ExplainerConfiguration(
-        history_enabled=False, scenario_explanations_enabled=False,
-        counterfactual_explanations_enabled=not explanations_are_contrastive,
+        history_enabled=False,
+        scenario_explanations_enabled=False,
+        counterfactual_explanations_enabled=(not explanations_are_contrastive),
         time_limit_for_contrastive_explanation_milp_computation=(
-            EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION if explanations_are_contrastive else None
+            EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION if explanations_are_contrastive
+            else None
         ),
         time_limit_for_counterfactual_explanation_milp_computation=(
             EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION if not explanations_are_contrastive
