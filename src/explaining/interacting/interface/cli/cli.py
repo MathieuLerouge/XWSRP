@@ -565,6 +565,8 @@ class ExplainerCLI:
                 f"",
                 self._gray(f"Support solution: {feasibility}")
             ]
+            if explanation.computation_time is not None:
+                lines.append(self._gray(f"Computation time: {explanation.computation_time:.3f}s"))
         return "\n".join(lines)
 
     def _show_last_explanation(self) -> str:

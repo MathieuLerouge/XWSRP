@@ -27,17 +27,20 @@ class Explanation(ABC):
     """
 
     def __init__(self, question: Question, support_solution: Solution,
-                 instance_alterations: Optional[InstanceChanges] = None):
+                 instance_alterations: Optional[InstanceChanges] = None,
+                 computation_time: Optional[float] = None):
         """
         Args:
             question: The question being answered.
             support_solution: The solution found while answering it, backing the explanation.
             instance_alterations: The instance parameter changes the support solution needed to become feasible,
                 or None when the question called for no alteration.
+            computation_time: The computation time in seconds, or None if not available.
         """
         self._question = question
         self._support_solution = support_solution
         self._instance_alterations = instance_alterations
+        self._computation_time = computation_time
         self._text = self._compute_text()
 
     ############
@@ -87,6 +90,11 @@ class Explanation(ABC):
     def new_solution(self) -> Solution:
         """The solution found while answering the question, backing the explanation."""
         return self.support_solution
+
+    @property
+    def computation_time(self) -> Optional[float]:
+        """Computation time in seconds, if available."""
+        return self._computation_time
 
     @property
     @abstractmethod
