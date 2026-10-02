@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 # Local libraries
 from src.explaining.computing.neighborhood.result import solve_neighborhood_into_transformation_result
+from src.explaining.explanation.explanation import ExplanationComputationModes
 from src.explaining.explanation.predefined.explanation import *
 from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.modeling.instance_changes import InstanceChanges
@@ -317,7 +318,10 @@ class Explainer:
         elapsed_time = end_time - start_time
         # NB: Not counted and not cached: both are keyed by template id and field values,
         # which the question the end user actually asked has neither of.
-        free_text_explanation = create_explanation(recognized_question, transformation_result, elapsed_time)
+        free_text_explanation = create_explanation(
+            recognized_question, transformation_result,
+            ExplanationComputationModes.NEIGHBORHOOD.value, elapsed_time
+        )
         self._last_contrastive_explanation = free_text_explanation
         self._last_scenario_explanation = None
         self._last_counterfactual_explanation = None
@@ -487,16 +491,18 @@ class Explainer:
         """
         start_time = time.perf_counter()
         solving_time_limit = self._configuration.time_limit_for_contrastive_explanation_milp_computation
-        if self._configuration.template_computation_mode == TemplateComputationModes.TAILORED:
+        if self._configuration.template_computation_mode == TemplateComputationModes.TAILORED.value:
+            mode = ExplanationComputationModes.TAILORED.value
             transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
                 self.current_solution, contrastive_question, solving_time_limit
             )
         else:
+            mode = ExplanationComputationModes.NEIGHBORHOOD.value
             neighborhood = Mapper().map(contrastive_question)
             _, transformation_result = solve_neighborhood_into_transformation_result(neighborhood, solving_time_limit)
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
-        contrastive_explanation = create_explanation(contrastive_question, transformation_result, elapsed_time)
+        contrastive_explanation = create_explanation(contrastive_question, transformation_result, mode, elapsed_time)
         if self._configuration.using_already_computed_contrastive_explanations_enabled:
             self._add_contrastive_explanation_to_already_computed_ones(contrastive_explanation)
         if self._configuration.exporting_each_contrastive_explanation_automatically_enabled:
@@ -647,13 +653,14 @@ class Explainer:
             current_solution = self.current_solution
             scenario_current_solution = current_solution.copy(current_solution.name + "_scenario")
             scenario_current_solution.instance = scenario_instance
+            mode = ExplanationComputationModes.TAILORED.value
             start_time = time.perf_counter()
             transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
                 scenario_current_solution, scenario_question
             )
             end_time = time.perf_counter()
             elapsed_time = end_time - start_time
-            scenario_explanation = create_explanation(scenario_question, transformation_result, elapsed_time)
+            scenario_explanation = create_explanation(scenario_question, transformation_result, mode, elapsed_time)
             self._last_scenario_explanation = scenario_explanation
             return scenario_explanation
         else:
@@ -765,14 +772,15 @@ class Explainer:
             self.explanation_counter.increase_question_count(counterfactual_question)
             current_solution = self.current_solution
             counterfactual_solution = self.current_solution.copy(current_solution.name + "_counterfactual")
+            mode = ExplanationComputationModes.TAILORED.value
             start_time = time.perf_counter()
-            transformation_result = TransformationDispatcher.handle_counterfactual_question(
+            result = TransformationDispatcher.handle_counterfactual_question(
                 counterfactual_solution, counterfactual_question,
                 self._configuration.time_limit_for_counterfactual_explanation_milp_computation
             )
             end_time = time.perf_counter()
             elapsed_time = end_time - start_time
-            counterfactual_explanation = create_explanation(counterfactual_question, transformation_result, elapsed_time)
+            counterfactual_explanation = create_explanation(counterfactual_question, result, mode, elapsed_time)
             self._last_counterfactual_explanation = counterfactual_explanation
             return counterfactual_explanation
         else:

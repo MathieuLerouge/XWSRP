@@ -1,5 +1,6 @@
 # Standard libraries
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Optional
 
 # Local libraries
@@ -26,9 +27,11 @@ class Explanation(ABC):
     since it is what the tailored and free-text branches disagree on.
     """
 
-    def __init__(self, question: Question, support_solution: Solution,
-                 instance_alterations: Optional[InstanceChanges] = None,
-                 computation_time: Optional[float] = None):
+    def __init__(
+            self, question: Question, support_solution: Solution,
+            instance_alterations: Optional[InstanceChanges] = None,
+            mode: Optional[str] = None, computation_time: Optional[float] = None
+    ):
         """
         Args:
             question: The question being answered.
@@ -40,6 +43,7 @@ class Explanation(ABC):
         self._question = question
         self._support_solution = support_solution
         self._instance_alterations = instance_alterations
+        self._mode = mode
         self._computation_time = computation_time
         self._text = self._compute_text()
 
@@ -90,6 +94,11 @@ class Explanation(ABC):
     def new_solution(self) -> Solution:
         """The solution found while answering the question, backing the explanation."""
         return self.support_solution
+
+    @property
+    def mode(self) -> Optional[str]:
+        """The mode in which the explanation is computed (tailored or neighborhood)."""
+        return self._mode
 
     @property
     def computation_time(self) -> Optional[float]:
@@ -301,3 +310,22 @@ class Explanation(ABC):
         """
         Returns the dictionary describing the explanation, for serialization.
         """
+
+
+###############################
+# ExplanationComputationModes #
+###############################
+
+class ExplanationComputationModes(Enum):
+    """Enum for explanation computation mode options."""
+    TAILORED = "tailored"
+    NEIGHBORHOOD = "neighborhood"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid explanation computation mode values."""
+        return [member.value for member in cls]
+
+    def __contains__(self, value):
+        """Check if a value is a valid explanation computation mode."""
+        return value in self.list_values()

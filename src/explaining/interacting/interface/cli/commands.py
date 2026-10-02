@@ -11,7 +11,7 @@ class Commands(Enum):
     
     # Core Commands
     LLM_MODEL = ("/llm-model", "Set LLM model for free-text extraction")
-    TEMPLATE_MODE = ("/template-mode", "Switch template pipeline (tailored/neighborhood)")
+    TEMPLATE_COMPUTATION_MODE = ("/template-computation-mode", "Switch template pipeline (tailored/neighborhood)")
     ASK = ("/ask", "Ask a free-text contrastive question")
     CONTRASTIVE = ("/contrastive", "Ask a template-based contrastive question")
     SAVE_SOLUTION = ("/save-solution", "Save current support solution")
@@ -33,7 +33,7 @@ class Commands(Enum):
     SHOW = ("/show", "Show details")
     SHOW_INSTANCE = ("/show-instance", "Show instance details")
     SHOW_SOLUTION = ("/show-solution", "Show solution details")
-    MODE = ("/mode", "Set the CLI display mode (user/developer)")
+    DISPLAY_MODE = ("/display-mode", "Set the CLI display mode (user/developer)")
     HELP = ("/help", "Show this help message")
     
     # Session Commands
@@ -57,18 +57,18 @@ class Commands(Enum):
             "Explainer CLI - Available Commands",
             "",
             "Core Commands:",
-            f"  {cls.LLM_MODEL.name} <model>          {cls.LLM_MODEL.description}",
-            f"  {cls.TEMPLATE_MODE.name} <mode>       {cls.TEMPLATE_MODE.description}",
-            f"  {cls.ASK.name} <question>             {cls.ASK.description}",
-            f"  {cls.CONTRASTIVE.name} <id> <vals>    {cls.CONTRASTIVE.description}",
-            f"  {cls.SAVE_SOLUTION.name}              {cls.SAVE_SOLUTION.description}",
-            f"  {cls.LIST_TEMPLATES.name}             {cls.LIST_TEMPLATES.description}",
-            f"  {cls.LIST_INSTANCES.name}             {cls.LIST_INSTANCES.description}",
-            f"  {cls.LIST_SOLUTIONS.name}             {cls.LIST_SOLUTIONS.description}",
-            f"  {cls.SWITCH_INSTANCE.name} <name>     {cls.SWITCH_INSTANCE.description}",
-            f"  {cls.SWITCH_SOLUTION.name} <name>     {cls.SWITCH_SOLUTION.description}",
-            f"  {cls.LANGUAGE.name} <en|fr>           {cls.LANGUAGE.description}",
-            f"  {cls.EXPORT.name}                     {cls.EXPORT.description}",
+            f"  {cls.LLM_MODEL.name} <model>                   {cls.LLM_MODEL.description}",
+            f"  {cls.TEMPLATE_COMPUTATION_MODE.name} <mode>    {cls.TEMPLATE_COMPUTATION_MODE.description}",
+            f"  {cls.ASK.name} <question>                      {cls.ASK.description}",
+            f"  {cls.CONTRASTIVE.name} <id> <vals>             {cls.CONTRASTIVE.description}",
+            f"  {cls.SAVE_SOLUTION.name}                       {cls.SAVE_SOLUTION.description}",
+            f"  {cls.LIST_TEMPLATES.name}                      {cls.LIST_TEMPLATES.description}",
+            f"  {cls.LIST_INSTANCES.name}                      {cls.LIST_INSTANCES.description}",
+            f"  {cls.LIST_SOLUTIONS.name}                      {cls.LIST_SOLUTIONS.description}",
+            f"  {cls.SWITCH_INSTANCE.name} <name>              {cls.SWITCH_INSTANCE.description}",
+            f"  {cls.SWITCH_SOLUTION.name} <name>              {cls.SWITCH_SOLUTION.description}",
+            f"  {cls.LANGUAGE.name} <en|fr>                    {cls.LANGUAGE.description}",
+            f"  {cls.EXPORT.name}                              {cls.EXPORT.description}",
             "",
             "Configuration Commands:",
             f"  {cls.TIME_LIMIT_CONTRASTIVE.name} <s>       {cls.TIME_LIMIT_CONTRASTIVE.description}",
@@ -77,15 +77,15 @@ class Commands(Enum):
             f"  {cls.DISABLE.name} <feature>                {cls.DISABLE.description}",
             "",
             "Display Commands:",
-            f"  {cls.SHOW.name} <resource>           {cls.SHOW.description} ({', '.join(Contents.list_values())})",
-            f"  {cls.SHOW_INSTANCE.name} <name>      {cls.SHOW_INSTANCE.description}",
-            f"  {cls.SHOW_SOLUTION.name} <name>      {cls.SHOW_SOLUTION.description}",
-            f"  {cls.MODE.name} <user|developer>     {cls.MODE.description}",
-            f"  {cls.HELP.name}                      {cls.HELP.description}",
+            f"  {cls.SHOW.name} <resource>                  {cls.SHOW.description} ({', '.join(Contents.list_values())})",
+            f"  {cls.SHOW_INSTANCE.name} <name>             {cls.SHOW_INSTANCE.description}",
+            f"  {cls.SHOW_SOLUTION.name} <name>             {cls.SHOW_SOLUTION.description}",
+            f"  {cls.DISPLAY_MODE.name} <user|developer>    {cls.DISPLAY_MODE.description}",
+            f"  {cls.HELP.name}                             {cls.HELP.description}",
             "",
             "Session Commands:",
-            f"  {cls.CLEAR.name}                     {cls.CLEAR.description}",
-            f"  {cls.QUIT.name}                      {cls.QUIT.description}",
+            f"  {cls.CLEAR.name}    {cls.CLEAR.description}",
+            f"  {cls.QUIT.name}     {cls.QUIT.description}",
         ]
         return "\n".join(lines)
 
@@ -140,21 +140,21 @@ class Contents(Enum):
         return [member.value for member in cls]
 
 
-#########
-# Modes #
-#########
+################
+# DisplayModes #
+################
 
-class Modes(Enum):
-    """Enum for mode options (lowercase, as entered by user)."""
+class DisplayModes(Enum):
+    """Enum for display mode options (lowercase, as entered by user)."""
     USER = "user"
     DEVELOPER = "developer"
 
     @classmethod
     def list_values(cls) -> list[str]:
-        """Return list of all valid mode values."""
+        """Return list of all valid display mode values."""
         return [member.value for member in cls]
 
     def __contains__(self, value):
-        """Check if a value is a valid mode."""
+        """Check if a value is a valid display mode."""
         return value in self.list_values()
 

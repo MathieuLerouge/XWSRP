@@ -18,7 +18,7 @@ from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.modeling.solution import Solution
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, Contents, Features, Languages, Modes,
+    Commands, Contents, Features, Languages, DisplayModes,
 )
 from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
@@ -63,8 +63,7 @@ class ExplainerCLI:
         # CLI-specific state
         self._running = True
         self._last_command: Optional[str] = None
-        self._template_mode: str = self._explainer.configuration.template_computation_mode
-        self._mode = Modes.USER.value
+        self._display_mode = DisplayModes.USER.value
         # Commands handlers registry
         self._commands: dict[str, Callable[[list[str]], str]] = {}
         # Register all commands
@@ -88,7 +87,7 @@ class ExplainerCLI:
         self._commands = {
             # Core
             Commands.LLM_MODEL.name: self.handle_llm_model,
-            Commands.TEMPLATE_MODE.name: self.handle_template_mode,
+            Commands.TEMPLATE_COMPUTATION_MODE.name: self.handle_template_mode,
             Commands.ASK.name: self.handle_ask,
             Commands.CONTRASTIVE.name: self.handle_contrastive,
             Commands.SAVE_SOLUTION.name: self.handle_save_solution,
@@ -108,7 +107,7 @@ class ExplainerCLI:
             Commands.SHOW.name: self.handle_show,
             Commands.SHOW_INSTANCE.name: self.handle_show_instance,
             Commands.SHOW_SOLUTION.name: self.handle_show_solution,
-            Commands.MODE.name: self.handle_mode,
+            Commands.DISPLAY_MODE.name: self.handle_display_mode,
             Commands.HELP.name: self.handle_help,
             # Session
             Commands.CLEAR.name: self.handle_clear,
@@ -193,13 +192,13 @@ class ExplainerCLI:
     def handle_template_mode(self, args: list[str]) -> str:
         """Handle /template-mode <mode> command."""
         if len(args) < 1:
-            return (f"Usage: {self._yellow(Commands.TEMPLATE_MODE.name)} "
+            return (f"Usage: {self._yellow(Commands.TEMPLATE_COMPUTATION_MODE.name)} "
                     f"<{'|'.join(TemplateComputationModes.list_values())}>")
         mode = args[0].lower()
         if mode not in TemplateComputationModes.list_values():
-            return (f"Usage: {self._yellow(Commands.TEMPLATE_MODE.name)} "
+            return (f"Usage: {self._yellow(Commands.TEMPLATE_COMPUTATION_MODE.name)} "
                     f"<{'|'.join(TemplateComputationModes.list_values())}>")
-        self._template_mode = mode
+        self._explainer.configuration.template_computation_mode = mode
         return f"Template mode set to {mode}"
 
     def handle_ask(self, args: list[str]) -> str:
@@ -443,15 +442,15 @@ class ExplainerCLI:
         except KeyError:
             return f"Solution '{solution_name}' not found."
 
-    def handle_mode(self, args: list[str]) -> str:
-        """Handle /mode <user|developer> command."""
+    def handle_display_mode(self, args: list[str]) -> str:
+        """Handle /display-mode <user|developer> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.MODE.name} <{'|'.join(Modes.list_values())}>"
+            return f"Usage: {Commands.DISPLAY_MODE.name} <{'|'.join(DisplayModes.list_values())}>"
         mode = args[0].lower()
-        if mode not in Modes:
-            return f"Usage: {Commands.MODE.name} <{'|'.join(Modes.list_values())}>"
-        self._mode = mode
-        return f"Mode set to {mode}"
+        if mode not in DisplayModes:
+            return f"Usage: {Commands.DISPLAY_MODE.name} <{'|'.join(DisplayModes.list_values())}>"
+        self._display_mode = mode
+        return f"Display mode set to {mode}"
 
     @staticmethod
     def handle_help(args: list[str]) -> str:
@@ -560,9 +559,11 @@ class ExplainerCLI:
             f"Explanation:",
             f"{explanation_text}"
         ]
-        if self._mode == Modes.DEVELOPER.value:
+        if self._display_mode == DisplayModes.DEVELOPER.value:
             lines.append("")
             lines.append(self._gray(f"Questioning mode: {explanation.question.mode}"))
+            if explanation.mode is not None:
+                lines.append(self._gray(f"Explanation computation mode: {explanation.mode}"))
             if explanation.computation_time is not None:
                 lines.append(self._gray(f"Computation time: {explanation.computation_time:.3f}s"))
             lines.append(self._gray(f"Support solution: {feasibility}"))
@@ -592,14 +593,15 @@ class ExplainerCLI:
         config = self._explainer.configuration
         lines = [
             "Configuration:",
-            f"  Mode: {self._mode}",
-            f"  LLM Model: {config.neighborhood_extraction_llm_model or 'None'}",
-            f"  Template Mode: {self._template_mode}", f"  Language: {config.language}",
+            f"  Display Mode: {self._display_mode}",
+            f"  Language: {config.language}",
             f"  History Enabled: {'Yes' if config.history_enabled else 'No'}",
+            f"  LLM Model: {config.neighborhood_extraction_llm_model or 'None'}",
+            f"  Template Computation Mode: {config.template_computation_mode}",
             f"  Scenario Enabled: {'Yes' if config.scenario_explanations_enabled else 'No'}",
             f"  Counterfactual Enabled: {'Yes' if config.counterfactual_explanations_enabled else 'No'}",
-            f"  Auto-Export Enabled: {'Yes' if config.exporting_each_contrastive_explanation_automatically_enabled else 'No'}",
             f"  Contrastive Time Limit: {config.time_limit_for_contrastive_explanation_milp_computation or 'None'}",
-            f"  Counterfactual Time Limit: {config.time_limit_for_counterfactual_explanation_milp_computation or 'None'}"
+            f"  Counterfactual Time Limit: {config.time_limit_for_counterfactual_explanation_milp_computation or 'None'}",
+            f"  Auto-Export Enabled: {'Yes' if config.exporting_each_contrastive_explanation_automatically_enabled else 'No'}",
         ]
         return "\n".join(lines)

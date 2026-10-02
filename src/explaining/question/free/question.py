@@ -1,5 +1,5 @@
 # Local libraries
-from src.explaining.question.question import Question, QuestionModes
+from src.explaining.question.question import Question, QuestioningModes
 from src.modeling.solution import Solution
 from src.utils.language import LANGUAGE_ENGLISH_KEY
 
@@ -24,7 +24,7 @@ class FreeTextQuestion(Question):
             text: The question as the end user typed it.
             language_key: Key of the language the end user typed it in.
         """
-        super().__init__(solution, QuestionModes.FREE_TEXT.value)
+        super().__init__(solution, QuestioningModes.FREE_TEXT.value)
         self._text = text
         self._language_key = language_key
 

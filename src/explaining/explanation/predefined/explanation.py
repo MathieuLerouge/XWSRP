@@ -24,6 +24,7 @@ TRANSFORMATION_KEY = 'transformation'
 # it is the key of already-saved explanation JSON files (see data/*/explanations/),
 # which renaming the classes must not invalidate.
 CONFLICT_KEY = 'infeasibility'
+COMPUTATION_MODE_KEY = 'computation_mode'
 COMPUTATION_TIME_KEY = 'computation_time'
 
 
@@ -46,14 +47,17 @@ def emphasize(text: str, make_bold: bool = False):
         return text
 
 
-def create_explanation(question: PredefinedQuestion, result: TransformationResult,
-                       computation_time: Optional[float] = None):
+def create_explanation(
+        question: PredefinedQuestion, result: TransformationResult,
+        computation_mode: Optional[str] = None, computation_time: Optional[float] = None
+):
     """
     Return the explanation answering the given question, of the kind the transformation's result calls for.
 
     Args:
         question: The question to answer.
         result: The result of the transformation the question induced.
+        computation_mode: The mode in which the explanation is computed (tailored or neighborhood).
         computation_time: The computation time in seconds, or None if not available.
 
     Returns:
@@ -69,20 +73,24 @@ def create_explanation(question: PredefinedQuestion, result: TransformationResul
     if conflict is None:
         if support_solution > question.solution:
             return PositiveExplanation(
-                question, support_solution, descriptions, instance_alterations, computation_time
+                question, support_solution, descriptions, instance_alterations,
+                computation_mode, computation_time
             )
         else:
             return NonImprovingNegativeExplanation(
-                question, support_solution, descriptions, instance_alterations, computation_time
+                question, support_solution, descriptions, instance_alterations,
+                computation_mode, computation_time
             )
     else:
         if isinstance(conflict, SkillConflict):
             return SkillNegativeExplanation(
-                question, support_solution, conflict, descriptions, instance_alterations, computation_time
+                question, support_solution, conflict, descriptions, instance_alterations,
+                computation_mode, computation_time
             )
         elif isinstance(conflict, TimeConflict):
             return TimeNegativeExplanation(
-                question, support_solution, conflict, descriptions, instance_alterations, computation_time
+                question, support_solution, conflict, descriptions, instance_alterations,
+                computation_mode, computation_time
             )
         else:
             raise TypeError(f"There is a problem with the type of conflict which is {type(conflict)}")
@@ -115,9 +123,10 @@ def create_explanation_from_dict(dictionary, solution: Solution):
             return_step.arrival_time, return_step.start_time, return_step.end_time = \
                 return_time, return_time, return_time
     descriptions = dictionary[TRANSFORMATION_KEY]
+    computation_mode = dictionary.get(COMPUTATION_MODE_KEY)
     computation_time = dictionary.get(COMPUTATION_TIME_KEY)
     result = TransformationResult(support_solution, conflict, descriptions)
-    return create_explanation(question, result, computation_time)
+    return create_explanation(question, result, computation_mode, computation_time)
 
 
 #########################
@@ -133,10 +142,12 @@ class PredefinedExplanation(Explanation):
     which is what ties a question of the catalogue to the wording answering it.
     """
 
-    def __init__(self, question: PredefinedQuestion, support_solution: Solution,
-                 all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
-                 instance_alterations: Optional[InstanceChanges] = None,
-                 computation_time: Optional[float] = None):
+    def __init__(
+            self, question: PredefinedQuestion, support_solution: Solution,
+            all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
+            instance_alterations: Optional[InstanceChanges] = None,
+            computation_mode: Optional[str] = None, computation_time: Optional[float] = None
+    ):
         """
         Args:
             question: The predefined question being answered.
@@ -145,6 +156,7 @@ class PredefinedExplanation(Explanation):
                 to reach the support solution, keyed by language, or None when no transformation was applied.
             instance_alterations: The instance parameter changes the support solution needed to become feasible,
                 or None when the question called for no alteration.
+            computation_mode: The mode in which the explanation is computed (tailored or neighborhood).
             computation_time: The computation time in seconds, or None if not available.
         """
         self._is_based_on_most_relevant_neighboring_solution = \
@@ -160,7 +172,7 @@ class PredefinedExplanation(Explanation):
         self._typical_expressions['applying_support_solution_transformation'] = (
             all_descriptions_of_applied_transformation
         )
-        super().__init__(question, support_solution, instance_alterations, computation_time)
+        super().__init__(question, support_solution, instance_alterations, computation_mode, computation_time)
         self._question = question
 
     ############
@@ -501,10 +513,12 @@ class NonImprovingNegativeExplanation(NegativeExplanation):
 
 class InfeasibleNegativeExplanation(NegativeExplanation):
 
-    def __init__(self, question: PredefinedQuestion, support_solution: Solution, conflict: Conflict,
-                 all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
-                 instance_alterations: Optional[InstanceChanges] = None,
-                 computation_time: Optional[float] = None):
+    def __init__(
+            self, question: PredefinedQuestion, support_solution: Solution, conflict: Conflict,
+            all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
+            instance_alterations: Optional[InstanceChanges] = None,
+            computation_mode: Optional[str] = None, computation_time: Optional[float] = None
+    ):
         """
         Args:
             question: The predefined question being answered.
@@ -514,11 +528,15 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
                 to reach the support solution, keyed by language, or None when no transformation was applied.
             instance_alterations: The instance parameter changes the support solution needed to become feasible,
                 or None when the question called for no alteration.
+            computation_mode: The mode in which the explanation is computed (tailored or neighborhood).
             computation_time: The computation time in seconds, or None if not available.
         """
         # Set before delegating: the base class ends its own __init__ by wording the text, which reads the conflict.
         self._conflict = conflict
-        super().__init__(question, support_solution, all_descriptions_of_applied_transformation, instance_alterations, computation_time)
+        super().__init__(
+            question, support_solution, all_descriptions_of_applied_transformation,
+            instance_alterations, computation_mode, computation_time
+        )
 
     @property
     def conflict(self):
@@ -552,12 +570,16 @@ class InfeasibleNegativeExplanation(NegativeExplanation):
 
 class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 
-    def __init__(self, question: PredefinedQuestion, support_solution: Solution, conflict: SkillConflict,
-                 all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
-                 instance_alterations: Optional[InstanceChanges] = None,
-                 computation_time: Optional[float] = None):
-        super().__init__(question, support_solution, conflict,
-                         all_descriptions_of_applied_transformation, instance_alterations, computation_time)
+    def __init__(
+            self, question: PredefinedQuestion, support_solution: Solution, conflict: SkillConflict,
+            all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
+            instance_alterations: Optional[InstanceChanges] = None,
+            computation_mode: Optional[str] = None, computation_time: Optional[float] = None
+    ):
+        super().__init__(
+            question, support_solution, conflict, all_descriptions_of_applied_transformation,
+            instance_alterations, computation_mode, computation_time
+        )
 
     def _compute_text(self, with_bold_emphasis: bool = False):
         employee = self._conflicting_employee
@@ -603,12 +625,16 @@ class SkillNegativeExplanation(InfeasibleNegativeExplanation):
 
 class TimeNegativeExplanation(InfeasibleNegativeExplanation):
 
-    def __init__(self, question: PredefinedQuestion, support_solution: Solution, conflict: TimeConflict,
-                 all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
-                 instance_alterations: Optional[InstanceChanges] = None,
-                 computation_time: Optional[float] = None):
-        super().__init__(question, support_solution, conflict,
-                         all_descriptions_of_applied_transformation, instance_alterations, computation_time)
+    def __init__(
+            self, question: PredefinedQuestion, support_solution: Solution, conflict: TimeConflict,
+            all_descriptions_of_applied_transformation: Optional[dict[str, str]] = None,
+            instance_alterations: Optional[InstanceChanges] = None,
+            computation_mode: Optional[str] = None, computation_time: Optional[float] = None
+    ):
+        super().__init__(
+            question, support_solution, conflict, all_descriptions_of_applied_transformation,
+            instance_alterations, computation_mode, computation_time
+        )
         self._conflict = conflict
 
     @property

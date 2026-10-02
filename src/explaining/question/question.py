@@ -23,7 +23,7 @@ class Question(ABC):
         """
         Args:
             solution: The solution the question is asked about.
-            mode: The mode of the question (template or free-text).
+            mode: The mode in which the question is asked (template or free-text).
         """
         self._solution = solution
         self._mode = mode
@@ -38,7 +38,7 @@ class Question(ABC):
 
     @property
     def mode(self) -> str:
-        """The mode of the question (template or free-text)."""
+        """The mode in which the question is asked (template or free-text)."""
         return self._mode
 
     @property
@@ -75,20 +75,20 @@ class Question(ABC):
         return check_if_language_is_french(self.language)
 
 
-#################
-# QuestionModes #
-#################
+####################
+# QuestioningModes #
+####################
 
-class QuestionModes(Enum):
-    """Enum for question mode options."""
+class QuestioningModes(Enum):
+    """Enum for questioning mode options."""
     TEMPLATE = "template"
     FREE_TEXT = "free-text"
 
     @classmethod
     def list_values(cls) -> list[str]:
-        """Return list of all valid question mode values."""
+        """Return list of all valid questioning mode values."""
         return [member.value for member in cls]
 
     def __contains__(self, value):
-        """Check if a value is a valid mode."""
+        """Check if a value is a valid questioning mode."""
         return value in self.list_values()

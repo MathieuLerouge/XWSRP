@@ -78,6 +78,7 @@ class ExplainerConfiguration:
             TemplateComputationModes.NEIGHBORHOOD.value if neighborhood_llm_model is not None
             else TemplateComputationModes.TAILORED.value
         )
+        print(self._template_computation_mode)
         if activated_question_template_ids is None:
             activated_question_template_ids = AVAILABLE_QUESTION_TEMPLATE_IDS
         self._activated_question_template_ids: list[str] = [
@@ -102,7 +103,8 @@ class ExplainerConfiguration:
     @classmethod
     def batch(
             cls, extractor_model: Optional[str] = None,
-            using_already_computed_contrastive_explanations_enabled: bool = False, **overrides
+            using_already_computed_contrastive_explanations_enabled: bool = False,
+            **overrides
     ) -> "ExplainerConfiguration":
         """
         Returns the configuration shared by every batch/evaluation script:
