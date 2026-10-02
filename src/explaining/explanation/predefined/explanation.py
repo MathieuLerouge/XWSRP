@@ -68,14 +68,22 @@ def create_explanation(question: PredefinedQuestion, result: TransformationResul
     instance_alterations = result.instance_alterations
     if conflict is None:
         if support_solution > question.solution:
-            return PositiveExplanation(question, support_solution, descriptions, instance_alterations, computation_time)
+            return PositiveExplanation(
+                question, support_solution, descriptions, instance_alterations, computation_time
+            )
         else:
-            return NonImprovingNegativeExplanation(question, support_solution, descriptions, instance_alterations, computation_time)
+            return NonImprovingNegativeExplanation(
+                question, support_solution, descriptions, instance_alterations, computation_time
+            )
     else:
         if isinstance(conflict, SkillConflict):
-            return SkillNegativeExplanation(question, support_solution, conflict, descriptions, instance_alterations, computation_time)
+            return SkillNegativeExplanation(
+                question, support_solution, conflict, descriptions, instance_alterations, computation_time
+            )
         elif isinstance(conflict, TimeConflict):
-            return TimeNegativeExplanation(question, support_solution, conflict, descriptions, instance_alterations, computation_time)
+            return TimeNegativeExplanation(
+                question, support_solution, conflict, descriptions, instance_alterations, computation_time
+            )
         else:
             raise TypeError(f"There is a problem with the type of conflict which is {type(conflict)}")
 
@@ -149,8 +157,9 @@ class PredefinedExplanation(Explanation):
             [(id, complete_expression_with_field_values(expression, fields_key_value_map))
              for (id, expression) in template.typical_expressions.items()]
         )
-        self._typical_expressions['applying_support_solution_transformation'] = \
+        self._typical_expressions['applying_support_solution_transformation'] = (
             all_descriptions_of_applied_transformation
+        )
         super().__init__(question, support_solution, instance_alterations, computation_time)
         self._question = question
 
