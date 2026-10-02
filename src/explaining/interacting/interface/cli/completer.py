@@ -9,7 +9,8 @@ from prompt_toolkit.document import Document
 # Local libraries
 from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, Content, Feature, Language, )
+    Commands, Contents, Features, Languages, Modes
+)
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 
 # Library for type checking only (to avoid circular imports)
@@ -98,13 +99,15 @@ class ExplainerCLICompleter(Completer):
         if command_name == Commands.CONTRASTIVE.name and token_index >= 2:
             return self._complete_contrastive_field(args, partial_token)
         if command_name == Commands.LANGUAGE.name and token_index == 1:
-            return self._matching(partial_token, Language.list_values())
+            return self._matching(partial_token, Languages.list_values())
+        if command_name == Commands.MODE.name and token_index == 1:
+            return self._matching(partial_token, Modes.list_values())
         if command_name == Commands.TEMPLATE_MODE.name and token_index == 1:
             return self._matching(partial_token, TemplateComputationModes.list_values())
         if command_name in (Commands.ENABLE.name, Commands.DISABLE.name) and token_index == 1:
-            return self._matching(partial_token, Feature.list_values())
+            return self._matching(partial_token, Features.list_values())
         if command_name == Commands.SHOW.name and token_index == 1:
-            return self._matching(partial_token, Content.list_values())
+            return self._matching(partial_token, Contents.list_values())
         if command_name in (Commands.SWITCH_INSTANCE.name, Commands.SHOW_INSTANCE.name) and token_index == 1:
             return self._complete_history_names(lambda history: history.instances_names, partial_token)
         if command_name in (Commands.SWITCH_SOLUTION.name, Commands.SHOW_SOLUTION.name) and token_index == 1:

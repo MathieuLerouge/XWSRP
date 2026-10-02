@@ -18,7 +18,7 @@ from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.modeling.solution import Solution
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, Language, Feature, Content,
+    Commands, Contents, Features, Languages, Modes,
 )
 from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
@@ -64,6 +64,7 @@ class ExplainerCLI:
         self._running = True
         self._last_command: Optional[str] = None
         self._template_mode: str = self._explainer.configuration.template_computation_mode
+        self._mode = Modes.USER.value
         # Commands handlers registry
         self._commands: dict[str, Callable[[list[str]], str]] = {}
         # Register all commands
@@ -107,6 +108,7 @@ class ExplainerCLI:
             Commands.SHOW.name: self.handle_show,
             Commands.SHOW_INSTANCE.name: self.handle_show_instance,
             Commands.SHOW_SOLUTION.name: self.handle_show_solution,
+            Commands.MODE.name: self.handle_mode,
             Commands.HELP.name: self.handle_help,
             # Session
             Commands.CLEAR.name: self.handle_clear,
@@ -145,7 +147,7 @@ class ExplainerCLI:
         """Cleanup and exit."""
         self._running = False
         print()
-        print("Goodbye!")
+        print("Ciao ciao!")
 
     def dispatch(self, input_str: str) -> None:
         """Parse and route input to command handler."""
@@ -315,10 +317,10 @@ class ExplainerCLI:
     def handle_language(self, args: list[str]) -> str:
         """Handle /language <en|fr> command."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.LANGUAGE.name)} <{'|'.join(Language.list_values())}>"
+            return f"Usage: {self._yellow(Commands.LANGUAGE.name)} <{'|'.join(Languages.list_values())}>"
         lang = args[0].lower()
-        if lang not in Language.list_values():
-            return f"Usage: {self._yellow(Commands.LANGUAGE.name)} <{'|'.join(Language.list_values())}>"
+        if lang not in Languages.list_values():
+            return f"Usage: {self._yellow(Commands.LANGUAGE.name)} <{'|'.join(Languages.list_values())}>"
         if lang == "en":
             lang = LANGUAGE_ENGLISH_KEY
         elif lang == "fr":
@@ -366,7 +368,7 @@ class ExplainerCLI:
         if len(args) < 1:
             return f"Usage: {self._yellow(Commands.ENABLE.name)} <feature>"
         feature = args[0].lower()
-        valid_features = Feature.list_values()
+        valid_features = Features.list_values()
         if feature not in valid_features:
             return f"Unknown feature. Valid features: {', '.join(valid_features)}"
         if feature == "history":
@@ -385,7 +387,7 @@ class ExplainerCLI:
         if len(args) < 1:
             return f"Usage: {self._yellow(Commands.DISABLE.name)} <feature>"
         feature = args[0].lower()
-        valid_features = Feature.list_values()
+        valid_features = Features.list_values()
         if feature not in valid_features:
             return f"Unknown feature. Valid features: {', '.join(valid_features)}"
         if feature == "history":
@@ -403,21 +405,21 @@ class ExplainerCLI:
         """Handle /show <resource> command."""
         if len(args) < 1:
             return (f"Usage: {self._yellow(Commands.SHOW.name)} <resource> "
-                    f"where resource is: {', '.join(Content.list_values())}")
+                    f"where resource is: {', '.join(Contents.list_values())}")
         resource = args[0].lower()
-        if resource == Content.SOLUTION.value:
+        if resource == Contents.SOLUTION.value:
             return self._show_current_solution()
-        elif resource == Content.INSTANCE.value:
+        elif resource == Contents.INSTANCE.value:
             return self._show_current_instance()
-        elif resource == Content.EXPLANATION.value:
+        elif resource == Contents.EXPLANATION.value:
             return self._show_last_explanation()
-        elif resource == Content.HISTORY.value:
+        elif resource == Contents.HISTORY.value:
             return self._show_history()
-        elif resource == Content.CONFIG.value:
+        elif resource == Contents.CONFIG.value:
             return self._show_config()
         else:
             return (f"Unknown resource '{resource}'. "
-                    f"Valid resources: {', '.join(Content.list_values())}")
+                    f"Valid resources: {', '.join(Contents.list_values())}")
 
     def handle_show_instance(self, args: list[str]) -> str:
         """Handle /show-instance <instance_name> command."""
@@ -440,6 +442,16 @@ class ExplainerCLI:
             return self._format_solution_output(solution)
         except KeyError:
             return f"Solution '{solution_name}' not found."
+
+    def handle_mode(self, args: list[str]) -> str:
+        """Handle /mode <user|developer> command."""
+        if len(args) < 1:
+            return f"Usage: {Commands.MODE.name} <{'|'.join(Modes.list_values())}>"
+        mode = args[0].lower()
+        if mode not in Modes:
+            return f"Usage: {Commands.MODE.name} <{'|'.join(Modes.list_values())}>"
+        self._mode = mode
+        return f"Mode set to {mode}"
 
     @staticmethod
     def handle_help(args: list[str]) -> str:
@@ -470,6 +482,11 @@ class ExplainerCLI:
     def _blue(text: str) -> str:
         """Return text formatted in color #4285f4 (blue) using 24-bit ANSI codes."""
         return f"\033[38;2;66;133;244m{text}\033[0m"
+
+    @staticmethod
+    def _gray(text: str) -> str:
+        """Return text formatted in color #767676 (gray) using 24-bit ANSI codes."""
+        return f"\033[38;2;118;118;118m{text}\033[0m"
 
     @staticmethod
     def _highlight_fields(text: str) -> str:
@@ -532,20 +549,22 @@ class ExplainerCLI:
             lines.append(f"{kpi_name}: {kpi_value}")
         return "\n".join(lines)
 
-    @staticmethod
-    def _format_explanation_output(explanation: Explanation) -> str:
+    def _format_explanation_output(self, explanation: Explanation) -> str:
         """Format an explanation for display."""
         question_text = explanation.question.text
         explanation_text = explanation.text
-        support_feasible = "Yes" if explanation.support_solution_is_feasible else "No"
+        feasibility = "feasible" if explanation.support_solution_is_feasible else "infeasible"
         lines = [
             f"Question: {question_text}",
             f"",
             f"Explanation:",
-            f"{explanation_text}",
-            f"",
-            f"Feasible support solution: {support_feasible}"
+            f"{explanation_text}"
         ]
+        if self._mode == Modes.DEVELOPER.value:
+            lines += [
+                f"",
+                self._gray(f"Support solution: {feasibility}")
+            ]
         return "\n".join(lines)
 
     def _show_last_explanation(self) -> str:
@@ -572,6 +591,7 @@ class ExplainerCLI:
         config = self._explainer.configuration
         lines = [
             "Configuration:",
+            f"  Mode: {self._mode}",
             f"  LLM Model: {config.neighborhood_extraction_llm_model or 'None'}",
             f"  Template Mode: {self._template_mode}", f"  Language: {config.language}",
             f"  History Enabled: {'Yes' if config.history_enabled else 'No'}",

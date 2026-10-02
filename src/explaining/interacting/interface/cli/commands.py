@@ -33,6 +33,7 @@ class Commands(Enum):
     SHOW = ("/show", "Show details")
     SHOW_INSTANCE = ("/show-instance", "Show instance details")
     SHOW_SOLUTION = ("/show-solution", "Show solution details")
+    MODE = ("/mode", "Set the CLI display mode (user/developer)")
     HELP = ("/help", "Show this help message")
     
     # Session Commands
@@ -76,9 +77,10 @@ class Commands(Enum):
             f"  {cls.DISABLE.name} <feature>                {cls.DISABLE.description}",
             "",
             "Display Commands:",
-            f"  {cls.SHOW.name} <resource>           {cls.SHOW.description} ({', '.join(Content.list_values())})",
+            f"  {cls.SHOW.name} <resource>           {cls.SHOW.description} ({', '.join(Contents.list_values())})",
             f"  {cls.SHOW_INSTANCE.name} <name>      {cls.SHOW_INSTANCE.description}",
             f"  {cls.SHOW_SOLUTION.name} <name>      {cls.SHOW_SOLUTION.description}",
+            f"  {cls.MODE.name} <user|developer>     {cls.MODE.description}",
             f"  {cls.HELP.name}                      {cls.HELP.description}",
             "",
             "Session Commands:",
@@ -88,11 +90,11 @@ class Commands(Enum):
         return "\n".join(lines)
 
 
-############
-# Language #
-############
+#############
+# Languages #
+#############
 
-class Language(Enum):
+class Languages(Enum):
     """Enum for language options (lowercase, as entered by user)."""
     EN = "en"
     FR = "fr"
@@ -103,11 +105,11 @@ class Language(Enum):
         return [member.value for member in cls]
 
 
-###########
-# Feature #
-###########
+############
+# Features #
+############
 
-class Feature(Enum):
+class Features(Enum):
     """Enum for feature names that can be enabled/disabled."""
     HISTORY = "history"
     SCENARIO = "scenario"
@@ -120,11 +122,11 @@ class Feature(Enum):
         return [member.value for member in cls]
 
 
-###########
-# Content #
-###########
+############
+# Contents #
+############
 
-class Content(Enum):
+class Contents(Enum):
     """Enum for contents that can be shown."""
     SOLUTION = "solution"
     INSTANCE = "instance"
@@ -136,3 +138,23 @@ class Content(Enum):
     def list_values(cls) -> list[str]:
         """Return list of all valid content values."""
         return [member.value for member in cls]
+
+
+#########
+# Modes #
+#########
+
+class Modes(Enum):
+    """Enum for mode options (lowercase, as entered by user)."""
+    USER = "user"
+    DEVELOPER = "developer"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid mode values."""
+        return [member.value for member in cls]
+
+    def __contains__(self, value):
+        """Check if a value is a valid mode."""
+        return value in self.list_values()
+
