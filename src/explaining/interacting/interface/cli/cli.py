@@ -1,8 +1,11 @@
-# Standard library
+# Standard libraries
+import os
+import re
 from typing import Callable, Optional
 
-# Third-party library
+# Third-party libraries
 from prompt_toolkit import PromptSession
+from prompt_toolkit.styles import Style
 
 # Local libraries
 from src.explaining.explanation.explanation import Explanation
@@ -64,9 +67,13 @@ class ExplainerCLI:
         self._commands: dict[str, Callable[[list[str]], str]] = {}
         # Register all commands
         self._register_commands()
+        # Custom style for orange-yellow input text
+        style = Style.from_dict({
+            '': 'fg:#ffab40',
+        })
         # Interactive prompt with tab-completion
         self._session: PromptSession = PromptSession(
-            completer=ExplainerCLICompleter(self), complete_while_typing=True
+            completer=ExplainerCLICompleter(self), complete_while_typing=True, style=style
         )
 
     @property
@@ -106,8 +113,12 @@ class ExplainerCLI:
 
     def run(self) -> None:
         """Main REPL loop."""
-        print(f"Explainer CLI - Type {Commands.HELP.name} for commands, {Commands.QUIT.name} to exit")
+        os.system('clear' if os.name != 'nt' else 'cls')
+        print(f"{self._blue('XWSRP CLI')} - Interactive CLI for explaining WSRP solutions")
+        print(f"Type {self._yellow(Commands.HELP.name)} for commands")
+        print()
         print(f"Loaded solution: {self._solution.name}")
+        print()
         while self._running:
             try:
                 # Show prompt
@@ -118,8 +129,10 @@ class ExplainerCLI:
                 self._last_command = user_input
                 # Dispatch
                 self.dispatch(user_input)
+                print()
             except KeyboardInterrupt:
-                print(f"\nUse {Commands.QUIT.name} to exit.")
+                print(f"\nUse {self._yellow(Commands.QUIT.name)} to exit.")
+                print()
             except EOFError:
                 print()
                 self._stop()
@@ -129,6 +142,7 @@ class ExplainerCLI:
     def _stop(self) -> None:
         """Cleanup and exit."""
         self._running = False
+        print()
         print("Goodbye!")
 
     def dispatch(self, input_str: str) -> None:
@@ -147,11 +161,15 @@ class ExplainerCLI:
             try:
                 result = self._commands[command](args)
                 if result:
+                    print()
                     print(result)
             except Exception as e:
+                print()
                 print(f"Error executing {command}: {e}")
         else:
-            print(f"Unknown command '{command}'. Type {Commands.HELP.name} for available commands.")
+            print()
+            print(f"Unknown command '{command}'. "
+                  f"Type {self._yellow(Commands.HELP.name)} for available commands.")
 
     ####################
     # Command Handlers #
@@ -171,10 +189,12 @@ class ExplainerCLI:
     def handle_template_mode(self, args: list[str]) -> str:
         """Handle /template-mode <mode> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.TEMPLATE_MODE.name} <{'|'.join(TemplateComputationMode.list_values())}>"
+            return (f"Usage: {self._yellow(Commands.TEMPLATE_MODE.name)} "
+                    f"<{'|'.join(TemplateComputationMode.list_values())}>")
         mode = args[0].lower()
         if mode not in TemplateComputationMode.list_values():
-            return f"Usage: {Commands.TEMPLATE_MODE.name} <{'|'.join(TemplateComputationMode.list_values())}>"
+            return (f"Usage: {self._yellow(Commands.TEMPLATE_MODE.name)} "
+                    f"<{'|'.join(TemplateComputationMode.list_values())}>")
         if mode == "neighborhood":
             return "NotImplementedError: Tailored-neighborhood pipeline for template questions is not yet implemented."
         self._template_mode = mode
@@ -183,9 +203,10 @@ class ExplainerCLI:
     def handle_ask(self, args: list[str]) -> str:
         """Handle /ask <question> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.ASK.name} <free-text-question>"
+            return f"Usage: {self._yellow(Commands.ASK.name)} <free-text-question>"
         if self._explainer.extractor_model is None:
-            return f"No LLM model configured. Use {Commands.LLM_MODEL.name} <provider/model> first."
+            return (f"No LLM model configured. "
+                    f"Use {self._yellow(Commands.LLM_MODEL.name)} <provider/model> first.")
         question_text = " ".join(args)
         try:
             explanation = self._explainer.get_free_text_explanation(question_text)
@@ -196,12 +217,13 @@ class ExplainerCLI:
     def handle_contrastive(self, args: list[str]) -> str:
         """Handle /contrastive <template_id> <value1> <value2> ... command."""
         if len(args) < 1:
-            return f"Usage: {Commands.CONTRASTIVE.name} <template_id> <value1> <value2> ..."
+            return f"Usage: {self._yellow(Commands.CONTRASTIVE.name)} <template_id> <value1> <value2> ..."
         template_id = args[0]
         field_values = args[1:]
         # Validate template ID
         if template_id not in QUESTIONS_TEMPLATES:
-            return f"Unknown template ID '{template_id}'. Use {Commands.LIST_TEMPLATES.name} to see available templates."
+            return (f"Unknown template ID '{template_id}'. "
+                    f"Use {self._yellow(Commands.LIST_TEMPLATES.name)} to see available templates.")
         # Get template to check number of fields
         template = QUESTIONS_TEMPLATES[template_id]
         nb_expected_fields = len(template.fields_keys)
@@ -235,9 +257,9 @@ class ExplainerCLI:
             return "No templates available."
         lines = ["Available templates:"]
         for template in templates:
-            lang = self._explainer.language
-            text = template.all_texts.get(lang, template.all_texts[LANGUAGE_ENGLISH_KEY])
-            lines.append(f"  - {template.id}: {text}")
+            language = self._explainer.language
+            text = template.all_texts.get(language, template.all_texts[LANGUAGE_ENGLISH_KEY])
+            lines.append(f"  • {self._yellow(template.id)}: {self._highlight_fields(text)}")
         return "\n".join(lines)
 
     def handle_list_instances(self, args: list[str]) -> str:
@@ -247,7 +269,7 @@ class ExplainerCLI:
             return "No stored instances."
         lines = ["Stored instances:"]
         for name in instance_names:
-            lines.append(f"  - {name}")
+            lines.append(f"  • {name}")
         return "\n".join(lines)
 
     def handle_list_solutions(self, args: list[str]) -> str:
@@ -257,13 +279,13 @@ class ExplainerCLI:
             return "No stored solutions."
         lines = ["Stored solutions:"]
         for name in solution_names:
-            lines.append(f"  - {name}")
+            lines.append(f"  • {name}")
         return "\n".join(lines)
 
     def handle_switch_instance(self, args: list[str]) -> str:
         """Handle /switch-instance <instance_name> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.SWITCH_INSTANCE.name} <instance_name>"
+            return f"Usage: {self._yellow(Commands.SWITCH_INSTANCE.name)} <instance_name>"
         instance_name = args[0]
         try:
             solutions = self._explainer.history.get_solutions_of_instance_by_name(instance_name)
@@ -274,27 +296,29 @@ class ExplainerCLI:
             else:
                 return f"Instance {instance_name} found but has no associated solutions."
         except KeyError:
-            return f"Instance '{instance_name}' not found. Use {Commands.LIST_INSTANCES.name} to see available instances."
+            return (f"Instance '{instance_name}' not found. "
+                    f"Use {self._yellow(Commands.LIST_INSTANCES.name)} to see available instances.")
 
     def handle_switch_solution(self, args: list[str]) -> str:
         """Handle /switch-solution <solution_name> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.SWITCH_SOLUTION.name} <solution_name>"
+            return f"Usage: {self._yellow(Commands.SWITCH_SOLUTION.name)} <solution_name>"
         solution_name = args[0]
         try:
             solution = self._explainer.history.get_solution_by_name(solution_name)
             self._explainer.current_solution = solution
             return f"Switched to solution {solution.name}"
         except KeyError:
-            return f"Solution '{solution_name}' not found. Use {Commands.LIST_SOLUTIONS.name} to see available solutions."
+            return (f"Solution '{solution_name}' not found. "
+                    f"Use {self._yellow(Commands.LIST_SOLUTIONS.name)} to see available solutions.")
 
     def handle_language(self, args: list[str]) -> str:
         """Handle /language <en|fr> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.LANGUAGE.name} <{'|'.join(Language.list_values())}>"
+            return f"Usage: {self._yellow(Commands.LANGUAGE.name)} <{'|'.join(Language.list_values())}>"
         lang = args[0].lower()
         if lang not in Language.list_values():
-            return f"Usage: {Commands.LANGUAGE.name} <{'|'.join(Language.list_values())}>"
+            return f"Usage: {self._yellow(Commands.LANGUAGE.name)} <{'|'.join(Language.list_values())}>"
         if lang == "en":
             lang = LANGUAGE_ENGLISH_KEY
         elif lang == "fr":
@@ -306,7 +330,6 @@ class ExplainerCLI:
         """Handle /export command."""
         try:
             self._explainer.export_last_contrastive_explanation()
-            last_explanation = self._explainer.last_contrastive_explanation
             file_path = self._explainer.configuration.contrastive_explanation_output_directory_relative_path
             return f"Explanation exported to {file_path}"
         except PermissionError as e:
@@ -315,7 +338,7 @@ class ExplainerCLI:
     def handle_time_limit_contrastive(self, args: list[str]) -> str:
         """Handle /time-limit-contrastive <seconds> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.TIME_LIMIT_CONTRASTIVE.name} <seconds>"
+            return f"Usage: {self._yellow(Commands.TIME_LIMIT_CONTRASTIVE.name)} <seconds>"
         try:
             seconds = int(args[0])
             if seconds < 0:
@@ -341,7 +364,7 @@ class ExplainerCLI:
     def handle_enable(self, args: list[str]) -> str:
         """Handle /enable <feature> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.ENABLE.name} <feature>"
+            return f"Usage: {self._yellow(Commands.ENABLE.name)} <feature>"
         feature = args[0].lower()
         valid_features = Feature.list_values()
         if feature not in valid_features:
@@ -360,7 +383,7 @@ class ExplainerCLI:
     def handle_disable(self, args: list[str]) -> str:
         """Handle /disable <feature> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.DISABLE.name} <feature>"
+            return f"Usage: {self._yellow(Commands.DISABLE.name)} <feature>"
         feature = args[0].lower()
         valid_features = Feature.list_values()
         if feature not in valid_features:
@@ -379,7 +402,8 @@ class ExplainerCLI:
     def handle_show(self, args: list[str]) -> str:
         """Handle /show <resource> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.SHOW.name} <resource> where resource is: {', '.join(Content.list_values())}"
+            return (f"Usage: {self._yellow(Commands.SHOW.name)} <resource> "
+                    f"where resource is: {', '.join(Content.list_values())}")
         resource = args[0].lower()
         if resource == Content.SOLUTION.value:
             return self._show_current_solution()
@@ -392,12 +416,13 @@ class ExplainerCLI:
         elif resource == Content.CONFIG.value:
             return self._show_config()
         else:
-            return f"Unknown resource '{resource}'. Valid resources: {', '.join(Content.list_values())}"
+            return (f"Unknown resource '{resource}'. "
+                    f"Valid resources: {', '.join(Content.list_values())}")
 
     def handle_show_instance(self, args: list[str]) -> str:
         """Handle /show-instance <instance_name> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.SHOW_INSTANCE.name} <instance_name>"
+            return f"Usage: {self._yellow(Commands.SHOW_INSTANCE.name)} <instance_name>"
         instance_name = args[0]
         try:
             instance = self._explainer.history.get_instance_by_name(instance_name)
@@ -408,7 +433,7 @@ class ExplainerCLI:
     def handle_show_solution(self, args: list[str]) -> str:
         """Handle /show-solution <solution_name> command."""
         if len(args) < 1:
-            return f"Usage: {Commands.SHOW_SOLUTION.name} <solution_name>"
+            return f"Usage: {self._yellow(Commands.SHOW_SOLUTION.name)} <solution_name>"
         solution_name = args[0]
         try:
             solution = self._explainer.history.get_solution_by_name(solution_name)
@@ -429,6 +454,23 @@ class ExplainerCLI:
     ##################
     # Helper Methods #
     ##################
+
+    @staticmethod
+    def _yellow(text: str) -> str:
+        """Return text formatted in color #ffab40 (orange-yellow) using 24-bit ANSI codes."""
+        return f"\033[38;2;255;171;64m{text}\033[0m"
+
+    @staticmethod
+    def _blue(text: str) -> str:
+        """Return text formatted in color #4285f4 (blue) using 24-bit ANSI codes."""
+        return f"\033[38;2;66;133;244m{text}\033[0m"
+
+    @staticmethod
+    def _highlight_fields(text: str) -> str:
+        """Highlight field patterns like {Employee}, {Task}, ... in yellow."""
+        def replace_field(match):
+            return ExplainerCLI._yellow(match.group(0))
+        return re.sub(r'\{[^}]+}', replace_field, text)
 
     def _show_current_instance(self) -> str:
         """Format current instance details."""
