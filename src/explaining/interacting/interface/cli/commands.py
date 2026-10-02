@@ -36,6 +36,7 @@ class Commands(Enum):
     HELP = ("/help", "Show this help message")
     
     # Session Commands
+    CLEAR = ("/clear", "Clear the terminal screen")
     QUIT = ("/quit", "Exit the CLI")
     
     @property
@@ -81,6 +82,7 @@ class Commands(Enum):
             f"  {cls.HELP.name}                      {cls.HELP.description}",
             "",
             "Session Commands:",
+            f"  {cls.CLEAR.name}                     {cls.CLEAR.description}",
             f"  {cls.QUIT.name}                      {cls.QUIT.description}",
         ]
         return "\n".join(lines)

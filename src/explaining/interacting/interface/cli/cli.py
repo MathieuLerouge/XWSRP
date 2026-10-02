@@ -108,6 +108,7 @@ class ExplainerCLI:
             Commands.SHOW_SOLUTION.name: self.handle_show_solution,
             Commands.HELP.name: self.handle_help,
             # Session
+            Commands.CLEAR.name: self.handle_clear,
             Commands.QUIT.name: self.handle_quit,
         }
 
@@ -445,6 +446,12 @@ class ExplainerCLI:
     def handle_help(args: list[str]) -> str:
         """Handle /help command."""
         return Commands.list_string()
+
+    @staticmethod
+    def handle_clear(args: list[str]) -> str:
+        """Handle /clear command."""
+        os.system('clear' if os.name != 'nt' else 'cls')
+        return ""
 
     def handle_quit(self, args: list[str]) -> str:
         """Handle /quit command."""
