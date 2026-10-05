@@ -8,7 +8,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.styles import Style
 
 # Local libraries
-from src.explaining.explanation.explanation import Explanation
+from src.explaining.explanation.explanation import Explanation, ExplanationComputationModes
 from src.feasibility.checker import FeasibilityChecker
 from src.modeling.instance import Instance
 from src.explaining.interacting.explainer import Explainer
@@ -190,7 +190,7 @@ class ExplainerCLI:
         return f"LLM model set to {model}"
 
     def handle_template_mode(self, args: list[str]) -> str:
-        """Handle /template-mode <mode> command."""
+        """Handle /template-computation-mode <mode> command."""
         if len(args) < 1:
             return (f"Usage: {self._yellow(Commands.TEMPLATE_COMPUTATION_MODE.name)} "
                     f"<{'|'.join(TemplateComputationModes.list_values())}>")
@@ -199,7 +199,7 @@ class ExplainerCLI:
             return (f"Usage: {self._yellow(Commands.TEMPLATE_COMPUTATION_MODE.name)} "
                     f"<{'|'.join(TemplateComputationModes.list_values())}>")
         self._explainer.configuration.template_computation_mode = mode
-        return f"Template mode set to {mode}"
+        return f"Template computation mode set to {mode}"
 
     def handle_ask(self, args: list[str]) -> str:
         """Handle /ask <question> command."""
@@ -554,7 +554,8 @@ class ExplainerCLI:
         explanation_text = explanation.text
         feasibility = "feasible" if explanation.support_solution_is_feasible else "infeasible"
         lines = [
-            f"Question: {question_text}",
+            f"Question:",
+            f"{question_text}",
             f"",
             f"Explanation:",
             f"{explanation_text}"
@@ -564,6 +565,9 @@ class ExplainerCLI:
             lines.append(self._gray(f"Questioning mode: {explanation.question.mode}"))
             if explanation.mode is not None:
                 lines.append(self._gray(f"Explanation computation mode: {explanation.mode}"))
+                if explanation.mode == ExplanationComputationModes.NEIGHBORHOOD.value:
+                    # lines.append(self._gray(f"Neighborhood scope: {explanation.neighborhood.scope}"))
+                    lines.append(self._gray(f"Neighborhood primitives: {explanation.neighborhood}"))
             if explanation.computation_time is not None:
                 lines.append(self._gray(f"Computation time: {explanation.computation_time:.3f}s"))
             lines.append(self._gray(f"Support solution: {feasibility}"))

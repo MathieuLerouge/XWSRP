@@ -1,10 +1,12 @@
 # Standard library
-from typing import Optional
+from typing import Optional, Union
 
 # Local libraries
 from src.explaining.neighborhood.operator import Operator
 from src.explaining.neighborhood.restriction import Restriction
+from src.modeling.employee import Employee
 from src.modeling.solution import Solution
+from src.modeling.task import Task
 
 
 ################
@@ -61,7 +63,7 @@ class Neighborhood:
         return self._solution
 
     @property
-    def scope(self):
+    def scope(self) -> frozenset[Union[Employee, Task]]:
         """The employees and tasks in scope for this neighborhood, deduced from its operators' own scope."""
         return frozenset().union(*[operator.scope for operator in self._operators])
 
@@ -74,3 +76,20 @@ class Neighborhood:
     def restrictions(self):
         """The elementary scope restrictions that narrow how the in-scope sequences may be transformed."""
         return self._restrictions
+
+    def __repr__(self):
+        operators = [repr(operator) for operator in self._operators]
+        if len(operators) > 1:
+            operator_str = f"[{', '.join(operators)}]" if len(operators) > 1 else operators[0]
+        elif len(operators) == 1:
+            operator_str = operators[0]
+        else:
+            operator_str = ""
+        restrictions = [repr(restriction) for restriction in self._restrictions]
+        if len(restrictions) > 1:
+            restriction_str = f" under [{', '.join(restrictions)}]" if len(restrictions) > 1 else restrictions[0]
+        elif len(restrictions) == 1:
+            restriction_str = f" under {restrictions[0]}"
+        else:
+            restriction_str = ""
+        return f"{operator_str}{restriction_str}"

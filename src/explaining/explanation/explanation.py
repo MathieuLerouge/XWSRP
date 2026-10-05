@@ -5,6 +5,7 @@ from typing import Optional
 
 # Local libraries
 from src.explaining.modeling.instance_changes import InstanceChanges
+from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.question.question import Question
 from src.modeling.solution import Solution
 from src.utils.constants import LINE_BREAK_STRING
@@ -30,7 +31,7 @@ class Explanation(ABC):
     def __init__(
             self, question: Question, support_solution: Solution,
             instance_alterations: Optional[InstanceChanges] = None,
-            mode: Optional[str] = None, computation_time: Optional[float] = None
+            computation_mode: Optional[str] = None, computation_time: Optional[float] = None
     ):
         """
         Args:
@@ -38,12 +39,15 @@ class Explanation(ABC):
             support_solution: The solution found while answering it, backing the explanation.
             instance_alterations: The instance parameter changes the support solution needed to become feasible,
                 or None when the question called for no alteration.
+            computation_mode: The mode in which the explanation is computed (tailored or neighborhood),
+                or None if not available.
             computation_time: The computation time in seconds, or None if not available.
         """
         self._question = question
         self._support_solution = support_solution
         self._instance_alterations = instance_alterations
-        self._mode = mode
+        self._neighborhood = None
+        self._computation_mode = computation_mode
         self._computation_time = computation_time
         self._text = self._compute_text()
 
@@ -98,7 +102,7 @@ class Explanation(ABC):
     @property
     def mode(self) -> Optional[str]:
         """The mode in which the explanation is computed (tailored or neighborhood)."""
-        return self._mode
+        return self._computation_mode
 
     @property
     def computation_time(self) -> Optional[float]:
@@ -117,6 +121,30 @@ class Explanation(ABC):
     @abstractmethod
     def is_negative(self):
         """Whether the explanation reports what the question asked about as impossible or not worthwhile."""
+
+    ################
+    # Neighborhood #
+    ################
+
+    @property
+    def neighborhood(self) -> Optional[Neighborhood]:
+        """
+        The Neighborhood the support solution was found in, if any.
+
+        Returns:
+            The Neighborhood the support solution was found in, or None if it was not found in a Neighborhood.
+        """
+        return self._neighborhood
+
+    @neighborhood.setter
+    def neighborhood(self, neighborhood: Neighborhood):
+        """
+        Set the Neighborhood the support solution was found in.
+
+        Args:
+            neighborhood: The Neighborhood the support solution was found in.
+        """
+        self._neighborhood = neighborhood
 
     ########
     # Text #

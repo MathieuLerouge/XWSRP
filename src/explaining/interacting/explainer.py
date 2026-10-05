@@ -493,6 +493,7 @@ class Explainer:
         solving_time_limit = self._configuration.time_limit_for_contrastive_explanation_milp_computation
         if self._configuration.template_computation_mode == TemplateComputationModes.TAILORED.value:
             mode = ExplanationComputationModes.TAILORED.value
+            neighborhood = None
             transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
                 self.current_solution, contrastive_question, solving_time_limit
             )
@@ -503,6 +504,7 @@ class Explainer:
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
         contrastive_explanation = create_explanation(contrastive_question, transformation_result, mode, elapsed_time)
+        contrastive_explanation.neighborhood = neighborhood
         if self._configuration.using_already_computed_contrastive_explanations_enabled:
             self._add_contrastive_explanation_to_already_computed_ones(contrastive_explanation)
         if self._configuration.exporting_each_contrastive_explanation_automatically_enabled:

@@ -16,6 +16,8 @@ class Restriction(Primitive):
     It never frees anything itself.
     """
 
+    def __repr__(self):
+        pass
 
 #######################
 # ImmediatePrecedence #
@@ -50,6 +52,11 @@ class ImmediatePrecedence(Restriction):
     def successor(self):
         """The activity that must immediately follow predecessor."""
         return self._successor
+
+    def __repr__(self):
+        predecessor = self._predecessor.name
+        successor = self._successor.name
+        return f"ImmediatePrecedence({predecessor} before {successor})"
 
 
 ##############
@@ -86,6 +93,11 @@ class Precedence(Restriction):
         """The task that must start no earlier than predecessor finishes."""
         return self._successor
 
+    def __repr__(self):
+        predecessor = self._predecessor.name
+        successor = self._successor.name
+        return f"Precedence({predecessor} before {successor})"
+
 
 ###################
 # PrecedenceChain #
@@ -108,6 +120,10 @@ class PrecedenceChain(Restriction):
     def tasks(self):
         """The tasks, in the relative order they must keep."""
         return self._tasks
+
+    def __repr__(self):
+        tasks = [task.name for task in self._tasks]
+        return f"PrecedenceChain([{', '.join(tasks)}])"
 
 
 #####################
@@ -144,6 +160,11 @@ class ForbiddenSequence(Restriction):
         """The forbidden chain of activities, in the order they must not appear contiguously in."""
         return self._activities
 
+    def __repr__(self):
+        employee = self._employee.name
+        activities = [activity.name for activity in self._activities]
+        return f"ForbiddenSequence([{', '.join(activities)}] in {employee})"
+
 
 ################################
 # ForbiddenBackwardSubsequence #
@@ -174,3 +195,8 @@ class ForbiddenBackwardSubsequence(Restriction):
     def tasks(self):
         """The tasks, in the relative order that whichever of them remain performed must keep."""
         return self._tasks
+
+    def __repr__(self):
+        employee = self._employee.name
+        tasks = [task.name for task in self._tasks]
+        return f"ForbiddenBackwardSubsequence([{', '.join(tasks)}] in {employee})"

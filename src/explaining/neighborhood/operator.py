@@ -24,6 +24,9 @@ class Operator(Primitive):
         """The employees' sequences and tasks this operator frees from being fixed to their current state."""
         pass
 
+    def __repr__(self):
+        pass
+
 
 #################
 # TaskInsertion #
@@ -64,6 +67,13 @@ class TaskInsertion(Operator):
     def scope(self):
         """The candidate employees and candidate tasks."""
         return self._candidate_employees | self._candidate_tasks
+
+    def __repr__(self):
+        employees = [employee.name for employee in self._candidate_employees]
+        employee_str = f"[{', '.join(employees)}]" if len(employees) > 1 else employees[0]
+        tasks = [task.name for task in self._candidate_tasks]
+        task_str = f"[{', '.join(tasks)}]" if len(tasks) > 1 else tasks[0]
+        return f"TaskInsertion({task_str} in {employee_str})"
 
 
 ################
@@ -131,6 +141,13 @@ class TaskDeletion(Operator):
         """The freed employees and candidate tasks."""
         return self._freed_employees | self._candidate_tasks
 
+    def __repr__(self):
+        employees = [employee.name for employee in self._freed_employees]
+        tasks = [task.name for task in self._candidate_tasks]
+        employee_str = f"[{', '.join(employees)}]" if len(employees) > 1 else employees[0]
+        task_str = f"[{', '.join(tasks)}]" if len(tasks) > 1 else tasks[0]
+        return f"TaskRemoval({task_str} from {employee_str})"
+
 
 ##################
 # TaskRelocation #
@@ -173,6 +190,12 @@ class TaskRelocation(Operator):
         """The origin and destination employees and the relocated task."""
         return frozenset({self._origin_employee, self._destination_employee, self._target_task})
 
+    def __repr__(self):
+        target_task = self._target_task.name
+        origin_employee = self._origin_employee.name
+        destination_employee = self._destination_employee.name
+        return f"TaskRelocation({target_task} from {origin_employee} to {destination_employee})"
+
 
 #####################
 # TaskRepositioning #
@@ -208,6 +231,11 @@ class TaskRepositioning(Operator):
         """The employee and the repositioned task."""
         return frozenset({self._employee, self._target_task})
 
+    def __repr__(self):
+        target_task = self._target_task.name
+        employee = self._employee.name
+        return f"TaskRepositioning({target_task} within {employee})"
+
 
 ######################
 # SequenceReordering #
@@ -235,3 +263,7 @@ class SequenceReordering(Operator):
     def scope(self):
         """The employee, as a single-element frozenset."""
         return frozenset({self._employee})
+
+    def __repr__(self):
+        employee = self._employee.name
+        return f"SequenceReordering({employee})"
