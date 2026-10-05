@@ -78,7 +78,6 @@ class ExplainerConfiguration:
             TemplateComputationModes.NEIGHBORHOOD.value if neighborhood_llm_model is not None
             else TemplateComputationModes.TAILORED.value
         )
-        print(self._template_computation_mode)
         if activated_question_template_ids is None:
             activated_question_template_ids = AVAILABLE_QUESTION_TEMPLATE_IDS
         self._activated_question_template_ids: list[str] = [
