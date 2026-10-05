@@ -68,9 +68,14 @@ class ExplainerCLI:
         self._commands: dict[str, Callable[[list[str]], str]] = {}
         # Register all commands
         self._register_commands()
-        # Custom style for orange-yellow input text
+        # Custom style for orange-yellow input text,
+        # and gray template question previews with gray-yellow fields in the completion menu
         style = Style.from_dict({
             '': 'fg:#ffab40',
+            'preview': 'fg:#767676',
+            'preview.field': 'fg:#b39b6b',
+            'completion-menu.meta.completion': 'bg:#262626 fg:#767676',
+            'completion-menu.meta.completion.current': 'bg:#3a3a3a fg:#767676',
         })
         # Interactive prompt with tab-completion
         self._session: PromptSession = PromptSession(

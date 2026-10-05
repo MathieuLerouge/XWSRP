@@ -1,10 +1,11 @@
-# Standard library
+# Standard libraries
 import re
-from typing import Iterable, TYPE_CHECKING
+from typing import Iterable, Optional, TYPE_CHECKING
 
 # Third-party libraries
 from prompt_toolkit.completion import Completer, Completion, CompleteEvent
 from prompt_toolkit.document import Document
+from prompt_toolkit.formatted_text import FormattedText
 
 # Local libraries
 from src.explaining.interacting.configuration import TemplateComputationModes
@@ -13,10 +14,16 @@ from src.explaining.interacting.interface.cli.commands import (
 )
 from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
+from src.explaining.question.predefined.template import QuestionTemplate
 
 # Library for type checking only (to avoid circular imports)
 if TYPE_CHECKING:
     from src.explaining.interacting.interface.cli.cli import ExplainerCLI
+
+# Global variables
+PREVIEW_STYLE = "class:preview"
+PREVIEW_FIELD_STYLE = "class:preview.field"
+FIELD_PATTERN = re.compile(r"(\{[^}]+})")
 
 
 #########################
@@ -49,13 +56,15 @@ class ExplainerCLICompleter(Completer):
             complete_event: Unused; required by prompt_toolkit's Completer interface.
         """
         try:
-            _, partial_token = self._split_text_before_cursor(document)
-            completions = self._compute_completions(document)
+            prior_tokens, partial_token = self._split_text_before_cursor(document)
+            completions = [
+                (text, self._compute_display_meta(prior_tokens, text)) for text in self._compute_completions(document)
+            ]
         except Exception:
             # NB: A completer must never crash the REPL's typing loop; degrade to "no suggestions".
             return
-        for text in completions:
-            yield Completion(text, start_position=-len(partial_token))
+        for text, display_meta in completions:
+            yield Completion(text, start_position=-len(partial_token), display_meta=display_meta)
 
     @staticmethod
     def _split_text_before_cursor(document: Document) -> tuple[list[str], str]:
@@ -118,6 +127,55 @@ class ExplainerCLICompleter(Completer):
         if command_name in (Commands.SWITCH_SOLUTION.name, Commands.SHOW_SOLUTION.name) and token_index == 1:
             return self._complete_history_names(lambda history: history.solutions_names, partial_token)
         return []
+
+    @staticmethod
+    def _compute_display_meta(prior_tokens: list[str], candidate: str) -> Optional[FormattedText]:
+        """
+        Return the text shown next to a completion candidate in the menu, if any.
+
+        Only /contrastive candidates get one: the question they lead to, as a preview.
+        A template id candidate previews its own question, with every field left as a placeholder.
+        A field value candidate previews the question with the values already typed and itself filled in,
+        the later fields being left as placeholders.
+
+        Args:
+            prior_tokens: The tokens fully typed before the one being completed, the command token first.
+            candidate: The completion candidate to compute the text for.
+
+        Returns:
+            The question preview, or None if the candidate gets no text next to it.
+        """
+        if not prior_tokens or prior_tokens[0].lower() != Commands.CONTRASTIVE.name:
+            return None
+        if len(prior_tokens) == 1:
+            return ExplainerCLICompleter._build_contrastive_preview(QUESTIONS_TEMPLATES[candidate], [])
+        template = QUESTIONS_TEMPLATES[prior_tokens[1]]
+        return ExplainerCLICompleter._build_contrastive_preview(template, prior_tokens[2:] + [candidate])
+
+    @staticmethod
+    def _build_contrastive_preview(template: QuestionTemplate, fields_values: list[str]) -> FormattedText:
+        """
+        Return the template's question, in its current language, with its first fields filled with the given values.
+
+        Args:
+            template: The question template to preview.
+            fields_values: The values of the template's first fields, in order; the others stay as placeholders.
+
+        Returns:
+            The question, with values and placeholders styled apart from the rest of it.
+        """
+        # NB: The raw text is read rather than template.text, which substitutes a default value for every field.
+        raw_text = template.all_texts[template.language]
+        fragments = []
+        field_index = 0
+        for part in FIELD_PATTERN.split(raw_text):
+            if FIELD_PATTERN.fullmatch(part):
+                value = fields_values[field_index] if field_index < len(fields_values) else part
+                fragments.append((PREVIEW_FIELD_STYLE, value))
+                field_index += 1
+            elif part:
+                fragments.append((PREVIEW_STYLE, part))
+        return FormattedText(fragments)
 
     def _complete_contrastive_field(self, args: list[str], partial_token: str) -> list[str]:
         """Return valid values for the /contrastive field the cursor is currently on, narrowed by prior fields."""

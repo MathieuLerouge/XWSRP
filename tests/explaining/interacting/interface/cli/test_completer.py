@@ -1,22 +1,45 @@
 # Third-party library
 import pytest
 from prompt_toolkit.document import Document
+from prompt_toolkit.formatted_text import to_plain_text
 
 # Local libraries
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.cli.cli import ExplainerCLI
 from src.explaining.interacting.interface.cli.commands import LLMModels
-from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
+from src.explaining.interacting.interface.cli.completer import (
+    PREVIEW_FIELD_STYLE, PREVIEW_STYLE, ExplainerCLICompleter
+)
 from src.explaining.processes import get_demo_solution
-from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_SWP_1
+from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
+from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_INS_3, WHY_NOT_SWP_1
 from src.modeling.solution import Solution
+from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
 def complete(completer: ExplainerCLICompleter, text: str) -> list[str]:
     """Return the completion texts for text, with the cursor placed at the end of it."""
     document = Document(text=text, cursor_position=len(text))
     return [completion.text for completion in completer.get_completions(document, None)]
+
+
+def complete_with_meta(completer: ExplainerCLICompleter, text: str) -> dict[str, str]:
+    """Return each completion text mapped to its menu meta as plain text, with the cursor at the end of text."""
+    document = Document(text=text, cursor_position=len(text))
+    return {
+        completion.text: to_plain_text(completion.display_meta)
+        for completion in completer.get_completions(document, None)
+    }
+
+
+def expected_question(template_id: str, fields_values: list[str]) -> str:
+    """Return the template's English text, with its first fields replaced by the given values."""
+    template = QUESTIONS_TEMPLATES[template_id]
+    text = template.all_texts[LANGUAGE_ENGLISH_KEY]
+    for field_key, value in zip(template.fields_keys, fields_values):
+        text = text.replace(field_key, value, 1)
+    return text
 
 
 @pytest.fixture(scope="module")
@@ -136,3 +159,46 @@ def test_history_disabled_still_completes_from_the_root_instance_and_solution(
     solution_results = complete(completer_without_history, "/switch-solution ")
     assert set(instance_results) == set(cli_without_history.explainer.history.instances_names)
     assert set(solution_results) == set(cli_without_history.explainer.history.solutions_names)
+
+
+def test_contrastive_template_id_candidates_preview_their_own_question(completer: ExplainerCLICompleter):
+    metas = complete_with_meta(completer, "/contrastive WN-Ins")
+    assert len(metas) > 1
+    for template_id, meta in metas.items():
+        assert meta == expected_question(template_id, [])
+
+
+def test_contrastive_value_candidate_previews_the_question_filled_with_it(completer: ExplainerCLICompleter):
+    metas = complete_with_meta(completer, f"/contrastive {WHY_NOT_INS_3} El")
+    assert metas["Ellen"] == expected_question(WHY_NOT_INS_3, ["Ellen"])
+    assert "{Task}" in metas["Ellen"]
+
+
+def test_contrastive_value_candidate_preview_keeps_the_values_already_typed(completer: ExplainerCLICompleter):
+    metas = complete_with_meta(completer, f"/contrastive {WHY_NOT_INS_1} Ellen ")
+    assert metas
+    for task_name, meta in metas.items():
+        assert meta == expected_question(WHY_NOT_INS_1, ["Ellen", task_name])
+        assert meta.endswith("{Activity}?")
+
+
+def test_contrastive_preview_styles_values_and_placeholders_as_fields(completer: ExplainerCLICompleter):
+    text = f"/contrastive {WHY_NOT_INS_3} El"
+    document = Document(text=text, cursor_position=len(text))
+    ellen = next(completion for completion in completer.get_completions(document, None) if completion.text == "Ellen")
+    assert [text for style, text in ellen.display_meta if style == PREVIEW_FIELD_STYLE] == ["Ellen", "{Task}"]
+    assert all(style in (PREVIEW_STYLE, PREVIEW_FIELD_STYLE) for style, _ in ellen.display_meta)
+
+
+def test_non_contrastive_candidates_have_no_preview(completer: ExplainerCLICompleter):
+    assert complete_with_meta(completer, "/language e") == {"en": ""}
+
+
+def test_contrastive_preview_follows_the_template_language(completer: ExplainerCLICompleter):
+    template = QUESTIONS_TEMPLATES[WHY_NOT_INS_3]
+    template.set_language(LANGUAGE_FRENCH_KEY)
+    try:
+        metas = complete_with_meta(completer, f"/contrastive {WHY_NOT_INS_3} El")
+        assert metas["Ellen"].startswith("Pourquoi est-ce que l'employé Ellen")
+    finally:
+        template.set_language(LANGUAGE_ENGLISH_KEY)
