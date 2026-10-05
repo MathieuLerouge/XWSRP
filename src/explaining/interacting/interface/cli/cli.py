@@ -1,7 +1,7 @@
 # Standard libraries
 import os
 import re
-from typing import Callable, Optional
+from typing import Callable, Optional, cast
 
 # Third-party libraries
 from prompt_toolkit import PromptSession
@@ -9,19 +9,19 @@ from prompt_toolkit.styles import Style
 
 # Local libraries
 from src.explaining.explanation.explanation import Explanation, ExplanationComputationModes
-from src.feasibility.checker import FeasibilityChecker
-from src.modeling.instance import Instance
 from src.explaining.interacting.explainer import Explainer
-from src.explaining.interacting.configuration import ExplainerConfiguration
-from src.explaining.neighborhood.exceptions import NeighborhoodError
-from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
-from src.modeling.solution import Solution
-from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
+from src.explaining.interacting.configuration import ExplainerConfiguration, TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
     Commands, Contents, Features, Languages, DisplayModes,
 )
-from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
+from src.explaining.neighborhood.exceptions import NeighborhoodError
+from src.explaining.neighborhood.neighborhood import Neighborhood
+from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
+from src.feasibility.checker import FeasibilityChecker
+from src.modeling.instance import Instance
+from src.modeling.solution import Solution
+from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
 ################
@@ -566,8 +566,9 @@ class ExplainerCLI:
             if explanation.mode is not None:
                 lines.append(self._gray(f"Explanation computation mode: {explanation.mode}"))
                 if explanation.mode == ExplanationComputationModes.NEIGHBORHOOD.value:
-                    # lines.append(self._gray(f"Neighborhood scope: {explanation.neighborhood.scope}"))
-                    lines.append(self._gray(f"Neighborhood primitives: {explanation.neighborhood}"))
+                    neighborhood = cast(Neighborhood, explanation.neighborhood)
+                    lines.append(self._gray(f"Neighborhood scope: {neighborhood.scope}"))
+                    lines.append(self._gray(f"Neighborhood primitives: {neighborhood}"))
             if explanation.computation_time is not None:
                 lines.append(self._gray(f"Computation time: {explanation.computation_time:.3f}s"))
             lines.append(self._gray(f"Support solution: {feasibility}"))

@@ -1,12 +1,11 @@
 # Standard library
-from typing import Optional, Union
+from typing import Optional
 
 # Local libraries
 from src.explaining.neighborhood.operator import Operator
 from src.explaining.neighborhood.restriction import Restriction
-from src.modeling.employee import Employee
+from src.explaining.neighborhood.scope import Scope
 from src.modeling.solution import Solution
-from src.modeling.task import Task
 
 
 ################
@@ -63,9 +62,10 @@ class Neighborhood:
         return self._solution
 
     @property
-    def scope(self) -> frozenset[Union[Employee, Task]]:
+    def scope(self) -> Scope:
         """The employees and tasks in scope for this neighborhood, deduced from its operators' own scope."""
-        return frozenset().union(*[operator.scope for operator in self._operators])
+        items = frozenset().union(*[operator.scope for operator in self._operators])
+        return Scope(items)
 
     @property
     def operators(self):
