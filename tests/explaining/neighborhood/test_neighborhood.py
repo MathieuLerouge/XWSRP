@@ -16,6 +16,14 @@ def test_neighborhood_with_no_operators_and_no_restrictions_raises():
         Neighborhood(solution=solution, operators=[])
 
 
+def test_neighborhood_extraction_mode_is_unset_until_recorded_and_rejects_an_invalid_value():
+    instance = build_instance()
+    neighborhood = Neighborhood(solution=Solution(instance), operators=[], restrictions=[PrecedenceChain([])])
+    assert neighborhood.extraction_mode is None
+    with pytest.raises(ValueError):
+        neighborhood.extraction_mode = "magic"
+
+
 def test_neighborhood_with_employee_carrying_several_restrictions_is_accepted():
     instance = build_instance()
     solution = Solution(instance)

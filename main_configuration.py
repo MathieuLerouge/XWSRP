@@ -46,7 +46,8 @@ SOLVER_NAME = SOLVER_HIGHS
 # No API key needed. The "anthropic/..." line requires a valid ANTHROPIC_API_KEY environment variable
 # and installing requirements_anthropic.txt instead of requirements.txt.
 #
-EXTRACTOR_MODEL = "ollama/llama3.2"
+EXTRACTOR_MODEL = None
+# EXTRACTOR_MODEL = "ollama/llama3.2"
 # EXTRACTOR_MODEL = "anthropic/claude-sonnet-5"
 
 

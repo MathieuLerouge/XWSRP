@@ -2,6 +2,7 @@
 import pytest
 
 # Local libraries
+from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.neighborhood.templates.mapper import Mapper
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
 from src.explaining.question.predefined.bank import WHY_NOT_INS_2A
@@ -35,3 +36,10 @@ def test_map_routes_ins_2a_to_the_neighborhood_targeting_the_named_task():
     assert neighborhood.scope == frozenset({
         instance.get_employee_by_name("Valentin"), instance.get_task_by_name("T4")
     })
+
+
+def test_map_marks_the_neighborhood_as_extracted_in_tailored_mode():
+    instance = build_instance()
+    solution = build_solution_with_task_performances(instance, "solution", {"T1": ("Valentin", 480)})
+    neighborhood = Mapper.map(ContrastiveQuestion(solution, WHY_NOT_INS_2A, ["Valentin", "T4"]))
+    assert neighborhood.extraction_mode == NeighborhoodExtractionModes.TAILORED.value

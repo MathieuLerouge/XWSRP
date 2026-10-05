@@ -6,6 +6,7 @@ from prompt_toolkit.document import Document
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.cli.cli import ExplainerCLI
+from src.explaining.interacting.interface.cli.commands import LLMModels
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_SWP_1
@@ -94,6 +95,22 @@ def test_contrastive_too_many_field_values_offers_nothing(completer: ExplainerCL
 
 def test_language_enum_completion(completer: ExplainerCLICompleter):
     assert complete(completer, "/language e") == ["en"]
+
+
+def test_llm_model_completion_offers_every_suggested_model(completer: ExplainerCLICompleter):
+    assert complete(completer, "/llm-model ") == LLMModels.list_values()
+
+
+def test_llm_model_completion_narrows_by_provider(completer: ExplainerCLICompleter):
+    assert complete(completer, "/llm-model ollama/") == ["ollama/llama3.2", "ollama/qwen2.5:7b"]
+
+
+def test_llm_model_second_argument_offers_nothing(completer: ExplainerCLICompleter):
+    assert complete(completer, "/llm-model ollama/llama3.2 ") == []
+
+
+def test_neighborhood_extraction_mode_enum_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/neighborhood-extraction-mode l") == ["llm"]
 
 
 def test_show_enum_completion(completer: ExplainerCLICompleter):

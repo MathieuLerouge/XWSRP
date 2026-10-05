@@ -1,5 +1,5 @@
 # Local libraries
-from src.explaining.neighborhood.neighborhood import Neighborhood
+from src.explaining.neighborhood.neighborhood import Neighborhood, NeighborhoodExtractionModes
 from src.explaining.neighborhood.templates import insertion, reordering, swap
 from src.explaining.question.predefined.question import ContrastiveQuestion, PredefinedQuestion
 from src.explaining.question.predefined.bank import (
@@ -32,10 +32,27 @@ class Mapper:
 
         Raises:
             TypeError: If question is not a ContrastiveQuestion.
-            NotImplementedError: If the question's template is not yet handled by this mapper.
         """
         if not isinstance(question, ContrastiveQuestion):
             raise TypeError(f"Question {question} is not a contrastive question")
+        neighborhood = Mapper._map_by_template(question)
+        neighborhood.extraction_mode = NeighborhoodExtractionModes.TAILORED.value
+        return neighborhood
+
+    @staticmethod
+    def _map_by_template(question: ContrastiveQuestion) -> Neighborhood:
+        """
+        Return the Neighborhood induced by the given question, through its own template's hand-wired mapping.
+
+        Args:
+            question: The contrastive question to map.
+
+        Returns:
+            The Neighborhood induced by the question.
+
+        Raises:
+            NotImplementedError: If the question's template is not yet handled by this mapper.
+        """
         template_id = question.template.id
         if template_id == WHY_NOT_INS_1:
             return insertion.map_ins_1(question)

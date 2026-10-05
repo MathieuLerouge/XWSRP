@@ -17,7 +17,7 @@ from src.explaining.interacting.explainer import Explainer
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.neighborhood.assembler import Assembler
 from src.explaining.neighborhood.exceptions import NeighborhoodError
-from src.explaining.neighborhood.neighborhood import Neighborhood
+from src.explaining.neighborhood.neighborhood import Neighborhood, NeighborhoodExtractionModes
 from src.explaining.neighborhood.operator import TaskInsertion
 from src.explaining.neighborhood.restriction import PrecedenceChain
 from src.explaining.neighborhood.templates.mapper import Mapper
@@ -415,7 +415,7 @@ def test_a_free_text_question_needs_an_extractor_model(demo_solution):
     An explainer built without a model must say so, rather than fail somewhere inside the llm package.
     """
     explainer = build_explainer(demo_solution)
-    with pytest.raises(ValueError, match="no extractor model"):
+    with pytest.raises(ValueError, match="no neighborhood_llm_model"):
         explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
 
 
@@ -429,6 +429,43 @@ def test_a_free_text_question_the_catalogue_covers_is_answered(demo_solution):
     assert explanation.text
     # A free-text answer is a contrastive one, so scenario and counterfactual follow-ups can build on it.
     assert explainer.last_contrastive_explanation is explanation
+
+
+def test_a_free_text_explanation_keeps_the_neighborhood_it_was_found_in(demo_solution):
+    """
+    The CLI's developer output reads the explanation's neighborhood, so the free-text route must keep it too.
+    """
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    covered_neighborhood = Mapper.map(ContrastiveQuestion(
+        explainer.current_solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]))
+    give_explainer_a_stub_extractor(explainer, covered_neighborhood)
+    explanation = explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+    assert explanation.neighborhood is covered_neighborhood
+
+
+def test_a_template_question_in_llm_extraction_mode_has_its_neighborhood_extracted_by_the_extractor(demo_solution):
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    explainer.configuration.neighborhood_extraction_mode = NeighborhoodExtractionModes.LLM.value
+    fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]
+    extracted_neighborhood = Mapper.map(ContrastiveQuestion(explainer.current_solution, WHY_NOT_INS_1, fields_values))
+    give_explainer_a_stub_extractor(explainer, extracted_neighborhood)
+    explanation = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
+    assert explanation.neighborhood is extracted_neighborhood
+    assert isinstance(explanation, TimeNegativeExplanation)
+
+
+def test_a_template_question_in_tailored_extraction_mode_has_its_neighborhood_mapped(demo_solution):
+    # NB: Building with a model is what switches the template computation mode to neighborhood.
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    explanation = explainer.get_contrastive_explanation(
+        WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    assert explanation.neighborhood.extraction_mode == NeighborhoodExtractionModes.TAILORED.value
+
+
+def test_an_invalid_neighborhood_extraction_mode_is_refused(demo_solution):
+    explainer = build_explainer(demo_solution)
+    with pytest.raises(ValueError, match="Invalid neighborhood extraction mode"):
+        explainer.configuration.neighborhood_extraction_mode = "magic"
 
 
 def test_a_free_text_question_the_catalogue_does_not_cover_says_so(demo_solution):

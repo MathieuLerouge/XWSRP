@@ -9,8 +9,9 @@ from prompt_toolkit.document import Document
 # Local libraries
 from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, Contents, Features, Languages, DisplayModes
+    Commands, Contents, Features, Languages, DisplayModes, LLMModels
 )
+from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 
 # Library for type checking only (to avoid circular imports)
@@ -98,12 +99,16 @@ class ExplainerCLICompleter(Completer):
             return self._matching(partial_token, QUESTIONS_TEMPLATES.keys())
         if command_name == Commands.CONTRASTIVE.name and token_index >= 2:
             return self._complete_contrastive_field(args, partial_token)
+        if command_name == Commands.LLM_MODEL.name and token_index == 1:
+            return self._matching(partial_token, LLMModels.list_values())
         if command_name == Commands.LANGUAGE.name and token_index == 1:
             return self._matching(partial_token, Languages.list_values())
         if command_name == Commands.DISPLAY_MODE.name and token_index == 1:
             return self._matching(partial_token, DisplayModes.list_values())
         if command_name == Commands.TEMPLATE_COMPUTATION_MODE.name and token_index == 1:
             return self._matching(partial_token, TemplateComputationModes.list_values())
+        if command_name == Commands.NEIGHBORHOOD_EXTRACTION_MODE.name and token_index == 1:
+            return self._matching(partial_token, NeighborhoodExtractionModes.list_values())
         if command_name in (Commands.ENABLE.name, Commands.DISABLE.name) and token_index == 1:
             return self._matching(partial_token, Features.list_values())
         if command_name == Commands.SHOW.name and token_index == 1:

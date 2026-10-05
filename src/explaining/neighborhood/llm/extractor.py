@@ -16,7 +16,7 @@ from src.explaining.neighborhood.llm.extraction_outcome import ExtractionOutcome
 from src.explaining.neighborhood.llm.grounder import Grounder
 from src.explaining.neighborhood.llm.neighborhood import ExtractedNeighborhood
 from src.explaining.neighborhood.llm.prompt import SYSTEM_PROMPT, build_user_prompt
-from src.explaining.neighborhood.neighborhood import Neighborhood
+from src.explaining.neighborhood.neighborhood import Neighborhood, NeighborhoodExtractionModes
 from src.explaining.question.free.question import FreeTextQuestion
 from src.modeling.solution import Solution
 
@@ -106,6 +106,8 @@ class Extractor:
         extracted_neighborhood = cast(ExtractedNeighborhood, outcome.neighborhood)
         operators, restrictions = Grounder.ground(extracted_neighborhood, self._solution)
         try:
-            return Assembler.assemble(operators, restrictions, self._solution)
+            neighborhood = Assembler.assemble(operators, restrictions, self._solution)
         except NeighborhoodError as error:
             raise NeighborhoodExtractionError() from error
+        neighborhood.extraction_mode = NeighborhoodExtractionModes.LLM.value
+        return neighborhood

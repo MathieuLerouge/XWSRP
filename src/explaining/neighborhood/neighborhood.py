@@ -1,4 +1,5 @@
-# Standard library
+# Standard libraries
+from enum import Enum
 from typing import Optional
 
 # Local libraries
@@ -55,6 +56,7 @@ class Neighborhood:
         self._solution = solution
         self._operators: list[Operator] = operators
         self._restrictions: list[Restriction] = restrictions
+        self._extraction_mode: Optional[str] = None
 
     @property
     def solution(self):
@@ -77,6 +79,29 @@ class Neighborhood:
         """The elementary scope restrictions that narrow how the in-scope sequences may be transformed."""
         return self._restrictions
 
+    @property
+    def extraction_mode(self) -> Optional[str]:
+        """How this neighborhood was extracted from its question (llm or tailored), or None if not recorded."""
+        return self._extraction_mode
+
+    @extraction_mode.setter
+    def extraction_mode(self, extraction_mode: str):
+        """
+        Records how this neighborhood was extracted from its question.
+
+        Args:
+            extraction_mode: One of NeighborhoodExtractionModes' values.
+
+        Raises:
+            ValueError: If extraction_mode is not one of NeighborhoodExtractionModes' values.
+        """
+        if extraction_mode not in NeighborhoodExtractionModes.list_values():
+            raise ValueError(
+                f"Invalid neighborhood extraction mode '{extraction_mode}'. "
+                f"Valid modes are: {', '.join(NeighborhoodExtractionModes.list_values())}"
+            )
+        self._extraction_mode = extraction_mode
+
     def __repr__(self):
         operators = [repr(operator) for operator in self._operators]
         if len(operators) > 1:
@@ -93,3 +118,22 @@ class Neighborhood:
         else:
             restriction_str = ""
         return f"{operator_str}{restriction_str}"
+
+
+###############################
+# NeighborhoodExtractionModes #
+###############################
+
+class NeighborhoodExtractionModes(Enum):
+    """Enum for the ways a neighborhood can be extracted: by the LLM Extractor or by the tailored Mapper."""
+    LLM = "llm"
+    TAILORED = "tailored"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid neighborhood extraction mode values."""
+        return [member.value for member in cls]
+
+    def __contains__(self, value):
+        """Check if a value is a valid neighborhood extraction mode."""
+        return value in self.list_values()

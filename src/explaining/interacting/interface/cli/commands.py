@@ -12,6 +12,7 @@ class Commands(Enum):
     # Core Commands
     LLM_MODEL = ("/llm-model", "Set LLM model for free-text extraction")
     TEMPLATE_COMPUTATION_MODE = ("/template-computation-mode", "Switch template pipeline (tailored/neighborhood)")
+    NEIGHBORHOOD_EXTRACTION_MODE = ("/neighborhood-extraction-mode", "Switch neighborhood extraction (llm/tailored)")
     ASK = ("/ask", "Ask a free-text contrastive question")
     CONTRASTIVE = ("/contrastive", "Ask a template-based contrastive question")
     SAVE_SOLUTION = ("/save-solution", "Save current support solution")
@@ -59,6 +60,7 @@ class Commands(Enum):
             "Core Commands:",
             f"  {cls.LLM_MODEL.name} <model>                   {cls.LLM_MODEL.description}",
             f"  {cls.TEMPLATE_COMPUTATION_MODE.name} <mode>    {cls.TEMPLATE_COMPUTATION_MODE.description}",
+            f"  {cls.NEIGHBORHOOD_EXTRACTION_MODE.name} <mode> {cls.NEIGHBORHOOD_EXTRACTION_MODE.description}",
             f"  {cls.ASK.name} <question>                      {cls.ASK.description}",
             f"  {cls.CONTRASTIVE.name} <id> <vals>             {cls.CONTRASTIVE.description}",
             f"  {cls.SAVE_SOLUTION.name}                       {cls.SAVE_SOLUTION.description}",
@@ -158,3 +160,24 @@ class DisplayModes(Enum):
         """Check if a value is a valid display mode."""
         return value in self.list_values()
 
+
+#############
+# LLMModels #
+#############
+
+class LLMModels(Enum):
+    """
+    Enum for the LLM models suggested by /llm-model's completion, as instructor model strings ("provider/model").
+
+    These are suggestions only: any "provider/model" string instructor accepts can be set as well.
+    """
+    OLLAMA_LLAMA_3_2 = "ollama/llama3.2"
+    OLLAMA_QWEN_2_5_7B = "ollama/qwen2.5:7b"
+    ANTHROPIC_CLAUDE_SONNET_5 = "anthropic/claude-sonnet-5"
+    MISTRAL_SMALL_LATEST = "mistral/mistral-small-latest"
+    MISTRAL_MEDIUM_LATEST = "mistral/mistral-medium-latest"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all suggested LLM model values."""
+        return [member.value for member in cls]

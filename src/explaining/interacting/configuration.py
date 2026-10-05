@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Optional
 
 # Local libraries
+from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.question.predefined.constants import (
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
     WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3,
@@ -78,6 +79,7 @@ class ExplainerConfiguration:
             TemplateComputationModes.NEIGHBORHOOD.value if neighborhood_llm_model is not None
             else TemplateComputationModes.TAILORED.value
         )
+        self._neighborhood_extraction_mode: str = NeighborhoodExtractionModes.TAILORED.value
         if activated_question_template_ids is None:
             activated_question_template_ids = AVAILABLE_QUESTION_TEMPLATE_IDS
         self._activated_question_template_ids: list[str] = [
@@ -210,6 +212,29 @@ class ExplainerConfiguration:
                 f"Valid modes are: {TemplateComputationModes}"
             )
         self._template_computation_mode = mode
+
+    @property
+    def neighborhood_extraction_mode(self) -> str:
+        """How a template question's neighborhood is extracted in neighborhood computation mode (llm or tailored)."""
+        return self._neighborhood_extraction_mode
+
+    @neighborhood_extraction_mode.setter
+    def neighborhood_extraction_mode(self, mode: str):
+        """
+        Sets how a template question's neighborhood is extracted in neighborhood computation mode.
+
+        Args:
+            mode: One of NeighborhoodExtractionModes' values.
+
+        Raises:
+            ValueError: If mode is not one of NeighborhoodExtractionModes' values.
+        """
+        if mode not in NeighborhoodExtractionModes.list_values():
+            raise ValueError(
+                f"Invalid neighborhood extraction mode '{mode}'. "
+                f"Valid modes are: {', '.join(NeighborhoodExtractionModes.list_values())}"
+            )
+        self._neighborhood_extraction_mode = mode
 
     @property
     def activated_question_template_ids(self) -> list[str]:

@@ -15,6 +15,7 @@ from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.counter import ExplanationCounter
 from src.explaining.interacting.history import History
 from src.explaining.neighborhood.exceptions import NeighborhoodError
+from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.question import Question
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
@@ -284,6 +285,17 @@ class Explainer:
             self._solution_the_extractor_was_built_for = self._current_solution
         return cast("Extractor", self._extractor)
 
+    def prepare_extractor(self):
+        """
+        Builds the Extractor for the current solution now, rather than on the first question needing it.
+
+        Lets a caller surface a misconfigured LLM backend as soon as it is chosen:
+        a ValueError if no neighborhood_extraction_llm_model is set,
+        a RuntimeError if the model's provider needs an API key that is not set,
+        or an ImportError if the instructor package is not installed.
+        """
+        self._get_extractor()
+
     def _compute_free_text_explanation(self, question: FreeTextQuestion):
         """
         Answers a free-text question through the llm-neighborhood pipeline.
@@ -322,6 +334,7 @@ class Explainer:
             recognized_question, transformation_result,
             ExplanationComputationModes.NEIGHBORHOOD.value, elapsed_time
         )
+        free_text_explanation.neighborhood = neighborhood
         self._last_contrastive_explanation = free_text_explanation
         self._last_scenario_explanation = None
         self._last_counterfactual_explanation = None
@@ -483,6 +496,10 @@ class Explainer:
         """
         Computes the explanation answering the given contrastive question, storing/exporting it as configured.
 
+        In neighborhood computation mode, the neighborhood the question induces is extracted by the Mapper or,
+        in llm neighborhood extraction mode, by the Extractor from the question's text,
+        which can then fail with a ValueError (no LLM model set) or a NeighborhoodExtractionError.
+
         Args:
             contrastive_question: The contrastive question to answer.
 
@@ -499,7 +516,12 @@ class Explainer:
             )
         else:
             mode = ExplanationComputationModes.NEIGHBORHOOD.value
-            neighborhood = Mapper().map(contrastive_question)
+            if self._configuration.neighborhood_extraction_mode == NeighborhoodExtractionModes.LLM.value:
+                neighborhood = self._get_extractor().extract(
+                    FreeTextQuestion(self._current_solution, contrastive_question.text, self.language)
+                )
+            else:
+                neighborhood = Mapper().map(contrastive_question)
             _, transformation_result = solve_neighborhood_into_transformation_result(neighborhood, solving_time_limit)
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
