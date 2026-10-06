@@ -10,7 +10,7 @@ from prompt_toolkit.formatted_text import FormattedText
 # Local libraries
 from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, ClearTargets, ShowTargets, Features, Languages, DisplayModes, LLMModels
+    Commands, ClearTargets, ShowTargets, SwitchTargets, Features, Languages, DisplayModes, LLMModels
 )
 from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
@@ -128,9 +128,13 @@ class ExplainerCLICompleter(Completer):
             return self._complete_history_names(lambda history: history.solutions_names, partial_token)
         if command_name == Commands.CLEAR.name and token_index == 1:
             return self._matching(partial_token, ClearTargets.list_values())
-        if command_name == Commands.SWITCH_INSTANCE.name and token_index == 1:
+        if command_name == Commands.SWITCH.name and token_index == 1:
+            return self._matching(partial_token, SwitchTargets.list_values())
+        if (command_name == Commands.SWITCH.name and token_index == 2
+                and args[0].lower() == SwitchTargets.INSTANCE.value):
             return self._complete_history_names(lambda history: history.instances_names, partial_token)
-        if command_name == Commands.SWITCH_SOLUTION.name and token_index == 1:
+        if (command_name == Commands.SWITCH.name and token_index == 2
+                and args[0].lower() == SwitchTargets.SOLUTION.value):
             return self._complete_history_names(lambda history: history.solutions_names, partial_token)
         return []
 

@@ -19,8 +19,7 @@ class Commands(Enum):
     LIST_TEMPLATES = ("/list-templates", "Show available question templates")
     LIST_INSTANCES = ("/list-instances", "List stored instances")
     LIST_SOLUTIONS = ("/list-solutions", "List stored solutions")
-    SWITCH_INSTANCE = ("/switch-instance", "Change current instance")
-    SWITCH_SOLUTION = ("/switch-solution", "Change current solution")
+    SWITCH = ("/switch", "Change current instance or solution")
     LANGUAGE = ("/language", "Switch language")
     EXPORT = ("/export", "Export last explanation")
     
@@ -65,8 +64,8 @@ class Commands(Enum):
             f"  {cls.LIST_TEMPLATES.name}                      {cls.LIST_TEMPLATES.description}",
             f"  {cls.LIST_INSTANCES.name}                      {cls.LIST_INSTANCES.description}",
             f"  {cls.LIST_SOLUTIONS.name}                      {cls.LIST_SOLUTIONS.description}",
-            f"  {cls.SWITCH_INSTANCE.name} <name>              {cls.SWITCH_INSTANCE.description}",
-            f"  {cls.SWITCH_SOLUTION.name} <name>              {cls.SWITCH_SOLUTION.description}",
+            f"  {cls.SWITCH.name} <target> [name]              {cls.SWITCH.description} "
+            f"({', '.join(SwitchTargets.list_values())})",
             f"  {cls.LANGUAGE.name} <en|fr>                    {cls.LANGUAGE.description}",
             f"  {cls.EXPORT.name}                              {cls.EXPORT.description}",
             "",
@@ -137,6 +136,23 @@ class ShowTargets(Enum):
     @classmethod
     def list_values(cls) -> list[str]:
         """Return list of all valid show target values."""
+        return [member.value for member in cls]
+
+
+#################
+# SwitchTargets #
+#################
+
+class SwitchTargets(Enum):
+    """Enum for what /switch can switch to."""
+    INSTANCE = "instance"
+    SOLUTION = "solution"
+    LAST_SUPPORT_INSTANCE = "last-support-instance"
+    LAST_SUPPORT_SOLUTION = "last-support-solution"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid switch target values."""
         return [member.value for member in cls]
 
 

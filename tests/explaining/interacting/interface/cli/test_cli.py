@@ -5,7 +5,7 @@ import pytest
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.cli.cli import ExplainerCLI
-from src.explaining.interacting.interface.cli.commands import ClearTargets, ShowTargets
+from src.explaining.interacting.interface.cli.commands import ClearTargets, ShowTargets, SwitchTargets
 from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.predefined.constants import WHY_NOT_INS_1
@@ -97,3 +97,61 @@ def test_show_solution_and_instance_report_an_unknown_or_missing_name(demo_solut
     assert "not found" in cli.handle_show([ShowTargets.INSTANCE.value, "nope"])
     assert "Usage" in cli.handle_show([ShowTargets.SOLUTION.value])
     assert "Usage" in cli.handle_show([ShowTargets.INSTANCE.value])
+
+
+def build_cli_with_history(solution: Solution) -> ExplainerCLI:
+    """Return an ExplainerCLI over a history-enabled explainer, so support solutions can be saved and switched to."""
+    return ExplainerCLI(solution, Explainer(solution, ExplainerConfiguration(history_enabled=True)))
+
+
+def test_switch_solution_and_instance_by_name(demo_solution):
+    cli = build_cli(demo_solution)
+    solution_name, instance_name = cli.explainer.current_solution.name, cli.explainer.current_instance.name
+    assert "Switched to solution" in cli.handle_switch([SwitchTargets.SOLUTION.value, solution_name])
+    assert "Switched to instance" in cli.handle_switch([SwitchTargets.INSTANCE.value, instance_name])
+
+
+def test_switch_reports_an_unknown_or_missing_name_or_target(demo_solution):
+    cli = build_cli(demo_solution)
+    assert "not found" in cli.handle_switch([SwitchTargets.SOLUTION.value, "nope"])
+    assert "not found" in cli.handle_switch([SwitchTargets.INSTANCE.value, "nope"])
+    assert "Usage" in cli.handle_switch([SwitchTargets.SOLUTION.value])
+    assert "Usage" in cli.handle_switch([SwitchTargets.INSTANCE.value])
+    assert "Usage" in cli.handle_switch([])
+    assert "Unknown target" in cli.handle_switch(["elsewhere"])
+
+
+def test_switch_to_last_support_needs_a_question_first(demo_solution):
+    cli = build_cli(demo_solution)
+    assert "Ask a question first" in cli.handle_switch([SwitchTargets.LAST_SUPPORT_SOLUTION.value])
+    assert "Ask a question first" in cli.handle_switch([SwitchTargets.LAST_SUPPORT_INSTANCE.value])
+
+
+def test_switch_to_last_support_solution_saves_it_once_and_makes_it_current(demo_solution):
+    cli = build_cli_with_history(demo_solution)
+    # A positive explanation's support solution is feasible, so it can be saved.
+    cli.handle_contrastive([WHY_NOT_INS_1, "Alexander", "T22", "T6"])
+    support_solution = cli.explainer.last_contrastive_explanation.support_solution
+    nb_solutions_before = len(cli.explainer.history.solutions)
+    assert "saved to history" in cli.handle_switch([SwitchTargets.LAST_SUPPORT_SOLUTION.value])
+    assert cli.explainer.current_solution is support_solution
+    assert len(cli.explainer.history.solutions) == nb_solutions_before + 1
+    assert "saved to history" not in cli.handle_switch([SwitchTargets.LAST_SUPPORT_SOLUTION.value])
+    assert len(cli.explainer.history.solutions) == nb_solutions_before + 1
+
+
+def test_switch_to_an_infeasible_last_support_solution_is_refused(demo_solution):
+    cli = build_cli_with_history(demo_solution)
+    current_solution = cli.explainer.current_solution
+    # A negative explanation's support solution is infeasible, so it cannot be saved.
+    cli.handle_contrastive([WHY_NOT_INS_1, "Ellen", "T2", "Start"])
+    assert "not feasible" in cli.handle_switch([SwitchTargets.LAST_SUPPORT_SOLUTION.value])
+    assert cli.explainer.current_solution is current_solution
+
+
+def test_switch_to_last_support_instance(demo_solution):
+    cli = build_cli_with_history(demo_solution)
+    cli.handle_contrastive([WHY_NOT_INS_1, "Alexander", "T22", "T6"])
+    support_instance_name = cli.explainer.last_contrastive_explanation.support_solution.instance.name
+    assert "Switched to instance" in cli.handle_switch([SwitchTargets.LAST_SUPPORT_INSTANCE.value])
+    assert cli.explainer.current_instance.name == support_instance_name

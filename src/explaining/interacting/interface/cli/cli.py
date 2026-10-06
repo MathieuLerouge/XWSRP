@@ -12,7 +12,7 @@ from src.explaining.explanation.explanation import Explanation, ExplanationCompu
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.configuration import ExplainerConfiguration, TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, ClearTargets, ShowTargets, Features, Languages, DisplayModes, LLMModels,
+    Commands, ClearTargets, ShowTargets, SwitchTargets, Features, Languages, DisplayModes, LLMModels,
 )
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
 from src.explaining.neighborhood.exceptions import NeighborhoodError
@@ -100,8 +100,7 @@ class ExplainerCLI:
             Commands.LIST_TEMPLATES.name: self.handle_list_templates,
             Commands.LIST_INSTANCES.name: self.handle_list_instances,
             Commands.LIST_SOLUTIONS.name: self.handle_list_solutions,
-            Commands.SWITCH_INSTANCE.name: self.handle_switch_instance,
-            Commands.SWITCH_SOLUTION.name: self.handle_switch_solution,
+            Commands.SWITCH.name: self.handle_switch,
             Commands.LANGUAGE.name: self.handle_language,
             Commands.EXPORT.name: self.handle_export,
             # Configuration
@@ -324,10 +323,28 @@ class ExplainerCLI:
             lines.append(f"  • {name}")
         return "\n".join(lines)
 
-    def handle_switch_instance(self, args: list[str]) -> str:
-        """Handle /switch-instance <instance_name> command."""
+    def handle_switch(self, args: list[str]) -> str:
+        """Handle /switch <target> [name] command."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.SWITCH_INSTANCE.name)} <instance_name>"
+            return (f"Usage: {self._yellow(Commands.SWITCH.name)} <target> [name] "
+                    f"where target is: {', '.join(SwitchTargets.list_values())}")
+        target = args[0].lower()
+        if target == SwitchTargets.INSTANCE.value:
+            return self._switch_instance(args[1:])
+        elif target == SwitchTargets.SOLUTION.value:
+            return self._switch_solution(args[1:])
+        elif target == SwitchTargets.LAST_SUPPORT_INSTANCE.value:
+            return self._switch_last_support_instance()
+        elif target == SwitchTargets.LAST_SUPPORT_SOLUTION.value:
+            return self._switch_last_support_solution()
+        else:
+            return (f"Unknown target '{target}'. "
+                    f"Valid targets: {', '.join(SwitchTargets.list_values())}")
+
+    def _switch_instance(self, args: list[str]) -> str:
+        """Handle /switch instance <instance_name> command, switching to that instance's first stored solution."""
+        if len(args) < 1:
+            return f"Usage: {self._yellow(Commands.SWITCH.name)} {SwitchTargets.INSTANCE.value} <instance_name>"
         instance_name = args[0]
         try:
             solutions = self._explainer.history.get_solutions_of_instance_by_name(instance_name)
@@ -341,10 +358,10 @@ class ExplainerCLI:
             return (f"Instance '{instance_name}' not found. "
                     f"Use {self._yellow(Commands.LIST_INSTANCES.name)} to see available instances.")
 
-    def handle_switch_solution(self, args: list[str]) -> str:
-        """Handle /switch-solution <solution_name> command."""
+    def _switch_solution(self, args: list[str]) -> str:
+        """Handle /switch solution <solution_name> command."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.SWITCH_SOLUTION.name)} <solution_name>"
+            return f"Usage: {self._yellow(Commands.SWITCH.name)} {SwitchTargets.SOLUTION.value} <solution_name>"
         solution_name = args[0]
         try:
             solution = self._explainer.history.get_solution_by_name(solution_name)
@@ -353,6 +370,41 @@ class ExplainerCLI:
         except KeyError:
             return (f"Solution '{solution_name}' not found. "
                     f"Use {self._yellow(Commands.LIST_SOLUTIONS.name)} to see available solutions.")
+
+    def _switch_last_support_instance(self) -> str:
+        """Handle /switch last-support-instance command, switching to that instance's first stored solution."""
+        try:
+            last_explanation = self._explainer.last_contrastive_explanation
+        except PermissionError:
+            return "No explanation yet. Ask a question first."
+        return self._switch_instance([last_explanation.support_solution.instance.name])
+
+    def _switch_last_support_solution(self) -> str:
+        """
+        Handle /switch last-support-solution command.
+
+        The support solution is saved to history first if it is not there yet, as /save-solution does,
+        so that it gets its history name.
+        Switching is refused if it cannot be saved (e.g. it is infeasible).
+        """
+        try:
+            last_explanation = self._explainer.last_contrastive_explanation
+        except PermissionError:
+            return "No explanation yet. Ask a question first."
+        support_solution = last_explanation.support_solution
+        # NB: Checked by identity, as History matches solutions by name,
+        # and an unsaved support solution's name is not its history name yet.
+        is_saved = any(solution is support_solution for solution in self._explainer.history.solutions)
+        if not is_saved:
+            try:
+                self._explainer.save_last_contrastive_support_solution()
+            except PermissionError as e:
+                return f"Error: {e}"
+        self._explainer.current_solution = support_solution
+        result = f"Switched to last support solution {support_solution.name}"
+        if not is_saved:
+            result += " (saved to history)"
+        return result
 
     def handle_language(self, args: list[str]) -> str:
         """Handle /language <en|fr> command."""

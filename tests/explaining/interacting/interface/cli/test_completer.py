@@ -7,7 +7,7 @@ from prompt_toolkit.formatted_text import to_plain_text
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.cli.cli import ExplainerCLI
-from src.explaining.interacting.interface.cli.commands import ClearTargets, LLMModels
+from src.explaining.interacting.interface.cli.commands import ClearTargets, LLMModels, SwitchTargets
 from src.explaining.interacting.interface.cli.completer import (
     PREVIEW_FIELD_STYLE, PREVIEW_STYLE, ExplainerCLICompleter
 )
@@ -159,13 +159,18 @@ def test_show_solution_completion_from_history(completer: ExplainerCLICompleter,
     assert set(results) == set(cli.explainer.history.solutions_names)
 
 
+def test_switch_target_completion(completer: ExplainerCLICompleter):
+    assert sorted(complete(completer, "/switch ")) == sorted(SwitchTargets.list_values())
+    assert sorted(complete(completer, "/switch last")) == ["last-support-instance", "last-support-solution"]
+
+
 def test_switch_instance_completion_from_history(completer: ExplainerCLICompleter, cli: ExplainerCLI):
-    results = complete(completer, "/switch-instance ")
+    results = complete(completer, "/switch instance ")
     assert set(results) == set(cli.explainer.history.instances_names)
 
 
 def test_switch_solution_completion_from_history(completer: ExplainerCLICompleter, cli: ExplainerCLI):
-    results = complete(completer, "/switch-solution ")
+    results = complete(completer, "/switch solution ")
     assert set(results) == set(cli.explainer.history.solutions_names)
 
 
@@ -174,8 +179,8 @@ def test_history_disabled_still_completes_from_the_root_instance_and_solution(
 ):
     # Explainer.history always returns a History seeded with the root instance/solution, even when
     # history_enabled is False - disabling it only stops further solutions from being stored into it.
-    instance_results = complete(completer_without_history, "/switch-instance ")
-    solution_results = complete(completer_without_history, "/switch-solution ")
+    instance_results = complete(completer_without_history, "/switch instance ")
+    solution_results = complete(completer_without_history, "/switch solution ")
     assert set(instance_results) == set(cli_without_history.explainer.history.instances_names)
     assert set(solution_results) == set(cli_without_history.explainer.history.solutions_names)
 
