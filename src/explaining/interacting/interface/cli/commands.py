@@ -32,8 +32,6 @@ class Commands(Enum):
     
     # Display Commands
     SHOW = ("/show", "Show details")
-    SHOW_INSTANCE = ("/show-instance", "Show instance details")
-    SHOW_SOLUTION = ("/show-solution", "Show solution details")
     DISPLAY_MODE = ("/display-mode", "Set the CLI display mode (user/developer)")
     HELP = ("/help", "Show this help message")
     
@@ -79,9 +77,7 @@ class Commands(Enum):
             f"  {cls.DISABLE.name} <feature>                {cls.DISABLE.description}",
             "",
             "Display Commands:",
-            f"  {cls.SHOW.name} <resource>                  {cls.SHOW.description} ({', '.join(Contents.list_values())})",
-            f"  {cls.SHOW_INSTANCE.name} <name>             {cls.SHOW_INSTANCE.description}",
-            f"  {cls.SHOW_SOLUTION.name} <name>             {cls.SHOW_SOLUTION.description}",
+            f"  {cls.SHOW.name} <resource> [name]           {cls.SHOW.description} ({', '.join(ShowTargets.list_values())})",
             f"  {cls.DISPLAY_MODE.name} <user|developer>    {cls.DISPLAY_MODE.description}",
             f"  {cls.HELP.name}                             {cls.HELP.description}",
             "",
@@ -124,12 +120,14 @@ class Features(Enum):
         return [member.value for member in cls]
 
 
-############
-# Contents #
-############
+###############
+# ShowTargets #
+###############
 
-class Contents(Enum):
-    """Enum for contents that can be shown."""
+class ShowTargets(Enum):
+    """Enum for what /show can show."""
+    CURRENT_SOLUTION = "current-solution"
+    CURRENT_INSTANCE = "current-instance"
     SOLUTION = "solution"
     INSTANCE = "instance"
     EXPLANATION = "explanation"
@@ -138,7 +136,7 @@ class Contents(Enum):
 
     @classmethod
     def list_values(cls) -> list[str]:
-        """Return list of all valid content values."""
+        """Return list of all valid show target values."""
         return [member.value for member in cls]
 
 

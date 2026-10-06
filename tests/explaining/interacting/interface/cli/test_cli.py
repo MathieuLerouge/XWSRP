@@ -5,7 +5,7 @@ import pytest
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.cli.cli import ExplainerCLI
-from src.explaining.interacting.interface.cli.commands import ClearTargets
+from src.explaining.interacting.interface.cli.commands import ClearTargets, ShowTargets
 from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.predefined.constants import WHY_NOT_INS_1
@@ -76,3 +76,24 @@ def test_clearing_cached_explanations_empties_the_cache(demo_solution):
     result = cli.handle_clear([ClearTargets.CACHED_EXPLANATIONS.value])
     assert "Cleared 1 cached contrastive explanation" in result
     assert explainer.already_computed_contrastive_explanations == []
+
+
+def test_show_current_solution_and_instance_need_no_name(demo_solution):
+    cli = build_cli(demo_solution)
+    assert cli.explainer.current_solution.name in cli.handle_show([ShowTargets.CURRENT_SOLUTION.value])
+    assert cli.explainer.current_instance.name in cli.handle_show([ShowTargets.CURRENT_INSTANCE.value])
+
+
+def test_show_solution_and_instance_by_name(demo_solution):
+    cli = build_cli(demo_solution)
+    solution_name, instance_name = cli.explainer.current_solution.name, cli.explainer.current_instance.name
+    assert f"Solution: {solution_name}" in cli.handle_show([ShowTargets.SOLUTION.value, solution_name])
+    assert f"Instance: {instance_name}" in cli.handle_show([ShowTargets.INSTANCE.value, instance_name])
+
+
+def test_show_solution_and_instance_report_an_unknown_or_missing_name(demo_solution):
+    cli = build_cli(demo_solution)
+    assert "not found" in cli.handle_show([ShowTargets.SOLUTION.value, "nope"])
+    assert "not found" in cli.handle_show([ShowTargets.INSTANCE.value, "nope"])
+    assert "Usage" in cli.handle_show([ShowTargets.SOLUTION.value])
+    assert "Usage" in cli.handle_show([ShowTargets.INSTANCE.value])

@@ -12,7 +12,7 @@ from src.explaining.explanation.explanation import Explanation, ExplanationCompu
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.configuration import ExplainerConfiguration, TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, ClearTargets, Contents, Features, Languages, DisplayModes, LLMModels,
+    Commands, ClearTargets, ShowTargets, Features, Languages, DisplayModes, LLMModels,
 )
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
 from src.explaining.neighborhood.exceptions import NeighborhoodError
@@ -111,8 +111,6 @@ class ExplainerCLI:
             Commands.DISABLE.name: self.handle_disable,
             # Display
             Commands.SHOW.name: self.handle_show,
-            Commands.SHOW_INSTANCE.name: self.handle_show_instance,
-            Commands.SHOW_SOLUTION.name: self.handle_show_solution,
             Commands.DISPLAY_MODE.name: self.handle_display_mode,
             Commands.HELP.name: self.handle_help,
             # Session
@@ -444,46 +442,28 @@ class ExplainerCLI:
         return f"{feature} disabled"
 
     def handle_show(self, args: list[str]) -> str:
-        """Handle /show <resource> command."""
+        """Handle /show <resource> [name] command."""
         if len(args) < 1:
-            return (f"Usage: {self._yellow(Commands.SHOW.name)} <resource> "
-                    f"where resource is: {', '.join(Contents.list_values())}")
+            return (f"Usage: {self._yellow(Commands.SHOW.name)} <resource> [name] "
+                    f"where resource is: {', '.join(ShowTargets.list_values())}")
         resource = args[0].lower()
-        if resource == Contents.SOLUTION.value:
+        if resource == ShowTargets.SOLUTION.value:
+            return self._show_solution(args[1:])
+        elif resource == ShowTargets.INSTANCE.value:
+            return self._show_instance(args[1:])
+        elif resource == ShowTargets.CURRENT_SOLUTION.value:
             return self._show_current_solution()
-        elif resource == Contents.INSTANCE.value:
+        elif resource == ShowTargets.CURRENT_INSTANCE.value:
             return self._show_current_instance()
-        elif resource == Contents.EXPLANATION.value:
+        elif resource == ShowTargets.EXPLANATION.value:
             return self._show_last_explanation()
-        elif resource == Contents.HISTORY.value:
+        elif resource == ShowTargets.HISTORY.value:
             return self._show_history()
-        elif resource == Contents.CONFIG.value:
+        elif resource == ShowTargets.CONFIG.value:
             return self._show_config()
         else:
             return (f"Unknown resource '{resource}'. "
-                    f"Valid resources: {', '.join(Contents.list_values())}")
-
-    def handle_show_instance(self, args: list[str]) -> str:
-        """Handle /show-instance <instance_name> command."""
-        if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.SHOW_INSTANCE.name)} <instance_name>"
-        instance_name = args[0]
-        try:
-            instance = self._explainer.history.get_instance_by_name(instance_name)
-            return self._format_instance_output(instance)
-        except KeyError:
-            return f"Instance '{instance_name}' not found."
-
-    def handle_show_solution(self, args: list[str]) -> str:
-        """Handle /show-solution <solution_name> command."""
-        if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.SHOW_SOLUTION.name)} <solution_name>"
-        solution_name = args[0]
-        try:
-            solution = self._explainer.history.get_solution_by_name(solution_name)
-            return self._format_solution_output(solution)
-        except KeyError:
-            return f"Solution '{solution_name}' not found."
+                    f"Valid resources: {', '.join(ShowTargets.list_values())}")
 
     def handle_display_mode(self, args: list[str]) -> str:
         """Handle /display-mode <user|developer> command."""
@@ -547,6 +527,17 @@ class ExplainerCLI:
             return ExplainerCLI._yellow(match.group(0))
         return re.sub(r'\{[^}]+}', replace_field, text)
 
+    def _show_instance(self, args: list[str]) -> str:
+        """Handle /show instance <instance_name> command."""
+        if len(args) < 1:
+            return f"Usage: {self._yellow(Commands.SHOW.name)} {ShowTargets.INSTANCE.value} <instance_name>"
+        instance_name = args[0]
+        try:
+            instance = self._explainer.history.get_instance_by_name(instance_name)
+            return self._format_instance_output(instance)
+        except KeyError:
+            return f"Instance '{instance_name}' not found."
+
     def _show_current_instance(self) -> str:
         """Format current instance details."""
         instance = self._explainer.current_instance
@@ -571,6 +562,17 @@ class ExplainerCLI:
         for task in instance.tasks:
             lines.append(task.__repr__())
         return "\n".join(lines)
+
+    def _show_solution(self, args: list[str]) -> str:
+        """Handle /show solution <solution_name> command."""
+        if len(args) < 1:
+            return f"Usage: {self._yellow(Commands.SHOW.name)} {ShowTargets.SOLUTION.value} <solution_name>"
+        solution_name = args[0]
+        try:
+            solution = self._explainer.history.get_solution_by_name(solution_name)
+            return self._format_solution_output(solution)
+        except KeyError:
+            return f"Solution '{solution_name}' not found."
 
     def _show_current_solution(self) -> str:
         """Format current solution details."""

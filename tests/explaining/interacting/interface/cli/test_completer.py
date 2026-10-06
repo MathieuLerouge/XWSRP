@@ -145,6 +145,20 @@ def test_show_enum_completion(completer: ExplainerCLICompleter):
     assert complete(completer, "/show sol") == ["solution"]
 
 
+def test_show_current_resources_completion(completer: ExplainerCLICompleter):
+    assert sorted(complete(completer, "/show cur")) == ["current-instance", "current-solution"]
+
+
+def test_show_instance_completion_from_history(completer: ExplainerCLICompleter, cli: ExplainerCLI):
+    results = complete(completer, "/show instance ")
+    assert set(results) == set(cli.explainer.history.instances_names)
+
+
+def test_show_solution_completion_from_history(completer: ExplainerCLICompleter, cli: ExplainerCLI):
+    results = complete(completer, "/show solution ")
+    assert set(results) == set(cli.explainer.history.solutions_names)
+
+
 def test_switch_instance_completion_from_history(completer: ExplainerCLICompleter, cli: ExplainerCLI):
     results = complete(completer, "/switch-instance ")
     assert set(results) == set(cli.explainer.history.instances_names)
