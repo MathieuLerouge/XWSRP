@@ -167,6 +167,17 @@ def test_an_explanation_asked_twice_is_served_from_memory(demo_solution):
     assert first is second
 
 
+def test_an_explanation_is_recomputed_once_the_cache_is_cleared(demo_solution):
+    explainer = build_explainer(demo_solution, using_already_computed_contrastive_explanations_enabled=True)
+    fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]
+    first = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
+    assert explainer.clear_already_computed_contrastive_explanations() == 1
+    assert explainer.already_computed_contrastive_explanations == []
+    second = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
+    assert first is not second
+    assert first.text == second.text
+
+
 def test_an_explanation_is_not_reused_when_the_cache_is_off(demo_solution):
     explainer = build_explainer(demo_solution)
     fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]

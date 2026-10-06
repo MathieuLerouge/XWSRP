@@ -12,7 +12,7 @@ from src.explaining.explanation.explanation import Explanation, ExplanationCompu
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.configuration import ExplainerConfiguration, TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, Contents, Features, Languages, DisplayModes, LLMModels,
+    Commands, ClearTargets, Contents, Features, Languages, DisplayModes, LLMModels,
 )
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
 from src.explaining.neighborhood.exceptions import NeighborhoodError
@@ -500,11 +500,21 @@ class ExplainerCLI:
         """Handle /help command."""
         return Commands.list_string()
 
-    @staticmethod
-    def handle_clear(args: list[str]) -> str:
-        """Handle /clear command."""
-        os.system('clear' if os.name != 'nt' else 'cls')
-        return ""
+    def handle_clear(self, args: list[str]) -> str:
+        """Handle /clear <target> command."""
+        usage = f"Usage: {self._yellow(Commands.CLEAR.name)} <{'|'.join(ClearTargets.list_values())}>"
+        if len(args) < 1:
+            return usage
+        target = args[0].lower()
+        if target == ClearTargets.SCREEN.value:
+            os.system('clear' if os.name != 'nt' else 'cls')
+            return ""
+        if target == ClearTargets.CACHED_EXPLANATIONS.value:
+            if not self._explainer.configuration.using_already_computed_contrastive_explanations_enabled:
+                return "Using already computed contrastive explanations is disabled: nothing to clear."
+            nb_cleared_explanations = self._explainer.clear_already_computed_contrastive_explanations()
+            return f"Cleared {nb_cleared_explanations} cached contrastive explanation(s)"
+        return usage
 
     def handle_quit(self, args: list[str]) -> str:
         """Handle /quit command."""
@@ -650,6 +660,8 @@ class ExplainerCLI:
             f"  Neighborhood Extraction Mode: {config.neighborhood_extraction_mode}",
             f"  Scenario Enabled: {'Yes' if config.scenario_explanations_enabled else 'No'}",
             f"  Counterfactual Enabled: {'Yes' if config.counterfactual_explanations_enabled else 'No'}",
+            f"  Reuse Computed Explanations: "
+            f"{'Yes' if config.using_already_computed_contrastive_explanations_enabled else 'No'}",
             f"  Contrastive Time Limit: {config.time_limit_for_contrastive_explanation_milp_computation or 'None'}",
             f"  Counterfactual Time Limit: {config.time_limit_for_counterfactual_explanation_milp_computation or 'None'}",
             f"  Auto-Export Enabled: {'Yes' if config.exporting_each_contrastive_explanation_automatically_enabled else 'No'}",

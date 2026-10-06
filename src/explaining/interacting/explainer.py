@@ -365,6 +365,21 @@ class Explainer:
                 explanations.append(explanation)
         return explanations
 
+    def clear_already_computed_contrastive_explanations(self) -> int:
+        """
+        Forgets every already computed contrastive explanation.
+
+        NB: Only the in-memory cache is cleared.
+        A question whose single-explanation JSON file sits in the inputs directory is still imported from it
+        rather than recomputed; the multi-explanation file loaded at construction is not loaded again.
+
+        Returns:
+            The number of explanations that were cleared.
+        """
+        nb_cleared_explanations = len(self.already_computed_contrastive_explanations)
+        self._already_computed_contrastive_explanations.clear()
+        return nb_cleared_explanations
+
     def _add_contrastive_explanation_to_already_computed_ones(self, explanation: Explanation):
         """
         Stores the given contrastive explanation among the already computed ones, if not already there.

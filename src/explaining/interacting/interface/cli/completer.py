@@ -10,7 +10,7 @@ from prompt_toolkit.formatted_text import FormattedText
 # Local libraries
 from src.explaining.interacting.configuration import TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
-    Commands, Contents, Features, Languages, DisplayModes, LLMModels
+    Commands, ClearTargets, Contents, Features, Languages, DisplayModes, LLMModels
 )
 from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
@@ -122,6 +122,8 @@ class ExplainerCLICompleter(Completer):
             return self._matching(partial_token, Features.list_values())
         if command_name == Commands.SHOW.name and token_index == 1:
             return self._matching(partial_token, Contents.list_values())
+        if command_name == Commands.CLEAR.name and token_index == 1:
+            return self._matching(partial_token, ClearTargets.list_values())
         if command_name in (Commands.SWITCH_INSTANCE.name, Commands.SHOW_INSTANCE.name) and token_index == 1:
             return self._complete_history_names(lambda history: history.instances_names, partial_token)
         if command_name in (Commands.SWITCH_SOLUTION.name, Commands.SHOW_SOLUTION.name) and token_index == 1:

@@ -7,7 +7,7 @@ from prompt_toolkit.formatted_text import to_plain_text
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.cli.cli import ExplainerCLI
-from src.explaining.interacting.interface.cli.commands import LLMModels
+from src.explaining.interacting.interface.cli.commands import ClearTargets, LLMModels
 from src.explaining.interacting.interface.cli.completer import (
     PREVIEW_FIELD_STYLE, PREVIEW_STYLE, ExplainerCLICompleter
 )
@@ -83,6 +83,11 @@ def test_empty_input_offers_all_command_names(completer: ExplainerCLICompleter):
 
 def test_command_name_prefix_completion(completer: ExplainerCLICompleter):
     assert complete(completer, "/con") == ["/contrastive"]
+
+
+def test_clear_target_completion(completer: ExplainerCLICompleter):
+    assert sorted(complete(completer, "/clear ")) == sorted(ClearTargets.list_values())
+    assert complete(completer, "/clear ca") == [ClearTargets.CACHED_EXPLANATIONS.value]
 
 
 def test_unknown_command_offers_no_argument_completions(completer: ExplainerCLICompleter):

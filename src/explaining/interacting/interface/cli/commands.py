@@ -38,7 +38,7 @@ class Commands(Enum):
     HELP = ("/help", "Show this help message")
     
     # Session Commands
-    CLEAR = ("/clear", "Clear the terminal screen")
+    CLEAR = ("/clear", "Clear the terminal screen or the cached contrastive explanations")
     QUIT = ("/quit", "Exit the CLI")
     
     @property
@@ -86,8 +86,8 @@ class Commands(Enum):
             f"  {cls.HELP.name}                             {cls.HELP.description}",
             "",
             "Session Commands:",
-            f"  {cls.CLEAR.name}    {cls.CLEAR.description}",
-            f"  {cls.QUIT.name}     {cls.QUIT.description}",
+            f"  {cls.CLEAR.name} <target>    {cls.CLEAR.description} ({', '.join(ClearTargets.list_values())})",
+            f"  {cls.QUIT.name}              {cls.QUIT.description}",
         ]
         return "\n".join(lines)
 
@@ -139,6 +139,21 @@ class Contents(Enum):
     @classmethod
     def list_values(cls) -> list[str]:
         """Return list of all valid content values."""
+        return [member.value for member in cls]
+
+
+################
+# ClearTargets #
+################
+
+class ClearTargets(Enum):
+    """Enum for what /clear can clear."""
+    SCREEN = "screen"
+    CACHED_EXPLANATIONS = "cached-explanations"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid clear target values."""
         return [member.value for member in cls]
 
 
