@@ -177,6 +177,24 @@ class Explainer:
         else:
             raise PermissionError("Historizing is disabled")
 
+    def find_stored_solution_with_same_content(self, solution: Solution) -> Optional[EditableSolution]:
+        """
+        Returns the stored solution of the given solution's instance with the same sequences as it, if any.
+
+        NB: Matched on content (Solution.__eq__ compares sequences, ignoring names), not on name as History does,
+        because two computations of the same support solution yield distinct objects with distinct names.
+
+        Args:
+            solution: The solution to look for.
+
+        Returns:
+            The stored solution with the same content, or None if there is none.
+        """
+        for stored_solution in self._history.solutions:
+            if stored_solution.instance.name == solution.instance.name and stored_solution == solution:
+                return stored_solution
+        return None
+
     @property
     def current_instance(self):
         """The instance of the solution the next question will be asked about."""
@@ -628,17 +646,24 @@ class Explainer:
             raise PermissionError("There is no last contrastive explanation")
         return self._last_contrastive_explanation
 
-    def save_last_contrastive_support_solution(self):
+    def save_last_contrastive_support_solution(self) -> bool:
         """
-        Stores the support solution of the last contrastive explanation in history, if it is feasible.
+        Stores the last contrastive explanation's support solution in history, if it is feasible and not yet stored.
+
+        Returns:
+            True if this call stored it, False if a solution with the same content was already stored
+            (see find_stored_solution_with_same_content).
 
         Raises:
             PermissionError: if that support solution is not feasible.
         """
         last_contrastive_support_solution = self.last_contrastive_explanation.support_solution
+        if self.find_stored_solution_with_same_content(last_contrastive_support_solution) is not None:
+            return False
         if self.last_contrastive_explanation.support_solution_is_feasible:
             last_contrastive_support_solution.name = self._get_name_for_contrastive_support_solution()
             self.store_solution(last_contrastive_support_solution)
+            return True
         else:
             raise PermissionError("Cannot save the last contrastive support solution as it is not feasible")
 

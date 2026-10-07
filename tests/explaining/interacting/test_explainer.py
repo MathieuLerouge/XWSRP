@@ -535,6 +535,36 @@ def test_a_question_built_outside_the_activated_set_is_still_counted(demo_soluti
 # Naming a saved support solution #
 ###################################
 
+def test_a_contrastive_support_solution_saved_twice_is_stored_and_named_once(demo_solution):
+    explainer = build_explainer(demo_solution, history_enabled=True)
+    explainer.get_contrastive_explanation(WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[PositiveExplanation])
+    support_solution = explainer.last_contrastive_explanation.support_solution
+    assert explainer.save_last_contrastive_support_solution() is True
+    saved_name, nb_solutions = support_solution.name, len(explainer.history.solutions)
+    assert explainer.save_last_contrastive_support_solution() is False
+    assert support_solution.name == saved_name
+    assert len(explainer.history.solutions) == nb_solutions
+
+
+def test_a_contrastive_support_solution_recomputed_by_asking_again_is_not_saved_again(demo_solution):
+    """
+    With the cache off, asking again recomputes a distinct support solution object with the same content,
+    which must be recognized as already saved.
+    """
+    explainer = build_explainer(demo_solution, history_enabled=True)
+    fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[PositiveExplanation]
+    explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
+    assert explainer.save_last_contrastive_support_solution() is True
+    first_support_solution = explainer.last_contrastive_explanation.support_solution
+    nb_solutions = len(explainer.history.solutions)
+    explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
+    second_support_solution = explainer.last_contrastive_explanation.support_solution
+    assert second_support_solution is not first_support_solution
+    assert explainer.save_last_contrastive_support_solution() is False
+    assert len(explainer.history.solutions) == nb_solutions
+    assert explainer.find_stored_solution_with_same_content(second_support_solution) is first_support_solution
+
+
 def test_a_saved_scenario_support_solution_is_named_after_a_new_instance(demo_solution):
     explainer = build_explainer(demo_solution, history_enabled=True)
     explainer.configuration.scenario_explanations_enabled = True

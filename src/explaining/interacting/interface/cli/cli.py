@@ -284,10 +284,14 @@ class ExplainerCLI:
     def handle_save_solution(self, args: list[str]) -> str:
         """Handle /save-solution command."""
         try:
-            self._explainer.save_last_contrastive_support_solution()
-            last_explanation = self._explainer.last_contrastive_explanation
-            solution_name = last_explanation.support_solution.name
-            return f"Support solution saved as {solution_name}"
+            is_newly_saved = self._explainer.save_last_contrastive_support_solution()
+            support_solution = self._explainer.last_contrastive_explanation.support_solution
+            # NB: The stored solution, not the support solution itself,
+            # whose name is not its history name when it was already stored under another one.
+            stored_solution = self._explainer.find_stored_solution_with_same_content(support_solution)
+            if not is_newly_saved:
+                return f"Support solution already saved as {stored_solution.name}"
+            return f"Support solution saved as {stored_solution.name}"
         except PermissionError as e:
             return f"Error: {e}"
 
@@ -383,26 +387,24 @@ class ExplainerCLI:
         """
         Handle /switch last-support-solution command.
 
-        The support solution is saved to history first if it is not there yet, as /save-solution does,
-        so that it gets its history name.
+        The support solution is saved to history first if no solution with the same content is there yet,
+        as /save-solution does, so that it gets its history name.
         Switching is refused if it cannot be saved (e.g. it is infeasible).
         """
         try:
             last_explanation = self._explainer.last_contrastive_explanation
         except PermissionError:
             return "No explanation yet. Ask a question first."
-        support_solution = last_explanation.support_solution
-        # NB: Checked by identity, as History matches solutions by name,
-        # and an unsaved support solution's name is not its history name yet.
-        is_saved = any(solution is support_solution for solution in self._explainer.history.solutions)
-        if not is_saved:
-            try:
-                self._explainer.save_last_contrastive_support_solution()
-            except PermissionError as e:
-                return f"Error: {e}"
-        self._explainer.current_solution = support_solution
-        result = f"Switched to last support solution {support_solution.name}"
-        if not is_saved:
+        try:
+            is_newly_saved = self._explainer.save_last_contrastive_support_solution()
+        except PermissionError as e:
+            return f"Error: {e}"
+        # NB: Switching to the stored solution rather than to the support solution itself, which,
+        # when already stored under another name, would get stored again under its own unsaved name.
+        stored_solution = self._explainer.find_stored_solution_with_same_content(last_explanation.support_solution)
+        self._explainer.current_solution = stored_solution
+        result = f"Switched to last support solution {stored_solution.name}"
+        if is_newly_saved:
             result += " (saved to history)"
         return result
 

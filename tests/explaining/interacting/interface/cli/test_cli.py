@@ -155,3 +155,38 @@ def test_switch_to_last_support_instance(demo_solution):
     support_instance_name = cli.explainer.last_contrastive_explanation.support_solution.instance.name
     assert "Switched to instance" in cli.handle_switch([SwitchTargets.LAST_SUPPORT_INSTANCE.value])
     assert cli.explainer.current_instance.name == support_instance_name
+
+
+def test_saving_the_same_support_solution_twice_reports_it_is_already_saved(demo_solution):
+    cli = build_cli_with_history(demo_solution)
+    cli.handle_contrastive([WHY_NOT_INS_1, "Alexander", "T22", "T6"])
+    first_result = cli.handle_save_solution([])
+    nb_solutions = len(cli.explainer.history.solutions)
+    second_result = cli.handle_save_solution([])
+    assert first_result.startswith("Support solution saved as")
+    assert second_result == first_result.replace("saved as", "already saved as")
+    assert len(cli.explainer.history.solutions) == nb_solutions
+
+
+def test_saving_after_asking_the_same_question_again_reports_the_first_saved_name(demo_solution):
+    cli = build_cli_with_history(demo_solution)
+    question = [WHY_NOT_INS_1, "Alexander", "T22", "T6"]
+    cli.handle_contrastive(question)
+    first_result = cli.handle_save_solution([])
+    nb_solutions = len(cli.explainer.history.solutions)
+    cli.handle_contrastive(question)
+    assert cli.handle_save_solution([]) == first_result.replace("saved as", "already saved as")
+    assert len(cli.explainer.history.solutions) == nb_solutions
+
+
+def test_switching_after_asking_the_same_question_again_switches_to_the_first_saved_solution(demo_solution):
+    cli = build_cli_with_history(demo_solution)
+    question = [WHY_NOT_INS_1, "Alexander", "T22", "T6"]
+    cli.handle_contrastive(question)
+    cli.handle_switch([SwitchTargets.LAST_SUPPORT_SOLUTION.value])
+    first_saved_solution = cli.explainer.current_solution
+    nb_solutions = len(cli.explainer.history.solutions)
+    cli.handle_contrastive(question)
+    cli.handle_switch([SwitchTargets.LAST_SUPPORT_SOLUTION.value])
+    assert cli.explainer.current_solution is first_saved_solution
+    assert len(cli.explainer.history.solutions) == nb_solutions
