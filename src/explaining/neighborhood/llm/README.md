@@ -34,7 +34,12 @@ either a coverable question's `ExtractedNeighborhood`, or an explicit `coverable
 so the LLM has a way to say "this can't be expressed" instead of guessing.
 
 `prompt.py` contains `SYSTEM_PROMPT` (the primitive vocabulary and worked examples the LLM is taught) 
-and `build_user_prompt(solution, question_text)` (the prompt embedding the solution's own employee/task vocabulary).
+and `build_user_prompt(solution, question_text, with_json_context)` (the prompt embedding the question, 
+a description of the solution and the non-performed tasks). \
+With `with_json_context`, the instance and the solution are given as two separate JSON documents, 
+which provides more detailed information about the instance and the solution. \
+`Extractor` enables `with_json_context` by default for every provider except Ollama: 
+the size of JSON files makes small local models (e.g. `qwen2.5:7b`) drop the rules of `SYSTEM_PROMPT`.
 
 `grounder.py` contains `Grounder`, which resolves an `ExtractedNeighborhood`'s raw names against a `Solution`
 into actual `Operator`/`Restriction` domain objects.

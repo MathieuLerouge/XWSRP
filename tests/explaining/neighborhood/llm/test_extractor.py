@@ -43,3 +43,15 @@ def test_construction_succeeds_when_mistral_api_key_is_set(monkeypatch):
     monkeypatch.setenv("MISTRAL_API_KEY", "fake-key-for-test")
     solution = _build_solution()
     Extractor(solution, "mistral/mistral-small-latest")
+
+
+@pytest.mark.parametrize("model, with_json_context, expected", [
+    ("ollama/llama3.2", None, False),
+    ("mistral/mistral-small-latest", None, True),
+    ("ollama/llama3.2", True, True),
+    ("mistral/mistral-small-latest", False, False),
+])
+def test_json_context_defaults_per_provider_unless_overridden(monkeypatch, model, with_json_context, expected):
+    monkeypatch.setenv("MISTRAL_API_KEY", "fake-key-for-test")
+    extractor = Extractor(_build_solution(), model, with_json_context=with_json_context)
+    assert extractor._with_json_context is expected

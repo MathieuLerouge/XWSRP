@@ -30,6 +30,9 @@ _PROVIDER_API_KEY_ENV_VARS = {
     "mistral": "MISTRAL_API_KEY",
 }
 
+# Providers serving small local models, which follow SYSTEM_PROMPT less reliably once the prompt carries the JSON.
+_PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT = {"ollama"}
+
 
 def _check_required_api_key_is_set(model: str):
     """
@@ -52,7 +55,8 @@ class Extractor:
     using a model-agnostic LLM (via instructor.from_provider) to identify the corresponding primitives.
     """
 
-    def __init__(self, solution: Solution, model: str, mode: Optional[Mode] = None):
+    def __init__(self, solution: Solution, model: str, mode: Optional[Mode] = None,
+                 with_json_context: Optional[bool] = None):
         """
         Args:
             solution: The solution every question asked through this Extractor is about.
@@ -61,6 +65,9 @@ class Extractor:
                 Left as None (instructor's own per-provider default, typically its TOOLS mode)
                 unless the provider needs something else - e.g. Ollama's tool-calling support isn't reliable enough
                 for the default mode and needs Mode.MD_JSON instead.
+            with_json_context: Whether the prompt describes the instance and the solution as JSON.
+                Left as None, it is enabled for every provider except the local ones of
+                _PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT.
 
         Raises:
             RuntimeError: If model's provider requires an API key and the corresponding environment variable isn't set.
@@ -68,6 +75,9 @@ class Extractor:
         _check_required_api_key_is_set(model)
         self._solution = solution
         self._client = instructor.from_provider(model, mode=mode)
+        if with_json_context is None:
+            with_json_context = model.split("/", 1)[0] not in _PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT
+        self._with_json_context = with_json_context
 
     def extract(self, question: FreeTextQuestion) -> Neighborhood:
         """
@@ -88,7 +98,7 @@ class Extractor:
         """
         if question.solution is not self._solution:
             raise ValueError("The question must be asked about the solution this Extractor was built for")
-        user_prompt = build_user_prompt(self._solution, question.text)
+        user_prompt = build_user_prompt(self._solution, question.text, with_json_context=self._with_json_context)
         messages = [
             ChatCompletionSystemMessageParam(role="system", content=SYSTEM_PROMPT),
             ChatCompletionUserMessageParam(role="user", content=user_prompt),
