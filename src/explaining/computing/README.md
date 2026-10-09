@@ -9,7 +9,10 @@ That result feeds directly into `explanation`.
 
 # 1. Overview
 
-There are two independent pipelines, and they answer the same questions.
+There are two independent pipelines: the tailored and the neighborhood pipelines.
+They are implemented in their respective packages: `templates` and `neighborhood`.
+A third package, `bridge`, connects them: 
+it lets the template-based explanation layer phrase what the neighborhood pipeline computed.
 
 The **tailored pipeline** (`templates`) dispatches each question template to its own transformation
 method. \
@@ -25,18 +28,22 @@ that would make the requested action feasible.
 
 The **neighborhood pipeline** (`neighborhood`) is the generic alternative. 
 `NeighborhoodModel` turns any `Neighborhood` into one MILP, rather than having a handwritten function per template. 
-It reports a **feasibility shortfall**: 0 when the requested arrangement fits, 
+It reports a feasibility shortfall: 0 when the requested arrangement fits, 
 otherwise how much the conflicting task's start time has to be stretched for it to. \
-`ConflictExtractor` then turns that shortfall into the same `Conflict` the tailored pipeline would return.
+Once solved, the `ExplanationFactsBuilder` reads off it the `ExplanationFacts`.
+These `ExplanationFacts` will be then worded into text by `ExplanationWriter` (in `explanation.free`), 
+whatever the neighborhood and whether or not it belongs to the question catalogue.
 
-It reaches `explanation` the same way the tailored one does, 
+The **bridge** (`bridge`) is what lets the neighborhood pipeline reach `explanation` the way the tailored one does, 
 through `result.py`'s `build_transformation_result_from_neighborhood`. \
 The step that costs it something the tailored pipeline gets for free is the question: 
-an explanation is phrased from a question template's typical expressions, 
+a predefined explanation is phrased from a question template's typical expressions, 
 and a `Neighborhood` on its own carries no template. \
-`explaining.neighborhood`'s `Recognizer` recovers one by reading the neighborhood's own primitives, 
-which is what lets a question asked in free text be answered in words rather than only solved. \
-A neighborhood outside the question catalogue still gets a support solution and a conflict, and no text.
+`explaining.neighborhood.templates`' `Recognizer` recovers one by reading the neighborhood's own primitives, 
+and `description.py` words what the solved model settled on in that template's terms. \
+It is not only there to compare the two pipelines (see section 4): 
+`Explainer` goes through it whenever templated questions are computed in neighborhood mode, 
+and for free-text questions until they are answered through `ExplanationWriter`.
 
 Only the tailored pipeline handles counterfactual questions today; 
 `NeighborhoodModel` covers the contrastive/scenario ones.
@@ -44,12 +51,17 @@ Only the tailored pipeline handles counterfactual questions today;
 
 # 2. Description of the files
 
-The module is laid out by which pipeline a file serves: `templates` for the tailored one, 
-`neighborhood` for the generic one, and at the top level the two files both of them need.
+The module is laid out by which pipeline a file serves: 
+`templates` for the tailored one, 
+`neighborhood` for the generic one, 
+`bridge` for what connects the latter to the former's explanation layer, 
+and at the top level the three files both of them need.
 
 Shared by both pipelines:
 - `conflict.py` contains `Conflict` and its two subclasses, `SkillConflict` and `TimeConflict`. 
   It is what either pipeline hands to `explanation`.
+- `solver.py` contains `TransformationModelSolver`, which solves either pipeline's MILP models 
+  and turns an outcome holding no usable solution into the matching exception.
 - `exceptions.py` contains `ImpossibleTransformationException`, 
   raised when a question asks for something the given solution makes meaningless 
   (e.g. inserting a non-performed task when every task is already performed). 
@@ -62,10 +74,23 @@ In `neighborhood` subpackage:
   which neighborhoods can be built for `NeighborhoodModel`  and why not when it can't.
 - `extractor.py` contains `ConflictExtractor`, which maps a `Neighborhood` to a `SkillConflict`
   and a solved `NeighborhoodModel` to a `TimeConflict`.
-- `description.py` contains `NeighborhoodDescriptionBuilder`, which words what the solved model settled on.
-- `result.py` contains `build_transformation_result_from_neighborhood`, 
-  this pipeline's counterpart to `templates`' `build_transformation_result_from_milp_model`.
+- `solving.py` contains `solve_neighborhood`, the template-free run up to the solved model 
+  (or the skill conflict blocking it before any model is built), 
+  and `reorder_support_sequences_to_solved_routes`.
+- `facts.py` contains `ExplanationFactsBuilder`, which reads off a solved neighborhood, without any template, 
+  the `ExplanationFacts` an explanation may state: the `ExplanationOutcomes` (decided here, never by an LLM, 
+  with "positive" meaning a feasible support solution better than the current one, as in the predefined branch), 
+  the conflict with its step indices resolved into named activities and times, the route changes and the KPIs. 
+  They name things rather than hold them, so they serialize as is.
 - `exceptions.py` contains `UnattributableFeasibilityShortfallException`.
+
+In `bridge` subpackage:
+- `result.py` contains `solve_neighborhood_into_transformation_result` 
+  and `build_transformation_result_from_neighborhood`, 
+  the bridge's counterpart to `templates`' `build_transformation_result_from_milp_model`: 
+  it recognizes the question template a neighborhood stands for, and builds its `TransformationResult`.
+- `description.py` contains `NeighborhoodDescriptionBuilder`, which words what the solved model settled on, 
+  reusing `templates/common/description.py`'s `TransformationDescriptionBuilder` sentences.
 
 In `templates` subpackage:
 - `dispatch.py` contains `TransformationDispatcher`, 
@@ -74,7 +99,7 @@ In `templates` subpackage:
   since only the MILP-based three take a solving time limit, and the counterfactual ones share a single table.
 - `common` holds what both kinds share: `TransformationPreconditionChecker`, `TransformationDescriptionBuilder`,
   `TransformationResult` (the support solution, the conflict if any, the per-language descriptions, and
-  the instance alterations for counterfactual questions), `TailoredConflictBuilder`, and `TransformationModelSolver`.
+  the instance alterations for counterfactual questions), and `TailoredConflictBuilder`.
 - `contrastive_and_scenario/{insertion,swap,reordering}.py` contain: 
   `InsertionApplier`, `SwapApplier` and `ReorderingApplier`. 
   Each gathers its family's templates, polynomial and MILP-based alike, 
@@ -123,7 +148,7 @@ real, but it measures the contradiction rather than a gap the task has to be squ
 
 # 4. Parity between the two pipelines
 
-`tests/explaining/computing/test_parity.py` (one curated case per template) and `test_parity_random.py`
+`tests/explaining/computing/bridge/test_parity.py` (one curated case per template) and `test_parity_random.py`
 (random samples per template) run both pipelines on the same question and compare them.
 
 The neighborhood pipeline's feasibility gap is asserted at or below the tailored pipeline's, not equal to it: 

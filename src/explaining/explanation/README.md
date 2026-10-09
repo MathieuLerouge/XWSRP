@@ -3,7 +3,7 @@
 This module is the last stage of the explaining chain: 
 it turns a `Question` and the `TransformationResult` computed to answer it into text the end user reads. \
 It mirrors `question`'s split by the kind of question answered, 
-since how an answer is worded depends entirely on what was asked.
+since how an answer is worded depends on what was asked.
 
 
 # 1. Overview
@@ -17,19 +17,14 @@ on an instance with employee unavailabilities), the clause introducing instance 
 and the two KPI comparison sentences. \
 `is_positive`, `is_negative`, `support_solution_is_feasible`, `_compute_text` and `to_dict` are abstract.
 
-Note that `Explanation.__init__` ends by computing the text. \
-A subclass adding state the wording reads must therefore set it *before* delegating upwards — 
-which is what `PredefinedExplanation` does with its typical expressions, 
-and `InfeasibleNegativeExplanation` with its conflict.
-
-`predefined` holds the template-based branch. `free` is the slot for the free-text one, and is still empty.
+`predefined` holds the template-based branch, `free` the free-text one.
 
 
 # 2. Description of the files
 
 `explanation.py` contains `Explanation`, described above.
 
-In `predefined` subpackage:
+### In `predefined` subpackage:
 
 `template.py` contains `ExplanationTemplate`: the typical expressions answering one question template, 
 per supported language. \
@@ -38,7 +33,7 @@ The expression ids are `the_fact` (what the current solution does), `the_foil` (
 or `neighbors` for the `*,2`/`*,3` families, which range over a set of neighboring solutions instead.
 
 `bank.py` instantiates one `ExplanationTemplate` per question template into `EXPLANATIONS_TEMPLATES`, 
-keyed by the **question** template's id — that shared key is the whole link between the two banks.
+keyed by the question template's id — that shared key is the whole link between the two banks.
 
 `explanation.py` contains `PredefinedExplanation` and the subclass tree below it. \
 Its `__init__` splices the question's field values into the matching `ExplanationTemplate`'s expressions, 
@@ -46,19 +41,34 @@ which every sentence the subclasses build is then assembled from. \
 `create_explanation(question, result)` picks the subclass the result calls for:
 - `PositiveExplanation` when no conflict was found and the support solution improves on the current one;
 - `NonImprovingNegativeExplanation` when no conflict was found but it does not improve on it;
-- `SkillNegativeExplanation` / `TimeNegativeExplanation` when a `SkillConflict` / `TimeConflict` was found. \
+- `SkillNegativeExplanation` / `TimeNegativeExplanation` when a `SkillConflict` / `TimeConflict` was found.
 
 `InfeasibleNegativeExplanation` is their common abstract parent, holding the conflict, 
 and `NegativeExplanation` is the abstract parent of every negative one. \
 `create_explanation_from_dict(dictionary, solution)` rebuilds one from a previously exported JSON payload.
 
-In `free` subpackage:
+### In `free` subpackage:
 
-Still empty. \
-Answering a free-text question in words is not implemented: 
-the neighborhood pipeline reaches the wording above by having `neighborhood/templates`' `Recognizer` 
-recover a `ContrastiveQuestion` from the `Neighborhood`, 
-so a neighborhood outside the question catalogue gets a support solution and a conflict but no text.
+`explanation.py` contains `FreeTextExplanation`, which holds the question, the support solution, the facts 
+and the text worded from them. \
+Building one, or rebuilding one with `from_dict`, calls no LLM.
+
+`writer.py` contains `ExplanationWriter`, the entry point: 
+`ExplanationWriter(model).write(question, facts, support_solution)` returns a `FreeTextExplanation`, 
+or raises `ExplanationWritingError` (`exceptions.py`) once the LLM exhausted its retries.
+
+`prompt.py` contains `SYSTEM_PROMPT`, `build_facts_document` and `build_user_prompt`. \
+The facts document spells the times in the language's hour format, makes explicit what the facts only imply 
+(the verdict, the earliest end time, how the KPIs compare) and leaves out what a small LLM tends to misuse 
+(the routes' times, the side of a time conflict that does not explain it).
+
+`written_explanation.py` contains `WrittenExplanation`, the object the LLM returns, 
+and `grounding.py` the checks its text goes through: 
+no time and no employee or task name the facts document does not hold, and every name the question states, 
+spelled the same way. \
+A text failing them is sent back to the LLM by instructor. \
+These checks catch invented values, not misused ones: 
+a time stated in the wrong role (e.g. an earliest end time worded as a deadline) still passes.
 
 
 # 3. Serialization

@@ -3,16 +3,20 @@ from typing import Optional
 
 # Local libraries
 from src.explaining.computing.conflict import Conflict, SkillConflict, TimeConflict
-from src.explaining.computing.neighborhood.result import solve_neighborhood_into_transformation_result
+from src.explaining.computing.neighborhood.facts import ExplanationFacts, ExplanationFactsBuilder
+from src.explaining.computing.bridge.result import solve_neighborhood_into_transformation_result
+from src.explaining.computing.neighborhood.solving import solve_neighborhood
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.modeling.solution import EditableSolution
 from src.explaining.neighborhood.templates.mapper import Mapper
+from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.predefined.question import ContrastiveQuestion
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
 from src.importing.instance import extract_instance_from_file
 from src.importing.solution import import_solution
+from src.utils.language import LANGUAGE_ENGLISH_KEY
 
 # Global variables
 _AUSTRIA_INSTANCE_PATH = "src/explaining/instances/InstanceAustria.xlsx"
@@ -163,3 +167,23 @@ def assert_at_least_as_good_kpis(tailored_solution: Solution, neighborhood_solut
     if neighborhood_solution.total_working_duration == tailored_solution.total_working_duration:
         assert neighborhood_solution.total_traveling_duration <= tailored_solution.total_traveling_duration, \
             "neighborhood pipeline's total traveling duration exceeds the tailored pipeline's"
+
+
+def get_explanation_facts(
+        template_id: str, fields_values: list[str], language: str = LANGUAGE_ENGLISH_KEY
+) -> tuple[FreeTextQuestion, ExplanationFacts, Solution]:
+    """
+    Return (question, facts, support solution) for a templated question run through the template-free
+    neighborhood computation pipeline, on a fresh Austria solution with its KPIs computed.
+
+    The question is the free-text one the template phrases, in the given language,
+    so that the facts are read off a question the recognizer plays no part in.
+    """
+    solution = build_austria_solution()
+    solution.compute_kpis()
+    contrastive_question = ContrastiveQuestion(solution, template_id, fields_values)
+    neighborhood = Mapper.map(contrastive_question)
+    model, skill_conflict = solve_neighborhood(neighborhood)
+    question = FreeTextQuestion(solution, contrastive_question.text, language)
+    facts = ExplanationFactsBuilder.build(question, neighborhood, model, skill_conflict)
+    return question, facts, ExplanationFactsBuilder.get_support_solution(neighborhood, model)

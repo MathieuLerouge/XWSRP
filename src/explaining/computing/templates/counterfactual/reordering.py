@@ -2,10 +2,10 @@
 from typing import Optional
 
 # Local libraries
+from src.explaining.computing.solver import TransformationModelSolver
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.common.solver import TransformationModelSolver
 from src.explaining.computing.templates.counterfactual.result import build_transformation_result_from_milp_model
 from src.explaining.computing.templates.counterfactual.milp.reordering.reordering1 import \
     Reordering1aWithAlterationsModel, Reordering1bWithAlterationsModel

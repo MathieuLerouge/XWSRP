@@ -2,11 +2,11 @@
 from typing import Optional
 
 # Local libraries
+from src.explaining.computing.solver import TransformationModelSolver
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
     INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
 from src.explaining.computing.templates.common.result import TransformationResult
-from src.explaining.computing.templates.common.solver import TransformationModelSolver
 from src.explaining.computing.templates.counterfactual.result import build_transformation_result_from_milp_model
 from src.explaining.computing.templates.counterfactual.milp.insertion.insertion1 import Insertion1WithAlterationsModel
 from src.explaining.computing.templates.counterfactual.milp.insertion.insertion2 import \

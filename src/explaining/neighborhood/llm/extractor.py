@@ -1,5 +1,4 @@
 # Standard library
-import os
 from typing import Optional, cast
 
 # Third-party libraries
@@ -19,30 +18,7 @@ from src.explaining.neighborhood.llm.prompt import SYSTEM_PROMPT, build_user_pro
 from src.explaining.neighborhood.neighborhood import Neighborhood, NeighborhoodExtractionModes
 from src.explaining.question.free.question import FreeTextQuestion
 from src.modeling.solution import Solution
-
-
-# Provider prefixes (of a "provider/model-name" string) that need an API key,
-# mapped to the environment variable that must carry it
-# - checked eagerly at Extractor construction time so a missing key fails clearly right here,
-# rather than surfacing a confusing error from deep inside instructor/the provider SDK on the first extract() call.
-_PROVIDER_API_KEY_ENV_VARS = {
-    "anthropic": "ANTHROPIC_API_KEY",
-    "mistral": "MISTRAL_API_KEY",
-}
-
-# Providers serving small local models, which follow SYSTEM_PROMPT less reliably once the prompt carries the JSON.
-_PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT = {"ollama"}
-
-
-def _check_required_api_key_is_set(model: str):
-    """
-    Raises:
-        RuntimeError: If model's provider requires an API key and the corresponding environment variable isn't set.
-    """
-    provider = model.split("/", 1)[0]
-    env_var_name = _PROVIDER_API_KEY_ENV_VARS.get(provider)
-    if env_var_name is not None and env_var_name not in os.environ:
-        raise RuntimeError(f"Using model {model!r} requires the {env_var_name} environment variable to be set.")
+from src.utils.llm import check_required_api_key_is_set, is_json_context_enabled_by_default
 
 
 #############
@@ -67,16 +43,16 @@ class Extractor:
                 for the default mode and needs Mode.MD_JSON instead.
             with_json_context: Whether the prompt describes the instance and the solution as JSON.
                 Left as None, it is enabled for every provider except the local ones of
-                _PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT.
+                src.utils.llm.PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT.
 
         Raises:
             RuntimeError: If model's provider requires an API key and the corresponding environment variable isn't set.
         """
-        _check_required_api_key_is_set(model)
+        check_required_api_key_is_set(model)
         self._solution = solution
         self._client = instructor.from_provider(model, mode=mode)
         if with_json_context is None:
-            with_json_context = model.split("/", 1)[0] not in _PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT
+            with_json_context = is_json_context_enabled_by_default(model)
         self._with_json_context = with_json_context
 
     def extract(self, question: FreeTextQuestion) -> Neighborhood:

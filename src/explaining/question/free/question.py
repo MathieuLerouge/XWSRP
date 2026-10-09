@@ -3,6 +3,10 @@ from src.explaining.question.question import Question, QuestioningModes
 from src.modeling.solution import Solution
 from src.utils.language import LANGUAGE_ENGLISH_KEY
 
+# Keys of the dictionary a free-text question is serialized to.
+TEXT_KEY = 'text'
+LANGUAGE_KEY = 'language'
+
 
 ####################
 # FreeTextQuestion #
@@ -50,3 +54,21 @@ class FreeTextQuestion(Question):
     @language.setter
     def language(self, language_key: str):
         self.set_language(language_key)
+
+    def to_dict(self) -> dict[str, str]:
+        """Return this question as a dictionary, as read back by from_dict."""
+        return {TEXT_KEY: self._text, LANGUAGE_KEY: self._language_key}
+
+    @classmethod
+    def from_dict(cls, dictionary: dict[str, str], solution: Solution) -> "FreeTextQuestion":
+        """
+        Rebuilds the question a previously exported dictionary describes.
+
+        Args:
+            dictionary: The dictionary to rebuild the question from, as produced by to_dict.
+            solution: The solution the question was asked about.
+
+        Returns:
+            The rebuilt question.
+        """
+        return cls(solution, dictionary[TEXT_KEY], dictionary[LANGUAGE_KEY])

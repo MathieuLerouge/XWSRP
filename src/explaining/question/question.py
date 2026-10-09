@@ -74,6 +74,25 @@ class Question(ABC):
         """Whether the question is currently phrased in French."""
         return check_if_language_is_french(self.language)
 
+    @classmethod
+    def from_dict(cls, dictionary: dict[str, str], solution: Solution) -> "Question":
+        """
+        Rebuilds the question a previously exported dictionary describes.
+
+        Args:
+            dictionary: The dictionary describing the question.
+            solution: The solution the question is asked about.
+
+        Returns:
+            The rebuilt question.
+        """
+        pass
+
+    @abstractmethod
+    def to_dict(self):
+        """Returns a dictionary representation of the question, suitable for serialization."""
+        pass
+
 
 ####################
 # QuestioningModes #

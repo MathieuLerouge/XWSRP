@@ -122,5 +122,5 @@ Some tests are marked to opt in/out of rather than always run in the same breath
   (by default, a local Ollama server with `qwen2.5:7b` pulled, or a provider's API key) and are non-deterministic.
   They are marked `llm`. Run only them with `pytest -m llm`, or exclude them with `pytest -m "not llm"`.
 - many-sample tailored-vs-neighborhood pipeline parity checks
-  (see `tests/explaining/computing/test_parity_random.py`): slow to run. 
+  (see `tests/explaining/computing/bridge/test_parity_random.py`): slow to run. 
   They are marked `parity`. Run only them with `pytest -m parity`, or exclude them with `pytest -m "not parity"`.

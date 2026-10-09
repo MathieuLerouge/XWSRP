@@ -3,7 +3,7 @@ import time
 from typing import TYPE_CHECKING, cast
 
 # Local libraries
-from src.explaining.computing.neighborhood.result import solve_neighborhood_into_transformation_result
+from src.explaining.computing.bridge.result import solve_neighborhood_into_transformation_result
 from src.explaining.explanation.explanation import ExplanationComputationModes
 from src.explaining.explanation.predefined.explanation import *
 from src.explaining.interacting.configuration import TemplateComputationModes
