@@ -47,7 +47,10 @@ class ExplainerConfiguration:
             contrastive_explanation_input_directory_relative_path: str = DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH,
             contrastive_explanation_output_directory_relative_path: str = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH,
             time_limit_for_contrastive_explanation_milp_computation: Optional[int] = None,
-            time_limit_for_counterfactual_explanation_milp_computation: Optional[int] = None
+            time_limit_for_counterfactual_explanation_milp_computation: Optional[int] = None,
+            explanation_writing_llm_model: Optional[str] = None,
+            explanation_writing_with_json_context: Optional[bool] = None,
+            free_text_explanation_mode: Optional[str] = None
     ):
         """
         Args:
@@ -71,6 +74,17 @@ class ExplainerConfiguration:
                 solve of a contrastive or scenario explanation, or None for no limit.
             time_limit_for_counterfactual_explanation_milp_computation: Time limit, in seconds, given to the
                 MILP solve of a counterfactual explanation, or None for no limit.
+            explanation_writing_llm_model: The instructor model string the llm pipeline words the explanation
+                answering a free-text question with. It may differ from neighborhood_llm_model.
+                Left as None when no explanation is to be worded by an LLM.
+            explanation_writing_with_json_context: Whether the prompt wording an explanation also describes
+                the instance and the current solution as JSON, or None for the provider's default
+                (see src.utils.llm.is_json_context_enabled_by_default).
+            free_text_explanation_mode: How a free-text question's explanation is worded,
+                one of FreeTextExplanationModes' values, or None for FreeTextExplanationModes.WRITTEN.
+
+        Raises:
+            ValueError: If free_text_explanation_mode is not one of FreeTextExplanationModes' values.
         """
         self._language = language
         self._history_enabled = history_enabled
@@ -100,10 +114,15 @@ class ExplainerConfiguration:
             time_limit_for_contrastive_explanation_milp_computation
         self._time_limit_for_counterfactual_explanation_milp_computation: Optional[int] = \
             time_limit_for_counterfactual_explanation_milp_computation
+        self._explanation_writing_llm_model: Optional[str] = explanation_writing_llm_model
+        self._explanation_writing_with_json_context: Optional[bool] = explanation_writing_with_json_context
+        self._free_text_explanation_mode: str = FreeTextExplanationModes.WRITTEN.value
+        if free_text_explanation_mode is not None:
+            self.free_text_explanation_mode = free_text_explanation_mode
 
     @classmethod
     def batch(
-            cls, extractor_model: Optional[str] = None,
+            cls, extractor_model: Optional[str] = None, writer_model: Optional[str] = None,
             using_already_computed_contrastive_explanations_enabled: bool = False,
             **overrides
     ) -> "ExplainerConfiguration":
@@ -113,6 +132,7 @@ class ExplainerConfiguration:
 
         Args:
             extractor_model: The instructor model string the llm pipeline extracts a free-text question with.
+            writer_model: The instructor model string the llm pipeline words a free-text question's explanation with.
             using_already_computed_contrastive_explanations_enabled: Whether to reuse already computed
                 contrastive explanations instead of recomputing them.
             **overrides: Any other ExplainerConfiguration constructor argument to set instead of its default
@@ -122,7 +142,7 @@ class ExplainerConfiguration:
             The configuration so built.
         """
         return cls(
-            neighborhood_llm_model=extractor_model,
+            neighborhood_llm_model=extractor_model, explanation_writing_llm_model=writer_model,
             using_already_computed_contrastive_explanations_enabled=(
                 using_already_computed_contrastive_explanations_enabled
             ),
@@ -134,7 +154,8 @@ class ExplainerConfiguration:
 
     @classmethod
     def web_ui(
-            cls, extractor_model: Optional[str] = None, language: str = LANGUAGE_ENGLISH_KEY,
+            cls, extractor_model: Optional[str] = None, writer_model: Optional[str] = None,
+            language: str = LANGUAGE_ENGLISH_KEY,
             history_enabled: bool = True, scenario_explanations_enabled: bool = True,
             counterfactual_explanations_enabled: bool = True,
             using_already_computed_contrastive_explanations_enabled: bool = False,
@@ -146,6 +167,7 @@ class ExplainerConfiguration:
 
         Args:
             extractor_model: The instructor model string the llm pipeline extracts a free-text question with.
+            writer_model: The instructor model string the llm pipeline words a free-text question's explanation with.
             language: The language to phrase questions and explanations in.
             history_enabled: Whether to keep every solution asked about or saved.
             scenario_explanations_enabled: Whether to allow scenario follow-up questions.
@@ -159,7 +181,7 @@ class ExplainerConfiguration:
             The configuration so built.
         """
         return cls(
-            neighborhood_llm_model=extractor_model, language=language,
+            neighborhood_llm_model=extractor_model, explanation_writing_llm_model=writer_model, language=language,
             history_enabled=history_enabled, scenario_explanations_enabled=scenario_explanations_enabled,
             counterfactual_explanations_enabled=counterfactual_explanations_enabled,
             using_already_computed_contrastive_explanations_enabled=(
@@ -198,6 +220,47 @@ class ExplainerConfiguration:
     @neighborhood_extraction_llm_model.setter
     def neighborhood_extraction_llm_model(self, neighborhood_llm_model: Optional[str]):
         self._neighborhood_llm_model = neighborhood_llm_model
+
+    @property
+    def explanation_writing_llm_model(self) -> Optional[str]:
+        """The instructor model string the llm pipeline words a free-text question's explanation with, if any."""
+        return self._explanation_writing_llm_model
+
+    @explanation_writing_llm_model.setter
+    def explanation_writing_llm_model(self, explanation_writing_llm_model: Optional[str]):
+        self._explanation_writing_llm_model = explanation_writing_llm_model
+
+    @property
+    def explanation_writing_with_json_context(self) -> Optional[bool]:
+        """Whether the prompt wording an explanation also carries the instance and solution as JSON, if set."""
+        return self._explanation_writing_with_json_context
+
+    @explanation_writing_with_json_context.setter
+    def explanation_writing_with_json_context(self, explanation_writing_with_json_context: Optional[bool]):
+        self._explanation_writing_with_json_context = explanation_writing_with_json_context
+
+    @property
+    def free_text_explanation_mode(self) -> str:
+        """How a free-text question's explanation is worded (written by an LLM, or templated through the bridge)."""
+        return self._free_text_explanation_mode
+
+    @free_text_explanation_mode.setter
+    def free_text_explanation_mode(self, mode: str):
+        """
+        Sets how a free-text question's explanation is worded.
+
+        Args:
+            mode: One of FreeTextExplanationModes' values.
+
+        Raises:
+            ValueError: If mode is not one of FreeTextExplanationModes' values.
+        """
+        if mode not in FreeTextExplanationModes.list_values():
+            raise ValueError(
+                f"Invalid free-text explanation mode '{mode}'. "
+                f"Valid modes are: {', '.join(FreeTextExplanationModes.list_values())}"
+            )
+        self._free_text_explanation_mode = mode
 
     @property
     def template_computation_mode(self) -> str:
@@ -352,3 +415,23 @@ class TemplateComputationModes(Enum):
     def __repr__(self):
         """Return a string representation of the enum values."""
         return f"{', '.join(self.list_values())}"
+
+
+############################
+# FreeTextExplanationModes #
+############################
+
+class FreeTextExplanationModes(Enum):
+    """
+    Enum for the ways a free-text question's explanation can be worded:
+    - WRITTEN: an LLM words the facts of the solved neighborhood, whatever the neighborhood;
+    - TEMPLATED: the question is known to be the equivalent of a question template,
+      which is recognized from its neighborhood to phrase the predefined explanation.
+    """
+    WRITTEN = "written"
+    TEMPLATED = "templated"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid free-text explanation mode values."""
+        return [member.value for member in cls]

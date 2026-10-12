@@ -4,9 +4,11 @@ from typing import TYPE_CHECKING, cast
 
 # Local libraries
 from src.explaining.computing.bridge.result import solve_neighborhood_into_transformation_result
+from src.explaining.computing.neighborhood.facts import ExplanationFactsBuilder
+from src.explaining.computing.neighborhood.solving import solve_neighborhood
 from src.explaining.explanation.explanation import ExplanationComputationModes
 from src.explaining.explanation.predefined.explanation import *
-from src.explaining.interacting.configuration import TemplateComputationModes
+from src.explaining.interacting.configuration import FreeTextExplanationModes, TemplateComputationModes
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.modeling.solution import EditableSolution
@@ -34,6 +36,7 @@ from src.utils.language import check_if_language_is_english, check_if_language_i
 
 # Library for type checking only (to avoid circular imports)
 if TYPE_CHECKING:
+    from src.explaining.explanation.free.writer import ExplanationWriter
     from src.explaining.neighborhood.llm.extractor import Extractor
 
 
@@ -47,7 +50,10 @@ class Explainer:
     Answers predefined and free-text questions about a solution's plan, and tracks the questioning session.
 
     A predefined contrastive, scenario or counterfactual question is routed through the tailored MILP-based pipeline;
-    a free-text one is routed through the llm-neighborhood pipeline, which extracts and solves the induced search space.
+    a free-text one is routed through the llm-neighborhood pipeline, which extracts and solves the induced search space,
+    then has an LLM word the facts of the solution found
+    (or, when the configuration says free-text questions are template equivalents,
+    phrases the predefined explanation of the template recognized from that search space).
     The explainer also tracks, across the session, which language explanations are phrased in,
     the history of instances and solutions questioned so far,
     and the already computed contrastive explanations available for reuse.
@@ -65,6 +71,7 @@ class Explainer:
         # Free-text questions
         self._extractor: Optional["Extractor"] = None
         self._solution_the_extractor_was_built_for: Optional[EditableSolution] = None
+        self._writer: Optional["ExplanationWriter"] = None
         # Predefined questions
         self._activated_question_templates: dict[str, QuestionTemplate] = dict(
             [(template_id, QUESTIONS_TEMPLATES[template_id])
@@ -314,9 +321,128 @@ class Explainer:
         """
         self._get_extractor()
 
-    def _compute_free_text_explanation(self, question: FreeTextQuestion):
+    @property
+    def explanation_writing_llm_model(self) -> Optional[str]:
+        """The instructor model string used in the llm pipeline to word a free-text question's explanation."""
+        return self._configuration.explanation_writing_llm_model
+
+    def set_explanation_writing_llm_model(self, explanation_writing_llm_model: Optional[str]):
         """
-        Answers a free-text question through the llm-neighborhood pipeline.
+        Sets the instructor model string free-text questions' explanations are worded with from now on.
+
+        Args:
+            explanation_writing_llm_model: The instructor model string to switch to ("provider/model-name"),
+                or None to word no explanation with an LLM anymore.
+        """
+        self._configuration.explanation_writing_llm_model = explanation_writing_llm_model
+        self._writer = None
+
+    @explanation_writing_llm_model.setter
+    def explanation_writing_llm_model(self, explanation_writing_llm_model: Optional[str]):
+        self.set_explanation_writing_llm_model(explanation_writing_llm_model)
+
+    def _get_writer(self) -> "ExplanationWriter":
+        """
+        Returns the ExplanationWriter wording a free-text question's explanation,
+        from the facts of its solved neighborhood.
+
+        Built on first use, and rebuilt only when its model is changed: unlike the Extractor,
+        it is bound to no solution, every call being handed the question and the facts to word.
+
+        Returns:
+            The ExplanationWriter.
+
+        Raises:
+            ValueError: if this explainer was built with no explanation_writing_llm_model,
+                so free-text questions' explanations cannot be worded.
+        """
+        if self._configuration.explanation_writing_llm_model is None:
+            raise ValueError(
+                "This explainer was built with no explanation_writing_llm_model, "
+                "so there is no LLM backend to word a free-text question's explanation. "
+                "Pass explanation_writing_llm_model (e.g. main_configuration.WRITER_MODEL) to its configuration, "
+                f"or set its free_text_explanation_mode to '{FreeTextExplanationModes.TEMPLATED.value}' "
+                "if free-text questions are known to be the equivalents of question templates."
+            )
+        # NB: Imported here rather than at module level, for the same reason as the Extractor's (see _get_extractor).
+        from src.explaining.explanation.free.writer import ExplanationWriter
+        if self._writer is None:
+            self._writer = ExplanationWriter(
+                self._configuration.explanation_writing_llm_model,
+                with_json_context=self._configuration.explanation_writing_with_json_context
+            )
+        return cast("ExplanationWriter", self._writer)
+
+    def prepare_writer(self):
+        """
+        Builds the ExplanationWriter now, rather than on the first free-text question needing it.
+
+        Lets a caller surface a misconfigured LLM backend as soon as it is chosen:
+        a ValueError if no explanation_writing_llm_model is set,
+        a RuntimeError if the model's provider needs an API key that is not set,
+        or an ImportError if the instructor package is not installed.
+        """
+        self._get_writer()
+
+    def _compute_free_text_explanation(self, question: FreeTextQuestion) -> Explanation:
+        """
+        Answers a free-text question through the llm-neighborhood pipeline,
+        worded the way the configuration's free_text_explanation_mode says.
+
+        Args:
+            question: The free-text question to answer, asked about the current solution.
+
+        Returns:
+            The explanation answering it.
+        """
+        if self._configuration.free_text_explanation_mode == FreeTextExplanationModes.TEMPLATED.value:
+            free_text_explanation = self._compute_templated_free_text_explanation(question)
+        else:
+            free_text_explanation = self._compute_written_free_text_explanation(question)
+        self._last_contrastive_explanation = free_text_explanation
+        self._last_scenario_explanation = None
+        self._last_counterfactual_explanation = None
+        return free_text_explanation
+
+    def _compute_written_free_text_explanation(self, question: FreeTextQuestion) -> Explanation:
+        """
+        Answers a free-text question by having an LLM word the facts of the solved neighborhood it induces,
+        whatever that neighborhood, in or out of the question template catalogue.
+
+        Args:
+            question: The free-text question to answer, asked about the current solution.
+
+        Returns:
+            The FreeTextExplanation answering it.
+
+        Raises:
+            ValueError: if no neighborhood_llm_model or no explanation_writing_llm_model is set.
+            NeighborhoodExtractionError: if the question cannot be turned into a solvable neighborhood.
+            ExplanationWritingError: if the LLM fails to word a grounded explanation from the facts.
+        """
+        start_time = time.perf_counter()
+        # NB: Both are built before any LLM call, so that a missing model fails before anything is spent.
+        extractor = self._get_extractor()
+        writer = self._get_writer()
+        neighborhood = extractor.extract(question)
+        model, skill_conflict = solve_neighborhood(
+            neighborhood, self._configuration.time_limit_for_contrastive_explanation_milp_computation
+        )
+        facts = ExplanationFactsBuilder.build(question, neighborhood, model, skill_conflict)
+        support_solution = ExplanationFactsBuilder.get_support_solution(neighborhood, model)
+        # NB: The computation time covers extracting and solving, as a templated one's does, not the wording.
+        elapsed_time = time.perf_counter() - start_time
+        # NB: Not counted and not cached, for the same reason as a templated one's (see below).
+        free_text_explanation = writer.write(
+            question, facts, support_solution, ExplanationComputationModes.NEIGHBORHOOD.value, elapsed_time
+        )
+        free_text_explanation.neighborhood = neighborhood
+        return free_text_explanation
+
+    def _compute_templated_free_text_explanation(self, question: FreeTextQuestion) -> Explanation:
+        """
+        Answers a free-text question known to be the equivalent of a question template,
+        by recognizing that template from the neighborhood it induces (see computing.bridge).
 
         NB: The explanation is phrased from the template of the question the neighborhood is recognized as,
         not from the end user's own words, which the catalogue has no way of reproducing.
@@ -353,9 +479,6 @@ class Explainer:
             ExplanationComputationModes.NEIGHBORHOOD.value, elapsed_time
         )
         free_text_explanation.neighborhood = neighborhood
-        self._last_contrastive_explanation = free_text_explanation
-        self._last_scenario_explanation = None
-        self._last_counterfactual_explanation = None
         return free_text_explanation
 
     def get_free_text_explanation(self, question_text: str) -> Explanation:
@@ -690,9 +813,11 @@ class Explainer:
             The scenario question so created.
 
         Raises:
-            PermissionError: if no contrastive question has been asked yet.
+            PermissionError: if no contrastive question has been asked yet,
+                or if the last one is a free-text one answered without any question template.
         """
         last_contrastive_question = self.last_contrastive_explanation.question
+        _refuse_follow_up_of_free_text_question(last_contrastive_question, "scenario")
         if not isinstance(last_contrastive_question, ContrastiveQuestion):
             raise PermissionError("Cannot create a scenario question as no contrastive question has been asked yet")
         else:
@@ -796,10 +921,12 @@ class Explainer:
             The counterfactual question so created.
 
         Raises:
-            PermissionError: if no contrastive question has been asked yet.
+            PermissionError: if no contrastive question has been asked yet,
+                or if the last one is a free-text one answered without any question template.
         """
         if contrastive_question is None:
             contrastive_question = self.last_contrastive_explanation.question
+        _refuse_follow_up_of_free_text_question(contrastive_question, "counterfactual")
         if not isinstance(contrastive_question, ContrastiveQuestion):
             raise PermissionError("Cannot create a counterfactual question "
                                   "as no contrastive question has been asked yet")
@@ -880,3 +1007,29 @@ class Explainer:
             self.store_solution(last_counterfactual_support_solution)
         else:
             raise PermissionError("Cannot save the last counterfactual support solution as it is not feasible")
+
+
+###########
+# Helpers #
+###########
+
+def _refuse_follow_up_of_free_text_question(question: Question, follow_up_kind: str):
+    """
+    Refuses to build a follow-up question on a free-text question answered without any question template.
+
+    A scenario or counterfactual question is built on a ContrastiveQuestion's template and field values,
+    which a free-text question has none of - unless it was answered in templated mode,
+    in which case the explanation carries the ContrastiveQuestion recognized from it instead.
+
+    Args:
+        question: The question the follow-up would be built on.
+        follow_up_kind: The kind of follow-up ("scenario" or "counterfactual"), for the message.
+
+    Raises:
+        PermissionError: if question is a free-text one.
+    """
+    if isinstance(question, FreeTextQuestion):
+        raise PermissionError(
+            f"Cannot create a {follow_up_kind} question: the last contrastive question was a free-text one, "
+            f"answered without any question template, while a {follow_up_kind} follow-up is built on one"
+        )

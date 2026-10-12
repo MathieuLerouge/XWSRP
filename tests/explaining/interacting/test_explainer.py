@@ -7,11 +7,15 @@ from typing import Optional
 import pytest
 
 # Local libraries
-from src.explaining.exporting.explanation import define_multiple_contrastive_explanations_json_file_name
+from src.explaining.computing.neighborhood.facts import ExplanationFacts, ExplanationOutcomes
+from src.explaining.exporting.explanation import (
+    define_multiple_contrastive_explanations_json_file_name, define_single_free_text_explanation_json_file_name
+)
+from src.explaining.explanation.free.explanation import FreeTextExplanation
 from src.explaining.explanation.predefined.explanation import (
     NonImprovingNegativeExplanation, PositiveExplanation, SkillNegativeExplanation, TimeNegativeExplanation
 )
-from src.explaining.interacting.configuration import ExplainerConfiguration
+from src.explaining.interacting.configuration import ExplainerConfiguration, FreeTextExplanationModes
 from src.explaining.interacting.counter import QuestionType
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.modeling.instance import EditableInstance
@@ -65,7 +69,9 @@ def demo_solution() -> Solution:
 
 def build_explainer(solution: Solution, extractor_model: Optional[str] = None, history_enabled: bool = False,
                     using_already_computed_contrastive_explanations_enabled: bool = False,
-                    activated_question_template_ids: Optional[list[str]] = None) -> Explainer:
+                    activated_question_template_ids: Optional[list[str]] = None,
+                    writer_model: Optional[str] = None, free_text_explanation_mode: Optional[str] = None,
+                    counterfactual_explanations_enabled: bool = False) -> Explainer:
     """
     Returns an Explainer with every optional behaviour switched off, so a test turns on only what it exercises.
 
@@ -76,6 +82,9 @@ def build_explainer(solution: Solution, extractor_model: Optional[str] = None, h
     Args:
         solution: The solution to explain.
         extractor_model: The extractor model string, for the tests asking a free-text question.
+        writer_model: The writer model string, for the tests asking a free-text question in written mode.
+        free_text_explanation_mode: How a free-text question's explanation is worded, or None for the default.
+        counterfactual_explanations_enabled: Whether to allow counterfactual follow-up questions.
         history_enabled: Whether to keep every solution asked about or saved.
         using_already_computed_contrastive_explanations_enabled: Whether to reuse already computed
             contrastive explanations instead of recomputing them.
@@ -89,9 +98,11 @@ def build_explainer(solution: Solution, extractor_model: Optional[str] = None, h
     configuration = ExplainerConfiguration(
         history_enabled=history_enabled,
         neighborhood_llm_model=extractor_model,
+        explanation_writing_llm_model=writer_model,
+        free_text_explanation_mode=free_text_explanation_mode,
         activated_question_template_ids=activated_question_template_ids,
         scenario_explanations_enabled=False,
-        counterfactual_explanations_enabled=False,
+        counterfactual_explanations_enabled=counterfactual_explanations_enabled,
         using_already_computed_contrastive_explanations_enabled=using_already_computed_contrastive_explanations_enabled,
         exporting_each_contrastive_explanation_automatically_enabled=False
     )
@@ -431,7 +442,8 @@ def test_a_free_text_question_needs_an_extractor_model(demo_solution):
 
 
 def test_a_free_text_question_the_catalogue_covers_is_answered(demo_solution):
-    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    explainer = build_explainer(demo_solution, extractor_model="stub/model",
+                                free_text_explanation_mode=FreeTextExplanationModes.TEMPLATED.value)
     covered_neighborhood = Mapper.map(ContrastiveQuestion(
         explainer.current_solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]))
     give_explainer_a_stub_extractor(explainer, covered_neighborhood)
@@ -446,7 +458,8 @@ def test_a_free_text_explanation_keeps_the_neighborhood_it_was_found_in(demo_sol
     """
     The CLI's developer output reads the explanation's neighborhood, so the free-text route must keep it too.
     """
-    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    explainer = build_explainer(demo_solution, extractor_model="stub/model",
+                                free_text_explanation_mode=FreeTextExplanationModes.TEMPLATED.value)
     covered_neighborhood = Mapper.map(ContrastiveQuestion(
         explainer.current_solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]))
     give_explainer_a_stub_extractor(explainer, covered_neighborhood)
@@ -483,10 +496,113 @@ def test_a_free_text_question_the_catalogue_does_not_cover_says_so(demo_solution
     """
     A question that is understood and solved but matches no template must fail saying exactly that.
     """
-    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    explainer = build_explainer(demo_solution, extractor_model="stub/model",
+                                free_text_explanation_mode=FreeTextExplanationModes.TEMPLATED.value)
     give_explainer_a_stub_extractor(explainer, build_uncovered_neighborhood(explainer.current_solution))
     with pytest.raises(NeighborhoodError, match="matches no question template"):
         explainer.get_free_text_explanation("Why isn't Ellen doing one of those two tasks?")
+
+
+
+###########################################
+# Free-text questions - Written by an LLM #
+###########################################
+
+##############
+# StubWriter #
+##############
+
+class StubWriter:
+    """
+    Stands in for the ExplanationWriter, wording every explanation with the same text instead of calling a model.
+
+    Everything before the wording - extracting aside, solving and reading the facts off - is the code under test.
+    """
+
+    TEXT = "A stub explanation."
+
+    def write(self, question: FreeTextQuestion, facts: ExplanationFacts, support_solution: Solution,
+              computation_mode: Optional[str] = None,
+              computation_time: Optional[float] = None) -> FreeTextExplanation:
+        """Returns the explanation the real writer would, but with the stub text."""
+        return FreeTextExplanation(question, support_solution, facts, self.TEXT, "stub/model",
+                                   computation_mode, computation_time)
+
+
+def build_written_mode_explainer(solution: Solution, neighborhood_builder,
+                                 counterfactual_explanations_enabled: bool = False) -> Explainer:
+    """
+    Returns an explainer answering free-text questions in written mode, with a stub extractor and a stub writer.
+
+    Args:
+        solution: The solution to explain.
+        neighborhood_builder: Builds, from the explainer's current solution, the neighborhood the extraction yields.
+        counterfactual_explanations_enabled: Whether to allow counterfactual follow-up questions.
+    """
+    explainer = build_explainer(solution, extractor_model="stub/model", writer_model="stub/model",
+                                counterfactual_explanations_enabled=counterfactual_explanations_enabled)
+    give_explainer_a_stub_extractor(explainer, neighborhood_builder(explainer.current_solution))
+    explainer._writer = StubWriter()
+    return explainer
+
+
+def build_covered_neighborhood(solution: Solution) -> Neighborhood:
+    """Builds the neighborhood of the (Ins,1) question the demo solution answers with a time conflict."""
+    return Mapper.map(ContrastiveQuestion(
+        solution, WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]))
+
+
+def test_a_free_text_question_is_written_by_default(demo_solution):
+    explainer = build_written_mode_explainer(demo_solution, build_covered_neighborhood)
+    explanation = explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+    assert isinstance(explanation, FreeTextExplanation)
+    assert explanation.text == StubWriter.TEXT
+    assert explanation.facts.outcome is ExplanationOutcomes.TIME_INFEASIBLE
+    assert explanation.is_negative()
+    assert explanation.mode == "neighborhood"
+    assert explanation.neighborhood is explainer._extractor._neighborhood
+    assert explainer.last_contrastive_explanation is explanation
+
+
+def test_a_free_text_question_outside_the_catalogue_is_written_too(demo_solution):
+    """What templated mode refuses (see above) is answered once the explanation is written from the facts."""
+    explainer = build_written_mode_explainer(demo_solution, build_uncovered_neighborhood)
+    explanation = explainer.get_free_text_explanation("Why isn't Ellen doing one of those two tasks?")
+    assert isinstance(explanation, FreeTextExplanation)
+    assert explanation.facts.question == "Why isn't Ellen doing one of those two tasks?"
+
+
+def test_a_written_free_text_question_needs_a_writer_model(demo_solution):
+    """The missing model is reported before any LLM is called, naming the setting and the templated way out."""
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    give_explainer_a_stub_extractor(explainer, build_covered_neighborhood(explainer.current_solution))
+    with pytest.raises(ValueError, match="explanation_writing_llm_model"):
+        explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+
+
+def test_a_follow_up_of_a_written_free_text_question_is_refused(demo_solution):
+    """A counterfactual follow-up needs a question template, which a written free-text answer has none of."""
+    explainer = build_written_mode_explainer(demo_solution, build_covered_neighborhood,
+                                             counterfactual_explanations_enabled=True)
+    explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+    with pytest.raises(PermissionError, match="free-text"):
+        explainer.compute_counterfactual_explanation()
+
+
+def test_an_invalid_free_text_explanation_mode_is_refused():
+    with pytest.raises(ValueError, match="Invalid free-text explanation mode"):
+        ExplainerConfiguration(free_text_explanation_mode="magic")
+
+
+def test_a_free_text_explanation_is_exported_under_a_name_of_its_own(demo_solution):
+    """No template id nor field values to name the file after: it is named after the question's text instead."""
+    question = FreeTextQuestion(demo_solution, "Why isn't Ellen doing T2 right after leaving home?")
+    file_name = define_single_free_text_explanation_json_file_name(question)
+    assert file_name.startswith(f"explanation_{demo_solution.core_name}_free-text_")
+    assert file_name == define_single_free_text_explanation_json_file_name(
+        FreeTextQuestion(demo_solution, question.text))
+    assert file_name != define_single_free_text_explanation_json_file_name(
+        FreeTextQuestion(demo_solution, "Another question?"))
 
 
 ############

@@ -50,6 +50,14 @@ EXTRACTOR_MODEL = None
 # EXTRACTOR_MODEL = "ollama/llama3.2"
 # EXTRACTOR_MODEL = "anthropic/claude-sonnet-5"
 
+# Choose which LLM backend the neighborhood-based explanation pipeline's ExplanationWriter uses
+# to word the explanation of a free-text question, by activating one of the following lines
+# (same format and requirements as EXTRACTOR_MODEL above, which it may be equal to)
+#
+WRITER_MODEL = None
+# WRITER_MODEL = "ollama/qwen2.5:7b"
+# WRITER_MODEL = "anthropic/claude-sonnet-5"
+
 
 #####################################
 # Explainer process - Configuration #

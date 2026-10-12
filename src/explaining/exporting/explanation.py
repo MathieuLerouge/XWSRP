@@ -1,8 +1,10 @@
-# Standard library
+# Standard libraries
+import hashlib
 import json
 
 # Local libraries
 from src.explaining.explanation.explanation import Explanation
+from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion
 from src.modeling.solution import Solution
 from src.utils.constants import DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
@@ -18,9 +20,29 @@ def define_single_contrastive_explanation_json_file_name(question: ContrastiveQu
     return f"explanation_{question.solution.core_name}_{question.template.id}{question.fields_values}.json"
 
 
+def define_single_free_text_explanation_json_file_name(question: FreeTextQuestion) -> str:
+    """
+    Returns the name of the JSON file a free-text question's explanation is exported to.
+
+    A free-text question has no template id nor field values to name the file after,
+    so it is named after a short digest of the question's text: the same question gets the same file.
+
+    Args:
+        question: The free-text question the explanation answers.
+
+    Returns:
+        The file name.
+    """
+    digest = hashlib.sha1(question.text.encode("utf-8")).hexdigest()[:8]
+    return f"explanation_{question.solution.core_name}_free-text_{digest}.json"
+
+
 def export_single_contrastive_explanation_to_json_file(explanation: Explanation,
                                                        outputs_directory_relative_path: str = None):
-    file_name = define_single_contrastive_explanation_json_file_name(explanation.question)
+    if isinstance(explanation.question, FreeTextQuestion):
+        file_name = define_single_free_text_explanation_json_file_name(explanation.question)
+    else:
+        file_name = define_single_contrastive_explanation_json_file_name(explanation.question)
     if outputs_directory_relative_path is None:
         outputs_directory_relative_path = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH
     file_path = make_absolute_path_from_relative_one(f"{outputs_directory_relative_path}/{file_name}")

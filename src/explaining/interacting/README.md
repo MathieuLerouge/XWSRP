@@ -19,10 +19,11 @@ It answers through either of the project's two pipelines, picking by the kind of
   — `computing/templates`' `TransformationDispatcher` dispatches on its template id;
 - a **`FreeTextQuestion`** goes to the llm-neighborhood one 
   — `neighborhood/llm`'s `Extractor` turns the text into the `Neighborhood` it induces, 
-  and `computing/neighborhood`'s `solve_neighborhood_into_transformation_result` solves and describes it.
+  `computing/neighborhood`'s `solve_neighborhood` solves it, 
+  and `explanation/free`'s `ExplanationWriter` has an LLM word the facts of the solution found (see section 3.2).
 
-Either way the result reaches the same `explanation/predefined`'s `create_explanation`, 
-so both kinds of question come back as the same kind of `Explanation`.
+A contrastive question comes back as an `explanation/predefined` `Explanation`, 
+a free-text one as an `explanation/free` `FreeTextExplanation` (or, in templated mode, as a predefined one too).
 
 
 # 2. Description of the files
@@ -64,41 +65,42 @@ so each has its own entry point, `compute_scenario_explanation` and `compute_cou
 
 ## 3.2. Answering a free-text question
 
-The free-text route needs an LLM backend, so `Explainer` is built from an `extractor_model` string
-(`main_configuration.EXTRACTOR_MODEL`, in the format `instructor.from_provider` expects), 
-held in its `ExplainerConfiguration`. \
-It defaults to None, and the `Extractor` is built on first use rather than in the constructor, 
+The free-text route needs two LLM backends, which may be the same model: 
+an `extractor_model` turning the question into a neighborhood (`main_configuration.EXTRACTOR_MODEL`) 
+and a `writer_model` wording the explanation (`main_configuration.WRITER_MODEL`), 
+both in the format `instructor.from_provider` expects and held in its `ExplainerConfiguration`. They default to None: 
+both the `Extractor` and the `ExplanationWriter` are built on first use rather than in the constructor, 
 so that asking predefined questions needs neither the `instructor` package nor any backend running. \
+Both are checked before any LLM is called, so a missing model fails before anything is spent. \
 The `Extractor` grounds names against one solution and refuses a question asked about another, 
-so it is rebuilt whenever the solution being questioned changes.
+so it is rebuilt whenever the solution being questioned changes; the writer is bound to no solution.
 
-WIP: Two limits are worth knowing before relying on this route.
-
-- The explanation is phrased from the template of the question the neighborhood is recognized as, 
-  not from the end user's own words.
-  `neighborhood/templates`' `Recognizer` recovers a `ContrastiveQuestion` from the neighborhood, 
-  and that question's template supplies the wording. 
-  The user's phrasing is not reproduced.
-- And a question whose neighborhood no template matches cannot be answered at all.
-  It is understood, its search space is solved, and a support solution and a conflict do exist 
-  — but there is no template to phrase them from, so `Explainer` raises rather than returning a wordless explanation. Lifting this needs
-  `explanation/free`, which is still an empty slot.
+How the explanation is worded depends on the configuration's `free_text_explanation_mode`:
+- `written` (the default): `ExplanationFactsBuilder` reads the facts off the solved neighborhood 
+  and the `ExplanationWriter` has the LLM word them into a `FreeTextExplanation`, 
+  whatever the neighborhood, in or out of the question template catalogue;
+- `templated`: for when free-text questions are known to be the equivalents of question templates. 
+  `computing/bridge`'s `solve_neighborhood_into_transformation_result` recognizes the template from the neighborhood, 
+  and the predefined explanation of that template is phrased, not the end user's own words. 
+  A question whose neighborhood no template matches then cannot be answered at all, and `Explainer` raises.
 
 ## 3.3. Caching and export
 
 A predefined explanation can be served from memory, or imported from a JSON file in the inputs directory,
 before being computed. 
 Both are keyed by template id and field values, which is also how `exporting/explanation.py` names the files. \
-A free-text explanation has neither, and `FreeTextQuestion` has no `to_dict`, 
-so free-text answers are neither cached nor exported. 
-They do become the last contrastive explanation, so scenario and counterfactual follow-ups can still build on them.
+A free-text explanation has neither, so free-text answers are not cached.
+
+A templated one carries the `ContrastiveQuestion` recognized from it, 
+so scenario and counterfactual follow-ups can build on it; 
+a written one carries no question template, so they are refused, saying so.
 
 ## 3.4. Configuration
 
 `configuration.py`'s `ExplainerConfiguration` holds every construction-time setting `Explainer` is built from: 
-language, extractor model, which question templates are activated, the history/scenario/counterfactual/
-reuse-already-computed/auto-export toggles, the contrastive explanation input/output directories, and the 
-two MILP time limits. \
+language, extractor and writer models, the free-text explanation mode, which question templates are activated, 
+the history/scenario/counterfactual/reuse-already-computed/auto-export toggles, 
+the contrastive explanation input/output directories, and the two MILP time limits. \
 Two `@classmethod` presets cover the two configurations every construction site actually needs:
 `ExplainerConfiguration.batch(...)` (history, scenario, counterfactual and automatic export all off) 
 and `ExplainerConfiguration.web_ui(...)` (those three on by default).

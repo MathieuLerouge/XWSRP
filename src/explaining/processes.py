@@ -7,7 +7,7 @@ import numpy as np
 
 # Local libraries
 from main_configuration import EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION, \
-    EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES, EXTRACTOR_MODEL
+    EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES, EXTRACTOR_MODEL, WRITER_MODEL
 from src.feasibility.checker import FeasibilityChecker
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
@@ -116,7 +116,7 @@ def launch_explainer_UI_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, e
     :return: None
     """
     configuration = ExplainerConfiguration.web_ui(
-        extractor_model=EXTRACTOR_MODEL, language=language,
+        extractor_model=EXTRACTOR_MODEL, writer_model=WRITER_MODEL, language=language,
         history_enabled=enable_history, scenario_explanations_enabled=enable_scenario_explanations,
         counterfactual_explanations_enabled=enable_counterfactual_explanations,
         using_already_computed_contrastive_explanations_enabled=enable_using_already_computed_contrastive_explanations,
@@ -146,7 +146,7 @@ def launch_explainer_cli_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, 
     :return: None
     """
     configuration = ExplainerConfiguration.web_ui(
-        extractor_model=EXTRACTOR_MODEL, language=language,
+        extractor_model=EXTRACTOR_MODEL, writer_model=WRITER_MODEL, language=language,
         history_enabled=enable_history, scenario_explanations_enabled=enable_scenario_explanations,
         counterfactual_explanations_enabled=enable_counterfactual_explanations,
         using_already_computed_contrastive_explanations_enabled=enable_using_already_computed_contrastive_explanations,
@@ -195,7 +195,7 @@ def launch_explainer_UI_on_default_solution(language: str, enable_history: bool 
     :return: None
     """
     configuration = ExplainerConfiguration.web_ui(
-        extractor_model=EXTRACTOR_MODEL, language=language,
+        extractor_model=EXTRACTOR_MODEL, writer_model=WRITER_MODEL, language=language,
         history_enabled=enable_history, scenario_explanations_enabled=enable_scenario_explanations,
         counterfactual_explanations_enabled=enable_counterfactual_explanations,
         using_already_computed_contrastive_explanations_enabled=False
