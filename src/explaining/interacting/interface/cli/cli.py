@@ -54,7 +54,7 @@ class ExplainerCLI:
                 neighborhood_llm_model=None,
                 scenario_explanations_enabled=False,
                 counterfactual_explanations_enabled=False,
-                using_already_computed_contrastive_explanations_enabled=False,
+                using_cached_contrastive_explanations_enabled=False,
                 exporting_each_contrastive_explanation_automatically_enabled=False,
             )
             self._explainer = Explainer(solution, configuration)
@@ -926,8 +926,7 @@ class ExplainerCLI:
             f"  Template Computation Mode: {config.template_computation_mode}",
             f"  Neighborhood Extraction Mode: {config.neighborhood_extraction_mode}",
             f"  Free-Text Explanation Writing Mode: {config.free_text_explanation_mode}",
-            f"  Reuse Computed Explanations: "
-            f"{'Yes' if config.using_already_computed_contrastive_explanations_enabled else 'No'}",
+            f"  Reuse Cached Explanations: {'Yes' if config.using_cached_contrastive_explanations_enabled else 'No'}",
             f"  Auto-Export Enabled: {'Yes' if config.exporting_each_contrastive_explanation_automatically_enabled else 'No'}",
         ]
         return "\n".join(lines)
@@ -954,9 +953,9 @@ class ExplainerCLI:
             os.system('clear' if os.name != 'nt' else 'cls')
             return ""
         if target == ClearTargets.CACHED_EXPLANATIONS.value:
-            if not self._explainer.configuration.using_already_computed_contrastive_explanations_enabled:
-                return "Using already computed contrastive explanations is disabled: nothing to clear."
-            nb_cleared_explanations = self._explainer.clear_already_computed_contrastive_explanations()
+            if not self._explainer.configuration.using_cached_contrastive_explanations_enabled:
+                return "Using cached contrastive explanations is disabled: nothing to clear."
+            nb_cleared_explanations = self._explainer.clear_cached_contrastive_explanations()
             return f"Cleared {nb_cleared_explanations} cached contrastive explanation(s)"
         return usage
 

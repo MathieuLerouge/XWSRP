@@ -10,8 +10,7 @@ It owns the root `EditableSolution`, an optional `History` of the instances and 
 and the catalogue of question templates it accepts. \
 Around the actual computation it adds the things a session needs and a pipeline does not:
 which templates are activated, what language to answer in, how many times each question was asked,
-a cache of already-computed explanations, and the last explanation of each kind 
-so that a follow-up question can build on it.
+a cache of explanations, and the last explanation of each kind so that a follow-up question can build on it.
 
 It answers through either of the project's two pipelines, picking by the kind of question it is given:
 
@@ -99,7 +98,7 @@ a written one carries no question template, so they are refused, saying so.
 
 `configuration.py`'s `ExplainerConfiguration` holds every construction-time setting `Explainer` is built from: 
 language, extractor and writer models, the free-text explanation mode, which question templates are activated, 
-the history/scenario/counterfactual/reuse-already-computed/auto-export toggles, 
+the history/scenario/counterfactual/reuse-cached/auto-export toggles, 
 the contrastive explanation input/output directories, and the two MILP time limits. \
 Two `@classmethod` presets cover the two configurations every construction site actually needs:
 `ExplainerConfiguration.batch(...)` (history, scenario, counterfactual and automatic export all off) 

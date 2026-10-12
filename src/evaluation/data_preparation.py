@@ -115,20 +115,20 @@ def get_solution_for_evaluation_in_default_inputs_directory(instance_index: int)
 ####################################
 
 def check_explanations_negativity(solution: Solution, only_activated_questions_templates_for_evaluation: bool,
-                                  use_already_computed_explanations: bool = False):
+                                  use_cached_explanations: bool = False):
     """
     Checks that the explanations about a solution are all negative.
 
     :param solution: solution for evaluation which explanations are checked (Solution)
     :param only_activated_questions_templates_for_evaluation: if True, only activated questions templates for evaluation
     are considered (bool)
-    :param use_already_computed_explanations: if True, use already computed explanations to check negativity
+    :param use_cached_explanations: if True, use cached explanations to check negativity
     :return:
     """
     configuration = ExplainerConfiguration.batch(
-        using_already_computed_contrastive_explanations_enabled=use_already_computed_explanations,
+        using_cached_contrastive_explanations_enabled=use_cached_explanations,
         contrastive_explanation_input_directory_relative_path=(
-            get_explanations_for_evaluation_directory_path() if use_already_computed_explanations
+            get_explanations_for_evaluation_directory_path() if use_cached_explanations
             else DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
         )
     )

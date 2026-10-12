@@ -56,7 +56,7 @@ class Explainer:
     phrases the predefined explanation of the template recognized from that search space).
     The explainer also tracks, across the session, which language explanations are phrased in,
     the history of instances and solutions questioned so far,
-    and the already computed contrastive explanations available for reuse.
+    and the cached contrastive explanations available for reuse.
     """
 
     def __init__(self, solution: Solution, configuration: Optional[ExplainerConfiguration] = None):
@@ -89,9 +89,9 @@ class Explainer:
         self._last_contrastive_explanation: Optional[Explanation] = None
         self._last_scenario_explanation: Optional[Explanation] = None
         self._last_counterfactual_explanation: Optional[Explanation] = None
-        self._already_computed_contrastive_explanations: dict[str, dict[str, Explanation]] = dict()
-        if self._configuration.using_already_computed_contrastive_explanations_enabled:
-            self._enable_using_already_computed_contrastive_explanations()
+        self._cached_contrastive_explanations: dict[str, dict[str, Explanation]] = dict()
+        if self._configuration.using_cached_contrastive_explanations_enabled:
+            self._enable_using_cached_contrastive_explanations()
 
     #################
     # Configuration #
@@ -534,22 +534,22 @@ class Explainer:
         """
         return self.get_explanation(FreeTextQuestion(self._current_solution, question_text, self.language))
 
-    #####################################################################
-    # Predefined question - Contrastive - Already computed explanations #
-    #####################################################################
+    ###########################################################
+    # Predefined question - Contrastive - Cached explanations #
+    ###########################################################
 
     @property
-    def already_computed_contrastive_explanations(self) -> list[Explanation]:
-        """Every contrastive explanation already computed and stored, across every template, in no particular order."""
+    def cached_contrastive_explanations(self) -> list[Explanation]:
+        """Every contrastive explanation cached so far, across every template, in no particular order."""
         explanations = []
-        for template_id in self._already_computed_contrastive_explanations.keys():
-            for explanation in self._already_computed_contrastive_explanations[template_id].values():
+        for template_id in self._cached_contrastive_explanations.keys():
+            for explanation in self._cached_contrastive_explanations[template_id].values():
                 explanations.append(explanation)
         return explanations
 
-    def clear_already_computed_contrastive_explanations(self) -> int:
+    def clear_cached_contrastive_explanations(self) -> int:
         """
-        Forgets every already computed contrastive explanation.
+        Forgets every cached contrastive explanation.
 
         NB: Only the in-memory cache is cleared.
         A question whose single-explanation JSON file sits in the inputs directory is still imported from it
@@ -558,49 +558,49 @@ class Explainer:
         Returns:
             The number of explanations that were cleared.
         """
-        nb_cleared_explanations = len(self.already_computed_contrastive_explanations)
-        self._already_computed_contrastive_explanations.clear()
+        nb_cleared_explanations = len(self.cached_contrastive_explanations)
+        self._cached_contrastive_explanations.clear()
         return nb_cleared_explanations
 
-    def _add_contrastive_explanation_to_already_computed_ones(self, explanation: Explanation):
+    def _add_contrastive_explanation_to_cached_ones(self, explanation: Explanation):
         """
-        Stores the given contrastive explanation among the already computed ones, if not already there.
+        Stores the given contrastive explanation among the cached ones, if not already there.
 
         Args:
             explanation: The contrastive explanation to store.
 
         Raises:
             ValueError: if the given explanation is not contrastive.
-            PermissionError: if using already computed contrastive explanations is disabled.
+            PermissionError: if using cached contrastive explanations is disabled.
         """
         if not isinstance(explanation, PredefinedExplanation):
             raise ValueError("The given explanation is not predefined")
         else:
             if not explanation.is_contrastive:
                 raise ValueError("The given explanation is not contrastive")
-            if not self._configuration.using_already_computed_contrastive_explanations_enabled:
-                raise PermissionError("Storing any contrastive explanation in already computed ones is not allowed "
-                                      "as using already computed contrastive explanations is disabled")
+            if not self._configuration.using_cached_contrastive_explanations_enabled:
+                raise PermissionError("Storing any contrastive explanation in cached ones is not allowed "
+                                      "as using cached contrastive explanations is disabled")
             template_id = explanation.question.template.id
-            if template_id not in self._already_computed_contrastive_explanations.keys():
-                self._already_computed_contrastive_explanations[template_id] = dict()
+            if template_id not in self._cached_contrastive_explanations.keys():
+                self._cached_contrastive_explanations[template_id] = dict()
             fields_values_str = str(explanation.question.fields_values)
-            if fields_values_str not in self._already_computed_contrastive_explanations[template_id]:
-                self._already_computed_contrastive_explanations[template_id][fields_values_str] = explanation
+            if fields_values_str not in self._cached_contrastive_explanations[template_id]:
+                self._cached_contrastive_explanations[template_id][fields_values_str] = explanation
 
-    def _add_contrastive_explanations_to_already_computed_ones(self, explanations: list[Explanation]):
+    def _add_contrastive_explanations_to_cached_ones(self, explanations: list[Explanation]):
         """
-        Stores every given contrastive explanation among the already computed ones, skipping duplicates.
+        Stores every given contrastive explanation among the cached ones, skipping duplicates.
 
         Args:
             explanations: The contrastive explanations to store.
         """
         for explanation in explanations:
-            self._add_contrastive_explanation_to_already_computed_ones(explanation)
+            self._add_contrastive_explanation_to_cached_ones(explanation)
 
-    def _check_if_contrastive_explanation_is_in_already_computed_ones(self, contrastive_question: ContrastiveQuestion):
+    def _check_if_contrastive_explanation_is_in_cached_ones(self, contrastive_question: ContrastiveQuestion):
         """
-        Returns whether the explanation answering the given contrastive question is already computed and stored.
+        Returns whether the explanation answering the given contrastive question is cached.
 
         Args:
             contrastive_question: The contrastive question to check.
@@ -609,14 +609,14 @@ class Explainer:
             True if an explanation for that question's template and fields values is already stored.
         """
         template_id = contrastive_question.template.id
-        if template_id not in self._already_computed_contrastive_explanations.keys():
+        if template_id not in self._cached_contrastive_explanations.keys():
             return False
         fields_values_str = str(contrastive_question.fields_values)
-        return fields_values_str in self._already_computed_contrastive_explanations[template_id]
+        return fields_values_str in self._cached_contrastive_explanations[template_id]
 
-    def _get_already_computed_contrastive_explanation(self, contrastive_question: ContrastiveQuestion):
+    def _get_cached_contrastive_explanation(self, contrastive_question: ContrastiveQuestion):
         """
-        Returns the already computed explanation answering the given contrastive question.
+        Returns the cached explanation answering the given contrastive question.
 
         Args:
             contrastive_question: The contrastive question to retrieve the stored explanation of.
@@ -627,17 +627,17 @@ class Explainer:
         Raises:
             ValueError: if no explanation is stored for that question yet.
         """
-        if not self._check_if_contrastive_explanation_is_in_already_computed_ones(contrastive_question):
-            raise ValueError("Explanation associated to given question is not already computed")
+        if not self._check_if_contrastive_explanation_is_in_cached_ones(contrastive_question):
+            raise ValueError("Explanation associated to given question is not cached")
         template_id, fields_values_str = contrastive_question.template.id, str(contrastive_question.fields_values)
-        return self._already_computed_contrastive_explanations[template_id][fields_values_str]
+        return self._cached_contrastive_explanations[template_id][fields_values_str]
 
-    def _enable_using_already_computed_contrastive_explanations(self):
+    def _enable_using_cached_contrastive_explanations(self):
         """
-        Loads any already-exported explanations for the current solution into the already-computed cache.
+        Loads any already-exported explanations for the current solution into the cache.
 
         Called once, from __init__, when the configuration enables reuse —
-        using_already_computed_contrastive_explanations_enabled cannot change afterward, so there is never
+        using_cached_contrastive_explanations_enabled cannot change afterward, so there is never
         a later point at which this needs to run again.
         """
         input_directory = self._configuration.contrastive_explanation_input_directory_relative_path
@@ -645,13 +645,13 @@ class Explainer:
             self._current_solution
         )
         if check_inputs_file_existence(multiple_explanations_json_file_name, input_directory):
-            self._add_contrastive_explanations_to_already_computed_ones(
+            self._add_contrastive_explanations_to_cached_ones(
                 import_multiple_explanations_from_json_file(
                     multiple_explanations_json_file_name, self._current_solution, input_directory
                 )
             )
 
-    def export_all_already_computed_contrastive_explanations(
+    def export_all_cached_contrastive_explanations(
             self, outputs_directory_relative_path: Optional[str] = None
     ):
         """
@@ -664,7 +664,7 @@ class Explainer:
         if outputs_directory_relative_path is None:
             outputs_directory_relative_path = self._configuration.contrastive_explanation_output_directory_relative_path
         export_multiple_contrastive_explanations_to_json_file(
-            self.already_computed_contrastive_explanations, outputs_directory_relative_path
+            self.cached_contrastive_explanations, outputs_directory_relative_path
         )
 
     ###########################################################
@@ -724,8 +724,8 @@ class Explainer:
         elapsed_time = end_time - start_time
         contrastive_explanation = create_explanation(contrastive_question, transformation_result, mode, elapsed_time)
         contrastive_explanation.neighborhood = neighborhood
-        if self._configuration.using_already_computed_contrastive_explanations_enabled:
-            self._add_contrastive_explanation_to_already_computed_ones(contrastive_explanation)
+        if self._configuration.using_cached_contrastive_explanations_enabled:
+            self._add_contrastive_explanation_to_cached_ones(contrastive_explanation)
         if self._configuration.exporting_each_contrastive_explanation_automatically_enabled:
             export_single_contrastive_explanation_to_json_file(
                 contrastive_explanation, self._configuration.contrastive_explanation_output_directory_relative_path
@@ -748,9 +748,9 @@ class Explainer:
 
     def _get_contrastive_explanation_of_question(self, contrastive_question: ContrastiveQuestion):
         """
-        Answers the given contrastive question, reusing an already computed explanation for it when possible.
+        Answers the given contrastive question, reusing a cached explanation for it when possible.
 
-        Reuse first checks the already-computed-explanations cache,
+        Reuse first checks the cache,
         then falls back to importing a previously exported single-explanation JSON file,
         before computing the explanation from scratch.
 
@@ -762,9 +762,9 @@ class Explainer:
         """
         self.explanation_counter.increase_question_count(contrastive_question)
         contrastive_explanation = None
-        if self._configuration.using_already_computed_contrastive_explanations_enabled:
-            if self._check_if_contrastive_explanation_is_in_already_computed_ones(contrastive_question):
-                contrastive_explanation = self._get_already_computed_contrastive_explanation(contrastive_question)
+        if self._configuration.using_cached_contrastive_explanations_enabled:
+            if self._check_if_contrastive_explanation_is_in_cached_ones(contrastive_question):
+                contrastive_explanation = self._get_cached_contrastive_explanation(contrastive_question)
             else:
                 file_name = define_single_contrastive_explanation_json_file_name(contrastive_question)
                 input_directory = self._configuration.contrastive_explanation_input_directory_relative_path
@@ -772,7 +772,7 @@ class Explainer:
                     contrastive_explanation = import_single_explanation_from_json_file(
                         file_name, contrastive_question.solution, input_directory
                     )
-                    self._add_contrastive_explanation_to_already_computed_ones(contrastive_explanation)
+                    self._add_contrastive_explanation_to_cached_ones(contrastive_explanation)
         if contrastive_explanation is None:
             contrastive_explanation = self._compute_contrastive_explanation(contrastive_question)
         self._last_contrastive_explanation = contrastive_explanation

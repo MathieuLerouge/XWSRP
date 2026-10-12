@@ -14,9 +14,10 @@ from src.modeling.solution import Solution
 #################################
 
 
-def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, enable_explanations: bool = True,
-                                                          enable_explanations_representation: bool = True,
-                                                          language: str = LANGUAGE_FRENCH_KEY):
+def prepare_explainer_GUI_for_evaluation_given_parameters(
+        solution: Solution, enable_explanations: bool = True, enable_explanations_representation: bool = True,
+        language: str = LANGUAGE_FRENCH_KEY
+):
     """
     Prepare the explainer GUI for evaluation.
     NB: the solution is assumed to be a solution prepared specifically for evaluation.
@@ -28,7 +29,7 @@ def prepare_explainer_GUI_for_evaluation_given_parameters(solution: Solution, en
     :return: the explainer GUI (ExplainerWebGUI)
     """
     configuration = ExplainerConfiguration.batch(
-        language=language, using_already_computed_contrastive_explanations_enabled=True,
+        language=language, using_cached_contrastive_explanations_enabled=True,
         contrastive_explanation_input_directory_relative_path=get_explanations_for_evaluation_directory_path(),
         activated_question_template_ids=ACTIVATED_QUESTIONS_TEMPLATES_IDS_FOR_EVALUATION
     )

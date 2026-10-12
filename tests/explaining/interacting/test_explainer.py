@@ -68,16 +68,16 @@ def demo_solution() -> Solution:
 
 
 def build_explainer(solution: Solution, extractor_model: Optional[str] = None, history_enabled: bool = False,
-                    using_already_computed_contrastive_explanations_enabled: bool = False,
+                    using_cached_contrastive_explanations_enabled: bool = False,
                     activated_question_template_ids: Optional[list[str]] = None,
                     writer_model: Optional[str] = None, free_text_explanation_mode: Optional[str] = None,
                     counterfactual_explanations_enabled: bool = False) -> Explainer:
     """
     Returns an Explainer with every optional behaviour switched off, so a test turns on only what it exercises.
 
-    history_enabled, using_already_computed_contrastive_explanations_enabled and
-    activated_question_template_ids are fixed at construction, so a test needing any of them other than
-    their default must ask for it here rather than changing it afterward.
+    history_enabled, using_cached_contrastive_explanations_enabled and activated_question_template_ids are fixed
+    at construction, so a test needing any of them other than their default must ask for it here rather than
+    changing it afterward.
 
     Args:
         solution: The solution to explain.
@@ -86,8 +86,8 @@ def build_explainer(solution: Solution, extractor_model: Optional[str] = None, h
         free_text_explanation_mode: How a free-text question's explanation is worded, or None for the default.
         counterfactual_explanations_enabled: Whether to allow counterfactual follow-up questions.
         history_enabled: Whether to keep every solution asked about or saved.
-        using_already_computed_contrastive_explanations_enabled: Whether to reuse already computed
-            contrastive explanations instead of recomputing them.
+        using_cached_contrastive_explanations_enabled: Whether to reuse cached contrastive explanations
+            instead of recomputing them.
         activated_question_template_ids: Ids of the question templates to activate,
             or None to activate every available one.
 
@@ -103,7 +103,7 @@ def build_explainer(solution: Solution, extractor_model: Optional[str] = None, h
         activated_question_template_ids=activated_question_template_ids,
         scenario_explanations_enabled=False,
         counterfactual_explanations_enabled=counterfactual_explanations_enabled,
-        using_already_computed_contrastive_explanations_enabled=using_already_computed_contrastive_explanations_enabled,
+        using_cached_contrastive_explanations_enabled=using_cached_contrastive_explanations_enabled,
         exporting_each_contrastive_explanation_automatically_enabled=False
     )
     return Explainer(solution, configuration)
@@ -171,7 +171,7 @@ def test_an_explanation_asked_twice_is_served_from_memory(demo_solution):
     """
     With the cache on, the second ask must hand back the very object the first one produced.
     """
-    explainer = build_explainer(demo_solution, using_already_computed_contrastive_explanations_enabled=True)
+    explainer = build_explainer(demo_solution, using_cached_contrastive_explanations_enabled=True)
     fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]
     first = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
     second = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
@@ -179,11 +179,11 @@ def test_an_explanation_asked_twice_is_served_from_memory(demo_solution):
 
 
 def test_an_explanation_is_recomputed_once_the_cache_is_cleared(demo_solution):
-    explainer = build_explainer(demo_solution, using_already_computed_contrastive_explanations_enabled=True)
+    explainer = build_explainer(demo_solution, using_cached_contrastive_explanations_enabled=True)
     fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]
     first = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
-    assert explainer.clear_already_computed_contrastive_explanations() == 1
-    assert explainer.already_computed_contrastive_explanations == []
+    assert explainer.clear_cached_contrastive_explanations() == 1
+    assert explainer.cached_contrastive_explanations == []
     second = explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
     assert first is not second
     assert first.text == second.text
@@ -215,13 +215,13 @@ def test_stored_explanations_are_loaded_and_served_from_disk(demo_solution, tmp_
                          define_multiple_contrastive_explanations_json_file_name(demo_solution))
         )
         explainer = Explainer(demo_solution, ExplainerConfiguration.batch(
-            using_already_computed_contrastive_explanations_enabled=True,
+            using_cached_contrastive_explanations_enabled=True,
             contrastive_explanation_input_directory_relative_path=inputs_directory_relative_path
         ))
-        assert len(explainer.already_computed_contrastive_explanations) > 0
+        assert len(explainer.cached_contrastive_explanations) > 0
         explanation = explainer.get_contrastive_explanation(
             WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
-        assert explanation in explainer.already_computed_contrastive_explanations
+        assert explanation in explainer.cached_contrastive_explanations
         assert explanation.text
     finally:
         shutil.rmtree(inputs_directory_path, ignore_errors=True)
@@ -763,11 +763,11 @@ def test_exporting_every_computed_explanation_honours_the_configured_directory(d
     outputs_directory_path = os.path.join(os.getcwd(), outputs_directory_relative_path)
     os.makedirs(outputs_directory_path, exist_ok=True)
     try:
-        explainer = build_explainer(demo_solution, using_already_computed_contrastive_explanations_enabled=True)
+        explainer = build_explainer(demo_solution, using_cached_contrastive_explanations_enabled=True)
         explainer.configuration.contrastive_explanation_output_directory_relative_path = outputs_directory_relative_path
         explainer.get_contrastive_explanation(
             WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
-        explainer.export_all_already_computed_contrastive_explanations()
+        explainer.export_all_cached_contrastive_explanations()
         assert os.listdir(outputs_directory_path), "the bulk export wrote nothing into the configured directory"
     finally:
         shutil.rmtree(outputs_directory_path, ignore_errors=True)

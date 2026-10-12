@@ -86,7 +86,7 @@ def compute_contrastive_explanations_about_demo_solution_in_one_file(questions_t
     """
     solution = get_demo_solution()
     explainer = Explainer(
-        solution, ExplainerConfiguration.batch(using_already_computed_contrastive_explanations_enabled=True)
+        solution, ExplainerConfiguration.batch(using_cached_contrastive_explanations_enabled=True)
     )
     if questions_templates_ids is None:
         questions_templates_ids = explainer.configuration.activated_question_template_ids
@@ -97,13 +97,13 @@ def compute_contrastive_explanations_about_demo_solution_in_one_file(questions_t
             all_fields_valid_values = question_template.compute_all_fields_valid_values(solution)
             for fields_values in all_fields_valid_values:
                 explainer.get_contrastive_explanation(question_template.id, fields_values)
-    explainer.export_all_already_computed_contrastive_explanations()
+    explainer.export_all_cached_contrastive_explanations()
 
 
 def launch_explainer_UI_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, enable_history: bool = True,
                                          enable_scenario_explanations: bool = True,
                                          enable_counterfactual_explanations: bool = True,
-                                         enable_using_already_computed_contrastive_explanations: bool = True):
+                                         enable_using_cached_contrastive_explanations: bool = True):
     """
     Launch the explainer UI on the demo solution.
 
@@ -111,17 +111,17 @@ def launch_explainer_UI_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, e
     :param enable_history: whether to enable the history (bool)
     :param enable_scenario_explanations: whether to enable the scenario explanations (bool)
     :param enable_counterfactual_explanations: whether to enable the counterfactual explanations (bool)
-    :param enable_using_already_computed_contrastive_explanations:
-    whether to enable using already computed contrastive explanations (bool)
+    :param enable_using_cached_contrastive_explanations:
+    whether to enable using cached contrastive explanations (bool)
     :return: None
     """
     configuration = ExplainerConfiguration.web_ui(
         extractor_model=EXTRACTOR_MODEL, writer_model=WRITER_MODEL, language=language,
         history_enabled=enable_history, scenario_explanations_enabled=enable_scenario_explanations,
         counterfactual_explanations_enabled=enable_counterfactual_explanations,
-        using_already_computed_contrastive_explanations_enabled=enable_using_already_computed_contrastive_explanations,
+        using_cached_contrastive_explanations_enabled=enable_using_cached_contrastive_explanations,
         contrastive_explanation_input_directory_relative_path=(
-            "data/demo/explanations" if enable_using_already_computed_contrastive_explanations
+            "data/demo/explanations" if enable_using_cached_contrastive_explanations
             else DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
         )
     )
@@ -133,7 +133,7 @@ def launch_explainer_UI_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, e
 def launch_explainer_cli_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, enable_history: bool = True,
                                          enable_scenario_explanations: bool = True,
                                          enable_counterfactual_explanations: bool = True,
-                                         enable_using_already_computed_contrastive_explanations: bool = True):
+                                         enable_using_cached_contrastive_explanations: bool = True):
     """
     Launch the explainer CLI on the demo solution.
 
@@ -141,17 +141,17 @@ def launch_explainer_cli_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, 
     :param enable_history: whether to enable the history (bool)
     :param enable_scenario_explanations: whether to enable the scenario explanations (bool)
     :param enable_counterfactual_explanations: whether to enable the counterfactual explanations (bool)
-    :param enable_using_already_computed_contrastive_explanations:
-    whether to enable using already computed contrastive explanations (bool)
+    :param enable_using_cached_contrastive_explanations:
+    whether to enable using cached contrastive explanations (bool)
     :return: None
     """
     configuration = ExplainerConfiguration.web_ui(
         extractor_model=EXTRACTOR_MODEL, writer_model=WRITER_MODEL, language=language,
         history_enabled=enable_history, scenario_explanations_enabled=enable_scenario_explanations,
         counterfactual_explanations_enabled=enable_counterfactual_explanations,
-        using_already_computed_contrastive_explanations_enabled=enable_using_already_computed_contrastive_explanations,
+        using_cached_contrastive_explanations_enabled=enable_using_cached_contrastive_explanations,
         contrastive_explanation_input_directory_relative_path=(
-            "data/demo/explanations" if enable_using_already_computed_contrastive_explanations
+            "data/demo/explanations" if enable_using_cached_contrastive_explanations
             else DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
         )
     )
@@ -200,7 +200,7 @@ def launch_explainer_UI_on_default_solution(language: str, enable_history: bool 
         extractor_model=EXTRACTOR_MODEL, writer_model=WRITER_MODEL, language=language,
         history_enabled=enable_history, scenario_explanations_enabled=enable_scenario_explanations,
         counterfactual_explanations_enabled=enable_counterfactual_explanations,
-        using_already_computed_contrastive_explanations_enabled=False
+        using_cached_contrastive_explanations_enabled=False
     )
     explainer = Explainer(get_default_solution(), configuration)
     explainer_UI = ExplainerWebGUI(explainer)

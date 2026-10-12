@@ -42,7 +42,7 @@ class ExplainerConfiguration:
             neighborhood_llm_model: Optional[str] = None,
             activated_question_template_ids: Optional[list[str]] = None,
             scenario_explanations_enabled: bool = False, counterfactual_explanations_enabled: bool = False,
-            using_already_computed_contrastive_explanations_enabled: bool = False,
+            using_cached_contrastive_explanations_enabled: bool = False,
             exporting_each_contrastive_explanation_automatically_enabled: bool = False,
             contrastive_explanation_input_directory_relative_path: str = DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH,
             contrastive_explanation_output_directory_relative_path: str = DEFAULT_OUTPUTS_DIRECTORY_RELATIVE_PATH,
@@ -62,12 +62,12 @@ class ExplainerConfiguration:
                 AVAILABLE_QUESTION_TEMPLATE_IDS, or None to activate every available one.
             scenario_explanations_enabled: Whether to allow scenario follow-up questions.
             counterfactual_explanations_enabled: Whether to allow counterfactual follow-up questions.
-            using_already_computed_contrastive_explanations_enabled: Whether to reuse already computed
-                contrastive explanations instead of recomputing them.
+            using_cached_contrastive_explanations_enabled: Whether to reuse cached contrastive explanations
+                instead of recomputing them.
             exporting_each_contrastive_explanation_automatically_enabled: Whether to export each computed
                 contrastive explanation to its own JSON file as soon as it is computed.
-            contrastive_explanation_input_directory_relative_path: Directory already computed contrastive
-                explanations are imported from.
+            contrastive_explanation_input_directory_relative_path: Directory cached contrastive explanations
+                are imported from.
             contrastive_explanation_output_directory_relative_path: Directory contrastive explanations are
                 exported to.
             time_limit_for_contrastive_explanation_milp_computation: Time limit, in seconds, given to the MILP
@@ -102,8 +102,8 @@ class ExplainerConfiguration:
         ]
         self._scenario_explanations_enabled = scenario_explanations_enabled
         self._counterfactual_explanations_enabled = counterfactual_explanations_enabled
-        self._using_already_computed_contrastive_explanations_enabled = \
-            using_already_computed_contrastive_explanations_enabled
+        self._using_cached_contrastive_explanations_enabled = \
+            using_cached_contrastive_explanations_enabled
         self._exporting_each_contrastive_explanation_automatically_enabled = \
             exporting_each_contrastive_explanation_automatically_enabled
         self._contrastive_explanation_input_directory_relative_path = \
@@ -123,7 +123,7 @@ class ExplainerConfiguration:
     @classmethod
     def batch(
             cls, extractor_model: Optional[str] = None, writer_model: Optional[str] = None,
-            using_already_computed_contrastive_explanations_enabled: bool = False,
+            using_cached_contrastive_explanations_enabled: bool = False,
             **overrides
     ) -> "ExplainerConfiguration":
         """
@@ -133,8 +133,8 @@ class ExplainerConfiguration:
         Args:
             extractor_model: The instructor model string the llm pipeline extracts a free-text question with.
             writer_model: The instructor model string the llm pipeline words a free-text question's explanation with.
-            using_already_computed_contrastive_explanations_enabled: Whether to reuse already computed
-                contrastive explanations instead of recomputing them.
+            using_cached_contrastive_explanations_enabled: Whether to reuse cached contrastive explanations
+                instead of recomputing them.
             **overrides: Any other ExplainerConfiguration constructor argument to set instead of its default
                 (e.g. the directories, the MILP time limits, or language).
 
@@ -143,9 +143,7 @@ class ExplainerConfiguration:
         """
         return cls(
             neighborhood_llm_model=extractor_model, explanation_writing_llm_model=writer_model,
-            using_already_computed_contrastive_explanations_enabled=(
-                using_already_computed_contrastive_explanations_enabled
-            ),
+            using_cached_contrastive_explanations_enabled=using_cached_contrastive_explanations_enabled,
             history_enabled=False, scenario_explanations_enabled=False,
             counterfactual_explanations_enabled=False,
             exporting_each_contrastive_explanation_automatically_enabled=False,
@@ -158,7 +156,7 @@ class ExplainerConfiguration:
             language: str = LANGUAGE_ENGLISH_KEY,
             history_enabled: bool = True, scenario_explanations_enabled: bool = True,
             counterfactual_explanations_enabled: bool = True,
-            using_already_computed_contrastive_explanations_enabled: bool = False,
+            using_cached_contrastive_explanations_enabled: bool = False,
             contrastive_explanation_input_directory_relative_path: str = DEFAULT_INPUTS_DIRECTORY_RELATIVE_PATH
     ) -> "ExplainerConfiguration":
         """
@@ -172,10 +170,10 @@ class ExplainerConfiguration:
             history_enabled: Whether to keep every solution asked about or saved.
             scenario_explanations_enabled: Whether to allow scenario follow-up questions.
             counterfactual_explanations_enabled: Whether to allow counterfactual follow-up questions.
-            using_already_computed_contrastive_explanations_enabled: Whether to reuse already computed
-                contrastive explanations instead of recomputing them.
-            contrastive_explanation_input_directory_relative_path: Directory already computed contrastive
-                explanations are imported from, when using_already_computed_contrastive_explanations_enabled is True.
+            using_cached_contrastive_explanations_enabled: Whether to reuse cached contrastive explanations
+                instead of recomputing them.
+            contrastive_explanation_input_directory_relative_path: Directory cached contrastive explanations
+                are imported from, when using_cached_contrastive_explanations_enabled is True.
 
         Returns:
             The configuration so built.
@@ -184,8 +182,8 @@ class ExplainerConfiguration:
             neighborhood_llm_model=extractor_model, explanation_writing_llm_model=writer_model, language=language,
             history_enabled=history_enabled, scenario_explanations_enabled=scenario_explanations_enabled,
             counterfactual_explanations_enabled=counterfactual_explanations_enabled,
-            using_already_computed_contrastive_explanations_enabled=(
-                using_already_computed_contrastive_explanations_enabled
+            using_cached_contrastive_explanations_enabled=(
+                using_cached_contrastive_explanations_enabled
             ),
             exporting_each_contrastive_explanation_automatically_enabled=False,
             contrastive_explanation_input_directory_relative_path=(
@@ -395,14 +393,14 @@ class ExplainerConfiguration:
         self._counterfactual_explanations_enabled = enabled
 
     @property
-    def using_already_computed_contrastive_explanations_enabled(self) -> bool:
+    def using_cached_contrastive_explanations_enabled(self) -> bool:
         """
-        Whether already computed contrastive explanations are reused instead of recomputed.
+        Whether cached contrastive explanations are reused instead of recomputed.
 
         Fixed at construction; not settable afterward, since enabling this does more than store this flag
         (Explainer also loads any already-exported explanations for its solution from disk).
         """
-        return self._using_already_computed_contrastive_explanations_enabled
+        return self._using_cached_contrastive_explanations_enabled
 
     @property
     def exporting_each_contrastive_explanation_automatically_enabled(self) -> bool:
@@ -415,7 +413,7 @@ class ExplainerConfiguration:
 
     @property
     def contrastive_explanation_input_directory_relative_path(self) -> str:
-        """Directory already computed contrastive explanations are imported from."""
+        """Directory cached contrastive explanations are imported from."""
         return self._contrastive_explanation_input_directory_relative_path
 
     @contrastive_explanation_input_directory_relative_path.setter

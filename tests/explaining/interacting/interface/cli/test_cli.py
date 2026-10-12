@@ -97,13 +97,13 @@ def test_clearing_cached_explanations_is_refused_when_the_cache_is_off(demo_solu
 
 def test_clearing_cached_explanations_empties_the_cache(demo_solution):
     explainer = Explainer(
-        demo_solution, ExplainerConfiguration(using_already_computed_contrastive_explanations_enabled=True)
+        demo_solution, ExplainerConfiguration(using_cached_contrastive_explanations_enabled=True)
     )
     cli = ExplainerCLI(demo_solution, explainer)
     ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
     result = cli.handle_clear([ClearTargets.CACHED_EXPLANATIONS.value])
     assert "Cleared 1 cached contrastive explanation" in result
-    assert explainer.already_computed_contrastive_explanations == []
+    assert explainer.cached_contrastive_explanations == []
 
 
 def test_show_current_solution_and_instance_need_no_name(demo_solution):

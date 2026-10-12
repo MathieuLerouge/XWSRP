@@ -38,7 +38,7 @@ def explaining_main():
             launch_explainer_UI_on_demo_solution(
                 EXPLAINER_DEMO_SOLUTION_LANGUAGE, EXPLAINER_DEMO_SOLUTION_ENABLE_HISTORY,
                 EXPLAINER_DEMO_SOLUTION_ENABLE_SCENARIO, EXPLAINER_DEMO_SOLUTION_ENABLE_COUNTERFACTUAL,
-                EXPLAINER_DEMO_SOLUTION_ENABLE_USING_ALREADY_COMPUTED_CONTRASTIVE_EXPLANATIONS
+                EXPLAINER_DEMO_SOLUTION_ENABLE_USING_CACHED_CONTRASTIVE_EXPLANATIONS
             )
 
         # Launch the explainer UI on the solution in the default inputs directory

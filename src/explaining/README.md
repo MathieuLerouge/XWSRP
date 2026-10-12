@@ -17,7 +17,7 @@ which orchestrates the pipeline for each question asked about it:
 and returns a support solution together with feasibility information;
 - `explanation` turns that result into a typed `Explanation`;
 - `exporting`/`importing` (de)serialize `Explanation` objects to/from JSON, 
-so that previously computed explanations can be reused instead of recomputed;
+so that cached explanations can be reused instead of recomputed;
 - `interacting` (terminal or web UI) presents the final explanation, and any supporting figures, to the user.
 
 NB: Before applying its transformation, `computing/templates` wraps the `Solution`/`Instance` being questioned 
