@@ -7,7 +7,7 @@ import numpy as np
 
 # Local libraries
 from main_configuration import EXPLANATIONS_ANALYSIS_TIME_LIMIT_FOR_COMPUTING_EACH_EXPLANATION, \
-    EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES, EXTRACTOR_MODEL, WRITER_MODEL
+    EXPLANATION_COMPUTATION_TIME_BETWEEN_MESSAGES, EXTRACTOR_MODEL, PIPELINE, WRITER_MODEL
 from src.feasibility.checker import FeasibilityChecker
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
@@ -156,6 +156,8 @@ def launch_explainer_cli_on_demo_solution(language: str = LANGUAGE_ENGLISH_KEY, 
         )
     )
     explainer = Explainer(get_demo_solution(), configuration)
+    if PIPELINE is not None:
+        explainer.set_pipeline(PIPELINE)
     cli = ExplainerCLI(explainer.current_solution, explainer)
     cli.run()
 

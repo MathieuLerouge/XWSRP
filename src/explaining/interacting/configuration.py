@@ -300,6 +300,65 @@ class ExplainerConfiguration:
         self._neighborhood_extraction_mode = mode
 
     @property
+    def pipeline(self) -> Optional[str]:
+        """
+        The Pipelines value the current settings match, or None when they were mixed by hand.
+
+        The llm pipeline is matched only when both its LLM models are set, since it cannot run otherwise.
+        """
+        if (self._template_computation_mode == TemplateComputationModes.TAILORED.value
+                and self._neighborhood_extraction_mode == NeighborhoodExtractionModes.TAILORED.value
+                and self._free_text_explanation_mode == FreeTextExplanationModes.TEMPLATED.value):
+            return Pipelines.TAILORED.value
+        if (self._template_computation_mode == TemplateComputationModes.NEIGHBORHOOD.value
+                and self._neighborhood_extraction_mode == NeighborhoodExtractionModes.LLM.value
+                and self._free_text_explanation_mode == FreeTextExplanationModes.WRITTEN.value
+                and self._neighborhood_llm_model is not None and self._explanation_writing_llm_model is not None):
+            return Pipelines.LLM.value
+        return None
+
+    def apply_pipeline(self, pipeline: str, llm_model: Optional[str] = None):
+        """
+        Sets every mode (and, for the llm pipeline, both LLM models) to run the given pipeline end to end
+        (see Pipelines).
+
+        NB: It only sets values: no LLM backend is set up (see Explainer.set_pipeline).
+
+        Args:
+            pipeline: One of Pipelines' values.
+            llm_model: For the llm pipeline, the instructor model string ("provider/model-name")
+                both extracting neighborhoods and writing explanations,
+                or None to keep the two LLM models already set.
+
+        Raises:
+            ValueError: If pipeline is not one of Pipelines' values, if an LLM model is given for the tailored pipeline,
+                or if none is given for the llm pipeline while either of its LLM models is not set.
+        """
+        if pipeline == Pipelines.TAILORED.value:
+            if llm_model is not None:
+                raise ValueError(f"The {Pipelines.TAILORED.value} pipeline uses no LLM model")
+            self._template_computation_mode = TemplateComputationModes.TAILORED.value
+            self._neighborhood_extraction_mode = NeighborhoodExtractionModes.TAILORED.value
+            self._free_text_explanation_mode = FreeTextExplanationModes.TEMPLATED.value
+        elif pipeline == Pipelines.LLM.value:
+            if llm_model is None and (self._neighborhood_llm_model is None
+                                      or self._explanation_writing_llm_model is None):
+                raise ValueError(
+                    f"The {Pipelines.LLM.value} pipeline needs an LLM model, "
+                    f"for both the neighborhood extraction and the explanation writing"
+                )
+            if llm_model is not None:
+                self._neighborhood_llm_model = llm_model
+                self._explanation_writing_llm_model = llm_model
+            self._template_computation_mode = TemplateComputationModes.NEIGHBORHOOD.value
+            self._neighborhood_extraction_mode = NeighborhoodExtractionModes.LLM.value
+            self._free_text_explanation_mode = FreeTextExplanationModes.WRITTEN.value
+        else:
+            raise ValueError(
+                f"Invalid pipeline '{pipeline}'. Valid pipelines are: {', '.join(Pipelines.list_values())}"
+            )
+
+    @property
     def activated_question_template_ids(self) -> list[str]:
         """
         Id of every question template activated for the Explainer built from this configuration.
@@ -434,4 +493,26 @@ class FreeTextExplanationModes(Enum):
     @classmethod
     def list_values(cls) -> list[str]:
         """Return list of all valid free-text explanation mode values."""
+        return [member.value for member in cls]
+
+
+#############
+# Pipelines #
+#############
+
+class Pipelines(Enum):
+    """
+    Enum for the pipelines an Explainer can be set to run end to end, from the question to the explanation
+    (see ExplainerConfiguration.apply_pipeline):
+    - TAILORED: template questions computed by their tailored transformation (no LLM at all),
+      free-text questions (if any extractor model is set) phrased from the template recognized from them;
+    - LLM: template questions' neighborhoods extracted by the LLM and solved by NeighborhoodModel,
+      free-text questions' explanations written by the LLM from the facts of their solved neighborhood.
+    """
+    TAILORED = "tailored"
+    LLM = "llm"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid pipeline values."""
         return [member.value for member in cls]

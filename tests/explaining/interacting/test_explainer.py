@@ -15,7 +15,7 @@ from src.explaining.explanation.free.explanation import FreeTextExplanation
 from src.explaining.explanation.predefined.explanation import (
     NonImprovingNegativeExplanation, PositiveExplanation, SkillNegativeExplanation, TimeNegativeExplanation
 )
-from src.explaining.interacting.configuration import ExplainerConfiguration, FreeTextExplanationModes
+from src.explaining.interacting.configuration import ExplainerConfiguration, FreeTextExplanationModes, Pipelines
 from src.explaining.interacting.counter import QuestionType
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.modeling.instance import EditableInstance
@@ -587,6 +587,43 @@ def test_a_follow_up_of_a_written_free_text_question_is_refused(demo_solution):
     explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
     with pytest.raises(PermissionError, match="free-text"):
         explainer.compute_counterfactual_explanation()
+
+
+def test_the_llm_pipeline_sets_up_its_extractor_and_writer(demo_solution, monkeypatch):
+    explainer = build_explainer(demo_solution)
+    prepare_calls = []
+    monkeypatch.setattr(explainer, "prepare_extractor", lambda: prepare_calls.append("extractor"))
+    monkeypatch.setattr(explainer, "prepare_writer", lambda: prepare_calls.append("writer"))
+    explainer.set_pipeline(Pipelines.LLM.value, "stub/model")
+    assert prepare_calls == ["extractor", "writer"]
+    assert explainer.configuration.pipeline == Pipelines.LLM.value
+
+
+def test_the_llm_pipeline_is_all_or_nothing(demo_solution, monkeypatch):
+    """A writer that cannot be set up leaves every setting, models included, exactly as it was."""
+    explainer = build_explainer(demo_solution)
+    configuration = explainer.configuration
+    settings_before = (configuration.template_computation_mode, configuration.neighborhood_extraction_mode,
+                       configuration.free_text_explanation_mode, configuration.neighborhood_extraction_llm_model,
+                       configuration.explanation_writing_llm_model)
+
+    def fail_to_prepare_writer():
+        raise RuntimeError("missing API key")
+
+    monkeypatch.setattr(explainer, "prepare_extractor", lambda: None)
+    monkeypatch.setattr(explainer, "prepare_writer", fail_to_prepare_writer)
+    with pytest.raises(RuntimeError, match="missing API key"):
+        explainer.set_pipeline(Pipelines.LLM.value, "stub/model")
+    assert (configuration.template_computation_mode, configuration.neighborhood_extraction_mode,
+            configuration.free_text_explanation_mode, configuration.neighborhood_extraction_llm_model,
+            configuration.explanation_writing_llm_model) == settings_before
+
+
+def test_the_tailored_pipeline_sets_up_no_llm_backend(demo_solution, monkeypatch):
+    explainer = build_explainer(demo_solution)
+    monkeypatch.setattr(explainer, "prepare_extractor", lambda: pytest.fail("No extractor is needed"))
+    explainer.set_pipeline(Pipelines.TAILORED.value)
+    assert explainer.configuration.pipeline == Pipelines.TAILORED.value
 
 
 def test_an_invalid_free_text_explanation_mode_is_refused():

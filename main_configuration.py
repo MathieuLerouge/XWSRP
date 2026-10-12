@@ -58,6 +58,15 @@ WRITER_MODEL = None
 # WRITER_MODEL = "ollama/qwen2.5:7b"
 # WRITER_MODEL = "anthropic/claude-sonnet-5"
 
+# Choose which pipeline the explainer CLI starts in, by activating one of the following lines
+# (see src.explaining.interacting.configuration.Pipelines; "/set pipeline" switches it from within the CLI)
+#
+# NB: The "llm" pipeline uses EXTRACTOR_MODEL and WRITER_MODEL above, which must then both be set.
+#
+PIPELINE = None
+# PIPELINE = "tailored"
+# PIPELINE = "llm"
+
 
 #####################################
 # Explainer process - Configuration #

@@ -1,5 +1,10 @@
-# Standard library
+# Standard libraries
 from enum import Enum
+from typing import Optional
+
+# Local libraries
+from src.explaining.interacting.configuration import FreeTextExplanationModes, Pipelines, TemplateComputationModes
+from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 
 
 ############
@@ -10,30 +15,20 @@ class Commands(Enum):
     """Enum of all CLI commands with their metadata."""
     
     # Core Commands
-    LLM_MODEL = ("/llm-model", "Set LLM model for free-text extraction")
-    WRITER_LLM_MODEL = ("/writer-llm-model", "Set LLM model for free-text explanation writing")
-    TEMPLATE_COMPUTATION_MODE = ("/template-computation-mode", "Switch template pipeline (tailored/neighborhood)")
-    NEIGHBORHOOD_EXTRACTION_MODE = ("/neighborhood-extraction-mode", "Switch neighborhood extraction (llm/tailored)")
-    FREE_TEXT_EXPLANATION_MODE = ("/free-text-explanation-mode", "Switch free-text explanation (written/templated)")
-    ASK = ("/ask", "Ask a free-text contrastive question")
-    CONTRASTIVE = ("/contrastive", "Ask a template-based contrastive question")
+    ASK = ("/ask", "Ask a free-text question")
+    ASK_TEMPLATE = ("/ask-template", "Ask a template-based question")
     SAVE_SOLUTION = ("/save-solution", "Save current support solution")
-    LIST_TEMPLATES = ("/list-templates", "Show available question templates")
-    LIST_INSTANCES = ("/list-instances", "List stored instances")
-    LIST_SOLUTIONS = ("/list-solutions", "List stored solutions")
+    LIST = ("/list", "List available or stored items")
     SWITCH = ("/switch", "Change current instance or solution")
-    LANGUAGE = ("/language", "Switch language")
     EXPORT = ("/export", "Export last explanation")
     
     # Configuration Commands
-    TIME_LIMIT_CONTRASTIVE = ("/time-limit-contrastive", "Set MILP time limit for contrastive")
-    TIME_LIMIT_COUNTERFACTUAL = ("/time-limit-counterfactual", "Set MILP time limit for counterfactual")
+    SET = ("/set", "Set the pipeline, the language, a mode, a MILP solving time limit or an LLM model")
     ENABLE = ("/enable", "Enable a feature")
     DISABLE = ("/disable", "Disable a feature")
     
     # Display Commands
     SHOW = ("/show", "Show details")
-    DISPLAY_MODE = ("/display-mode", "Set the CLI display mode (user/developer)")
     HELP = ("/help", "Show this help message")
     
     # Session Commands
@@ -42,7 +37,7 @@ class Commands(Enum):
     
     @property
     def name(self) -> str:
-        """Return the command name (e.g., '/llm-model')."""
+        """Return the command name (e.g., '/set')."""
         return self.value[0]
     
     @property
@@ -51,38 +46,48 @@ class Commands(Enum):
         return self.value[1]
 
     @classmethod
-    def list_string(cls) -> str:
-        """Generate the list string for all commands."""
+    def list_string(cls, ask_template_targets: Optional[list[str]] = None) -> str:
+        """
+        Generate the list string for all commands.
+
+        Args:
+            ask_template_targets: The kinds of template-based questions to list for /ask-template
+                (typically the activated ones), or None to list every kind.
+        """
+        if ask_template_targets is None:
+            ask_template_targets = AskTemplateTargets.list_values()
         lines = [
             "Explainer CLI - Available Commands",
             "",
             "Core Commands:",
-            f"  {cls.LLM_MODEL.name} <model>                   {cls.LLM_MODEL.description}",
-            f"  {cls.WRITER_LLM_MODEL.name} <model>            {cls.WRITER_LLM_MODEL.description}",
-            f"  {cls.TEMPLATE_COMPUTATION_MODE.name} <mode>    {cls.TEMPLATE_COMPUTATION_MODE.description}",
-            f"  {cls.NEIGHBORHOOD_EXTRACTION_MODE.name} <mode> {cls.NEIGHBORHOOD_EXTRACTION_MODE.description}",
-            f"  {cls.FREE_TEXT_EXPLANATION_MODE.name} <mode>   {cls.FREE_TEXT_EXPLANATION_MODE.description}",
             f"  {cls.ASK.name} <question>                      {cls.ASK.description}",
-            f"  {cls.CONTRASTIVE.name} <id> <vals>             {cls.CONTRASTIVE.description}",
+            f"  {cls.ASK_TEMPLATE.name} <kind> <id> <vals>     {cls.ASK_TEMPLATE.description} "
+            f"({', '.join(ask_template_targets)})",
             f"  {cls.SAVE_SOLUTION.name}                       {cls.SAVE_SOLUTION.description}",
-            f"  {cls.LIST_TEMPLATES.name}                      {cls.LIST_TEMPLATES.description}",
-            f"  {cls.LIST_INSTANCES.name}                      {cls.LIST_INSTANCES.description}",
-            f"  {cls.LIST_SOLUTIONS.name}                      {cls.LIST_SOLUTIONS.description}",
+            f"  {cls.LIST.name} <target>                       {cls.LIST.description} "
+            f"({', '.join(ListTargets.list_values())})",
             f"  {cls.SWITCH.name} <target> [name]              {cls.SWITCH.description} "
             f"({', '.join(SwitchTargets.list_values())})",
-            f"  {cls.LANGUAGE.name} <en|fr>                    {cls.LANGUAGE.description}",
             f"  {cls.EXPORT.name}                              {cls.EXPORT.description}",
             "",
             "Configuration Commands:",
-            f"  {cls.TIME_LIMIT_CONTRASTIVE.name} <s>       {cls.TIME_LIMIT_CONTRASTIVE.description}",
-            f"  {cls.TIME_LIMIT_COUNTERFACTUAL.name} <s>    {cls.TIME_LIMIT_COUNTERFACTUAL.description}",
+            f"  {cls.SET.name} <target> <option> [value]    {cls.SET.description}:",
+            f"    {SetTargets.PIPELINE.value} <{'|'.join(Pipelines.list_values())}> [provider/model]",
+            f"    {SetTargets.LANGUAGE.value} <{'|'.join(Languages.list_values())}>",
+            f"    {SetTargets.DISPLAY_MODE.value} <{'|'.join(DisplayModes.list_values())}>",
+            f"    {SetTargets.TEMPLATE_COMPUTATION_MODE.value} <{'|'.join(TemplateComputationModes.list_values())}>",
+            f"    {SetTargets.NEIGHBORHOOD_EXTRACTION_MODE.value} "
+            f"<{'|'.join(NeighborhoodExtractionModes.list_values())}>",
+            f"    {SetTargets.FREE_TEXT_EXPLANATION_WRITING_MODE.value} "
+            f"<{'|'.join(FreeTextExplanationModes.list_values())}>",
+            f"    {SetTargets.SOLVING_TIME_LIMIT.value} <{'|'.join(SolvingTimeLimitTargets.list_values())}> <seconds>",
+            f"    {SetTargets.LLM_MODEL.value} <{'|'.join(LLMModelTargets.list_values())}> <provider/model>",
             f"  {cls.ENABLE.name} <feature>                 {cls.ENABLE.description}",
             f"  {cls.DISABLE.name} <feature>                {cls.DISABLE.description}",
             "",
             "Display Commands:",
-            f"  {cls.SHOW.name} <resource> [name]           {cls.SHOW.description} ({', '.join(ShowTargets.list_values())})",
-            f"  {cls.DISPLAY_MODE.name} <user|developer>    {cls.DISPLAY_MODE.description}",
-            f"  {cls.HELP.name}                             {cls.HELP.description}",
+            f"  {cls.SHOW.name} <resource> [name]    {cls.SHOW.description} ({', '.join(ShowTargets.list_values())})",
+            f"  {cls.HELP.name}                      {cls.HELP.description}",
             "",
             "Session Commands:",
             f"  {cls.CLEAR.name} <target>    {cls.CLEAR.description} ({', '.join(ClearTargets.list_values())})",
@@ -106,12 +111,12 @@ class Languages(Enum):
         return [member.value for member in cls]
 
 
-############
-# Features #
-############
+#################
+# EnableTargets #
+#################
 
-class Features(Enum):
-    """Enum for feature names that can be enabled/disabled."""
+class EnableTargets(Enum):
+    """Enum for what /enable and /disable can enable or disable."""
     HISTORY = "history"
     SCENARIO = "scenario"
     COUNTERFACTUAL = "counterfactual"
@@ -119,7 +124,94 @@ class Features(Enum):
 
     @classmethod
     def list_values(cls) -> list[str]:
-        """Return list of all valid feature name values."""
+        """Return list of all valid enable target values."""
+        return [member.value for member in cls]
+
+
+##############
+# SetTargets #
+##############
+
+class SetTargets(Enum):
+    """Enum for what /set can set."""
+    LLM_MODEL = "llm-model"
+    PIPELINE = "pipeline"
+    TEMPLATE_COMPUTATION_MODE = "template-computation-mode"
+    NEIGHBORHOOD_EXTRACTION_MODE = "neighborhood-extraction-mode"
+    FREE_TEXT_EXPLANATION_WRITING_MODE = "free-text-explanation-writing-mode"
+    SOLVING_TIME_LIMIT = "solving-time-limit"
+    LANGUAGE = "language"
+    DISPLAY_MODE = "display-mode"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid set target values."""
+        return [member.value for member in cls]
+
+
+###########################
+# SolvingTimeLimitTargets #
+###########################
+
+class SolvingTimeLimitTargets(Enum):
+    """Enum for which MILP solving time limit /set solving-time-limit can set."""
+    CONTRASTIVE = "contrastive"
+    COUNTERFACTUAL = "counterfactual"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid solving time limit target values."""
+        return [member.value for member in cls]
+
+
+###################
+# LLMModelTargets #
+###################
+
+class LLMModelTargets(Enum):
+    """Enum for which LLM model /set llm-model can set (extracting neighborhoods, or writing explanations)."""
+    NEIGHBORHOOD_EXTRACTION = "neighborhood-extraction"
+    EXPLANATION_WRITING = "explanation-writing"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid LLM model target values."""
+        return [member.value for member in cls]
+
+
+######################
+# AskTemplateTargets #
+######################
+
+class AskTemplateTargets(Enum):
+    """
+    Enum for the kinds of template-based questions /ask-template can ask.
+
+    Only contrastive questions can always be asked: scenario and counterfactual ones need to be activated first.
+    """
+    CONTRASTIVE = "contrastive"
+    SCENARIO = "scenario"
+    COUNTERFACTUAL = "counterfactual"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid ask-template target values."""
+        return [member.value for member in cls]
+
+
+###############
+# ListTargets #
+###############
+
+class ListTargets(Enum):
+    """Enum for what /list can list."""
+    TEMPLATE_QUESTIONS = "template-questions"
+    INSTANCES = "instances"
+    SOLUTIONS = "solutions"
+
+    @classmethod
+    def list_values(cls) -> list[str]:
+        """Return list of all valid list target values."""
         return [member.value for member in cls]
 
 
@@ -200,7 +292,7 @@ class DisplayModes(Enum):
 
 class LLMModels(Enum):
     """
-    Enum for the LLM models suggested by /llm-model's completion, as instructor model strings ("provider/model").
+    Enum for the LLM models suggested by /set llm-model's completion, as instructor model strings ("provider/model").
 
     These are suggestions only: any "provider/model" string instructor accepts can be set as well.
     """

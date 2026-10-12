@@ -8,7 +8,7 @@ from src.explaining.computing.neighborhood.facts import ExplanationFactsBuilder
 from src.explaining.computing.neighborhood.solving import solve_neighborhood
 from src.explaining.explanation.explanation import ExplanationComputationModes
 from src.explaining.explanation.predefined.explanation import *
-from src.explaining.interacting.configuration import FreeTextExplanationModes, TemplateComputationModes
+from src.explaining.interacting.configuration import FreeTextExplanationModes, Pipelines, TemplateComputationModes
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.modeling.solution import EditableSolution
@@ -383,6 +383,47 @@ class Explainer:
         or an ImportError if the instructor package is not installed.
         """
         self._get_writer()
+
+    def set_pipeline(self, pipeline: str, llm_model: Optional[str] = None):
+        """
+        Sets every mode (and, for the llm pipeline, both LLM models) to run the given pipeline end to end,
+        all or nothing (see ExplainerConfiguration.apply_pipeline).
+
+        For the llm pipeline, the Extractor and the ExplanationWriter are set up right away,
+        so that a misconfigured LLM backend is reported now rather than on the next question.
+        If either cannot be, every setting is put back as it was.
+
+        Args:
+            pipeline: One of Pipelines' values.
+            llm_model: For the llm pipeline, the instructor model string both extracting neighborhoods
+                and writing explanations, or None to keep the two LLM models already set.
+
+        Raises:
+            ValueError: If the pipeline cannot be applied (see ExplainerConfiguration.apply_pipeline),
+                or no LLM model is set for it.
+            RuntimeError: If an LLM model's provider needs an API key that is not set.
+            ImportError: If the instructor package is not installed.
+        """
+        configuration = self._configuration
+        previous_settings = (
+            configuration.template_computation_mode, configuration.neighborhood_extraction_mode,
+            configuration.free_text_explanation_mode,
+            configuration.neighborhood_extraction_llm_model, configuration.explanation_writing_llm_model
+        )
+        configuration.apply_pipeline(pipeline, llm_model)
+        # NB: Set back through the setters, so that an Extractor or a writer built for another model is dropped.
+        self.set_neighborhood_extraction_llm_model(configuration.neighborhood_extraction_llm_model)
+        self.set_explanation_writing_llm_model(configuration.explanation_writing_llm_model)
+        if pipeline == Pipelines.LLM.value:
+            try:
+                self.prepare_extractor()
+                self.prepare_writer()
+            except (ValueError, RuntimeError, ImportError):
+                (configuration.template_computation_mode, configuration.neighborhood_extraction_mode,
+                 configuration.free_text_explanation_mode) = previous_settings[:3]
+                self.set_neighborhood_extraction_llm_model(previous_settings[3])
+                self.set_explanation_writing_llm_model(previous_settings[4])
+                raise
 
     def _compute_free_text_explanation(self, question: FreeTextQuestion) -> Explanation:
         """

@@ -1,6 +1,6 @@
 # Standard libraries
 import re
-from typing import Iterable, Optional, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING
 
 # Third-party libraries
 from prompt_toolkit.completion import Completer, Completion, CompleteEvent
@@ -8,10 +8,7 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import FormattedText
 
 # Local libraries
-from src.explaining.interacting.configuration import FreeTextExplanationModes, TemplateComputationModes
-from src.explaining.interacting.interface.cli.commands import (
-    Commands, ClearTargets, ShowTargets, SwitchTargets, Features, Languages, DisplayModes, LLMModels
-)
+from src.explaining.interacting.interface.cli.commands import *
 from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.explaining.question.predefined.template import QuestionTemplate
@@ -24,6 +21,8 @@ if TYPE_CHECKING:
 PREVIEW_STYLE = "class:preview"
 PREVIEW_FIELD_STYLE = "class:preview.field"
 FIELD_PATTERN = re.compile(r"(\{[^}]+})")
+# The kinds of /ask-template questions that are asked from a template id and field values, and so get previews.
+_TEMPLATE_QUESTION_TARGETS = (AskTemplateTargets.CONTRASTIVE.value, AskTemplateTargets.COUNTERFACTUAL.value)
 
 
 #########################
@@ -90,12 +89,6 @@ class ExplainerCLICompleter(Completer):
         prior_tokens = prior_text.split()
         return prior_tokens, partial_token
 
-    @staticmethod
-    def _matching(partial_token: str, candidate_tokens: Iterable[str]) -> list[str]:
-        """Return the candidate tokens whose text starts with partial_token, matched case-insensitively."""
-        lowered_partial_token = partial_token.lower()
-        return [candidate for candidate in candidate_tokens if candidate.lower().startswith(lowered_partial_token)]
-
     def _compute_completions(self, document: Document) -> list[str]:
         """Return the candidate completion texts for the token the cursor is currently on."""
         prior_tokens, partial_token = self._split_text_before_cursor(document)
@@ -104,24 +97,14 @@ class ExplainerCLICompleter(Completer):
             return self._matching(partial_token, [command.name for command in Commands])
         command_name = prior_tokens[0].lower()
         args = prior_tokens[1:]
-        if command_name == Commands.CONTRASTIVE.name and token_index == 1:
-            return self._matching(partial_token, QUESTIONS_TEMPLATES.keys())
-        if command_name == Commands.CONTRASTIVE.name and token_index >= 2:
-            return self._complete_contrastive_field(args, partial_token)
-        if command_name in (Commands.LLM_MODEL.name, Commands.WRITER_LLM_MODEL.name) and token_index == 1:
-            return self._matching(partial_token, LLMModels.list_values())
-        if command_name == Commands.LANGUAGE.name and token_index == 1:
-            return self._matching(partial_token, Languages.list_values())
-        if command_name == Commands.DISPLAY_MODE.name and token_index == 1:
-            return self._matching(partial_token, DisplayModes.list_values())
-        if command_name == Commands.TEMPLATE_COMPUTATION_MODE.name and token_index == 1:
-            return self._matching(partial_token, TemplateComputationModes.list_values())
-        if command_name == Commands.NEIGHBORHOOD_EXTRACTION_MODE.name and token_index == 1:
-            return self._matching(partial_token, NeighborhoodExtractionModes.list_values())
-        if command_name == Commands.FREE_TEXT_EXPLANATION_MODE.name and token_index == 1:
-            return self._matching(partial_token, FreeTextExplanationModes.list_values())
+        if command_name == Commands.ASK_TEMPLATE.name and token_index >= 1:
+            return self._complete_ask_template(args, partial_token)
+        if command_name == Commands.SET.name and token_index >= 1:
+            return self._complete_set(args, partial_token)
+        if command_name == Commands.LIST.name and token_index == 1:
+            return self._matching(partial_token, ListTargets.list_values())
         if command_name in (Commands.ENABLE.name, Commands.DISABLE.name) and token_index == 1:
-            return self._matching(partial_token, Features.list_values())
+            return self._matching(partial_token, EnableTargets.list_values())
         if command_name == Commands.SHOW.name and token_index == 1:
             return self._matching(partial_token, ShowTargets.list_values())
         if command_name == Commands.SHOW.name and token_index == 2 and args[0].lower() == ShowTargets.INSTANCE.value:
@@ -141,11 +124,18 @@ class ExplainerCLICompleter(Completer):
         return []
 
     @staticmethod
+    def _matching(partial_token: str, candidate_tokens: Iterable[str]) -> list[str]:
+        """Return the candidate tokens whose text starts with partial_token, matched case-insensitively."""
+        lowered_partial_token = partial_token.lower()
+        return [candidate for candidate in candidate_tokens if candidate.lower().startswith(lowered_partial_token)]
+
+    @staticmethod
     def _compute_display_meta(prior_tokens: list[str], candidate: str) -> Optional[FormattedText]:
         """
         Return the text shown next to a completion candidate in the menu, if any.
 
-        Only /contrastive candidates get one: the question they lead to, as a preview.
+        Only the template ids and field values of /ask-template contrastive|counterfactual get one:
+        the question they lead to, as a preview.
         A template id candidate previews its own question, with every field left as a placeholder.
         A field value candidate previews the question with the values already typed and itself filled in,
         the later fields being left as placeholders.
@@ -157,15 +147,16 @@ class ExplainerCLICompleter(Completer):
         Returns:
             The question preview, or None if the candidate gets no text next to it.
         """
-        if not prior_tokens or prior_tokens[0].lower() != Commands.CONTRASTIVE.name:
+        if (len(prior_tokens) < 2 or prior_tokens[0].lower() != Commands.ASK_TEMPLATE.name
+                or prior_tokens[1].lower() not in _TEMPLATE_QUESTION_TARGETS):
             return None
-        if len(prior_tokens) == 1:
-            return ExplainerCLICompleter._build_contrastive_preview(QUESTIONS_TEMPLATES[candidate], [])
-        template = QUESTIONS_TEMPLATES[prior_tokens[1]]
-        return ExplainerCLICompleter._build_contrastive_preview(template, prior_tokens[2:] + [candidate])
+        if len(prior_tokens) == 2:
+            return ExplainerCLICompleter._build_template_question_preview(QUESTIONS_TEMPLATES[candidate], [])
+        template = QUESTIONS_TEMPLATES[prior_tokens[2]]
+        return ExplainerCLICompleter._build_template_question_preview(template, prior_tokens[3:] + [candidate])
 
     @staticmethod
-    def _build_contrastive_preview(template: QuestionTemplate, fields_values: list[str]) -> FormattedText:
+    def _build_template_question_preview(template: QuestionTemplate, fields_values: list[str]) -> FormattedText:
         """
         Return the template's question, in its current language, with its first fields filled with the given values.
 
@@ -189,8 +180,76 @@ class ExplainerCLICompleter(Completer):
                 fragments.append((PREVIEW_STYLE, part))
         return FormattedText(fragments)
 
-    def _complete_contrastive_field(self, args: list[str], partial_token: str) -> list[str]:
-        """Return valid values for the /contrastive field the cursor is currently on, narrowed by prior fields."""
+    def _complete_set(self, args: list[str], partial_token: str) -> list[str]:
+        """
+        Return the candidate completion texts for the token after /set and the args already typed after it.
+
+        Args:
+            args: The tokens already typed after /set.
+            partial_token: The token the cursor is currently on.
+
+        Returns:
+            The set targets first, then the options (modes, languages, ...) of the target typed,
+            then the suggested LLM models after /set llm-model <target> and /set pipeline llm.
+        """
+        if len(args) == 0:
+            return self._matching(partial_token, SetTargets.list_values())
+        target = args[0].lower()
+        if len(args) == 1:
+            if target == SetTargets.PIPELINE.value:
+                return self._matching(partial_token, Pipelines.list_values())
+            if target == SetTargets.LANGUAGE.value:
+                return self._matching(partial_token, Languages.list_values())
+            if target == SetTargets.DISPLAY_MODE.value:
+                return self._matching(partial_token, DisplayModes.list_values())
+            if target == SetTargets.TEMPLATE_COMPUTATION_MODE.value:
+                return self._matching(partial_token, TemplateComputationModes.list_values())
+            if target == SetTargets.NEIGHBORHOOD_EXTRACTION_MODE.value:
+                return self._matching(partial_token, NeighborhoodExtractionModes.list_values())
+            if target == SetTargets.FREE_TEXT_EXPLANATION_WRITING_MODE.value:
+                return self._matching(partial_token, FreeTextExplanationModes.list_values())
+            if target == SetTargets.SOLVING_TIME_LIMIT.value:
+                return self._matching(partial_token, SolvingTimeLimitTargets.list_values())
+            if target == SetTargets.LLM_MODEL.value:
+                return self._matching(partial_token, LLMModelTargets.list_values())
+        if len(args) == 2 and target == SetTargets.LLM_MODEL.value and args[1].lower() in LLMModelTargets.list_values():
+            return self._matching(partial_token, LLMModels.list_values())
+        if len(args) == 2 and target == SetTargets.PIPELINE.value and args[1].lower() == Pipelines.LLM.value:
+            return self._matching(partial_token, LLMModels.list_values())
+        return []
+
+    def _complete_ask_template(self, args: list[str], partial_token: str) -> list[str]:
+        """
+        Return the candidate completion texts for the token after /ask-template and the args already typed after it.
+
+        Args:
+            args: The tokens already typed after /ask-template.
+            partial_token: The token the cursor is currently on.
+
+        Returns:
+            The activated kinds of questions first, then the template ids that kind accepts,
+            then the valid values of the template's field the cursor is on.
+            Nothing for a scenario question, which takes no template from the CLI yet.
+        """
+        if len(args) == 0:
+            return self._matching(partial_token, self._cli.get_activated_ask_template_targets())
+        target = args[0].lower()
+        if target == AskTemplateTargets.CONTRASTIVE.value:
+            template_ids = list(QUESTIONS_TEMPLATES.keys())
+        elif target == AskTemplateTargets.COUNTERFACTUAL.value:
+            template_ids = self._cli.explainer.configuration.activated_counterfactual_questions_templates_ids
+        else:
+            return []
+        if target not in self._cli.get_activated_ask_template_targets():
+            return []
+        if len(args) == 1:
+            return self._matching(partial_token, template_ids)
+        if args[1] not in template_ids:
+            return []
+        return self._complete_template_question_field(args[1:], partial_token)
+
+    def _complete_template_question_field(self, args: list[str], partial_token: str) -> list[str]:
+        """Return valid values for the template field the cursor is currently on, narrowed by prior fields."""
         if not args:
             return []
         template_id = args[0]

@@ -7,13 +7,13 @@ from prompt_toolkit.formatted_text import to_plain_text
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.cli.cli import ExplainerCLI
-from src.explaining.interacting.interface.cli.commands import ClearTargets, LLMModels, SwitchTargets
+from src.explaining.interacting.interface.cli.commands import *
 from src.explaining.interacting.interface.cli.completer import (
     PREVIEW_FIELD_STYLE, PREVIEW_STYLE, ExplainerCLICompleter
 )
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
-from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_INS_3, WHY_NOT_SWP_1
+from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_INS_2C, WHY_NOT_INS_3, WHY_NOT_SWP_1
 from src.modeling.solution import Solution
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
@@ -76,13 +76,13 @@ def completer_without_history(cli_without_history: ExplainerCLI) -> ExplainerCLI
 
 def test_empty_input_offers_all_command_names(completer: ExplainerCLICompleter):
     results = complete(completer, "")
-    assert "/contrastive" in results
+    assert "/ask-template" in results
     assert "/help" in results
     assert "/quit" in results
 
 
 def test_command_name_prefix_completion(completer: ExplainerCLICompleter):
-    assert complete(completer, "/con") == ["/contrastive"]
+    assert complete(completer, "/ask-") == ["/ask-template"]
 
 
 def test_clear_target_completion(completer: ExplainerCLICompleter):
@@ -95,64 +95,96 @@ def test_unknown_command_offers_no_argument_completions(completer: ExplainerCLIC
 
 
 def test_contrastive_template_id_completion(completer: ExplainerCLICompleter):
-    results = complete(completer, f"/contrastive {WHY_NOT_INS_1[:-2]}")
+    results = complete(completer, f"/ask-template contrastive {WHY_NOT_INS_1[:-2]}")
     assert WHY_NOT_INS_1 in results
 
 
 def test_contrastive_invalid_template_id_offers_no_field_completions(completer: ExplainerCLICompleter):
-    assert complete(completer, "/contrastive NOT_A_TEMPLATE ") == []
+    assert complete(completer, "/ask-template contrastive NOT_A_TEMPLATE ") == []
 
 
 def test_contrastive_first_field_value_completion(completer: ExplainerCLICompleter):
-    results = complete(completer, f"/contrastive {WHY_NOT_INS_1} ")
+    results = complete(completer, f"/ask-template contrastive {WHY_NOT_INS_1} ")
     assert "Ellen" in results
 
 
 def test_contrastive_second_field_value_narrowed_by_first(completer: ExplainerCLICompleter):
     # (Swp,1)'s second field is a task not performed by the employee given as the first field; the demo
     # solution has Ellen performing T1, so T1 must appear for Carlotta's set but not for Ellen's.
-    results_for_ellen = complete(completer, f"/contrastive {WHY_NOT_SWP_1} Ellen ")
-    results_for_carlotta = complete(completer, f"/contrastive {WHY_NOT_SWP_1} Carlotta ")
+    results_for_ellen = complete(completer, f"/ask-template contrastive {WHY_NOT_SWP_1} Ellen ")
+    results_for_carlotta = complete(completer, f"/ask-template contrastive {WHY_NOT_SWP_1} Carlotta ")
     assert "T1" not in results_for_ellen
     assert "T1" in results_for_carlotta
 
 
 def test_contrastive_too_many_field_values_offers_nothing(completer: ExplainerCLICompleter):
-    assert complete(completer, f"/contrastive {WHY_NOT_INS_1} Ellen T2 Start extra ") == []
+    assert complete(completer, f"/ask-template contrastive {WHY_NOT_INS_1} Ellen T2 Start extra ") == []
 
 
-def test_language_enum_completion(completer: ExplainerCLICompleter):
-    assert complete(completer, "/language e") == ["en"]
+def test_set_target_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set ") == SetTargets.list_values()
 
 
-def test_llm_model_completion_offers_every_suggested_model(completer: ExplainerCLICompleter):
-    assert complete(completer, "/llm-model ") == LLMModels.list_values()
+def test_set_language_enum_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set language e") == ["en"]
 
 
-def test_llm_model_completion_narrows_by_provider(completer: ExplainerCLICompleter):
-    assert complete(completer, "/llm-model ollama/") == ["ollama/llama3.2", "ollama/qwen2.5:7b"]
+def test_set_solving_time_limit_target_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set solving-time-limit ") == SolvingTimeLimitTargets.list_values()
 
 
-def test_llm_model_second_argument_offers_nothing(completer: ExplainerCLICompleter):
-    assert complete(completer, "/llm-model ollama/llama3.2 ") == []
+def test_set_llm_model_target_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set llm-model ") == LLMModelTargets.list_values()
 
 
-def test_neighborhood_extraction_mode_enum_completion(completer: ExplainerCLICompleter):
-    assert complete(completer, "/neighborhood-extraction-mode l") == ["llm"]
+def test_set_llm_model_completion_offers_every_suggested_model(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set llm-model neighborhood-extraction ") == LLMModels.list_values()
+    assert complete(completer, "/set llm-model explanation-writing ") == LLMModels.list_values()
 
 
-def test_writer_llm_model_completion_offers_every_suggested_model(completer: ExplainerCLICompleter):
-    assert complete(completer, "/writer-llm-model ") == LLMModels.list_values()
+def test_set_llm_model_completion_narrows_by_provider(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set llm-model neighborhood-extraction ollama/") == [
+        "ollama/llama3.2", "ollama/qwen2.5:7b"]
 
 
-def test_free_text_explanation_mode_enum_completion(completer: ExplainerCLICompleter):
-    assert complete(completer, "/free-text-explanation-mode t") == ["templated"]
+def test_set_llm_model_last_argument_offers_nothing(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set llm-model neighborhood-extraction ollama/llama3.2 ") == []
+    assert complete(completer, "/set llm-model everything ") == []
 
 
-def test_empty_input_offers_the_free_text_commands(completer: ExplainerCLICompleter):
+def test_set_pipeline_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set pipeline ") == ["tailored", "llm"]
+    assert complete(completer, "/set pipeline llm ") == LLMModels.list_values()
+    assert complete(completer, "/set pipeline tailored ") == []
+
+
+def test_list_target_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/list ") == ListTargets.list_values()
+
+
+def test_set_display_mode_enum_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set display-mode d") == ["developer"]
+
+
+def test_set_template_computation_mode_enum_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set template-computation-mode n") == ["neighborhood"]
+
+
+def test_set_neighborhood_extraction_mode_enum_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set neighborhood-extraction-mode l") == ["llm"]
+
+
+def test_set_free_text_explanation_writing_mode_enum_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/set free-text-explanation-writing-mode t") == ["templated"]
+
+
+def test_empty_input_offers_the_grouped_commands_only(completer: ExplainerCLICompleter):
     results = complete(completer, "")
-    assert "/writer-llm-model" in results
-    assert "/free-text-explanation-mode" in results
+    assert {"/set", "/list"} <= set(results)
+    assert not {
+        "/contrastive", "/language", "/llm-model", "/writer-llm-model", "/list-templates", "/time-limit-contrastive",
+        "/display-mode", "/template-computation-mode", "/neighborhood-extraction-mode", "/free-text-explanation-mode"
+    } & set(results)
 
 
 def test_show_enum_completion(completer: ExplainerCLICompleter):
@@ -200,20 +232,20 @@ def test_history_disabled_still_completes_from_the_root_instance_and_solution(
 
 
 def test_contrastive_template_id_candidates_preview_their_own_question(completer: ExplainerCLICompleter):
-    metas = complete_with_meta(completer, "/contrastive WN-Ins")
+    metas = complete_with_meta(completer, "/ask-template contrastive WN-Ins")
     assert len(metas) > 1
     for template_id, meta in metas.items():
         assert meta == expected_question(template_id, [])
 
 
 def test_contrastive_value_candidate_previews_the_question_filled_with_it(completer: ExplainerCLICompleter):
-    metas = complete_with_meta(completer, f"/contrastive {WHY_NOT_INS_3} El")
+    metas = complete_with_meta(completer, f"/ask-template contrastive {WHY_NOT_INS_3} El")
     assert metas["Ellen"] == expected_question(WHY_NOT_INS_3, ["Ellen"])
     assert "{Task}" in metas["Ellen"]
 
 
 def test_contrastive_value_candidate_preview_keeps_the_values_already_typed(completer: ExplainerCLICompleter):
-    metas = complete_with_meta(completer, f"/contrastive {WHY_NOT_INS_1} Ellen ")
+    metas = complete_with_meta(completer, f"/ask-template contrastive {WHY_NOT_INS_1} Ellen ")
     assert metas
     for task_name, meta in metas.items():
         assert meta == expected_question(WHY_NOT_INS_1, ["Ellen", task_name])
@@ -221,7 +253,7 @@ def test_contrastive_value_candidate_preview_keeps_the_values_already_typed(comp
 
 
 def test_contrastive_preview_styles_values_and_placeholders_as_fields(completer: ExplainerCLICompleter):
-    text = f"/contrastive {WHY_NOT_INS_3} El"
+    text = f"/ask-template contrastive {WHY_NOT_INS_3} El"
     document = Document(text=text, cursor_position=len(text))
     ellen = next(completion for completion in completer.get_completions(document, None) if completion.text == "Ellen")
     assert [text for style, text in ellen.display_meta if style == PREVIEW_FIELD_STYLE] == ["Ellen", "{Task}"]
@@ -229,14 +261,34 @@ def test_contrastive_preview_styles_values_and_placeholders_as_fields(completer:
 
 
 def test_non_contrastive_candidates_have_no_preview(completer: ExplainerCLICompleter):
-    assert complete_with_meta(completer, "/language e") == {"en": ""}
+    assert complete_with_meta(completer, "/set language e") == {"en": ""}
 
 
 def test_contrastive_preview_follows_the_template_language(completer: ExplainerCLICompleter):
     template = QUESTIONS_TEMPLATES[WHY_NOT_INS_3]
     template.set_language(LANGUAGE_FRENCH_KEY)
     try:
-        metas = complete_with_meta(completer, f"/contrastive {WHY_NOT_INS_3} El")
+        metas = complete_with_meta(completer, f"/ask-template contrastive {WHY_NOT_INS_3} El")
         assert metas["Ellen"].startswith("Pourquoi est-ce que l'employé Ellen")
     finally:
         template.set_language(LANGUAGE_ENGLISH_KEY)
+
+
+def test_ask_template_offers_only_the_activated_kinds(cli: ExplainerCLI, completer: ExplainerCLICompleter):
+    assert complete(completer, "/ask-template ") == ["contrastive"]
+    assert complete(completer, "/ask-template counterfactual ") == []
+    cli.explainer.configuration.scenario_explanations_enabled = True
+    cli.explainer.configuration.counterfactual_explanations_enabled = True
+    assert complete(completer, "/ask-template ") == ["contrastive", "scenario", "counterfactual"]
+    assert complete(completer, "/ask-template scenario ") == []
+
+
+def test_ask_template_counterfactual_offers_only_counterfactual_capable_templates(
+        cli: ExplainerCLI, completer: ExplainerCLICompleter):
+    configuration = cli.explainer.configuration
+    configuration.counterfactual_explanations_enabled = True
+    assert complete(completer, "/ask-template counterfactual ") == \
+        configuration.activated_counterfactual_questions_templates_ids
+    assert WHY_NOT_INS_2C not in complete(completer, "/ask-template counterfactual ")
+    metas = complete_with_meta(completer, f"/ask-template counterfactual {WHY_NOT_INS_1} ")
+    assert metas["Ellen"], "Counterfactual candidates get the question preview too"
