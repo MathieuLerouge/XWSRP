@@ -9,8 +9,12 @@ from prompt_toolkit.styles import Style
 
 # Local libraries
 from src.explaining.explanation.explanation import Explanation, ExplanationComputationModes
+from src.explaining.explanation.free.exceptions import ExplanationWritingError
+from src.explaining.explanation.free.explanation import FreeTextExplanation
 from src.explaining.interacting.explainer import Explainer
-from src.explaining.interacting.configuration import ExplainerConfiguration, TemplateComputationModes
+from src.explaining.interacting.configuration import (
+    ExplainerConfiguration, FreeTextExplanationModes, TemplateComputationModes
+)
 from src.explaining.interacting.interface.cli.commands import (
     Commands, ClearTargets, ShowTargets, SwitchTargets, Features, Languages, DisplayModes, LLMModels,
 )
@@ -92,8 +96,10 @@ class ExplainerCLI:
         self._commands = {
             # Core
             Commands.LLM_MODEL.name: self.handle_llm_model,
+            Commands.WRITER_LLM_MODEL.name: self.handle_writer_llm_model,
             Commands.TEMPLATE_COMPUTATION_MODE.name: self.handle_template_mode,
             Commands.NEIGHBORHOOD_EXTRACTION_MODE.name: self.handle_neighborhood_extraction_mode,
+            Commands.FREE_TEXT_EXPLANATION_MODE.name: self.handle_free_text_explanation_mode,
             Commands.CONTRASTIVE.name: self.handle_contrastive,
             Commands.ASK.name: self.handle_ask,
             Commands.SAVE_SOLUTION.name: self.handle_save_solution,
@@ -198,6 +204,28 @@ class ExplainerCLI:
                 return f"LLM model set to {model}, but its extractor could not be set up: {e}"
         return f"LLM model set to {model}"
 
+    def handle_writer_llm_model(self, args: list[str]) -> str:
+        """
+        Handle /writer-llm-model <model> command.
+
+        In written free-text explanation mode, the writer is set up right away,
+        so that a misconfigured LLM backend is reported now rather than on the next question.
+        """
+        if len(args) < 1:
+            return (f"Usage: {self._yellow(Commands.WRITER_LLM_MODEL.name)} <provider/model> "
+                    f"(e.g. {', '.join(LLMModels.list_values())})")
+        model = args[0]
+        # Basic validation: should contain a slash
+        if "/" not in model:
+            return f"Invalid model format '{model}'. Expected format: 'provider/model'"
+        self._explainer.explanation_writing_llm_model = model
+        if self._explainer.configuration.free_text_explanation_mode == FreeTextExplanationModes.WRITTEN.value:
+            try:
+                self._explainer.prepare_writer()
+            except (ValueError, RuntimeError, ImportError) as e:
+                return f"Writer LLM model set to {model}, but its writer could not be set up: {e}"
+        return f"Writer LLM model set to {model}"
+
     def handle_template_mode(self, args: list[str]) -> str:
         """Handle /template-computation-mode <mode> command."""
         if len(args) < 1:
@@ -241,6 +269,31 @@ class ExplainerCLI:
             )
         return result
 
+    def handle_free_text_explanation_mode(self, args: list[str]) -> str:
+        """
+        Handle /free-text-explanation-mode <mode> command.
+
+        Switching to written sets up the writer right away, so that a misconfigured LLM backend is reported now
+        rather than on the next question. The mode is left unchanged if no writer LLM model is set or the setup fails.
+        """
+        usage = (f"Usage: {self._yellow(Commands.FREE_TEXT_EXPLANATION_MODE.name)} "
+                 f"<{'|'.join(FreeTextExplanationModes.list_values())}>")
+        if len(args) < 1:
+            return usage
+        mode = args[0].lower()
+        if mode not in FreeTextExplanationModes.list_values():
+            return usage
+        if mode == FreeTextExplanationModes.WRITTEN.value:
+            if self._explainer.explanation_writing_llm_model is None:
+                return (f"No writer LLM model configured. "
+                        f"Use {self._yellow(Commands.WRITER_LLM_MODEL.name)} <provider/model> first.")
+            try:
+                self._explainer.prepare_writer()
+            except (ValueError, RuntimeError, ImportError) as e:
+                return f"Error: {e}"
+        self._explainer.configuration.free_text_explanation_mode = mode
+        return f"Free-text explanation mode set to {mode}"
+
     def handle_ask(self, args: list[str]) -> str:
         """Handle /ask <question> command."""
         if len(args) < 1:
@@ -248,11 +301,17 @@ class ExplainerCLI:
         if self._explainer.neighborhood_extraction_llm_model is None:
             return (f"No LLM model configured. "
                     f"Use {self._yellow(Commands.LLM_MODEL.name)} <provider/model> first.")
+        if (self._explainer.configuration.free_text_explanation_mode == FreeTextExplanationModes.WRITTEN.value
+                and self._explainer.explanation_writing_llm_model is None):
+            return (f"No writer LLM model configured. "
+                    f"Use {self._yellow(Commands.WRITER_LLM_MODEL.name)} <provider/model> first, "
+                    f"or {self._yellow(Commands.FREE_TEXT_EXPLANATION_MODE.name)} "
+                    f"{FreeTextExplanationModes.TEMPLATED.value}.")
         question_text = " ".join(args)
         try:
             explanation = self._explainer.get_free_text_explanation(question_text)
             return self._format_explanation_output(explanation)
-        except (NeighborhoodError, ValueError) as e:
+        except (NeighborhoodError, ExplanationWritingError, ValueError) as e:
             return f"Error: {e}"
 
     def handle_contrastive(self, args: list[str]) -> str:
@@ -679,6 +738,10 @@ class ExplainerCLI:
                     lines.append(self._gray(f"Neighborhood extraction mode: {neighborhood.extraction_mode}"))
                     lines.append(self._gray(f"Neighborhood scope: {neighborhood.scope}"))
                     lines.append(self._gray(f"Neighborhood primitives: {neighborhood}"))
+            if isinstance(explanation, FreeTextExplanation):
+                lines.append(self._gray(f"Free-text explanation mode: {FreeTextExplanationModes.WRITTEN.value}"))
+                lines.append(self._gray(f"Writer LLM model: {explanation.llm_model}"))
+                lines.append(self._gray(f"Outcome: {explanation.facts.outcome.value}"))
             if explanation.computation_time is not None:
                 lines.append(self._gray(f"Computation time: {explanation.computation_time:.3f}s"))
             lines.append(self._gray(f"Support solution: {feasibility}"))
@@ -711,9 +774,11 @@ class ExplainerCLI:
             f"  Display Mode: {self._display_mode}",
             f"  Language: {config.language}",
             f"  History Enabled: {'Yes' if config.history_enabled else 'No'}",
-            f"  LLM Model: {config.neighborhood_extraction_llm_model or 'None'}",
+            f"  Extraction LLM Model: {config.neighborhood_extraction_llm_model or 'None'}",
+            f"  Writer LLM Model: {config.explanation_writing_llm_model or 'None'}",
             f"  Template Computation Mode: {config.template_computation_mode}",
             f"  Neighborhood Extraction Mode: {config.neighborhood_extraction_mode}",
+            f"  Free-Text Explanation Mode: {config.free_text_explanation_mode}",
             f"  Scenario Enabled: {'Yes' if config.scenario_explanations_enabled else 'No'}",
             f"  Counterfactual Enabled: {'Yes' if config.counterfactual_explanations_enabled else 'No'}",
             f"  Reuse Computed Explanations: "

@@ -11,8 +11,10 @@ class Commands(Enum):
     
     # Core Commands
     LLM_MODEL = ("/llm-model", "Set LLM model for free-text extraction")
+    WRITER_LLM_MODEL = ("/writer-llm-model", "Set LLM model for free-text explanation writing")
     TEMPLATE_COMPUTATION_MODE = ("/template-computation-mode", "Switch template pipeline (tailored/neighborhood)")
     NEIGHBORHOOD_EXTRACTION_MODE = ("/neighborhood-extraction-mode", "Switch neighborhood extraction (llm/tailored)")
+    FREE_TEXT_EXPLANATION_MODE = ("/free-text-explanation-mode", "Switch free-text explanation (written/templated)")
     ASK = ("/ask", "Ask a free-text contrastive question")
     CONTRASTIVE = ("/contrastive", "Ask a template-based contrastive question")
     SAVE_SOLUTION = ("/save-solution", "Save current support solution")
@@ -56,8 +58,10 @@ class Commands(Enum):
             "",
             "Core Commands:",
             f"  {cls.LLM_MODEL.name} <model>                   {cls.LLM_MODEL.description}",
+            f"  {cls.WRITER_LLM_MODEL.name} <model>            {cls.WRITER_LLM_MODEL.description}",
             f"  {cls.TEMPLATE_COMPUTATION_MODE.name} <mode>    {cls.TEMPLATE_COMPUTATION_MODE.description}",
             f"  {cls.NEIGHBORHOOD_EXTRACTION_MODE.name} <mode> {cls.NEIGHBORHOOD_EXTRACTION_MODE.description}",
+            f"  {cls.FREE_TEXT_EXPLANATION_MODE.name} <mode>   {cls.FREE_TEXT_EXPLANATION_MODE.description}",
             f"  {cls.ASK.name} <question>                      {cls.ASK.description}",
             f"  {cls.CONTRASTIVE.name} <id> <vals>             {cls.CONTRASTIVE.description}",
             f"  {cls.SAVE_SOLUTION.name}                       {cls.SAVE_SOLUTION.description}",

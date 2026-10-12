@@ -8,7 +8,7 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import FormattedText
 
 # Local libraries
-from src.explaining.interacting.configuration import TemplateComputationModes
+from src.explaining.interacting.configuration import FreeTextExplanationModes, TemplateComputationModes
 from src.explaining.interacting.interface.cli.commands import (
     Commands, ClearTargets, ShowTargets, SwitchTargets, Features, Languages, DisplayModes, LLMModels
 )
@@ -108,7 +108,7 @@ class ExplainerCLICompleter(Completer):
             return self._matching(partial_token, QUESTIONS_TEMPLATES.keys())
         if command_name == Commands.CONTRASTIVE.name and token_index >= 2:
             return self._complete_contrastive_field(args, partial_token)
-        if command_name == Commands.LLM_MODEL.name and token_index == 1:
+        if command_name in (Commands.LLM_MODEL.name, Commands.WRITER_LLM_MODEL.name) and token_index == 1:
             return self._matching(partial_token, LLMModels.list_values())
         if command_name == Commands.LANGUAGE.name and token_index == 1:
             return self._matching(partial_token, Languages.list_values())
@@ -118,6 +118,8 @@ class ExplainerCLICompleter(Completer):
             return self._matching(partial_token, TemplateComputationModes.list_values())
         if command_name == Commands.NEIGHBORHOOD_EXTRACTION_MODE.name and token_index == 1:
             return self._matching(partial_token, NeighborhoodExtractionModes.list_values())
+        if command_name == Commands.FREE_TEXT_EXPLANATION_MODE.name and token_index == 1:
+            return self._matching(partial_token, FreeTextExplanationModes.list_values())
         if command_name in (Commands.ENABLE.name, Commands.DISABLE.name) and token_index == 1:
             return self._matching(partial_token, Features.list_values())
         if command_name == Commands.SHOW.name and token_index == 1:

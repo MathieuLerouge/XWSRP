@@ -2,14 +2,20 @@
 import pytest
 
 # Local libraries
-from src.explaining.interacting.configuration import ExplainerConfiguration
+from src.explaining.explanation.free.exceptions import ExplanationWritingError
+from src.explaining.interacting.configuration import ExplainerConfiguration, FreeTextExplanationModes
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.interface.cli.cli import ExplainerCLI
-from src.explaining.interacting.interface.cli.commands import ClearTargets, ShowTargets, SwitchTargets
+from src.explaining.interacting.interface.cli.commands import (
+    ClearTargets, DisplayModes, ShowTargets, SwitchTargets
+)
 from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.predefined.constants import WHY_NOT_INS_1
 from src.modeling.solution import Solution
+from tests.explaining.interacting.test_explainer import (
+    StubWriter, build_covered_neighborhood, give_explainer_a_stub_extractor
+)
 
 
 @pytest.fixture(scope="module")
@@ -18,9 +24,11 @@ def demo_solution() -> Solution:
     return get_demo_solution()
 
 
-def build_cli(solution: Solution, llm_model=None) -> ExplainerCLI:
-    """Return an ExplainerCLI over an explainer built with the given LLM model, if any."""
-    return ExplainerCLI(solution, Explainer(solution, ExplainerConfiguration(neighborhood_llm_model=llm_model)))
+def build_cli(solution: Solution, llm_model=None, writer_model=None) -> ExplainerCLI:
+    """Return an ExplainerCLI over an explainer built with the given extraction and writer LLM models, if any."""
+    return ExplainerCLI(solution, Explainer(solution, ExplainerConfiguration(
+        neighborhood_llm_model=llm_model, explanation_writing_llm_model=writer_model
+    )))
 
 
 def test_llm_extraction_mode_is_refused_without_an_llm_model(demo_solution):
@@ -190,3 +198,113 @@ def test_switching_after_asking_the_same_question_again_switches_to_the_first_sa
     cli.handle_switch([SwitchTargets.LAST_SUPPORT_SOLUTION.value])
     assert cli.explainer.current_solution is first_saved_solution
     assert len(cli.explainer.history.solutions) == nb_solutions
+
+
+###############################################
+# Free-text questions - Writer and their mode #
+###############################################
+
+def test_writer_llm_model_without_a_model_shows_the_usage(demo_solution):
+    cli = build_cli(demo_solution)
+    assert "Usage" in cli.handle_writer_llm_model([])
+    assert "Invalid model format" in cli.handle_writer_llm_model(["qwen"])
+
+
+def test_writer_llm_model_sets_the_model_and_sets_up_the_writer(demo_solution, monkeypatch):
+    cli = build_cli(demo_solution)
+    prepare_calls = []
+    monkeypatch.setattr(cli.explainer, "prepare_writer", lambda: prepare_calls.append(True))
+    assert cli.handle_writer_llm_model(["stub/model"]) == "Writer LLM model set to stub/model"
+    assert cli.explainer.explanation_writing_llm_model == "stub/model"
+    assert prepare_calls == [True]
+
+
+def test_writer_llm_model_reports_a_writer_that_cannot_be_set_up(demo_solution, monkeypatch):
+    cli = build_cli(demo_solution)
+
+    def fail_to_prepare_writer():
+        raise RuntimeError("missing API key")
+
+    monkeypatch.setattr(cli.explainer, "prepare_writer", fail_to_prepare_writer)
+    result = cli.handle_writer_llm_model(["stub/model"])
+    assert "could not be set up: missing API key" in result
+    assert cli.explainer.explanation_writing_llm_model == "stub/model"
+
+
+def test_written_free_text_explanation_mode_is_refused_without_a_writer_model(demo_solution):
+    cli = build_cli(demo_solution)
+    cli.explainer.configuration.free_text_explanation_mode = FreeTextExplanationModes.TEMPLATED.value
+    result = cli.handle_free_text_explanation_mode([FreeTextExplanationModes.WRITTEN.value])
+    assert "No writer LLM model configured" in result
+    assert cli.explainer.configuration.free_text_explanation_mode == FreeTextExplanationModes.TEMPLATED.value
+
+
+def test_written_free_text_explanation_mode_is_left_unchanged_when_the_writer_cannot_be_set_up(
+        demo_solution, monkeypatch):
+    cli = build_cli(demo_solution, writer_model="stub/model")
+    cli.explainer.configuration.free_text_explanation_mode = FreeTextExplanationModes.TEMPLATED.value
+
+    def fail_to_prepare_writer():
+        raise RuntimeError("missing API key")
+
+    monkeypatch.setattr(cli.explainer, "prepare_writer", fail_to_prepare_writer)
+    result = cli.handle_free_text_explanation_mode([FreeTextExplanationModes.WRITTEN.value])
+    assert "missing API key" in result
+    assert cli.explainer.configuration.free_text_explanation_mode == FreeTextExplanationModes.TEMPLATED.value
+
+
+def test_free_text_explanation_mode_switches_between_written_and_templated(demo_solution, monkeypatch):
+    cli = build_cli(demo_solution, writer_model="stub/model")
+    monkeypatch.setattr(cli.explainer, "prepare_writer", lambda: None)
+    cli.handle_free_text_explanation_mode([FreeTextExplanationModes.TEMPLATED.value])
+    assert cli.explainer.configuration.free_text_explanation_mode == FreeTextExplanationModes.TEMPLATED.value
+    cli.handle_free_text_explanation_mode([FreeTextExplanationModes.WRITTEN.value])
+    assert cli.explainer.configuration.free_text_explanation_mode == FreeTextExplanationModes.WRITTEN.value
+    assert "Usage" in cli.handle_free_text_explanation_mode(["magic"])
+    assert "Usage" in cli.handle_free_text_explanation_mode([])
+
+
+def test_ask_in_written_mode_needs_a_writer_model(demo_solution):
+    """Said up front, with both ways out, rather than surfacing the Explainer's own ValueError."""
+    cli = build_cli(demo_solution, llm_model="stub/model")
+    result = cli.handle_ask(["Why", "not?"])
+    assert "No writer LLM model configured" in result
+    assert FreeTextExplanationModes.TEMPLATED.value in result
+
+
+def build_cli_answering_with_stubs(solution: Solution) -> ExplainerCLI:
+    """Return an ExplainerCLI whose explainer extracts and writes with stubs, in written free-text mode."""
+    cli = build_cli(solution, llm_model="stub/model", writer_model="stub/model")
+    give_explainer_a_stub_extractor(cli.explainer, build_covered_neighborhood(cli.explainer.current_solution))
+    cli.explainer._writer = StubWriter()
+    return cli
+
+
+def test_ask_in_written_mode_shows_the_written_explanation(demo_solution):
+    cli = build_cli_answering_with_stubs(demo_solution)
+    result = cli.handle_ask(["Why", "isn't", "Ellen", "doing", "T2", "right", "after", "leaving", "home?"])
+    assert StubWriter.TEXT in result
+    assert "Outcome" not in result, "The facts' outcome is developer output only"
+    cli.handle_display_mode([DisplayModes.DEVELOPER.value])
+    developer_result = cli.handle_ask(["Why", "isn't", "Ellen", "doing", "T2", "right", "after", "leaving", "home?"])
+    assert "Free-text explanation mode: written" in developer_result
+    assert "Writer LLM model: stub/model" in developer_result
+    assert "Outcome: time infeasible" in developer_result
+
+
+def test_ask_reports_an_explanation_that_could_not_be_written(demo_solution, monkeypatch):
+    cli = build_cli_answering_with_stubs(demo_solution)
+
+    def fail_to_write(*args, **kwargs):
+        raise ExplanationWritingError()
+
+    monkeypatch.setattr(cli.explainer._writer, "write", fail_to_write)
+    assert cli.handle_ask(["Why", "not?"]).startswith("Error: No explanation could be worded")
+
+
+def test_show_config_lists_both_llm_models_and_the_free_text_explanation_mode(demo_solution):
+    result = build_cli(demo_solution, llm_model="stub/extractor", writer_model="stub/writer").handle_show(
+        [ShowTargets.CONFIG.value])
+    assert "Extraction LLM Model: stub/extractor" in result
+    assert "Writer LLM Model: stub/writer" in result
+    assert f"Free-Text Explanation Mode: {FreeTextExplanationModes.WRITTEN.value}" in result

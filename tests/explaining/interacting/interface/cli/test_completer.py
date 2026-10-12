@@ -141,6 +141,20 @@ def test_neighborhood_extraction_mode_enum_completion(completer: ExplainerCLICom
     assert complete(completer, "/neighborhood-extraction-mode l") == ["llm"]
 
 
+def test_writer_llm_model_completion_offers_every_suggested_model(completer: ExplainerCLICompleter):
+    assert complete(completer, "/writer-llm-model ") == LLMModels.list_values()
+
+
+def test_free_text_explanation_mode_enum_completion(completer: ExplainerCLICompleter):
+    assert complete(completer, "/free-text-explanation-mode t") == ["templated"]
+
+
+def test_empty_input_offers_the_free_text_commands(completer: ExplainerCLICompleter):
+    results = complete(completer, "")
+    assert "/writer-llm-model" in results
+    assert "/free-text-explanation-mode" in results
+
+
 def test_show_enum_completion(completer: ExplainerCLICompleter):
     assert complete(completer, "/show sol") == ["solution"]
 
