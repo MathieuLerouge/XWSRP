@@ -1,5 +1,6 @@
-# Third-party library
+# Third-party libraries
 import pytest
+from instructor import Mode
 
 # Local libraries
 from src.explaining.neighborhood.llm.extractor import Extractor
@@ -55,3 +56,18 @@ def test_json_context_defaults_per_provider_unless_overridden(monkeypatch, model
     monkeypatch.setenv("MISTRAL_API_KEY", "fake-key-for-test")
     extractor = Extractor(_build_solution(), model, with_json_context=with_json_context)
     assert extractor._with_json_context is expected
+
+
+@pytest.mark.parametrize("model, mode, expected", [
+    ("ollama/llama3.2", None, Mode.MD_JSON),
+    ("mistral/mistral-small-latest", None, None),
+    ("ollama/llama3.2", Mode.JSON, Mode.JSON),
+])
+def test_the_mode_defaults_per_provider_unless_overridden(monkeypatch, model, mode, expected):
+    """Ollama answers in plain text too often for instructor's TOOLS mode, so it defaults to MD_JSON."""
+    monkeypatch.setenv("MISTRAL_API_KEY", "fake-key-for-test")
+    modes_asked_for = []
+    monkeypatch.setattr("src.explaining.neighborhood.llm.extractor.instructor.from_provider",
+                        lambda model_name, mode=None: modes_asked_for.append(mode))
+    Extractor(_build_solution(), model, mode=mode)
+    assert modes_asked_for == [expected]

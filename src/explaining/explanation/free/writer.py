@@ -19,7 +19,9 @@ from src.explaining.explanation.free.written_explanation import (
 )
 from src.explaining.question.free.question import FreeTextQuestion
 from src.modeling.solution import Solution
-from src.utils.llm import check_required_api_key_is_set, is_json_context_enabled_by_default
+from src.utils.llm import (
+    check_required_api_key_is_set, get_default_mode, is_json_context_enabled_by_default
+)
 
 
 #####################
@@ -41,8 +43,8 @@ class ExplanationWriter:
         Args:
             model: The instructor model string ("provider/model-name", e.g. "anthropic/claude-...", "ollama/llama3.2").
             mode: Override for instructor's response-parsing mode.
-                Left as None (instructor's own per-provider default) unless the provider needs something else
-                - e.g. Ollama needs Mode.MD_JSON (see Extractor).
+                Left as None, it is the provider's default of src.utils.llm.PROVIDER_DEFAULT_MODES if it has one
+                (e.g. Mode.MD_JSON for Ollama), and instructor's own per-provider default otherwise.
             with_json_context: Whether the prompt also describes the instance and the current solution as JSON.
                 Left as None, it is enabled for every provider except the local ones of
                 src.utils.llm.PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT.
@@ -56,7 +58,7 @@ class ExplanationWriter:
         """
         if client is None:
             check_required_api_key_is_set(model)
-            client = instructor.from_provider(model, mode=mode)
+            client = instructor.from_provider(model, mode=mode if mode is not None else get_default_mode(model))
         self._model = model
         self._client = client
         if with_json_context is None:

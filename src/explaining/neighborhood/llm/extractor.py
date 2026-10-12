@@ -18,7 +18,9 @@ from src.explaining.neighborhood.llm.prompt import SYSTEM_PROMPT, build_user_pro
 from src.explaining.neighborhood.neighborhood import Neighborhood, NeighborhoodExtractionModes
 from src.explaining.question.free.question import FreeTextQuestion
 from src.modeling.solution import Solution
-from src.utils.llm import check_required_api_key_is_set, is_json_context_enabled_by_default
+from src.utils.llm import (
+    check_required_api_key_is_set, get_default_mode, is_json_context_enabled_by_default
+)
 
 
 #############
@@ -38,9 +40,9 @@ class Extractor:
             solution: The solution every question asked through this Extractor is about.
             model: The instructor model string ("provider/model-name", e.g. "anthropic/claude-...", "ollama/llama3.2").
             mode: Override for instructor's response-parsing mode.
-                Left as None (instructor's own per-provider default, typically its TOOLS mode)
-                unless the provider needs something else - e.g. Ollama's tool-calling support isn't reliable enough
-                for the default mode and needs Mode.MD_JSON instead.
+                Left as None, it is the provider's default of src.utils.llm.PROVIDER_DEFAULT_MODES if it has one
+                (e.g. Mode.MD_JSON for Ollama, whose tool-calling support isn't reliable enough),
+                and instructor's own per-provider default otherwise (typically its TOOLS mode).
             with_json_context: Whether the prompt describes the instance and the solution as JSON.
                 Left as None, it is enabled for every provider except the local ones of
                 src.utils.llm.PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT.
@@ -50,7 +52,7 @@ class Extractor:
         """
         check_required_api_key_is_set(model)
         self._solution = solution
-        self._client = instructor.from_provider(model, mode=mode)
+        self._client = instructor.from_provider(model, mode=mode if mode is not None else get_default_mode(model))
         if with_json_context is None:
             with_json_context = is_json_context_enabled_by_default(model)
         self._with_json_context = with_json_context

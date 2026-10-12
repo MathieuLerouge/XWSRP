@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 # Third-party library
 import pytest
+from instructor import Mode
 from instructor.core import InstructorRetryException
 
 # Local libraries
@@ -135,3 +136,11 @@ def test_a_missing_api_key_fails_at_construction(monkeypatch):
 def test_the_json_context_defaults_per_provider(model, expected):
     client = SimpleNamespace(chat=SimpleNamespace(completions=_FakeCompletions([])))
     assert ExplanationWriter(model, client=client).with_json_context is expected
+
+
+def test_an_ollama_model_is_asked_for_md_json_by_default(monkeypatch):
+    modes_asked_for = []
+    monkeypatch.setattr("src.explaining.explanation.free.writer.instructor.from_provider",
+                        lambda model_name, mode=None: modes_asked_for.append(mode))
+    ExplanationWriter("ollama/qwen2.5:7b")
+    assert modes_asked_for == [Mode.MD_JSON]

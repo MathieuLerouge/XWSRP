@@ -1,5 +1,9 @@
-# Standard library
+# Standard libraries
 import os
+from typing import Optional
+
+# Third-party library
+from instructor import Mode
 
 # Provider prefixes (of a "provider/model-name" string) that need an API key,
 # mapped to the environment variable that must carry it
@@ -12,6 +16,14 @@ PROVIDER_API_KEY_ENV_VARS = {
 
 # Providers serving small local models, which follow a system prompt less reliably once the prompt carries JSON.
 PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT = {"ollama"}
+
+# Providers whose models need another response-parsing mode than instructor's own default (typically TOOLS),
+# mapped to that mode - e.g. small local models served by Ollama often answer in plain text
+# rather than through a tool call ("No tool calls or function call found in response"),
+# while asking them for a JSON block in their text works reliably.
+PROVIDER_DEFAULT_MODES = {
+    "ollama": Mode.MD_JSON,
+}
 
 
 def get_provider(model: str) -> str:
@@ -53,3 +65,16 @@ def is_json_context_enabled_by_default(model: str) -> bool:
         False for the local providers of PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT, True otherwise.
     """
     return get_provider(model) not in PROVIDERS_WITHOUT_JSON_CONTEXT_BY_DEFAULT
+
+
+def get_default_mode(model: str) -> Optional[Mode]:
+    """
+    Returns the response-parsing mode instructor is to use with the given model when none is asked for.
+
+    Args:
+        model: The instructor model string ("provider/model-name").
+
+    Returns:
+        The mode of PROVIDER_DEFAULT_MODES for its provider, or None to leave instructor's own default.
+    """
+    return PROVIDER_DEFAULT_MODES.get(get_provider(model))
