@@ -346,7 +346,7 @@ class PositiveExplanation(PredefinedExplanation):
         text = ""
         if self.is_contrastive:
             if self.language_is_english:
-                text += f"Because the current solution is actually not optimal, {self._the_fact}." \
+                text += f"Because the current solution is actually not optimal, {self._the_fact}. " \
                         f"However, indeed, "
             elif self.language_is_french:
                 text += f"Parce la solution n'est en fait pas optimale, {self._the_fact}." \
@@ -687,12 +687,12 @@ class TimeNegativeExplanation(InfeasibleNegativeExplanation):
         else:
             if self.language_is_english:
                 text += f"Despite all the possible changes that could be applied to the current instance, " \
-                        f"{self._having_the_foil} remains impossible due to time constraints." \
+                        f"{self._having_the_foil} remains impossible due to time constraints. " \
                         f"For example, {self._assume_the_current_is_altered}" \
                         f"{LINE_BREAK_STRING}"
             elif self.language_is_french:
                 text += f"Malgré tous les changements qui pourraient être appliqués à l'instance, " \
-                        f"{self._having_the_foil} demeure impossible à cause des contraintes de temps." \
+                        f"{self._having_the_foil} demeure impossible à cause des contraintes de temps. " \
                         f"Par exemple, {self._assume_the_current_is_altered}" \
                         f"{LINE_BREAK_STRING}"
 
