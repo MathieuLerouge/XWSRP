@@ -3,7 +3,7 @@ import pytest
 
 # Local libraries
 from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
-from src.explaining.neighborhood.templates.mapper import Mapper
+from src.explaining.neighborhood.bridge.mapper import Mapper
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
 from src.explaining.question.predefined.bank import WHY_NOT_INS_2A
 from tests.explaining.neighborhood.helpers import build_solution_with_task_performances

@@ -12,7 +12,7 @@ from src.explaining.interacting.configuration import FreeTextExplanationModes, P
 from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.modeling.instance import EditableInstance
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.neighborhood.templates.mapper import Mapper
+from src.explaining.neighborhood.bridge.mapper import Mapper
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.counter import ExplanationCounter
 from src.explaining.interacting.history import History

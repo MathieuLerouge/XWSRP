@@ -52,14 +52,14 @@ Restrictions are composable: an employee's tasks may be covered by several of th
 (e.g. `PrecedenceChain` together with one or more `ImmediatePrecedence`).
 
 Two subpackages turn a question into the `Neighborhood` it induces. 
-The `templates` subpackage maps a `PredefinedQuestion` to it: 
+The `bridge` subpackage maps a `PredefinedQuestion` to it: 
 `Mapper` (`mapper.py`) dispatches on the question's template id to a dedicated mapping function, 
 implemented per question family (`insertion.py` for the `(Ins,*)` family, etc.). \
 The `llm` subpackage is the free-text alternative: 
 `Extractor` (`llm/extractor.py`) turns a free-text question directly into the `Neighborhood` it induces, 
 by composing primitives via a model-agnostic LLM — see its own [`README.md`](llm/README.md) for detail.
 
-The `templates` subpackage also goes the other way. 
+The `bridge` subpackage also goes the other way. 
 `Recognizer` (`recognizer.py`) reads a `Neighborhood` back into the `ContrastiveQuestion` it is the image of, 
 whichever of the two produced it. \
 That is what lets a free-text question be *explained* and not merely solved: 
@@ -85,7 +85,7 @@ and defers to `computing`'s `ModelCompatibilityChecker` to confirm it's actually
 
 `exceptions.py` contains `NeighborhoodError`, raised when a `Neighborhood` can't be assembled or solved.
 
-In `templates` subpackage:
+In `bridge` subpackage:
 - `mapper.py` contains `Mapper`, 
 whose `map(question)` method dispatches a `ContrastiveQuestion` to its matching neighborhood-mapping function.
 - `insertion.py` contains the mapping functions for the `(Ins,*)` template family.

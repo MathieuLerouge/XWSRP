@@ -1,6 +1,6 @@
 # Local libraries
 from src.explaining.neighborhood.neighborhood import Neighborhood, NeighborhoodExtractionModes
-from src.explaining.neighborhood.templates import insertion, reordering, swap
+from src.explaining.neighborhood.bridge import insertion, reordering, swap
 from src.explaining.question.predefined.question import ContrastiveQuestion, PredefinedQuestion
 from src.explaining.question.predefined.bank import (
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,

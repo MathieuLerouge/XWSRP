@@ -39,7 +39,7 @@ through `result.py`'s `build_transformation_result_from_neighborhood`. \
 The step that costs it something the tailored pipeline gets for free is the question: 
 a predefined explanation is phrased from a question template's typical expressions, 
 and a `Neighborhood` on its own carries no template. \
-`explaining.neighborhood.templates`' `Recognizer` recovers one by reading the neighborhood's own primitives, 
+`explaining.neighborhood.bridge`' `Recognizer` recovers one by reading the neighborhood's own primitives, 
 and `description.py` words what the solved model settled on in that template's terms. \
 It is not only there to compare the two pipelines (see section 4): 
 `Explainer` goes through it whenever templated questions are computed in neighborhood mode, 

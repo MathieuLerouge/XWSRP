@@ -11,7 +11,7 @@ from src.explaining.computing.neighborhood.solving import (
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.neighborhood.neighborhood import Neighborhood
-from src.explaining.neighborhood.templates.recognizer import Recognizer
+from src.explaining.neighborhood.bridge.recognizer import Recognizer
 from src.explaining.question.predefined.question import ContrastiveQuestion
 
 

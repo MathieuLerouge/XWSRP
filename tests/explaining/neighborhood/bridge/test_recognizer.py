@@ -5,8 +5,8 @@ import pytest
 from src.explaining.neighborhood.assembler import Assembler
 from src.explaining.neighborhood.operator import TaskInsertion
 from src.explaining.neighborhood.restriction import PrecedenceChain
-from src.explaining.neighborhood.templates.mapper import Mapper
-from src.explaining.neighborhood.templates.recognizer import Recognizer
+from src.explaining.neighborhood.bridge.mapper import Mapper
+from src.explaining.neighborhood.bridge.recognizer import Recognizer
 from src.explaining.question.predefined.question import ContrastiveQuestion
 from src.explaining.question.predefined.bank import (
     QUESTIONS_TEMPLATES, WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,

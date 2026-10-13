@@ -24,7 +24,7 @@ from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.neighborhood.neighborhood import Neighborhood, NeighborhoodExtractionModes
 from src.explaining.neighborhood.operator import TaskInsertion
 from src.explaining.neighborhood.restriction import PrecedenceChain
-from src.explaining.neighborhood.templates.mapper import Mapper
+from src.explaining.neighborhood.bridge.mapper import Mapper
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES

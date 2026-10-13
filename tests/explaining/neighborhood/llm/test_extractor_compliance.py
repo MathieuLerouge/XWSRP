@@ -9,7 +9,7 @@ from instructor import Mode
 # Local libraries
 from src.explaining.neighborhood.llm.exceptions import NeighborhoodExtractionError
 from src.explaining.neighborhood.llm.extractor import Extractor
-from src.explaining.neighborhood.templates.checker import (
+from src.explaining.neighborhood.bridge.checker import (
     INSERTION_FAMILY, REORDERING_FAMILY, SWAP_FAMILY, TemplateComplianceChecker
 )
 from src.explaining.question.free.question import FreeTextQuestion

@@ -30,7 +30,7 @@ each alteration is also recorded in an `InstanceChanges`.
 ## 1.2. Neighborhood-based computation pipeline
 
 An alternative to the tailored pipeline, covering the `(Ins,*)`, `(Swp,*)` and `(Ord,*)` contrastive question families.
-For a `ContrastiveQuestion`, `neighborhood/templates`'s `Mapper` maps it to a `Neighborhood`.
+For a `ContrastiveQuestion`, `neighborhood/bridge`'s `Mapper` maps it to a `Neighborhood`.
 Then, if `computing/neighborhood/extractor.py`'s `ConflictExtractor` 
 identifies a `SkillConflict` from the `Neighborhood`,
 this conflict will be used as a basis for explanations;
@@ -73,7 +73,7 @@ a question the end user phrased themselves, which `neighborhood/llm`'s `Extracto
 `Neighborhood` i.e. the employees and tasks in scope, together with 
 the `Operator`s that may transform their sequences 
 and the `Restriction`s that narrow how (scope restrictions). \
-Its `templates` subdirectory's `Mapper` translates a `ContrastiveQuestion` into the `Neighborhood` it induces, 
+Its `bridge` subdirectory's `Mapper` translates a `ContrastiveQuestion` into the `Neighborhood` it induces, 
 and its `TemplateComplianceChecker` recognizes the shapes that translation produces. \
 (see its own [`README.md`](neighborhood/README.md) for a description of its files.)
 

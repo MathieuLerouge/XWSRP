@@ -31,7 +31,7 @@ In `predefined` subpackage:
 `constants.py` contains the sixteen question template ids (`WHY_NOT_INS_1`, …, `WHY_NOT_ORD_3`). \
 These strings are the key everything else is indexed by: `QUESTIONS_TEMPLATES`, 
 `explanation/predefined`'s `EXPLANATIONS_TEMPLATES`, `computing/templates`' dispatch tables, 
-`neighborhood/templates`' `Mapper`/`Recognizer`, and the stored explanation JSON files under `data/`.
+`neighborhood/bridge`' `Mapper`/`Recognizer`, and the stored explanation JSON files under `data/`.
 
 `template_field.py` contains `FieldAssumptions`, which parses the marker string declaring what a template field 
 may refer to (an employee, a task, an activity, and the narrowing conditions on it), 

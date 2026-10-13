@@ -1,7 +1,7 @@
 # Local libraries
 from src.explaining.neighborhood.operator import TaskInsertion
 from src.explaining.neighborhood.restriction import ImmediatePrecedence, PrecedenceChain
-from src.explaining.neighborhood.templates import insertion
+from src.explaining.neighborhood.bridge import insertion
 from src.explaining.question.predefined.question import ContrastiveQuestion
 from src.explaining.question.predefined.bank import (
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3

@@ -9,7 +9,7 @@ from src.explaining.computing.neighborhood.solving import solve_neighborhood
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.computing.templates.dispatch import TransformationDispatcher
 from src.explaining.modeling.solution import EditableSolution
-from src.explaining.neighborhood.templates.mapper import Mapper
+from src.explaining.neighborhood.bridge.mapper import Mapper
 from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.predefined.question import ContrastiveQuestion
 from src.modeling.instance import Instance

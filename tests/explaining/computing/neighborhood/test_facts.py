@@ -12,7 +12,7 @@ from src.explaining.computing.neighborhood.facts import (
     UnattributedTimeConflictFacts
 )
 from src.explaining.explanation.predefined.explanation import create_explanation
-from src.explaining.neighborhood.templates.mapper import Mapper
+from src.explaining.neighborhood.bridge.mapper import Mapper
 from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.predefined.bank import (
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,

@@ -67,8 +67,8 @@ Each test renders its template's *own* wording at up to 3 valid field-value comb
 solution, and fails on the first sample that either can't be extracted or comes back non-compliant.
 Every one of those questions is compliant by construction on the tailored side — `Mapper` answers all
 2222 of that solution's valid combinations with a compliant neighborhood, which
-`tests/explaining/neighborhood/templates/test_checker_exhaustive.py` checks exhaustively — so a failure
-here is always the LLM pipeline, never an unanswerable question.
+`tests/explaining/neighborhood/bridge/test_checker_exhaustive.py` checks exhaustively 
+— so a failure here is always the LLM pipeline, never an unanswerable question.
 
 This is a **stricter bar** than `test_extractor_quality.py`: it constrains the whole shape rather than
 spot-checking membership, it pins the family the question was worded in, it must get 3 samples right in a

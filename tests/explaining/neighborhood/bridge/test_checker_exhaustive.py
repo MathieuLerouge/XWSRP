@@ -2,10 +2,10 @@
 import pytest
 
 # Local libraries
-from src.explaining.neighborhood.templates.checker import (
+from src.explaining.neighborhood.bridge.checker import (
     INSERTION_FAMILY, REORDERING_FAMILY, SWAP_FAMILY, TemplateComplianceChecker
 )
-from src.explaining.neighborhood.templates.mapper import Mapper
+from src.explaining.neighborhood.bridge.mapper import Mapper
 from src.explaining.question.predefined.question import ContrastiveQuestion
 from src.explaining.question.predefined.bank import (
     QUESTIONS_TEMPLATES, WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,

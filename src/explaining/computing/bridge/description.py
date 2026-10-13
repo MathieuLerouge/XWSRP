@@ -7,7 +7,7 @@ from src.explaining.computing.neighborhood.model import NeighborhoodModel
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.operator import TaskDeletion, TaskInsertion
-from src.explaining.neighborhood.templates.recognizer import filter_primitives
+from src.explaining.neighborhood.bridge.recognizer import filter_primitives
 from src.explaining.question.predefined.question import ContrastiveQuestion
 from src.explaining.question.predefined.bank import (
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3,
