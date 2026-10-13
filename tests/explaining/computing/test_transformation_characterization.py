@@ -56,13 +56,19 @@ CONTRASTIVE_CASES = [
 # (Ins,2c) and (Swp,2c) ask about *any* employee rather than a named one,
 # which the counterfactual transformations do not handle.
 TEMPLATES_IDS_WITHOUT_COUNTERFACTUAL_TRANSFORMATION = [WHY_NOT_INS_2C, WHY_NOT_SWP_2C]
-COUNTERFACTUAL_CASES = [case for case in CONTRASTIVE_CASES
-                        if case[1] not in TEMPLATES_IDS_WITHOUT_COUNTERFACTUAL_TRANSFORMATION]
+# With ["Ellen", "T27"], the counterfactual (Swp,3) MILP has two optimal routes (T17 and T1 swapped, same objectives),
+# so which one comes out depends on the platform's numerics.
+# ["Ellen", "T4"] has a single optimal solution.
+COUNTERFACTUAL_FIELDS_VALUES_OVERRIDES = {"swp_3": ["Ellen", "T4"]}
+COUNTERFACTUAL_CASES = [(case_id, template_id, COUNTERFACTUAL_FIELDS_VALUES_OVERRIDES.get(case_id, fields_values))
+                        for case_id, template_id, fields_values in CONTRASTIVE_CASES
+                        if template_id not in TEMPLATES_IDS_WITHOUT_COUNTERFACTUAL_TRANSFORMATION]
 CONFLICT_KEY = "conflict"
 DESCRIPTIONS_KEY = "descriptions"
 ROUTES_KEY = "routes"
 KPIS_KEY = "kpis"
 ALTERATIONS_KEY = "alterations"
+KPIS_RELATIVE_TOLERANCE = 1e-9
 
 
 def build_snapshot(result: TransformationResult) -> dict[str, Any]:
@@ -134,7 +140,10 @@ def assert_same_snapshot(snapshot: dict[str, Any], expected_snapshot: dict[str, 
     assert snapshot[CONFLICT_KEY] == expected_snapshot[CONFLICT_KEY], "The conflict changed"
     assert snapshot[DESCRIPTIONS_KEY] == expected_snapshot[DESCRIPTIONS_KEY], "The transformation texts changed"
     assert snapshot[ROUTES_KEY] == expected_snapshot[ROUTES_KEY], "The support solution's routes changed"
-    assert snapshot[KPIS_KEY] == expected_snapshot[KPIS_KEY], "The support solution's KPIs changed"
+    expected_kpis = expected_snapshot[KPIS_KEY]
+    assert snapshot[KPIS_KEY] == (
+        None if expected_kpis is None else pytest.approx(expected_kpis, rel=KPIS_RELATIVE_TOLERANCE)
+    ), "The support solution's KPIs changed"
     assert snapshot[ALTERATIONS_KEY] == expected_snapshot[ALTERATIONS_KEY], "The instance alterations changed"
 
 

@@ -1625,8 +1625,8 @@
     "swp_3": {
       "conflict": null,
       "descriptions": {
-        "EN": "replacing T7 with T27 in Ellen's planning according to the following route [Home, T30, T3, T26, T17, T1, T27, T8, Home]",
-        "FR": "remplaçant T7 par T27 dans le planning de Ellen selon la route suivante [Domicile, T30, T3, T26, T17, T1, T27, T8, Domicile]"
+        "EN": "replacing T7 with T4 in Ellen's planning according to the following route [Home, T30, T3, T26, T4, T1, T17, T8, Home]",
+        "FR": "remplaçant T7 par T4 dans le planning de Ellen selon la route suivante [Domicile, T30, T3, T26, T4, T1, T17, T8, Domicile]"
       },
       "routes": {
         "Ellen": [
@@ -1634,9 +1634,9 @@
           "T30",
           "T3",
           "T26",
-          "T17",
+          "T4",
           "T1",
-          "T27",
+          "T17",
           "T8",
           "Return"
         ],
@@ -1665,7 +1665,6 @@
           "T18",
           "T21",
           "T29",
-          "T4",
           "T22",
           "Return"
         ],
@@ -1678,15 +1677,15 @@
         ]
       },
       "kpis": {
-        "nb performed tasks": 27,
-        "total working duration": 1075,
-        "total traveling duration": 1192,
-        "total traveling distance": 983.3722921629405,
-        "total idle time": 445
+        "nb performed tasks": 26,
+        "total working duration": 1025,
+        "total traveling duration": 1189,
+        "total traveling distance": 979.6918396993074,
+        "total idle time": 441
       },
       "alterations": [
-        "the latest end time of T8 is changed to 05:24PM instead of 04:40PM",
-        "the latest end time of T27 is changed to 04:37PM instead of 03:00PM"
+        "the latest end time of T8 is changed to 05:17PM instead of 04:40PM",
+        "the earliest start time of T4 is changed to 01:23PM instead of 02:00PM"
       ]
     },
     "ord_lat_1": {
