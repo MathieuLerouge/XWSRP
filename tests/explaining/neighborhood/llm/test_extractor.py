@@ -28,6 +28,8 @@ def test_construction_raises_when_anthropic_api_key_is_missing(monkeypatch):
 
 
 def test_construction_succeeds_when_anthropic_api_key_is_set(monkeypatch):
+    # NB: anthropic is an optional dependency (requirements_anthropic.in), without which construction fails
+    pytest.importorskip("anthropic")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-key-for-test")
     solution = _build_solution()
     Extractor(solution, "anthropic/claude-sonnet-5")
@@ -41,6 +43,8 @@ def test_construction_raises_when_mistral_api_key_is_missing(monkeypatch):
 
 
 def test_construction_succeeds_when_mistral_api_key_is_set(monkeypatch):
+    # NB: mistral is an optional dependency (requirements_mistral.in), without which construction fails
+    pytest.importorskip("mistralai")
     monkeypatch.setenv("MISTRAL_API_KEY", "fake-key-for-test")
     solution = _build_solution()
     Extractor(solution, "mistral/mistral-small-latest")
