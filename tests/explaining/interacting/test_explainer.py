@@ -486,6 +486,37 @@ def test_a_template_question_in_tailored_extraction_mode_has_its_neighborhood_ma
     assert explanation.neighborhood.extraction_mode == NeighborhoodExtractionModes.TAILORED.value
 
 
+def test_a_neighborhood_explanation_keeps_the_statistics_of_the_milp_solved(demo_solution):
+    """The CLI's developer output reads the explanation's MILP statistics, so the neighborhood route must keep them."""
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    explanation = explainer.get_contrastive_explanation(
+        WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    assert explanation.milp_statistics.nb_objectives == 3
+    assert explanation.milp_statistics.solve_time > 0
+
+
+def test_a_neighborhood_explanation_settled_by_a_skill_conflict_has_no_milp_statistics(demo_solution):
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    explanation = explainer.get_contrastive_explanation(
+        WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[SkillNegativeExplanation])
+    assert explanation.milp_statistics is None
+
+
+def test_a_tailored_explanation_has_no_milp_statistics(demo_solution):
+    explainer = build_explainer(demo_solution)
+    explanation = explainer.get_contrastive_explanation(
+        WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    assert explanation.milp_statistics is None
+
+
+def test_a_templated_free_text_explanation_keeps_the_statistics_of_the_milp_solved(demo_solution):
+    explainer = build_explainer(demo_solution, extractor_model="stub/model",
+                                free_text_explanation_mode=FreeTextExplanationModes.TEMPLATED.value)
+    give_explainer_a_stub_extractor(explainer, build_covered_neighborhood(explainer.current_solution))
+    explanation = explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+    assert explanation.milp_statistics.nb_objectives == 3
+
+
 def test_an_invalid_neighborhood_extraction_mode_is_refused(demo_solution):
     explainer = build_explainer(demo_solution)
     with pytest.raises(ValueError, match="Invalid neighborhood extraction mode"):
@@ -561,6 +592,7 @@ def test_a_free_text_question_is_written_by_default(demo_solution):
     assert explanation.is_negative()
     assert explanation.mode == "neighborhood"
     assert explanation.neighborhood is explainer._extractor._neighborhood
+    assert explanation.milp_statistics.nb_objectives == 3
     assert explainer.last_contrastive_explanation is explanation
 
 

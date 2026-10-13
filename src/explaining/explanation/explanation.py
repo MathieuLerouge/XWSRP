@@ -8,6 +8,7 @@ from src.explaining.modeling.instance_changes import InstanceChanges
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.question.question import Question
 from src.modeling.solution import Solution
+from src.optimization.milp.statistics import MilpStatistics
 from src.utils.constants import LINE_BREAK_STRING
 from src.utils.language import check_if_language_is_english, check_if_language_is_french
 from src.utils.time import get_hour_format_associated_with_language
@@ -46,7 +47,8 @@ class Explanation(ABC):
         self._question = question
         self._support_solution = support_solution
         self._instance_alterations = instance_alterations
-        self._neighborhood = None
+        self._neighborhood: Optional[Neighborhood] = None
+        self._milp_statistics: Optional[MilpStatistics] = None
         self._computation_mode = computation_mode
         self._computation_time = computation_time
         self._text = self._compute_text()
@@ -145,6 +147,33 @@ class Explanation(ABC):
             neighborhood: The Neighborhood the support solution was found in.
         """
         self._neighborhood = neighborhood
+
+    ###################
+    # MILP statistics #
+    ###################
+
+    @property
+    def milp_statistics(self) -> Optional[MilpStatistics]:
+        """
+        The statistics of the MILP solved to compute the explanation, if any.
+
+        NB: Not serialized, since they describe one computation rather than the explanation itself.
+
+        Returns:
+            The statistics of the MILP solved to compute the explanation,
+            or None if no MILP was solved for it (e.g. it was reused from the cache, or a skill conflict settled it).
+        """
+        return self._milp_statistics
+
+    @milp_statistics.setter
+    def milp_statistics(self, milp_statistics: Optional[MilpStatistics]):
+        """
+        Set the statistics of the MILP solved to compute the explanation.
+
+        Args:
+            milp_statistics: The statistics of the MILP solved to compute the explanation, or None if none was.
+        """
+        self._milp_statistics = milp_statistics
 
     ########
     # Text #

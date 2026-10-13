@@ -478,6 +478,7 @@ class Explainer:
             question, facts, support_solution, ExplanationComputationModes.NEIGHBORHOOD.value, elapsed_time
         )
         free_text_explanation.neighborhood = neighborhood
+        free_text_explanation.milp_statistics = model.statistics if model is not None else None
         return free_text_explanation
 
     def _compute_templated_free_text_explanation(self, question: FreeTextQuestion) -> Explanation:
@@ -520,6 +521,7 @@ class Explainer:
             ExplanationComputationModes.NEIGHBORHOOD.value, elapsed_time
         )
         free_text_explanation.neighborhood = neighborhood
+        free_text_explanation.milp_statistics = transformation_result.milp_statistics
         return free_text_explanation
 
     def get_free_text_explanation(self, question_text: str) -> Explanation:
@@ -724,6 +726,7 @@ class Explainer:
         elapsed_time = end_time - start_time
         contrastive_explanation = create_explanation(contrastive_question, transformation_result, mode, elapsed_time)
         contrastive_explanation.neighborhood = neighborhood
+        contrastive_explanation.milp_statistics = transformation_result.milp_statistics
         if self._configuration.using_cached_contrastive_explanations_enabled:
             self._add_contrastive_explanation_to_cached_ones(contrastive_explanation)
         if self._configuration.exporting_each_contrastive_explanation_automatically_enabled:

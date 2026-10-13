@@ -95,4 +95,4 @@ def build_transformation_result_from_neighborhood(
     reorder_support_sequences_to_solved_routes(neighborhood, model)
     if conflict is None:
         support_solution.compute_kpis()
-    return question, TransformationResult(support_solution, conflict, descriptions)
+    return question, TransformationResult(support_solution, conflict, descriptions, milp_statistics=model.statistics)
