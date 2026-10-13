@@ -55,7 +55,7 @@ class Commands(Enum):
                 (typically the activated ones), or None to list every kind.
         """
         if ask_template_targets is None:
-            ask_template_targets = AskTemplateTargets.list_values()
+            ask_template_targets = AskTemplateTargets.values()
         lines = [
             "Explainer CLI - Available Commands",
             "",
@@ -65,32 +65,31 @@ class Commands(Enum):
             f"({', '.join(ask_template_targets)})",
             f"  {cls.SAVE_SOLUTION.name}                       {cls.SAVE_SOLUTION.description}",
             f"  {cls.LIST.name} <target>                       {cls.LIST.description} "
-            f"({', '.join(ListTargets.list_values())})",
+            f"({', '.join(ListTargets.values())})",
             f"  {cls.SWITCH.name} <target> [name]              {cls.SWITCH.description} "
-            f"({', '.join(SwitchTargets.list_values())})",
+            f"({', '.join(SwitchTargets.values())})",
             f"  {cls.EXPORT.name}                              {cls.EXPORT.description}",
             "",
             "Configuration Commands:",
             f"  {cls.SET.name} <target> <option> [value]    {cls.SET.description}:",
-            f"    {SetTargets.PIPELINE.value} <{'|'.join(Pipelines.list_values())}> [provider/model]",
-            f"    {SetTargets.LANGUAGE.value} <{'|'.join(Languages.list_values())}>",
-            f"    {SetTargets.DISPLAY_MODE.value} <{'|'.join(DisplayModes.list_values())}>",
-            f"    {SetTargets.TEMPLATE_COMPUTATION_MODE.value} <{'|'.join(TemplateComputationModes.list_values())}>",
-            f"    {SetTargets.NEIGHBORHOOD_EXTRACTION_MODE.value} "
-            f"<{'|'.join(NeighborhoodExtractionModes.list_values())}>",
+            f"    {SetTargets.PIPELINE.value} <{'|'.join(Pipelines.values())}> [provider/model]",
+            f"    {SetTargets.LANGUAGE.value} <{'|'.join(Languages.values())}>",
+            f"    {SetTargets.DISPLAY_MODE.value} <{'|'.join(DisplayModes.values())}>",
+            f"    {SetTargets.TEMPLATE_COMPUTATION_MODE.value} <{'|'.join(TemplateComputationModes.values())}>",
+            f"    {SetTargets.NEIGHBORHOOD_EXTRACTION_MODE.value} <{'|'.join(NeighborhoodExtractionModes.values())}>",
             f"    {SetTargets.FREE_TEXT_EXPLANATION_WRITING_MODE.value} "
-            f"<{'|'.join(FreeTextExplanationModes.list_values())}>",
-            f"    {SetTargets.SOLVING_TIME_LIMIT.value} <{'|'.join(SolvingTimeLimitTargets.list_values())}> <seconds>",
-            f"    {SetTargets.LLM_MODEL.value} <{'|'.join(LLMModelTargets.list_values())}> <provider/model>",
+            f"<{'|'.join(FreeTextExplanationModes.values())}>",
+            f"    {SetTargets.SOLVING_TIME_LIMIT.value} <{'|'.join(SolvingTimeLimitTargets.values())}> <seconds>",
+            f"    {SetTargets.LLM_MODEL.value} <{'|'.join(LLMModelTargets.values())}> <provider/model>",
             f"  {cls.ENABLE.name} <feature>                 {cls.ENABLE.description}",
             f"  {cls.DISABLE.name} <feature>                {cls.DISABLE.description}",
             "",
             "Display Commands:",
-            f"  {cls.SHOW.name} <resource> [name]    {cls.SHOW.description} ({', '.join(ShowTargets.list_values())})",
+            f"  {cls.SHOW.name} <resource> [name]    {cls.SHOW.description} ({', '.join(ShowTargets.values())})",
             f"  {cls.HELP.name}                      {cls.HELP.description}",
             "",
             "Session Commands:",
-            f"  {cls.CLEAR.name} <target>    {cls.CLEAR.description} ({', '.join(ClearTargets.list_values())})",
+            f"  {cls.CLEAR.name} <target>    {cls.CLEAR.description} ({', '.join(ClearTargets.values())})",
             f"  {cls.QUIT.name}              {cls.QUIT.description}",
         ]
         return "\n".join(lines)
@@ -106,7 +105,7 @@ class Languages(Enum):
     FR = "fr"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid language values."""
         return [member.value for member in cls]
 
@@ -123,7 +122,7 @@ class EnableTargets(Enum):
     AUTO_EXPORT = "auto-export"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid enable target values."""
         return [member.value for member in cls]
 
@@ -144,7 +143,7 @@ class SetTargets(Enum):
     DISPLAY_MODE = "display-mode"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid set target values."""
         return [member.value for member in cls]
 
@@ -159,7 +158,7 @@ class SolvingTimeLimitTargets(Enum):
     COUNTERFACTUAL = "counterfactual"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid solving time limit target values."""
         return [member.value for member in cls]
 
@@ -174,7 +173,7 @@ class LLMModelTargets(Enum):
     EXPLANATION_WRITING = "explanation-writing"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid LLM model target values."""
         return [member.value for member in cls]
 
@@ -194,7 +193,7 @@ class AskTemplateTargets(Enum):
     COUNTERFACTUAL = "counterfactual"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid ask-template target values."""
         return [member.value for member in cls]
 
@@ -210,7 +209,7 @@ class ListTargets(Enum):
     SOLUTIONS = "solutions"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid list target values."""
         return [member.value for member in cls]
 
@@ -230,7 +229,7 @@ class ShowTargets(Enum):
     CONFIG = "config"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid show target values."""
         return [member.value for member in cls]
 
@@ -247,7 +246,7 @@ class SwitchTargets(Enum):
     LAST_SUPPORT_SOLUTION = "last-support-solution"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid switch target values."""
         return [member.value for member in cls]
 
@@ -262,7 +261,7 @@ class ClearTargets(Enum):
     CACHED_EXPLANATIONS = "cached-explanations"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid clear target values."""
         return [member.value for member in cls]
 
@@ -277,13 +276,13 @@ class DisplayModes(Enum):
     DEVELOPER = "developer"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid display mode values."""
         return [member.value for member in cls]
 
     def __contains__(self, value):
         """Check if a value is a valid display mode."""
-        return value in self.list_values()
+        return value in self.values()
 
 
 #############
@@ -303,6 +302,6 @@ class LLMModels(Enum):
     MISTRAL_MEDIUM_LATEST = "mistral/mistral-medium-latest"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all suggested LLM model values."""
         return [member.value for member in cls]

@@ -95,10 +95,10 @@ class Neighborhood:
         Raises:
             ValueError: If extraction_mode is not one of NeighborhoodExtractionModes' values.
         """
-        if extraction_mode not in NeighborhoodExtractionModes.list_values():
+        if extraction_mode not in NeighborhoodExtractionModes.values():
             raise ValueError(
                 f"Invalid neighborhood extraction mode '{extraction_mode}'. "
-                f"Valid modes are: {', '.join(NeighborhoodExtractionModes.list_values())}"
+                f"Valid modes are: {', '.join(NeighborhoodExtractionModes.values())}"
             )
         self._extraction_mode = extraction_mode
 
@@ -130,10 +130,10 @@ class NeighborhoodExtractionModes(Enum):
     TAILORED = "tailored"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid neighborhood extraction mode values."""
         return [member.value for member in cls]
 
     def __contains__(self, value):
         """Check if a value is a valid neighborhood extraction mode."""
-        return value in self.list_values()
+        return value in self.values()

@@ -253,10 +253,10 @@ class ExplainerConfiguration:
         Raises:
             ValueError: If mode is not one of FreeTextExplanationModes' values.
         """
-        if mode not in FreeTextExplanationModes.list_values():
+        if mode not in FreeTextExplanationModes.values():
             raise ValueError(
                 f"Invalid free-text explanation mode '{mode}'. "
-                f"Valid modes are: {', '.join(FreeTextExplanationModes.list_values())}"
+                f"Valid modes are: {', '.join(FreeTextExplanationModes.values())}"
             )
         self._free_text_explanation_mode = mode
 
@@ -290,10 +290,10 @@ class ExplainerConfiguration:
         Raises:
             ValueError: If mode is not one of NeighborhoodExtractionModes' values.
         """
-        if mode not in NeighborhoodExtractionModes.list_values():
+        if mode not in NeighborhoodExtractionModes.values():
             raise ValueError(
                 f"Invalid neighborhood extraction mode '{mode}'. "
-                f"Valid modes are: {', '.join(NeighborhoodExtractionModes.list_values())}"
+                f"Valid modes are: {', '.join(NeighborhoodExtractionModes.values())}"
             )
         self._neighborhood_extraction_mode = mode
 
@@ -353,7 +353,7 @@ class ExplainerConfiguration:
             self._free_text_explanation_mode = FreeTextExplanationModes.WRITTEN.value
         else:
             raise ValueError(
-                f"Invalid pipeline '{pipeline}'. Valid pipelines are: {', '.join(Pipelines.list_values())}"
+                f"Invalid pipeline '{pipeline}'. Valid pipelines are: {', '.join(Pipelines.values())}"
             )
 
     @property
@@ -459,19 +459,19 @@ class TemplateComputationModes(Enum):
     NEIGHBORHOOD = "neighborhood"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid template computation mode values."""
         return [member.value for member in cls]
 
     @classmethod
     def __contains__(cls, value) -> bool:
         """Check if a value is a valid enum value."""
-        return value in cls.list_values()
+        return value in cls.values()
 
     @classmethod
     def __repr__(self):
         """Return a string representation of the enum values."""
-        return f"{', '.join(self.list_values())}"
+        return f"{', '.join(self.values())}"
 
 
 ############################
@@ -489,7 +489,7 @@ class FreeTextExplanationModes(Enum):
     TEMPLATED = "templated"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid free-text explanation mode values."""
         return [member.value for member in cls]
 
@@ -511,6 +511,6 @@ class Pipelines(Enum):
     LLM = "llm"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid pipeline values."""
         return [member.value for member in cls]

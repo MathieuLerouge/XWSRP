@@ -86,7 +86,7 @@ def test_command_name_prefix_completion(completer: ExplainerCLICompleter):
 
 
 def test_clear_target_completion(completer: ExplainerCLICompleter):
-    assert sorted(complete(completer, "/clear ")) == sorted(ClearTargets.list_values())
+    assert sorted(complete(completer, "/clear ")) == sorted(ClearTargets.values())
     assert complete(completer, "/clear ca") == [ClearTargets.CACHED_EXPLANATIONS.value]
 
 
@@ -122,7 +122,7 @@ def test_contrastive_too_many_field_values_offers_nothing(completer: ExplainerCL
 
 
 def test_set_target_completion(completer: ExplainerCLICompleter):
-    assert complete(completer, "/set ") == SetTargets.list_values()
+    assert complete(completer, "/set ") == SetTargets.values()
 
 
 def test_set_language_enum_completion(completer: ExplainerCLICompleter):
@@ -130,16 +130,16 @@ def test_set_language_enum_completion(completer: ExplainerCLICompleter):
 
 
 def test_set_solving_time_limit_target_completion(completer: ExplainerCLICompleter):
-    assert complete(completer, "/set solving-time-limit ") == SolvingTimeLimitTargets.list_values()
+    assert complete(completer, "/set solving-time-limit ") == SolvingTimeLimitTargets.values()
 
 
 def test_set_llm_model_target_completion(completer: ExplainerCLICompleter):
-    assert complete(completer, "/set llm-model ") == LLMModelTargets.list_values()
+    assert complete(completer, "/set llm-model ") == LLMModelTargets.values()
 
 
 def test_set_llm_model_completion_offers_every_suggested_model(completer: ExplainerCLICompleter):
-    assert complete(completer, "/set llm-model neighborhood-extraction ") == LLMModels.list_values()
-    assert complete(completer, "/set llm-model explanation-writing ") == LLMModels.list_values()
+    assert complete(completer, "/set llm-model neighborhood-extraction ") == LLMModels.values()
+    assert complete(completer, "/set llm-model explanation-writing ") == LLMModels.values()
 
 
 def test_set_llm_model_completion_narrows_by_provider(completer: ExplainerCLICompleter):
@@ -154,12 +154,12 @@ def test_set_llm_model_last_argument_offers_nothing(completer: ExplainerCLICompl
 
 def test_set_pipeline_completion(completer: ExplainerCLICompleter):
     assert complete(completer, "/set pipeline ") == ["tailored", "llm"]
-    assert complete(completer, "/set pipeline llm ") == LLMModels.list_values()
+    assert complete(completer, "/set pipeline llm ") == LLMModels.values()
     assert complete(completer, "/set pipeline tailored ") == []
 
 
 def test_list_target_completion(completer: ExplainerCLICompleter):
-    assert complete(completer, "/list ") == ListTargets.list_values()
+    assert complete(completer, "/list ") == ListTargets.values()
 
 
 def test_set_display_mode_enum_completion(completer: ExplainerCLICompleter):
@@ -206,7 +206,7 @@ def test_show_solution_completion_from_history(completer: ExplainerCLICompleter,
 
 
 def test_switch_target_completion(completer: ExplainerCLICompleter):
-    assert sorted(complete(completer, "/switch ")) == sorted(SwitchTargets.list_values())
+    assert sorted(complete(completer, "/switch ")) == sorted(SwitchTargets.values())
     assert sorted(complete(completer, "/switch last")) == ["last-support-instance", "last-support-solution"]
 
 

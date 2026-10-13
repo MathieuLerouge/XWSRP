@@ -350,10 +350,10 @@ class ExplanationComputationModes(Enum):
     NEIGHBORHOOD = "neighborhood"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid explanation computation mode values."""
         return [member.value for member in cls]
 
     def __contains__(self, value):
         """Check if a value is a valid explanation computation mode."""
-        return value in self.list_values()
+        return value in self.values()

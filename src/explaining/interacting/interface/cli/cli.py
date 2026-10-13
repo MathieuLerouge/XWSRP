@@ -205,7 +205,7 @@ class ExplainerCLI:
             return (f"Usage: {self._yellow(Commands.ASK_TEMPLATE.name)} <kind> <template_id> <value1> <value2> ... "
                     f"where kind is: {', '.join(activated_targets)}")
         target = args[0].lower()
-        if target in AskTemplateTargets.list_values() and target not in activated_targets:
+        if target in AskTemplateTargets.values() and target not in activated_targets:
             return (f"{target.capitalize()} questions are not activated. "
                     f"Use {self._highlight_command(Commands.ENABLE.name, target)} first.")
         if target == AskTemplateTargets.CONTRASTIVE.value:
@@ -359,7 +359,7 @@ class ExplainerCLI:
         """Handle /list <target> command."""
         if len(args) < 1:
             return (f"Usage: {self._yellow(Commands.LIST.name)} <target> "
-                    f"where target is: {', '.join(ListTargets.list_values())}")
+                    f"where target is: {', '.join(ListTargets.values())}")
         target = args[0].lower()
         if target == ListTargets.TEMPLATE_QUESTIONS.value:
             return self._list_template_questions()
@@ -369,7 +369,7 @@ class ExplainerCLI:
             return self._list_solutions()
         else:
             return (f"Unknown target '{target}'. "
-                    f"Valid targets: {', '.join(ListTargets.list_values())}")
+                    f"Valid targets: {', '.join(ListTargets.values())}")
 
     def _list_template_questions(self) -> str:
         """Handle /list template-questions command."""
@@ -411,7 +411,7 @@ class ExplainerCLI:
         """Handle /switch <target> [name] command."""
         if len(args) < 1:
             return (f"Usage: {self._yellow(Commands.SWITCH.name)} <target> [name] "
-                    f"where target is: {', '.join(SwitchTargets.list_values())}")
+                    f"where target is: {', '.join(SwitchTargets.values())}")
         target = args[0].lower()
         if target == SwitchTargets.INSTANCE.value:
             return self._switch_instance(args[1:])
@@ -423,7 +423,7 @@ class ExplainerCLI:
             return self._switch_last_support_solution()
         else:
             return (f"Unknown target '{target}'. "
-                    f"Valid targets: {', '.join(SwitchTargets.list_values())}")
+                    f"Valid targets: {', '.join(SwitchTargets.values())}")
 
     def _switch_instance(self, args: list[str]) -> str:
         """Handle /switch instance <instance_name> command, switching to that instance's first stored solution."""
@@ -509,7 +509,7 @@ class ExplainerCLI:
         """Handle /set <target> <option> [value] command."""
         if len(args) < 1:
             return (f"Usage: {self._yellow(Commands.SET.name)} <target> <option> [value] "
-                    f"where target is: {', '.join(SetTargets.list_values())}")
+                    f"where target is: {', '.join(SetTargets.values())}")
         target = args[0].lower()
         if target == SetTargets.LLM_MODEL.value:
             return self._set_llm_model(args[1:])
@@ -529,20 +529,20 @@ class ExplainerCLI:
             return self._set_display_mode(args[1:])
         else:
             return (f"Unknown target '{target}'. "
-                    f"Valid targets: {', '.join(SetTargets.list_values())}")
+                    f"Valid targets: {', '.join(SetTargets.values())}")
 
     def _set_llm_model(self, args: list[str]) -> str:
         """Handle /set llm-model <neighborhood-extraction|explanation-writing> <provider/model> command."""
         if len(args) < 1:
             return (f"Usage: {self._highlight_command(Commands.SET.name, SetTargets.LLM_MODEL.value)} "
-                    f"<{'|'.join(LLMModelTargets.list_values())}> <provider/model>")
+                    f"<{'|'.join(LLMModelTargets.values())}> <provider/model>")
         target = args[0].lower()
-        if target not in LLMModelTargets.list_values():
+        if target not in LLMModelTargets.values():
             return (f"Unknown target '{target}'. "
-                    f"Valid targets: {', '.join(LLMModelTargets.list_values())}")
+                    f"Valid targets: {', '.join(LLMModelTargets.values())}")
         if len(args) < 2:
             set_llm_model_str = self._highlight_command(Commands.SET.name, SetTargets.LLM_MODEL.value, target)
-            return f"Usage: {set_llm_model_str} <provider/model> (e.g. {', '.join(LLMModels.list_values())})"
+            return f"Usage: {set_llm_model_str} <provider/model> (e.g. {', '.join(LLMModels.values())})"
         model = args[1]
         # Basic validation: should contain a slash
         if "/" not in model:
@@ -590,11 +590,11 @@ class ExplainerCLI:
         cannot be set up (see Explainer.set_pipeline).
         """
         usage = (f"Usage: {self._highlight_command(Commands.SET.name, SetTargets.PIPELINE.value)} "
-                 f"<{'|'.join(Pipelines.list_values())}> [provider/model]")
+                 f"<{'|'.join(Pipelines.values())}> [provider/model]")
         if len(args) < 1:
             return usage
         pipeline = args[0].lower()
-        if pipeline not in Pipelines.list_values():
+        if pipeline not in Pipelines.values():
             return usage
         llm_model = args[1] if len(args) > 1 else None
         if llm_model is not None and "/" not in llm_model:
@@ -622,11 +622,11 @@ class ExplainerCLI:
         set_template_computation_mode_str = self._highlight_command(
             Commands.SET.name, SetTargets.TEMPLATE_COMPUTATION_MODE.value
         )
-        usage = f"Usage: {set_template_computation_mode_str} <{'|'.join(TemplateComputationModes.list_values())}>"
+        usage = f"Usage: {set_template_computation_mode_str} <{'|'.join(TemplateComputationModes.values())}>"
         if len(args) < 1:
             return usage
         mode = args[0].lower()
-        if mode not in TemplateComputationModes.list_values():
+        if mode not in TemplateComputationModes.values():
             return usage
         self._explainer.configuration.template_computation_mode = mode
         return f"Template computation mode set to {mode}"
@@ -639,11 +639,11 @@ class ExplainerCLI:
         rather than on the next question. The mode is left unchanged if no LLM model is set or the setup fails.
         """
         usage = (f"Usage: {self._highlight_command(Commands.SET.name, SetTargets.NEIGHBORHOOD_EXTRACTION_MODE.value)} "
-                 f"<{'|'.join(NeighborhoodExtractionModes.list_values())}>")
+                 f"<{'|'.join(NeighborhoodExtractionModes.values())}>")
         if len(args) < 1:
             return usage
         mode = args[0].lower()
-        if mode not in NeighborhoodExtractionModes.list_values():
+        if mode not in NeighborhoodExtractionModes.values():
             return usage
         if mode == NeighborhoodExtractionModes.LLM.value:
             if self._explainer.neighborhood_extraction_llm_model is None:
@@ -674,11 +674,11 @@ class ExplainerCLI:
         set_writing_mode_str = self._highlight_command(
             Commands.SET.name, SetTargets.FREE_TEXT_EXPLANATION_WRITING_MODE.value
         )
-        usage = f"Usage: {set_writing_mode_str} <{'|'.join(FreeTextExplanationModes.list_values())}>"
+        usage = f"Usage: {set_writing_mode_str} <{'|'.join(FreeTextExplanationModes.values())}>"
         if len(args) < 1:
             return usage
         mode = args[0].lower()
-        if mode not in FreeTextExplanationModes.list_values():
+        if mode not in FreeTextExplanationModes.values():
             return usage
         if mode == FreeTextExplanationModes.WRITTEN.value:
             if self._explainer.explanation_writing_llm_model is None:
@@ -698,11 +698,11 @@ class ExplainerCLI:
         command_tokens = (Commands.SET.name, SetTargets.SOLVING_TIME_LIMIT.value)
         if len(args) < 1:
             return (f"Usage: {self._highlight_command(*command_tokens)} "
-                    f"<{'|'.join(SolvingTimeLimitTargets.list_values())}> <seconds>")
+                    f"<{'|'.join(SolvingTimeLimitTargets.values())}> <seconds>")
         target = args[0].lower()
-        if target not in SolvingTimeLimitTargets.list_values():
+        if target not in SolvingTimeLimitTargets.values():
             return (f"Unknown target '{target}'. "
-                    f"Valid targets: {', '.join(SolvingTimeLimitTargets.list_values())}")
+                    f"Valid targets: {', '.join(SolvingTimeLimitTargets.values())}")
         if len(args) < 2:
             return f"Usage: {self._highlight_command(*command_tokens, target)} <seconds>"
         try:
@@ -721,11 +721,11 @@ class ExplainerCLI:
     def _set_language(self, args: list[str]) -> str:
         """Handle /set language <en|fr> command."""
         usage = (f"Usage: {self._highlight_command(Commands.SET.name, SetTargets.LANGUAGE.value)} "
-                 f"<{'|'.join(Languages.list_values())}>")
+                 f"<{'|'.join(Languages.values())}>")
         if len(args) < 1:
             return usage
         lang = args[0].lower()
-        if lang not in Languages.list_values():
+        if lang not in Languages.values():
             return usage
         if lang == Languages.EN.value:
             lang = LANGUAGE_ENGLISH_KEY
@@ -737,11 +737,11 @@ class ExplainerCLI:
     def _set_display_mode(self, args: list[str]) -> str:
         """Handle /set display-mode <user|developer> command."""
         usage = (f"Usage: {self._highlight_command(Commands.SET.name, SetTargets.DISPLAY_MODE.value)} "
-                 f"<{'|'.join(DisplayModes.list_values())}>")
+                 f"<{'|'.join(DisplayModes.values())}>")
         if len(args) < 1:
             return usage
         mode = args[0].lower()
-        if mode not in DisplayModes.list_values():
+        if mode not in DisplayModes.values():
             return usage
         self._display_mode = mode
         return f"Display mode set to {mode}"
@@ -751,7 +751,7 @@ class ExplainerCLI:
         if len(args) < 1:
             return f"Usage: {self._yellow(Commands.ENABLE.name)} <feature>"
         feature = args[0].lower()
-        enable_targets = EnableTargets.list_values()
+        enable_targets = EnableTargets.values()
         if feature not in enable_targets:
             return f"Unknown feature. Valid features: {', '.join(enable_targets)}"
         if feature == "history":
@@ -770,7 +770,7 @@ class ExplainerCLI:
         if len(args) < 1:
             return f"Usage: {self._yellow(Commands.DISABLE.name)} <feature>"
         feature = args[0].lower()
-        enable_targets = EnableTargets.list_values()
+        enable_targets = EnableTargets.values()
         if feature not in enable_targets:
             return f"Unknown feature. Valid features: {', '.join(enable_targets)}"
         if feature == "history":
@@ -792,7 +792,7 @@ class ExplainerCLI:
         """Handle /show <resource> [name] command."""
         if len(args) < 1:
             return (f"Usage: {self._yellow(Commands.SHOW.name)} <resource> [name] "
-                    f"where resource is: {', '.join(ShowTargets.list_values())}")
+                    f"where resource is: {', '.join(ShowTargets.values())}")
         resource = args[0].lower()
         if resource == ShowTargets.SOLUTION.value:
             return self._show_solution(args[1:])
@@ -810,7 +810,7 @@ class ExplainerCLI:
             return self._show_config()
         else:
             return (f"Unknown resource '{resource}'. "
-                    f"Valid resources: {', '.join(ShowTargets.list_values())}")
+                    f"Valid resources: {', '.join(ShowTargets.values())}")
 
     def _show_instance(self, args: list[str]) -> str:
         """Handle /show instance <instance_name> command."""
@@ -945,7 +945,7 @@ class ExplainerCLI:
 
     def handle_clear(self, args: list[str]) -> str:
         """Handle /clear <target> command."""
-        usage = f"Usage: {self._yellow(Commands.CLEAR.name)} <{'|'.join(ClearTargets.list_values())}>"
+        usage = f"Usage: {self._yellow(Commands.CLEAR.name)} <{'|'.join(ClearTargets.values())}>"
         if len(args) < 1:
             return usage
         target = args[0].lower()

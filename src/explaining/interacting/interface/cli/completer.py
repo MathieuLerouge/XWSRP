@@ -102,19 +102,19 @@ class ExplainerCLICompleter(Completer):
         if command_name == Commands.SET.name and token_index >= 1:
             return self._complete_set(args, partial_token)
         if command_name == Commands.LIST.name and token_index == 1:
-            return self._matching(partial_token, ListTargets.list_values())
+            return self._matching(partial_token, ListTargets.values())
         if command_name in (Commands.ENABLE.name, Commands.DISABLE.name) and token_index == 1:
-            return self._matching(partial_token, EnableTargets.list_values())
+            return self._matching(partial_token, EnableTargets.values())
         if command_name == Commands.SHOW.name and token_index == 1:
-            return self._matching(partial_token, ShowTargets.list_values())
+            return self._matching(partial_token, ShowTargets.values())
         if command_name == Commands.SHOW.name and token_index == 2 and args[0].lower() == ShowTargets.INSTANCE.value:
             return self._complete_history_names(lambda history: history.instances_names, partial_token)
         if command_name == Commands.SHOW.name and token_index == 2 and args[0].lower() == ShowTargets.SOLUTION.value:
             return self._complete_history_names(lambda history: history.solutions_names, partial_token)
         if command_name == Commands.CLEAR.name and token_index == 1:
-            return self._matching(partial_token, ClearTargets.list_values())
+            return self._matching(partial_token, ClearTargets.values())
         if command_name == Commands.SWITCH.name and token_index == 1:
-            return self._matching(partial_token, SwitchTargets.list_values())
+            return self._matching(partial_token, SwitchTargets.values())
         if (command_name == Commands.SWITCH.name and token_index == 2
                 and args[0].lower() == SwitchTargets.INSTANCE.value):
             return self._complete_history_names(lambda history: history.instances_names, partial_token)
@@ -193,29 +193,29 @@ class ExplainerCLICompleter(Completer):
             then the suggested LLM models after /set llm-model <target> and /set pipeline llm.
         """
         if len(args) == 0:
-            return self._matching(partial_token, SetTargets.list_values())
+            return self._matching(partial_token, SetTargets.values())
         target = args[0].lower()
         if len(args) == 1:
             if target == SetTargets.PIPELINE.value:
-                return self._matching(partial_token, Pipelines.list_values())
+                return self._matching(partial_token, Pipelines.values())
             if target == SetTargets.LANGUAGE.value:
-                return self._matching(partial_token, Languages.list_values())
+                return self._matching(partial_token, Languages.values())
             if target == SetTargets.DISPLAY_MODE.value:
-                return self._matching(partial_token, DisplayModes.list_values())
+                return self._matching(partial_token, DisplayModes.values())
             if target == SetTargets.TEMPLATE_COMPUTATION_MODE.value:
-                return self._matching(partial_token, TemplateComputationModes.list_values())
+                return self._matching(partial_token, TemplateComputationModes.values())
             if target == SetTargets.NEIGHBORHOOD_EXTRACTION_MODE.value:
-                return self._matching(partial_token, NeighborhoodExtractionModes.list_values())
+                return self._matching(partial_token, NeighborhoodExtractionModes.values())
             if target == SetTargets.FREE_TEXT_EXPLANATION_WRITING_MODE.value:
-                return self._matching(partial_token, FreeTextExplanationModes.list_values())
+                return self._matching(partial_token, FreeTextExplanationModes.values())
             if target == SetTargets.SOLVING_TIME_LIMIT.value:
-                return self._matching(partial_token, SolvingTimeLimitTargets.list_values())
+                return self._matching(partial_token, SolvingTimeLimitTargets.values())
             if target == SetTargets.LLM_MODEL.value:
-                return self._matching(partial_token, LLMModelTargets.list_values())
-        if len(args) == 2 and target == SetTargets.LLM_MODEL.value and args[1].lower() in LLMModelTargets.list_values():
-            return self._matching(partial_token, LLMModels.list_values())
+                return self._matching(partial_token, LLMModelTargets.values())
+        if len(args) == 2 and target == SetTargets.LLM_MODEL.value and args[1].lower() in LLMModelTargets.values():
+            return self._matching(partial_token, LLMModels.values())
         if len(args) == 2 and target == SetTargets.PIPELINE.value and args[1].lower() == Pipelines.LLM.value:
-            return self._matching(partial_token, LLMModels.list_values())
+            return self._matching(partial_token, LLMModels.values())
         return []
 
     def _complete_ask_template(self, args: list[str], partial_token: str) -> list[str]:

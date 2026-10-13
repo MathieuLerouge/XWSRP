@@ -104,10 +104,10 @@ class QuestioningModes(Enum):
     FREE_TEXT = "free-text"
 
     @classmethod
-    def list_values(cls) -> list[str]:
+    def values(cls) -> list[str]:
         """Return list of all valid questioning mode values."""
         return [member.value for member in cls]
 
     def __contains__(self, value):
         """Check if a value is a valid questioning mode."""
-        return value in self.list_values()
+        return value in self.values()
