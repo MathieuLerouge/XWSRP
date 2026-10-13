@@ -21,7 +21,7 @@ def solve_small_instance(solver_name: str):
 
 
 #################
-# solve - HIGHS #
+# Solve - HIGHS #
 #################
 
 def test_solve_with_highs_finds_a_feasible_solution():
@@ -32,9 +32,9 @@ def test_solve_with_highs_finds_a_feasible_solution():
     assert model.objective_value < 0
 
 
-#################
-# solve - GUROBI #
-#################
+##################
+# Solve - GUROBI #
+##################
 
 def test_solve_with_gurobi_finds_a_feasible_solution():
     gurobipy = pytest.importorskip("gurobipy")
@@ -46,3 +46,33 @@ def test_solve_with_gurobi_finds_a_feasible_solution():
         assert model.objective_value < 0
     except (gurobipy.GurobiError, RuntimeError) as error:
         pytest.skip(f"gurobipy is installed but not usable: {error}")
+
+
+##############
+# Statistics #
+##############
+
+def test_statistics_describe_the_built_model_before_solving():
+    instance = extract_instance_from_file(_SMALL_INSTANCE_PATH, True, True, True)
+    model = Model(instance)
+    statistics = model.statistics
+    assert statistics.nb_variables == model._model.nvariables()
+    assert statistics.nb_constraints == model._model.nconstraints()
+    assert statistics.nb_objectives == 1
+    assert statistics.build_time > 0
+    assert statistics.solve_time is None
+
+
+def test_statistics_group_constraints_by_family():
+    instance = extract_instance_from_file(_SMALL_INSTANCE_PATH, True, True, True)
+    model = Model(instance)
+    nb_constraints_by_family = model.statistics.nb_constraints_by_family
+    assert nb_constraints_by_family["SkillLevelConstraint"] == len(model._data.tasks_indices)
+    assert model.statistics.count_constraints_in_families_starting_with("SkillLevel") == len(
+        model._data.tasks_indices
+    )
+
+
+def test_statistics_record_solve_time_once_solved():
+    model = solve_small_instance(SOLVER_HIGHS)
+    assert model.statistics.solve_time > 0

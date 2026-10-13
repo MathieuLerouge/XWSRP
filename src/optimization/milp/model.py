@@ -1,4 +1,5 @@
-# Standard library
+# Standard libraries
+import time
 from typing import Optional
 
 # Third-party libraries
@@ -10,6 +11,7 @@ from main_configuration import SOLVER_NAME
 from src.optimization.milp.index import Index, LEAVING_HOME_INDEX, COMING_BACK_HOME_INDEX
 from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.solver.solver import Solver
+from src.optimization.milp.statistics import MilpStatistics
 from src.optimization.solution import SolutionOpti
 from src.utils.constants import SOLUTION_SOLVING_METHOD_SYMBOL_BIS
 
@@ -51,9 +53,12 @@ class Model:
         self._solve_outcome: Optional[Outcome] = None
         self._solution: Optional[SolutionOpti] = None
         self._model = pyo.ConcreteModel(name=self._name)
+        build_start_time = time.perf_counter()
         self._add_decision_variables()
         self._add_objective_function()
         self._add_constraints()
+        build_time = time.perf_counter() - build_start_time
+        self._statistics = MilpStatistics.from_pyomo_model(self._model, self._nb_objectives, build_time)
 
     @property
     def _solving_method_id(self):
@@ -64,6 +69,11 @@ class Model:
     def name(self):
         """This model's name."""
         return self._name
+
+    @property
+    def statistics(self) -> MilpStatistics:
+        """This model's size snapshot, taken once built, along with its build time and, once solved, solve time."""
+        return self._statistics
 
     ##############
     # Assumption #
@@ -279,6 +289,16 @@ class Model:
             objective += self.weight_nb_performed_tasks * nb_performed_tasks
 
         self._model.objective = pyo.Objective(expr=objective, sense=pyo.minimize)
+
+    @property
+    def _nb_objectives(self) -> int:
+        """
+        The number of objectives this model is solved against.
+
+        NB: Subclasses whose objective function is a lexicographic priority list override this,
+        since such objectives are only declared on the Pyomo model while being solved.
+        """
+        return self._model.nobjectives()
 
     ###############
     # Constraints #
@@ -755,7 +775,11 @@ class Model:
             the Outcome describing the solve, with its solution set if a feasible solution
             (an incumbent) was found.
         """
+        solve_start_time = time.perf_counter()
         self._solve_outcome = self._solve(mute=mute, solver_name=solver_name)
+        # NB: Timed here rather than read from the outcome,
+        # whose run time only covers the last level of a lexicographic solve.
+        self._statistics.solve_time = time.perf_counter() - solve_start_time
         if self._solve_outcome.is_infeasible:
             print("IP model is infeasible")
             print("")
