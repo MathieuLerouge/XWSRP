@@ -8,6 +8,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.styles import Style
 
 # Local libraries
+from src.explaining.computing.neighborhood.model import NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX
 from src.explaining.explanation.explanation import Explanation, ExplanationComputationModes
 from src.explaining.explanation.free.exceptions import ExplanationWritingError
 from src.explaining.explanation.free.explanation import FreeTextExplanation
@@ -21,6 +22,7 @@ from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.feasibility.checker import FeasibilityChecker
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
+from src.optimization.milp.statistics import MilpStatistics
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
 
@@ -323,15 +325,56 @@ class ExplainerCLI:
                     lines.append(self._gray(f"Neighborhood extraction mode: {neighborhood.extraction_mode}"))
                     lines.append(self._gray(f"Neighborhood scope: {neighborhood.scope}"))
                     lines.append(self._gray(f"Neighborhood primitives: {neighborhood}"))
+                    lines.append("")
+                    lines.extend(
+                        self._gray(line) for line in self._format_milp_statistics_lines(explanation.milp_statistics)
+                    )
             if isinstance(explanation, FreeTextExplanation):
+                lines.append("")
                 writing_mode = FreeTextExplanationModes.WRITTEN.value
                 lines.append(self._gray(f"Free-text explanation writing mode: {writing_mode}"))
                 lines.append(self._gray(f"Explanation writing LLM model: {explanation.llm_model}"))
                 lines.append(self._gray(f"Outcome: {explanation.facts.outcome.value}"))
+            lines.append("")
+            lines.append(self._gray(f"Support solution: {feasibility}"))
             if explanation.computation_time is not None:
                 lines.append(self._gray(f"Computation time: {explanation.computation_time:.3f}s"))
-            lines.append(self._gray(f"Support solution: {feasibility}"))
         return "\n".join(lines)
+
+    @staticmethod
+    def _format_milp_statistics_lines(milp_statistics: Optional[MilpStatistics]) -> list[str]:
+        """
+        Format the statistics of the MILP solved to compute an explanation, one line per statistic.
+
+        Args:
+            milp_statistics: The statistics of the MILP solved,
+                or None if none was (e.g. a skill conflict settled the question, or the explanation was imported).
+
+        Returns:
+            The lines describing the MILP's size, objectives, and build and solve times,
+            with one indented line per neighborhood constraint family.
+        """
+        if milp_statistics is None:
+            return ["MILP: none solved"]
+        nb_neighborhood_constraints = milp_statistics.count_constraints_in_families_starting_with(
+            NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX
+        )
+        nb_base_constraints = milp_statistics.nb_constraints - nb_neighborhood_constraints
+        lines = [
+            f"MILP variables: {milp_statistics.nb_variables} "
+            f"(binary: {milp_statistics.nb_binary_variables}, integer: {milp_statistics.nb_integer_variables}, "
+            f"continuous: {milp_statistics.nb_continuous_variables}; fixed: {milp_statistics.nb_fixed_variables})",
+            f"MILP constraints: {milp_statistics.nb_constraints} "
+            f"(base: {nb_base_constraints}, neighborhood: {nb_neighborhood_constraints})"
+        ]
+        for family, nb_constraints in sorted(milp_statistics.nb_constraints_by_family.items()):
+            if family.startswith(NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX):
+                lines.append(f"  {family}: {nb_constraints}")
+        lines.append(f"MILP objectives: {milp_statistics.nb_objectives}")
+        lines.append(f"MILP build time: {milp_statistics.build_time:.3f}s")
+        if milp_statistics.solve_time is not None:
+            lines.append(f"MILP solve time: {milp_statistics.solve_time:.3f}s")
+        return lines
 
     ####################################
     # Command Handlers - Save solution #

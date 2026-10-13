@@ -317,6 +317,26 @@ def test_ask_in_written_mode_shows_the_written_explanation(demo_solution):
     assert "Outcome: time infeasible" in developer_result
 
 
+def test_developer_mode_shows_the_statistics_of_the_milp_solved(demo_solution):
+    # NB: Building with an LLM model is what switches the template computation mode to neighborhood.
+    cli = build_cli(demo_solution, llm_model="stub/model")
+    assert "MILP" not in ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start"), "Developer output only"
+    cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
+    result = ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
+    assert "MILP variables:" in result
+    assert "MILP constraints:" in result
+    assert "  NeighborhoodSameAssigneeConstraint: " in result
+    assert "MILP objectives: 3" in result
+    assert "MILP build time:" in result
+    assert "MILP solve time:" in result
+
+
+def test_developer_mode_says_no_milp_was_solved_when_a_skill_conflict_settles_the_question(demo_solution):
+    cli = build_cli(demo_solution, llm_model="stub/model")
+    cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
+    assert "MILP: none solved" in ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T6", "Start")
+
+
 def test_ask_reports_an_explanation_that_could_not_be_written(demo_solution, monkeypatch):
     cli = build_cli_answering_with_stubs(demo_solution)
 
