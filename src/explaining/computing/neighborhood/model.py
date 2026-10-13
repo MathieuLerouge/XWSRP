@@ -20,6 +20,10 @@ from src.optimization.milp.model import Model
 from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.solver.solver import Solver
 
+# Global variables
+# NB: The prefix every constraint family this model adds on top of Model's own is named with.
+NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX = "Neighborhood"
+
 
 #####################
 # NeighborhoodModel #
@@ -179,6 +183,11 @@ class NeighborhoodModel(Model):
         self._objectives_in_priority_order = [
             feasibility_shortfall_expression, working_duration_expression, traveling_duration_expression
         ]
+
+    @property
+    def _nb_objectives(self) -> int:
+        """The number of objectives minimized lexicographically, none of which is declared on the Pyomo model."""
+        return len(self._objectives_in_priority_order)
 
     ###############
     # Constraints #
