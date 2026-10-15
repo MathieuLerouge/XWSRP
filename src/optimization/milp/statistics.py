@@ -20,7 +20,7 @@ class MilpStatistics:
 
     def __init__(self, nb_binary_variables: int, nb_integer_variables: int, nb_continuous_variables: int,
                  nb_fixed_variables: int, nb_constraints_by_family: dict[str, int], nb_objectives: int,
-                 build_time: float, solve_time: Optional[float] = None,
+                 build_time: float, solver_name: Optional[str] = None, solve_time: Optional[float] = None,
                  lexicographic_outcomes: Optional[list[tuple[str, Outcome]]] = None):
         """
         Args:
@@ -32,6 +32,8 @@ class MilpStatistics:
                 a family being a constraint's name without its bracketed indices (e.g. "FlowConstraint").
             nb_objectives: The number of objectives, counting each level of a lexicographic objective.
             build_time: The time taken to build the model, in seconds.
+            solver_name: The name of the MILP backend the model was solved with (e.g. SOLVER_HIGHS),
+                or None if it hasn't been solved yet.
             solve_time: The time taken to solve the model, in seconds, or None if it hasn't been solved yet.
             lexicographic_outcomes: The objective name and outcome of each level of a lexicographic solve,
                 highest priority first, or None (no level) if the model hasn't been solved lexicographically yet.
@@ -43,6 +45,7 @@ class MilpStatistics:
         self._nb_constraints_by_family: dict[str, int] = nb_constraints_by_family
         self._nb_objectives = nb_objectives
         self._build_time = build_time
+        self._solver_name = solver_name
         self._solve_time = solve_time
         self._lexicographic_outcomes: list[tuple[str, Outcome]] = (
             lexicographic_outcomes if lexicographic_outcomes is not None else []
@@ -152,6 +155,19 @@ class MilpStatistics:
     def nb_objectives(self) -> int:
         """The number of objectives, counting each level of a lexicographic objective."""
         return self._nb_objectives
+
+    ##########
+    # Solver #
+    ##########
+
+    @property
+    def solver_name(self) -> Optional[str]:
+        """The name of the MILP backend the model was solved with, or None if it hasn't been solved yet."""
+        return self._solver_name
+
+    @solver_name.setter
+    def solver_name(self, solver_name: str):
+        self._solver_name = solver_name
 
     #########
     # Times #

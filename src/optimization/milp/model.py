@@ -780,6 +780,7 @@ class Model:
         # NB: Timed here rather than read from the outcome,
         # whose run time only covers the last level of a lexicographic solve.
         self._statistics.solve_time = time.perf_counter() - solve_start_time
+        self._statistics.solver_name = solver_name
         if self._solve_outcome.is_infeasible:
             print("IP model is infeasible")
             print("")

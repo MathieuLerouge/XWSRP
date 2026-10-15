@@ -378,6 +378,8 @@ class ExplainerCLI:
         if 0 < len(lexicographic_outcomes) < milp_statistics.nb_objectives:
             nb_unsolved_levels = milp_statistics.nb_objectives - len(lexicographic_outcomes)
             lines.append(f"  ({nb_unsolved_levels} lower-priority level(s) not solved)")
+        if milp_statistics.solver_name is not None:
+            lines.append(f"MILP solver: {milp_statistics.solver_name}")
         lines.append(f"MILP build time: {milp_statistics.build_time:.3f}s")
         if milp_statistics.solve_time is not None:
             lines.append(f"MILP solve time: {milp_statistics.solve_time:.3f}s")

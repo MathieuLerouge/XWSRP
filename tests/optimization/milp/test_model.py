@@ -61,6 +61,7 @@ def test_statistics_describe_the_built_model_before_solving():
     assert statistics.nb_objectives == 1
     assert statistics.build_time > 0
     assert statistics.solve_time is None
+    assert statistics.solver_name is None
 
 
 def test_statistics_group_constraints_by_family():
@@ -73,6 +74,7 @@ def test_statistics_group_constraints_by_family():
     )
 
 
-def test_statistics_record_solve_time_once_solved():
+def test_statistics_record_solver_name_and_solve_time_once_solved():
     model = solve_small_instance(SOLVER_HIGHS)
+    assert model.statistics.solver_name == SOLVER_HIGHS
     assert model.statistics.solve_time > 0
