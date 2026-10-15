@@ -1,5 +1,8 @@
 # Local libraries
-from src.explaining.computing.neighborhood.model import NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX, NeighborhoodModel
+from src.explaining.computing.neighborhood.model import (
+    FEASIBILITY_SHORTFALL_OBJECTIVE_NAME, NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX, TRAVELING_DURATION_OBJECTIVE_NAME,
+    WORKING_DURATION_OBJECTIVE_NAME, NeighborhoodModel
+)
 from src.explaining.neighborhood.bridge.mapper import Mapper
 from src.explaining.question.predefined.bank import WHY_NOT_INS_1
 from src.explaining.question.predefined.question import ContrastiveQuestion
@@ -38,3 +41,15 @@ def test_statistics_leave_out_the_constraints_the_lexicographic_solve_adds():
     # NB: One freezing constraint per objective but the last.
     assert model._model.nconstraints() == model.statistics.nb_constraints + 2
     assert model.statistics.solve_time > 0
+
+
+def test_statistics_record_the_outcome_of_each_lexicographic_level():
+    model = build_neighborhood_model()
+    model.solve(mute=True)
+    lexicographic_outcomes = model.statistics.lexicographic_outcomes
+    assert [name for name, _ in lexicographic_outcomes] == [
+        FEASIBILITY_SHORTFALL_OBJECTIVE_NAME, WORKING_DURATION_OBJECTIVE_NAME, TRAVELING_DURATION_OBJECTIVE_NAME
+    ]
+    assert all(outcome.has_incumbent for _, outcome in lexicographic_outcomes)
+    _, feasibility_shortfall_outcome = lexicographic_outcomes[0]
+    assert feasibility_shortfall_outcome.objective_value == model.feasibility_shortfall

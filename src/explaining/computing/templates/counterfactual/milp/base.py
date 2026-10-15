@@ -512,7 +512,7 @@ class TransformationWithAlterationsBaseModel(SequenceModel):
             The outcome of the last solve.
         """
         solver = Solver(solver_name, mute=mute, time_limit=self._solving_time_limit)
-        return solver.solve_lexicographically(self._model, self._objectives_in_priority_order)
+        return solver.solve_lexicographically(self._model, self._objectives_in_priority_order)[-1]
 
     #####################
     # Constraints - All #

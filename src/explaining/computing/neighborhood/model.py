@@ -1,8 +1,9 @@
 # Standard library
 from typing import cast
 
-# Third-party library
+# Third-party libraries
 import pyomo.environ as pyo
+from pyomo.core.expr.numvalue import NumericValue
 
 # Local libraries
 from src.explaining.computing.neighborhood.checker import ModelCompatibilityChecker
@@ -23,6 +24,10 @@ from src.optimization.milp.solver.solver import Solver
 # Global variables
 # NB: The prefix every constraint family this model adds on top of Model's own is named with.
 NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX = "Neighborhood"
+
+FEASIBILITY_SHORTFALL_OBJECTIVE_NAME = "feasibility shortfall"
+WORKING_DURATION_OBJECTIVE_NAME = "working duration"
+TRAVELING_DURATION_OBJECTIVE_NAME = "traveling duration"
 
 
 #####################
@@ -180,8 +185,10 @@ class NeighborhoodModel(Model):
             )
             for indices in self.vars_U.keys()
         ])
-        self._objectives_in_priority_order = [
-            feasibility_shortfall_expression, working_duration_expression, traveling_duration_expression
+        self._objectives_in_priority_order: list[tuple[str, NumericValue]] = [
+            (FEASIBILITY_SHORTFALL_OBJECTIVE_NAME, feasibility_shortfall_expression),
+            (WORKING_DURATION_OBJECTIVE_NAME, working_duration_expression),
+            (TRAVELING_DURATION_OBJECTIVE_NAME, traveling_duration_expression)
         ]
 
     @property
@@ -443,8 +450,24 @@ class NeighborhoodModel(Model):
     ###########
 
     def _solve(self, mute: bool, solver_name: str) -> Outcome:
+        """
+        Solve the model one objective at a time, in priority order,
+        recording each level's outcome in this model's statistics.
+
+        Args:
+            mute: Whether to silence the solver's own output.
+            solver_name: The name of the backend to solve with.
+
+        Returns:
+            The outcome of the last level solved.
+        """
         solver = Solver(solver_name, mute=mute, time_limit=self._solving_time_limit)
-        return solver.solve_lexicographically(self._model, self._objectives_in_priority_order)
+        objective_names = [name for name, _ in self._objectives_in_priority_order]
+        objective_expressions = [expression for _, expression in self._objectives_in_priority_order]
+        outcomes = solver.solve_lexicographically(self._model, objective_expressions)
+        # NB: zip stops at the last level solved, which is not the last objective if the solve stopped early.
+        self._statistics.lexicographic_outcomes = list(zip(objective_names, outcomes))
+        return outcomes[-1]
 
     ###########
     # Results #

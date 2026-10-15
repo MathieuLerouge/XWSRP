@@ -5,6 +5,9 @@ from typing import Optional
 # Third-party library
 import pyomo.environ as pyo
 
+# Local library
+from src.optimization.milp.solver.outcome import Outcome
+
 
 ##################
 # MilpStatistics #
@@ -17,7 +20,8 @@ class MilpStatistics:
 
     def __init__(self, nb_binary_variables: int, nb_integer_variables: int, nb_continuous_variables: int,
                  nb_fixed_variables: int, nb_constraints_by_family: dict[str, int], nb_objectives: int,
-                 build_time: float, solve_time: Optional[float] = None):
+                 build_time: float, solve_time: Optional[float] = None,
+                 lexicographic_outcomes: Optional[list[tuple[str, Outcome]]] = None):
         """
         Args:
             nb_binary_variables: The number of binary variables.
@@ -29,6 +33,8 @@ class MilpStatistics:
             nb_objectives: The number of objectives, counting each level of a lexicographic objective.
             build_time: The time taken to build the model, in seconds.
             solve_time: The time taken to solve the model, in seconds, or None if it hasn't been solved yet.
+            lexicographic_outcomes: The objective name and outcome of each level of a lexicographic solve,
+                highest priority first, or None (no level) if the model hasn't been solved lexicographically yet.
         """
         self._nb_binary_variables = nb_binary_variables
         self._nb_integer_variables = nb_integer_variables
@@ -38,6 +44,9 @@ class MilpStatistics:
         self._nb_objectives = nb_objectives
         self._build_time = build_time
         self._solve_time = solve_time
+        self._lexicographic_outcomes: list[tuple[str, Outcome]] = (
+            lexicographic_outcomes if lexicographic_outcomes is not None else []
+        )
 
     @staticmethod
     def from_pyomo_model(model: pyo.ConcreteModel, nb_objectives: int, build_time: float) -> 'MilpStatistics':
@@ -161,3 +170,23 @@ class MilpStatistics:
     @solve_time.setter
     def solve_time(self, solve_time: float):
         self._solve_time = solve_time
+
+    #######################
+    # Lexicographic solve #
+    #######################
+
+    @property
+    def lexicographic_outcomes(self) -> list[tuple[str, Outcome]]:
+        """
+        The objective name and outcome of each level of a lexicographic solve, highest priority first.
+
+        Only the levels actually solved are listed:
+        the solve stops at a level finding no incumbent or using up the time limit,
+        so there can be fewer than nb_objectives of them.
+        Empty if the model hasn't been solved lexicographically.
+        """
+        return self._lexicographic_outcomes
+
+    @lexicographic_outcomes.setter
+    def lexicographic_outcomes(self, lexicographic_outcomes: list[tuple[str, Outcome]]):
+        self._lexicographic_outcomes = lexicographic_outcomes

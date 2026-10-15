@@ -1,3 +1,6 @@
+# Standard library
+from typing import Optional
+
 # Third-party library
 import pytest
 
@@ -16,6 +19,8 @@ from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_INS_2C
 from src.modeling.solution import Solution
+from src.optimization.milp.solver.outcome import Outcome
+from src.optimization.milp.statistics import MilpStatistics
 from src.utils.language import LANGUAGE_FRENCH_KEY
 from tests.explaining.interacting.test_explainer import (
     StubWriter, build_covered_neighborhood, give_explainer_a_stub_extractor
@@ -327,6 +332,9 @@ def test_developer_mode_shows_the_statistics_of_the_milp_solved(demo_solution):
     assert "MILP constraints:" in result
     assert "  NeighborhoodSameAssigneeConstraint: " in result
     assert "MILP objectives: 3" in result
+    assert "  1. feasibility shortfall: " in result
+    assert "  3. traveling duration: " in result
+    assert "not solved" not in result
     assert "MILP build time:" in result
     assert "MILP solve time:" in result
 
@@ -335,6 +343,35 @@ def test_developer_mode_says_no_milp_was_solved_when_a_skill_conflict_settles_th
     cli = build_cli(demo_solution, llm_model="stub/model")
     cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
     assert "MILP: none solved" in ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T6", "Start")
+
+
+def build_outcome(objective_value: Optional[float] = None, mip_gap: Optional[float] = None,
+                  is_infeasible: bool = False, is_time_limit: bool = False) -> Outcome:
+    """Return the outcome of a level solved in 0.1s, with an incumbent if and only if an objective value is given."""
+    return Outcome(
+        is_infeasible=is_infeasible, is_unbounded=False, is_time_limit=is_time_limit,
+        has_incumbent=objective_value is not None, objective_value=objective_value, mip_gap=mip_gap, run_time=0.1
+    )
+
+
+@pytest.mark.parametrize("outcome,expected_text", [
+    (build_outcome(125.0, 0.0), "125 (optimal, 0.100s)"),
+    (build_outcome(512.0, 0.023, is_time_limit=True), "512 (time limit reached, gap: 2.30%, 0.100s)"),
+    (build_outcome(is_time_limit=True), "no solution (time limit reached, 0.100s)"),
+    (build_outcome(is_infeasible=True), "no solution (infeasible, 0.100s)"),
+])
+def test_a_lexicographic_level_outcome_is_formatted_with_its_status(outcome, expected_text):
+    assert ExplainerCLI._format_lexicographic_level_outcome(outcome) == expected_text
+
+
+def test_lexicographic_levels_left_unsolved_are_counted():
+    milp_statistics = MilpStatistics(1, 0, 0, 0, {"FlowConstraint": 1}, 3, 0.1, 0.1, [
+        ("feasibility shortfall", build_outcome(0.0, 0.0)),
+        ("working duration", build_outcome(is_time_limit=True))
+    ])
+    lines = ExplainerCLI._format_milp_statistics_lines(milp_statistics)
+    assert "  2. working duration: no solution (time limit reached, 0.100s)" in lines
+    assert "  (1 lower-priority level(s) not solved)" in lines
 
 
 def test_ask_reports_an_explanation_that_could_not_be_written(demo_solution, monkeypatch):

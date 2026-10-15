@@ -1,6 +1,6 @@
 # Standard library
 import time
-from typing import cast, Optional
+from typing import Optional
 
 # Third-party libraries
 import pyomo.environ as pyo
@@ -68,7 +68,7 @@ class Solver:
         """
         return self._solve_once(model, self._time_limit)
 
-    def solve_lexicographically(self, model: pyo.ConcreteModel, objective_expressions: list) -> Outcome:
+    def solve_lexicographically(self, model: pyo.ConcreteModel, objective_expressions: list) -> list[Outcome]:
         """
         Solve a Pyomo model with several objectives in strict priority order (lexicographic optimization).
 
@@ -86,29 +86,31 @@ class Solver:
                 (pass a negated expression for an objective that should be maximized).
 
         Returns:
-            the Outcome of the last priority level reached.
-            Its objective_value refers to the lowest-priority objective solved for;
-            read pyo.value(expr) on higher-priority expressions in
-            objective_expressions afterward to recover their (frozen) achieved values.
+            the Outcome of every level, highest priority first,
+            each one's objective_value referring to its own level's objective.
+            The last one is the outcome of the whole solve:
+            levels stop being solved once one finds no incumbent or uses up the time limit,
+            so it is not necessarily the lowest-priority objective's.
         """
-        outcome = None
+        outcomes: list[Outcome] = []
         remaining_time = self._time_limit
         for index, expression in enumerate(objective_expressions):
             model.objective = pyo.Objective(expr=expression, sense=pyo.minimize)
             outcome = self._solve_once(model, remaining_time)
+            outcomes.append(outcome)
             del model.objective
             if not outcome.has_incumbent:
-                return outcome
+                return outcomes
             if remaining_time is not None:
                 remaining_time -= outcome.run_time
                 if remaining_time <= 0:
-                    return outcome
+                    return outcomes
             if index < len(objective_expressions) - 1:
                 achieved_value = round(pyo.value(expression))
                 model.add_component(
                     f'_lexicographic_freeze_{index}', pyo.Constraint(expr=(expression <= achieved_value))
                 )
-        return cast(Outcome, outcome)
+        return outcomes
 
     def _solve_once(self, model: pyo.ConcreteModel, time_limit: Optional[int]) -> Outcome:
         """Run the underlying Pyomo solver once against the model and return a normalized outcome."""
