@@ -32,7 +32,8 @@ class Explanation(ABC):
     def __init__(
             self, question: Question, support_solution: Solution,
             instance_alterations: Optional[InstanceChanges] = None,
-            computation_mode: Optional[str] = None, computation_time: Optional[float] = None
+            computation_mode: Optional[str] = None, computation_time: Optional[float] = None,
+            writing_time: Optional[float] = None
     ):
         """
         Args:
@@ -43,6 +44,7 @@ class Explanation(ABC):
             computation_mode: The mode in which the explanation is computed (tailored or neighborhood),
                 or None if not available.
             computation_time: The computation time in seconds, or None if not available.
+            writing_time: The writing time in seconds, or None if not available.
         """
         self._question = question
         self._support_solution = support_solution
@@ -51,6 +53,7 @@ class Explanation(ABC):
         self._milp_statistics: Optional[MilpStatistics] = None
         self._computation_mode = computation_mode
         self._computation_time = computation_time
+        self._writing_time = writing_time
         self._text = self._compute_text()
 
     ############
@@ -110,6 +113,33 @@ class Explanation(ABC):
     def computation_time(self) -> Optional[float]:
         """Computation time in seconds, if available."""
         return self._computation_time
+
+    @property
+    def writing_time(self) -> Optional[float]:
+        """The time an LLM took to word the explanation, in seconds, or None if no LLM wrote it."""
+        return self._writing_time
+
+    @writing_time.setter
+    def writing_time(self, writing_time: Optional[float]):
+        """
+        Set the time an LLM took to word the explanation.
+
+        Args:
+            writing_time: The writing time in seconds, or None if no LLM wrote it.
+        """
+        self._writing_time = writing_time
+
+    @property
+    def total_time(self) -> Optional[float]:
+        """
+        The time taken to compute the explanation, then to word it when an LLM wrote it, in seconds.
+
+        Returns:
+            The computation time plus the writing time, if any, or None if the computation time is not available.
+        """
+        if self._computation_time is None:
+            return None
+        return self._computation_time + (self._writing_time if self._writing_time is not None else 0.0)
 
     @property
     @abstractmethod

@@ -9,7 +9,7 @@ from instructor.core import InstructorRetryException
 
 # Local libraries
 from src.explaining.explanation.free.exceptions import ExplanationWritingError
-from src.explaining.explanation.free.explanation import FreeTextExplanation
+from src.explaining.explanation.free.explanation import WRITING_TIME_KEY, FreeTextExplanation
 from src.explaining.explanation.free.prompt import SYSTEM_PROMPT, build_facts_document, build_user_prompt
 from src.explaining.explanation.free.writer import ExplanationWriter
 from src.explaining.explanation.free.written_explanation import WrittenExplanation
@@ -106,9 +106,20 @@ def test_the_explanation_survives_a_json_round_trip():
     question, facts, support_solution = get_explanation_facts(WHY_NOT_INS_1, ["Ellen", "T27", "T17"])
     writer, _ = build_writer(_GROUNDED_TEXT)
     explanation = writer.write(question, facts, support_solution, computation_time=1.5)
+    explanation.writing_time = 2.5
     rebuilt = FreeTextExplanation.from_dict(json.loads(json.dumps(explanation.to_dict())), question.solution)
     assert rebuilt.to_dict() == explanation.to_dict()
     assert rebuilt.question.text == question.text and rebuilt.facts == facts
+    assert rebuilt.writing_time == 2.5 and rebuilt.total_time == 4.0
+
+
+def test_an_explanation_exported_without_a_writing_time_still_loads():
+    question, facts, support_solution = get_explanation_facts(WHY_NOT_INS_1, ["Ellen", "T27", "T17"])
+    writer, _ = build_writer(_GROUNDED_TEXT)
+    dictionary = writer.write(question, facts, support_solution, computation_time=1.5).to_dict()
+    del dictionary[WRITING_TIME_KEY]
+    rebuilt = FreeTextExplanation.from_dict(dictionary, question.solution)
+    assert rebuilt.writing_time is None and rebuilt.total_time == 1.5
 
 
 @pytest.mark.parametrize("with_json_context", [False, True])

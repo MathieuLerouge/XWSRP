@@ -1,29 +1,29 @@
 # Standard libraries
 import os
 import re
-from typing import Callable, cast
+from typing import Callable
 
 # Third-party libraries
 from prompt_toolkit import PromptSession
 from prompt_toolkit.styles import Style
 
 # Local libraries
-from src.explaining.computing.neighborhood.model import NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX
-from src.explaining.explanation.explanation import Explanation, ExplanationComputationModes
+from src.explaining.explanation.explanation import Explanation
 from src.explaining.explanation.free.exceptions import ExplanationWritingError
 from src.explaining.explanation.free.explanation import FreeTextExplanation
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.interface.cli.commands import *
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
+from src.explaining.interacting.interface.cli.progress import CLIProgressReporter
 from src.explaining.neighborhood.exceptions import NeighborhoodError
-from src.explaining.neighborhood.neighborhood import Neighborhood, NeighborhoodExtractionModes
+from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.feasibility.checker import FeasibilityChecker
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.optimization.milp.statistics import MilpStatistics
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
+from src.utils.progress import ProgressReporter
 
 
 ################
@@ -65,6 +65,7 @@ class ExplainerCLI:
         self._running = True
         self._last_command: Optional[str] = None
         self._display_mode = DisplayModes.USER.value
+        self._switch_display_mode(DisplayModes.USER.value)
         # Commands handlers registry
         self._commands: dict[str, Callable[[list[str]], str]] = {}
         # Register all commands
@@ -316,73 +317,18 @@ class ExplainerCLI:
             f"{explanation_text}"
         ]
         if self._display_mode == DisplayModes.DEVELOPER.value:
+            # NB: Only what no computation step reports, those having printed their details as they ran.
             lines.append("")
             lines.append(self._gray(f"Questioning mode: {explanation.question.mode}"))
             if explanation.mode is not None:
                 lines.append(self._gray(f"Explanation computation mode: {explanation.mode}"))
-                if explanation.mode == ExplanationComputationModes.NEIGHBORHOOD.value:
-                    neighborhood = cast(Neighborhood, explanation.neighborhood)
-                    lines.append(self._gray(f"Neighborhood extraction mode: {neighborhood.extraction_mode}"))
-                    lines.append(self._gray(f"Neighborhood scope: {neighborhood.scope}"))
-                    lines.append(self._gray(f"Neighborhood primitives: {neighborhood}"))
-                    lines.append("")
-                    lines.extend(
-                        self._gray(line) for line in self._format_milp_statistics_lines(explanation.milp_statistics)
-                    )
             if isinstance(explanation, FreeTextExplanation):
-                lines.append("")
                 writing_mode = FreeTextExplanationModes.WRITTEN.value
                 lines.append(self._gray(f"Free-text explanation writing mode: {writing_mode}"))
-                lines.append(self._gray(f"Explanation writing LLM model: {explanation.llm_model}"))
-                lines.append(self._gray(f"Outcome: {explanation.facts.outcome.value}"))
-            lines.append("")
             lines.append(self._gray(f"Support solution: {feasibility}"))
-            if explanation.computation_time is not None:
-                lines.append(self._gray(f"Computation time: {explanation.computation_time:.3f}s"))
+            if explanation.total_time is not None:
+                lines.append(self._gray(f"Total time: {explanation.total_time:.3f}s"))
         return "\n".join(lines)
-
-    @staticmethod
-    def _format_milp_statistics_lines(milp_statistics: Optional[MilpStatistics]) -> list[str]:
-        """
-        Format the statistics of the MILP solved to compute an explanation, one line per statistic.
-
-        Args:
-            milp_statistics: The statistics of the MILP solved,
-                or None if none was (e.g. a skill conflict settled the question, or the explanation was imported).
-
-        Returns:
-            The lines describing the MILP's size, objectives, and build and solve times,
-            with one indented line per neighborhood constraint family and per lexicographic level solved.
-        """
-        if milp_statistics is None:
-            return ["MILP: none solved"]
-        nb_neighborhood_constraints = milp_statistics.count_constraints_in_families_starting_with(
-            NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX
-        )
-        nb_base_constraints = milp_statistics.nb_constraints - nb_neighborhood_constraints
-        lines = [
-            f"MILP variables: {milp_statistics.nb_variables} "
-            f"(binary: {milp_statistics.nb_binary_variables}, integer: {milp_statistics.nb_integer_variables}, "
-            f"continuous: {milp_statistics.nb_continuous_variables}; fixed: {milp_statistics.nb_fixed_variables})",
-            f"MILP constraints: {milp_statistics.nb_constraints} "
-            f"(base: {nb_base_constraints}, neighborhood: {nb_neighborhood_constraints})"
-        ]
-        for family, nb_constraints in sorted(milp_statistics.nb_constraints_by_family.items()):
-            if family.startswith(NEIGHBORHOOD_CONSTRAINT_FAMILY_PREFIX):
-                lines.append(f"  {family}: {nb_constraints}")
-        lines.append(f"MILP objectives: {milp_statistics.nb_objectives}")
-        lexicographic_outcomes = milp_statistics.lexicographic_outcomes
-        for level, (objective_name, outcome) in enumerate(lexicographic_outcomes, start=1):
-            lines.append(f"  {level}. {objective_name}: {outcome.as_string()}")
-        if 0 < len(lexicographic_outcomes) < milp_statistics.nb_objectives:
-            nb_unsolved_levels = milp_statistics.nb_objectives - len(lexicographic_outcomes)
-            lines.append(f"  ({nb_unsolved_levels} lower-priority level(s) not solved)")
-        if milp_statistics.solver_name is not None:
-            lines.append(f"MILP solver: {milp_statistics.solver_name}")
-        lines.append(f"MILP build time: {milp_statistics.build_time:.3f}s")
-        if milp_statistics.solve_time is not None:
-            lines.append(f"MILP solve time: {milp_statistics.solve_time:.3f}s")
-        return lines
 
     ####################################
     # Command Handlers - Save solution #
@@ -794,8 +740,21 @@ class ExplainerCLI:
         mode = args[0].lower()
         if mode not in DisplayModes.values():
             return usage
-        self._display_mode = mode
+        self._switch_display_mode(mode)
         return f"Display mode set to {mode}"
+
+    def _switch_display_mode(self, mode: str):
+        """
+        Switch to the given display mode, having the explainer print each computation step only in developer mode.
+
+        Args:
+            mode: One of DisplayModes' values.
+        """
+        self._display_mode = mode
+        if mode == DisplayModes.DEVELOPER.value:
+            self._explainer.progress_reporter = CLIProgressReporter(colorize=self._gray)
+        else:
+            self._explainer.progress_reporter = ProgressReporter()
 
     def handle_enable(self, args: list[str]) -> str:
         """Handle /enable <feature> command."""

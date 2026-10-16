@@ -390,7 +390,8 @@ class Explainer:
                 "if free-text questions are known to be the equivalents of question templates."
             )
         else:
-            # NB: Imported here rather than at module level, for the same reason as the Extractor's (see _get_extractor).
+            # NB: Imported here rather than at module level,
+            # for the same reason as the Extractor's (see _get_extractor).
             from src.explaining.explanation.free.writer import ExplanationWriter
             if self._writer is None:
                 self._writer = ExplanationWriter(
@@ -548,9 +549,11 @@ class Explainer:
         # NB: Not counted and not cached, for the same reason as a templated one's (see below).
         with self._progress_reporter.step("Writing the explanation") as step:
             step.info("LLM model", self.explanation_writing_llm_model)
+            writing_start_time = time.perf_counter()
             free_text_explanation = self._get_writer().write(
                 question, facts, support_solution, ExplanationComputationModes.NEIGHBORHOOD.value, elapsed_time
             )
+            free_text_explanation.writing_time = time.perf_counter() - writing_start_time
         free_text_explanation.neighborhood = neighborhood
         free_text_explanation.milp_statistics = model.statistics if model is not None else None
         return free_text_explanation

@@ -11,7 +11,7 @@ from src.utils.progress import ProgressReporter
 
 class CLIProgressReporter(ProgressReporter):
     """
-    Prints the progress of a computation to the terminal, one block of lines per step:
+    Prints the progress of a computation to the terminal, one block of lines per step, each after a blank line:
 
     ⏵ <title>
      ⎿ <label>: <value>
@@ -37,6 +37,7 @@ class CLIProgressReporter(ProgressReporter):
         self._output(self._colorize(line))
 
     def _on_step_started(self, title: str):
+        self._output("")
         self._write(f"⏵ {title}")
 
     def _on_step_info(self, label: str, value: str):
@@ -44,10 +45,8 @@ class CLIProgressReporter(ProgressReporter):
 
     def _on_step_done(self, elapsed_time: float):
         self._write(f"✓ Done in {elapsed_time:.3f}s")
-        self._output("")
 
     def _on_step_failed(self, error: Exception, elapsed_time: float):
         # NB: Falls back on the exception's class name, which is all an exception raised without a message has.
         reason = str(error) or type(error).__name__
         self._write(f"✗ Failed in {elapsed_time:.3f}s: {reason}")
-        self._output("")

@@ -16,6 +16,7 @@ TEXT_KEY = 'text'
 LLM_MODEL_KEY = 'llm model'
 COMPUTATION_MODE_KEY = 'computation_mode'
 COMPUTATION_TIME_KEY = 'computation_time'
+WRITING_TIME_KEY = 'writing_time'
 
 
 #######################
@@ -99,6 +100,7 @@ class FreeTextExplanation(Explanation):
             LLM_MODEL_KEY: self._llm_model,
             COMPUTATION_MODE_KEY: self.mode,
             COMPUTATION_TIME_KEY: self.computation_time,
+            WRITING_TIME_KEY: self.writing_time,
         }
 
     @classmethod
@@ -113,7 +115,7 @@ class FreeTextExplanation(Explanation):
         Returns:
             The rebuilt explanation.
         """
-        return cls(
+        explanation = cls(
             FreeTextQuestion.from_dict(dictionary[QUESTION_KEY], solution),
             Solution.from_dict(dictionary[SUPPORT_SOLUTION_KEY], solution.instance),
             ExplanationFacts.from_dict(dictionary[FACTS_KEY]),
@@ -122,3 +124,6 @@ class FreeTextExplanation(Explanation):
             dictionary.get(COMPUTATION_MODE_KEY),
             dictionary.get(COMPUTATION_TIME_KEY),
         )
+        # NB: Read with get, so that an explanation exported before its writing time was recorded still loads.
+        explanation.writing_time = dictionary.get(WRITING_TIME_KEY)
+        return explanation

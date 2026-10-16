@@ -17,13 +17,10 @@ from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_INS_2C
 from src.modeling.solution import Solution
-from src.optimization.milp.solver.solver import SOLVER_HIGHS
-from src.optimization.milp.statistics import MilpStatistics
 from src.utils.language import LANGUAGE_FRENCH_KEY
 from tests.explaining.interacting.test_explainer import (
     StubWriter, build_covered_neighborhood, give_explainer_a_stub_extractor
 )
-from tests.optimization.milp.solver.test_outcome import build_outcome
 
 
 @pytest.fixture(scope="module")
@@ -309,53 +306,55 @@ def build_cli_answering_with_stubs(solution: Solution) -> ExplainerCLI:
     return cli
 
 
-def test_ask_in_written_mode_shows_the_written_explanation(demo_solution):
+def test_ask_in_written_mode_shows_the_written_explanation(demo_solution, capsys):
     cli = build_cli_answering_with_stubs(demo_solution)
     result = cli.handle_ask(["Why", "isn't", "Ellen", "doing", "T2", "right", "after", "leaving", "home?"])
     assert StubWriter.TEXT in result
-    assert "Outcome" not in result, "The facts' outcome is developer output only"
+    assert "Outcome" not in result + capsys.readouterr().out, "The facts' outcome is developer output only"
     cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
     developer_result = cli.handle_ask(["Why", "isn't", "Ellen", "doing", "T2", "right", "after", "leaving", "home?"])
+    printed_steps = capsys.readouterr().out
     assert "Free-text explanation writing mode: written" in developer_result
-    assert "Explanation writing LLM model: stub/model" in developer_result
-    assert "Outcome: time infeasible" in developer_result
+    assert "⏵ Writing the explanation" in printed_steps
+    assert "LLM model: stub/model" in printed_steps
+    assert "Outcome: time infeasible" in printed_steps
 
 
-def test_developer_mode_shows_the_statistics_of_the_milp_solved(demo_solution):
+def test_developer_mode_prints_each_computation_step_as_it_runs(demo_solution, capsys):
     # NB: Building with an LLM model is what switches the template computation mode to neighborhood.
     cli = build_cli(demo_solution, llm_model="stub/model")
-    assert "MILP" not in ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start"), "Developer output only"
+    ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
+    assert "⏵" not in capsys.readouterr().out, "Developer output only"
     cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
     result = ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
-    assert "MILP variables:" in result
-    assert "MILP constraints:" in result
-    assert "  NeighborhoodSameAssigneeConstraint: " in result
-    assert "MILP objectives: 3" in result
-    assert "  1. feasibility shortfall: " in result
-    assert "  3. traveling duration: " in result
-    assert "not solved" not in result
-    assert f"MILP solver: {SOLVER_NAME}" in result
-    assert "MILP build time:" in result
-    assert "MILP solve time:" in result
+    printed_steps = capsys.readouterr().out
+    for title in ["Extracting the neighborhood", "Checking skills", "Building the NeighborhoodModel",
+                  "Solving the NeighborhoodModel", "Analyzing the solution"]:
+        assert f"⏵ {title}" in printed_steps
+    assert "NeighborhoodSameAssigneeConstraint: " in printed_steps
+    assert "Objectives: 3" in printed_steps
+    assert "Level 3 (traveling duration): " in printed_steps
+    assert f"Solver: {SOLVER_NAME}" in printed_steps
+    assert "⏵" not in result, "The steps are printed as they run, not returned with the explanation"
+    assert "Total time:" in result
+    assert "Computation time" not in result
 
 
-def test_developer_mode_says_no_milp_was_solved_when_a_skill_conflict_settles_the_question(demo_solution):
+def test_developer_mode_says_no_milp_is_needed_when_a_skill_conflict_settles_the_question(demo_solution, capsys):
     cli = build_cli(demo_solution, llm_model="stub/model")
     cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
-    assert "MILP: none solved" in ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T6", "Start")
+    ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T6", "Start")
+    printed_steps = capsys.readouterr().out
+    assert "no MILP is needed" in printed_steps
+    assert "Building the NeighborhoodModel" not in printed_steps
 
 
-def test_lexicographic_levels_left_unsolved_are_counted():
-    milp_statistics = MilpStatistics(
-        1, 0, 0, 0, {"FlowConstraint": 1}, 3, 0.1, solver_name=SOLVER_HIGHS, solve_time=0.1,
-        lexicographic_outcomes=[
-            ("feasibility shortfall", build_outcome(0.0, 0.0)),
-            ("working duration", build_outcome(is_time_limit=True))
-        ]
-    )
-    lines = ExplainerCLI._format_milp_statistics_lines(milp_statistics)
-    assert "  2. working duration: no solution (time limit reached, 0.100s)" in lines
-    assert "  (1 lower-priority level(s) not solved)" in lines
+def test_switching_back_to_user_mode_stops_printing_steps(demo_solution, capsys):
+    cli = build_cli(demo_solution, llm_model="stub/model")
+    cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
+    cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.USER.value])
+    ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
+    assert "⏵" not in capsys.readouterr().out
 
 
 def test_ask_reports_an_explanation_that_could_not_be_written(demo_solution, monkeypatch):

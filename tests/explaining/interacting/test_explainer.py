@@ -511,6 +511,13 @@ def test_a_tailored_explanation_has_no_milp_statistics(demo_solution):
     assert explanation.milp_statistics is None
 
 
+def test_an_explanation_no_llm_wrote_takes_its_computation_time_in_total(demo_solution):
+    explanation = build_explainer(demo_solution).get_contrastive_explanation(
+        WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    assert explanation.writing_time is None
+    assert explanation.total_time == explanation.computation_time
+
+
 def test_a_templated_free_text_explanation_keeps_the_statistics_of_the_milp_solved(demo_solution):
     explainer = build_explainer(demo_solution, extractor_model="stub/model",
                                 free_text_explanation_mode=FreeTextExplanationModes.TEMPLATED.value)
@@ -595,6 +602,8 @@ def test_a_free_text_question_is_written_by_default(demo_solution):
     assert explanation.mode == "neighborhood"
     assert explanation.neighborhood is explainer._extractor._neighborhood
     assert explanation.milp_statistics.nb_objectives == 3
+    assert explanation.writing_time > 0
+    assert explanation.total_time == explanation.computation_time + explanation.writing_time
     assert explainer.last_contrastive_explanation is explanation
 
 
