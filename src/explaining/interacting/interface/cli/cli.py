@@ -22,7 +22,6 @@ from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
 from src.feasibility.checker import FeasibilityChecker
 from src.modeling.instance import Instance
 from src.modeling.solution import Solution
-from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.statistics import MilpStatistics
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
 
@@ -374,7 +373,7 @@ class ExplainerCLI:
         lines.append(f"MILP objectives: {milp_statistics.nb_objectives}")
         lexicographic_outcomes = milp_statistics.lexicographic_outcomes
         for level, (objective_name, outcome) in enumerate(lexicographic_outcomes, start=1):
-            lines.append(f"  {level}. {objective_name}: {ExplainerCLI._format_lexicographic_level_outcome(outcome)}")
+            lines.append(f"  {level}. {objective_name}: {outcome.as_string()}")
         if 0 < len(lexicographic_outcomes) < milp_statistics.nb_objectives:
             nb_unsolved_levels = milp_statistics.nb_objectives - len(lexicographic_outcomes)
             lines.append(f"  ({nb_unsolved_levels} lower-priority level(s) not solved)")
@@ -384,34 +383,6 @@ class ExplainerCLI:
         if milp_statistics.solve_time is not None:
             lines.append(f"MILP solve time: {milp_statistics.solve_time:.3f}s")
         return lines
-
-    @staticmethod
-    def _format_lexicographic_level_outcome(outcome: Outcome) -> str:
-        """
-        Format the outcome of one level of a lexicographic solve.
-
-        Args:
-            outcome: The outcome of the level.
-
-        Returns:
-            The objective value reached, or why there is none,
-            followed by the level's status, its optimality gap when not proven optimal, and its run time
-            (e.g. "125 (optimal, 0.120s)" or "512 (time limit reached, gap: 2.30%, 0.130s)").
-        """
-        if outcome.is_infeasible:
-            status = "infeasible"
-        elif outcome.is_unbounded:
-            status = "unbounded"
-        elif outcome.is_time_limit:
-            status = "time limit reached"
-        else:
-            status = "optimal"
-        details = [status]
-        if outcome.mip_gap is not None and outcome.mip_gap > 0:
-            details.append(f"gap: {outcome.mip_gap:.2%}")
-        details.append(f"{outcome.run_time:.3f}s")
-        value = f"{outcome.objective_value:g}" if outcome.has_incumbent else "no solution"
-        return f"{value} ({', '.join(details)})"
 
     ####################################
     # Command Handlers - Save solution #

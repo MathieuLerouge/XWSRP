@@ -34,6 +34,8 @@ from src.explaining.question.predefined.question import (
 )
 from src.modeling.solution import Solution
 from src.utils.language import LANGUAGE_ENGLISH_KEY, LANGUAGE_FRENCH_KEY
+from src.utils.progress import ProgressReporter
+from tests.utils.test_progress import RecordingReporter
 
 # Global variables
 # Field values of the (Ins,1) template on the demo solution, one per kind of explanation it can produce.
@@ -803,3 +805,85 @@ def test_exporting_every_computed_explanation_honours_the_configured_directory(d
         assert os.listdir(outputs_directory_path), "the bulk export wrote nothing into the configured directory"
     finally:
         shutil.rmtree(outputs_directory_path, ignore_errors=True)
+
+
+############
+# Progress #
+############
+
+_NEIGHBORHOOD_PIPELINE_STEP_TITLES = [
+    "Extracting the neighborhood", "Checking skills", "Building the NeighborhoodModel",
+    "Solving the NeighborhoodModel", "Analyzing the solution"
+]
+
+
+def get_step_titles(reporter: RecordingReporter) -> list[str]:
+    """Return the title of every step the reporter recorded, in the order they started."""
+    return [call[1] for call in reporter.calls if call[0] == "started"]
+
+
+def follow_progress(explainer: Explainer) -> RecordingReporter:
+    """Have the explainer report its steps to a new RecordingReporter, and return it."""
+    reporter = RecordingReporter()
+    explainer.progress_reporter = reporter
+    return reporter
+
+
+def test_an_explainer_reports_nothing_by_default(demo_solution):
+    assert type(build_explainer(demo_solution).progress_reporter) is ProgressReporter
+
+
+def test_a_neighborhood_explanation_reports_each_step_of_the_pipeline(demo_solution):
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    reporter = follow_progress(explainer)
+    explainer.get_contrastive_explanation(WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    assert get_step_titles(reporter) == _NEIGHBORHOOD_PIPELINE_STEP_TITLES
+    assert ("info", "Extraction mode", NeighborhoodExtractionModes.TAILORED.value) in reporter.calls
+    assert ("info", "Objectives", "3") in reporter.calls
+    assert any(call[:2] == ("info", "Level 1 (feasibility shortfall)") for call in reporter.calls)
+    assert ("info", "Conflict", "time conflict between Ellen and T2") in reporter.calls
+    assert reporter.calls.count(("done",)) == len(_NEIGHBORHOOD_PIPELINE_STEP_TITLES)
+
+
+def test_a_neighborhood_explanation_settled_by_a_skill_conflict_reports_no_milp_step(demo_solution):
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    reporter = follow_progress(explainer)
+    explainer.get_contrastive_explanation(WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[SkillNegativeExplanation])
+    assert get_step_titles(reporter) == ["Extracting the neighborhood", "Checking skills", "Analyzing the solution"]
+
+
+def test_a_tailored_explanation_reports_one_step(demo_solution):
+    explainer = build_explainer(demo_solution)
+    reporter = follow_progress(explainer)
+    explainer.get_contrastive_explanation(WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
+    assert get_step_titles(reporter) == ["Computing the transformation"]
+
+
+def test_a_cached_explanation_reports_its_reuse_only(demo_solution):
+    explainer = build_explainer(demo_solution, using_cached_contrastive_explanations_enabled=True)
+    fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]
+    explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
+    reporter = follow_progress(explainer)
+    explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
+    assert get_step_titles(reporter) == ["Reusing the cached explanation"]
+    assert ("info", "Source", "memory") in reporter.calls
+
+
+def test_a_written_free_text_explanation_reports_its_writing_step(demo_solution):
+    explainer = build_written_mode_explainer(demo_solution, build_covered_neighborhood)
+    reporter = follow_progress(explainer)
+    explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+    assert get_step_titles(reporter) == _NEIGHBORHOOD_PIPELINE_STEP_TITLES + ["Writing the explanation"]
+    assert ("info", "LLM model", "stub/model") in reporter.calls
+    assert ("info", "Outcome", ExplanationOutcomes.TIME_INFEASIBLE.value) in reporter.calls
+
+
+def test_a_step_that_fails_is_reported_as_failed(demo_solution):
+    explainer = build_explainer(demo_solution, extractor_model="stub/model",
+                                free_text_explanation_mode=FreeTextExplanationModes.TEMPLATED.value)
+    give_explainer_a_stub_extractor(explainer, build_uncovered_neighborhood(explainer.current_solution))
+    reporter = follow_progress(explainer)
+    with pytest.raises(NeighborhoodError):
+        explainer.get_free_text_explanation("Why isn't Ellen doing one of those two tasks?")
+    assert get_step_titles(reporter)[-1] == "Analyzing the solution"
+    assert reporter.calls[-1][0] == "failed"

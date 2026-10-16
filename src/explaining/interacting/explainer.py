@@ -17,7 +17,7 @@ from src.explaining.interacting.configuration import ExplainerConfiguration
 from src.explaining.interacting.counter import ExplanationCounter
 from src.explaining.interacting.history import History
 from src.explaining.neighborhood.exceptions import NeighborhoodError
-from src.explaining.neighborhood.neighborhood import NeighborhoodExtractionModes
+from src.explaining.neighborhood.neighborhood import Neighborhood, NeighborhoodExtractionModes
 from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.question import Question
 from src.explaining.question.predefined.question import ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
@@ -33,6 +33,7 @@ from src.explaining.exporting.explanation import (
 from src.modeling.solution import Solution
 from src.utils.files import check_inputs_file_existence
 from src.utils.language import check_if_language_is_english, check_if_language_is_french
+from src.utils.progress import ProgressReporter
 
 # Library for type checking only (to avoid circular imports)
 if TYPE_CHECKING:
@@ -68,6 +69,8 @@ class Explainer:
         """
         # Configuration
         self._configuration = configuration if configuration is not None else ExplainerConfiguration()
+        # NB: Reports nothing until an interface asks to follow the computation steps (see progress_reporter).
+        self._progress_reporter = ProgressReporter()
         # Free-text questions
         self._extractor: Optional["Extractor"] = None
         self._solution_the_extractor_was_built_for: Optional[EditableSolution] = None
@@ -101,6 +104,25 @@ class Explainer:
     def configuration(self) -> ExplainerConfiguration:
         """The construction-time settings this explainer was built with."""
         return self._configuration
+
+    ############
+    # Progress #
+    ############
+
+    @property
+    def progress_reporter(self) -> ProgressReporter:
+        """What each step of computing an explanation is reported to as it runs."""
+        return self._progress_reporter
+
+    @progress_reporter.setter
+    def progress_reporter(self, progress_reporter: ProgressReporter):
+        """
+        Set what each step of computing an explanation is reported to as it runs.
+
+        Args:
+            progress_reporter: The reporter, e.g. a ProgressReporter itself to report nothing.
+        """
+        self._progress_reporter = progress_reporter
 
     ############
     # Language #
@@ -296,19 +318,21 @@ class Explainer:
             ValueError: if this explainer was built with no neighborhood_extraction_llm_model,
                 so free-text questions cannot be answered at all.
         """
-        if self._configuration.neighborhood_extraction_llm_model is None:
+        neighborhood_extraction_llm_model = self._configuration.neighborhood_extraction_llm_model
+        if neighborhood_extraction_llm_model is None:
             raise ValueError(
                 "This explainer answers predefined questions only: it was built with no neighborhood_llm_model, "
                 "so there is no LLM backend to turn a free-text question into a neighborhood. "
                 "Pass neighborhood_llm_model (e.g. main_configuration.EXTRACTOR_MODEL) to its constructor."
             )
-        # NB: Imported here rather than at module level so that asking predefined questions needs
-        # neither the instructor package nor any LLM backend.
-        from src.explaining.neighborhood.llm.extractor import Extractor
-        if self._extractor is None or self._solution_the_extractor_was_built_for is not self._current_solution:
-            self._extractor = Extractor(self._current_solution, self._configuration.neighborhood_extraction_llm_model)
-            self._solution_the_extractor_was_built_for = self._current_solution
-        return cast("Extractor", self._extractor)
+        else:
+            # NB: Imported here rather than at module level so that asking predefined questions needs
+            # neither the instructor package nor any LLM backend.
+            from src.explaining.neighborhood.llm.extractor import Extractor
+            if self._extractor is None or self._solution_the_extractor_was_built_for is not self._current_solution:
+                self._extractor = Extractor(self._current_solution, neighborhood_extraction_llm_model)
+                self._solution_the_extractor_was_built_for = self._current_solution
+            return cast("Extractor", self._extractor)
 
     def prepare_extractor(self):
         """
@@ -356,7 +380,8 @@ class Explainer:
             ValueError: if this explainer was built with no explanation_writing_llm_model,
                 so free-text questions' explanations cannot be worded.
         """
-        if self._configuration.explanation_writing_llm_model is None:
+        explanation_writing_llm_model = self._configuration.explanation_writing_llm_model
+        if explanation_writing_llm_model is None:
             raise ValueError(
                 "This explainer was built with no explanation_writing_llm_model, "
                 "so there is no LLM backend to word a free-text question's explanation. "
@@ -364,14 +389,15 @@ class Explainer:
                 f"or set its free_text_explanation_mode to '{FreeTextExplanationModes.TEMPLATED.value}' "
                 "if free-text questions are known to be the equivalents of question templates."
             )
-        # NB: Imported here rather than at module level, for the same reason as the Extractor's (see _get_extractor).
-        from src.explaining.explanation.free.writer import ExplanationWriter
-        if self._writer is None:
-            self._writer = ExplanationWriter(
-                self._configuration.explanation_writing_llm_model,
-                with_json_context=self._configuration.explanation_writing_with_json_context
-            )
-        return cast("ExplanationWriter", self._writer)
+        else:
+            # NB: Imported here rather than at module level, for the same reason as the Extractor's (see _get_extractor).
+            from src.explaining.explanation.free.writer import ExplanationWriter
+            if self._writer is None:
+                self._writer = ExplanationWriter(
+                    explanation_writing_llm_model,
+                    with_json_context=self._configuration.explanation_writing_with_json_context
+                )
+            return cast("ExplanationWriter", self._writer)
 
     def prepare_writer(self):
         """
@@ -382,6 +408,17 @@ class Explainer:
         a RuntimeError if the model's provider needs an API key that is not set,
         or an ImportError if the instructor package is not installed.
         """
+        self._get_writer()
+
+    def _check_llm_models_are_configured(self):
+        """
+        Checks that both LLM models a written free-text explanation needs are configured,
+        so that a missing one is reported before any LLM call is spent on a question that cannot be answered.
+
+        Raises:
+            ValueError: if no neighborhood_extraction_llm_model or no explanation_writing_llm_model is set.
+        """
+        self._get_extractor()
         self._get_writer()
 
     def set_pipeline(self, pipeline: str, llm_model: Optional[str] = None):
@@ -425,6 +462,40 @@ class Explainer:
                 self.set_explanation_writing_llm_model(previous_settings[4])
                 raise
 
+    def _extract_neighborhood(self, question: Question) -> Neighborhood:
+        """
+        Extracts the neighborhood the given question induces, reporting it as a step.
+
+        A free-text question always goes through the LLM Extractor.
+        A contrastive one goes through it too in llm neighborhood extraction mode, from its text,
+        and through the Mapper otherwise.
+
+        Args:
+            question: The free-text or contrastive question to extract the neighborhood of.
+
+        Returns:
+            The neighborhood the question induces.
+        """
+        with self._progress_reporter.step("Extracting the neighborhood") as step:
+            is_extracted_by_llm = (
+                isinstance(question, FreeTextQuestion)
+                or self._configuration.neighborhood_extraction_mode == NeighborhoodExtractionModes.LLM.value
+            )
+            if isinstance(question, FreeTextQuestion):
+                neighborhood = self._get_extractor().extract(question)
+            elif is_extracted_by_llm:
+                neighborhood = self._get_extractor().extract(
+                    FreeTextQuestion(self._current_solution, question.text, self.language)
+                )
+            else:
+                neighborhood = Mapper().map(cast(PredefinedQuestion, question))
+            step.info("Extraction mode", neighborhood.extraction_mode)
+            if is_extracted_by_llm:
+                step.info("LLM model", self.neighborhood_extraction_llm_model)
+            step.info("Scope", neighborhood.scope)
+            step.info("Primitives", neighborhood)
+        return neighborhood
+
     def _compute_free_text_explanation(self, question: FreeTextQuestion) -> Explanation:
         """
         Answers a free-text question through the llm-neighborhood pipeline,
@@ -462,21 +533,24 @@ class Explainer:
             ExplanationWritingError: if the LLM fails to word a grounded explanation from the facts.
         """
         start_time = time.perf_counter()
-        # NB: Both are built before any LLM call, so that a missing model fails before anything is spent.
-        extractor = self._get_extractor()
-        writer = self._get_writer()
-        neighborhood = extractor.extract(question)
+        self._check_llm_models_are_configured()
+        neighborhood = self._extract_neighborhood(question)
         model, skill_conflict = solve_neighborhood(
-            neighborhood, self._configuration.time_limit_for_contrastive_explanation_milp_computation
+            neighborhood, self._configuration.time_limit_for_contrastive_explanation_milp_computation,
+            self._progress_reporter
         )
-        facts = ExplanationFactsBuilder.build(question, neighborhood, model, skill_conflict)
-        support_solution = ExplanationFactsBuilder.get_support_solution(neighborhood, model)
+        with self._progress_reporter.step("Analyzing the solution") as step:
+            facts = ExplanationFactsBuilder.build(question, neighborhood, model, skill_conflict)
+            support_solution = ExplanationFactsBuilder.get_support_solution(neighborhood, model)
+            step.info("Outcome", facts.outcome.value)
         # NB: The computation time covers extracting and solving, as a templated one's does, not the wording.
         elapsed_time = time.perf_counter() - start_time
         # NB: Not counted and not cached, for the same reason as a templated one's (see below).
-        free_text_explanation = writer.write(
-            question, facts, support_solution, ExplanationComputationModes.NEIGHBORHOOD.value, elapsed_time
-        )
+        with self._progress_reporter.step("Writing the explanation") as step:
+            step.info("LLM model", self.explanation_writing_llm_model)
+            free_text_explanation = self._get_writer().write(
+                question, facts, support_solution, ExplanationComputationModes.NEIGHBORHOOD.value, elapsed_time
+            )
         free_text_explanation.neighborhood = neighborhood
         free_text_explanation.milp_statistics = model.statistics if model is not None else None
         return free_text_explanation
@@ -501,10 +575,11 @@ class Explainer:
             NeighborhoodError: if it can, but the neighborhood matches no question template.
         """
         start_time = time.perf_counter()
-        neighborhood = self._get_extractor().extract(question)
+        neighborhood = self._extract_neighborhood(question)
         try:
             recognized_question, transformation_result = solve_neighborhood_into_transformation_result(
-                neighborhood, self._configuration.time_limit_for_contrastive_explanation_milp_computation
+                neighborhood, self._configuration.time_limit_for_contrastive_explanation_milp_computation,
+                self._progress_reporter
             )
         except NeighborhoodError as error:
             raise NeighborhoodError(
@@ -710,18 +785,16 @@ class Explainer:
         if self._configuration.template_computation_mode == TemplateComputationModes.TAILORED.value:
             mode = ExplanationComputationModes.TAILORED.value
             neighborhood = None
-            transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
-                self.current_solution, contrastive_question, solving_time_limit
-            )
+            with self._progress_reporter.step("Computing the transformation"):
+                transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
+                    self.current_solution, contrastive_question, solving_time_limit
+                )
         else:
             mode = ExplanationComputationModes.NEIGHBORHOOD.value
-            if self._configuration.neighborhood_extraction_mode == NeighborhoodExtractionModes.LLM.value:
-                neighborhood = self._get_extractor().extract(
-                    FreeTextQuestion(self._current_solution, contrastive_question.text, self.language)
-                )
-            else:
-                neighborhood = Mapper().map(contrastive_question)
-            _, transformation_result = solve_neighborhood_into_transformation_result(neighborhood, solving_time_limit)
+            neighborhood = self._extract_neighborhood(contrastive_question)
+            _, transformation_result = solve_neighborhood_into_transformation_result(
+                neighborhood, solving_time_limit, self._progress_reporter
+            )
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
         contrastive_explanation = create_explanation(contrastive_question, transformation_result, mode, elapsed_time)
@@ -767,15 +840,19 @@ class Explainer:
         contrastive_explanation = None
         if self._configuration.using_cached_contrastive_explanations_enabled:
             if self._check_if_contrastive_explanation_is_in_cached_ones(contrastive_question):
-                contrastive_explanation = self._get_cached_contrastive_explanation(contrastive_question)
+                with self._progress_reporter.step("Reusing the cached explanation") as step:
+                    contrastive_explanation = self._get_cached_contrastive_explanation(contrastive_question)
+                    step.info("Source", "memory")
             else:
                 file_name = define_single_contrastive_explanation_json_file_name(contrastive_question)
                 input_directory = self._configuration.contrastive_explanation_input_directory_relative_path
                 if check_inputs_file_existence(file_name, input_directory):
-                    contrastive_explanation = import_single_explanation_from_json_file(
-                        file_name, contrastive_question.solution, input_directory
-                    )
-                    self._add_contrastive_explanation_to_cached_ones(contrastive_explanation)
+                    with self._progress_reporter.step("Reusing the cached explanation") as step:
+                        contrastive_explanation = import_single_explanation_from_json_file(
+                            file_name, contrastive_question.solution, input_directory
+                        )
+                        self._add_contrastive_explanation_to_cached_ones(contrastive_explanation)
+                        step.info("Source", f"file {file_name}")
         if contrastive_explanation is None:
             contrastive_explanation = self._compute_contrastive_explanation(contrastive_question)
         self._last_contrastive_explanation = contrastive_explanation

@@ -79,3 +79,27 @@ class Outcome:
     @solution.setter
     def solution(self, solution):
         self._solution = solution
+
+    def as_string(self) -> str:
+        """
+        Return this outcome in short, as a progress or diagnostic line reports it.
+
+        Returns:
+            The objective value reached, or why there is none,
+            followed by the status, the optimality gap when not proven optimal, and the run time
+            (e.g. "125 (optimal, 0.120s)" or "512 (time limit reached, gap: 2.30%, 0.130s)").
+        """
+        if self._is_infeasible:
+            status = "infeasible"
+        elif self._is_unbounded:
+            status = "unbounded"
+        elif self._is_time_limit:
+            status = "time limit reached"
+        else:
+            status = "optimal"
+        details = [status]
+        if self._mip_gap is not None and self._mip_gap > 0:
+            details.append(f"gap: {self._mip_gap:.2%}")
+        details.append(f"{self._run_time:.3f}s")
+        value = f"{self._objective_value:g}" if self._has_incumbent else "no solution"
+        return f"{value} ({', '.join(details)})"

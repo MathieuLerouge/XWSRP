@@ -3,6 +3,7 @@ from typing import Optional
 
 # Local libraries
 from src.explaining.computing.bridge.description import NeighborhoodDescriptionBuilder
+from src.explaining.computing.conflict import Conflict, SkillConflict
 from src.explaining.computing.neighborhood.extractor import ConflictExtractor
 from src.explaining.computing.neighborhood.model import NeighborhoodModel
 from src.explaining.computing.neighborhood.solving import (
@@ -13,10 +14,12 @@ from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.neighborhood.neighborhood import Neighborhood
 from src.explaining.neighborhood.bridge.recognizer import Recognizer
 from src.explaining.question.predefined.question import ContrastiveQuestion
+from src.utils.progress import ProgressReporter
 
 
 def solve_neighborhood_into_transformation_result(
-        neighborhood: Neighborhood, solving_time_limit: Optional[int] = None
+        neighborhood: Neighborhood, solving_time_limit: Optional[int] = None,
+        progress_reporter: Optional[ProgressReporter] = None
 ) -> tuple[ContrastiveQuestion, TransformationResult]:
     """
     Answer a neighborhood with the neighborhood pipeline, in the form the template-based explanation layer reads:
@@ -30,6 +33,8 @@ def solve_neighborhood_into_transformation_result(
     Args:
         neighborhood: The neighborhood the question induced.
         solving_time_limit: The solving time limit in seconds, or None for no limit.
+        progress_reporter: Reports each step (solve_neighborhood's, then analyzing the solution) as it runs,
+            or None to report nothing.
 
     Returns:
         A pair made of the recognized question and the result of the transformation it induced,
@@ -44,8 +49,31 @@ def solve_neighborhood_into_transformation_result(
         TimeLimitReachedWithSolutionException: if the solving time limit was reached, with an incumbent found.
         TimeLimitReachedWithoutSolutionException: if the solving time limit was reached with no incumbent.
     """
-    model, _ = solve_neighborhood(neighborhood, solving_time_limit)
-    return build_transformation_result_from_neighborhood(neighborhood, model)
+    if progress_reporter is None:
+        progress_reporter = ProgressReporter()
+    model, _ = solve_neighborhood(neighborhood, solving_time_limit, progress_reporter)
+    with progress_reporter.step("Analyzing the solution") as step:
+        question, transformation_result = build_transformation_result_from_neighborhood(neighborhood, model)
+        step.info("Recognized template", question.template.id)
+        step.info("Conflict", _describe_conflict(transformation_result.conflict))
+    return question, transformation_result
+
+
+def _describe_conflict(conflict: Optional[Conflict]) -> str:
+    """
+    Describe the conflict a transformation ran into, in short.
+
+    Args:
+        conflict: The conflict, or None when the transformation is feasible.
+
+    Returns:
+        The kind of conflict and who it is between (e.g. "time conflict between Ellen and T2"),
+        or "none" when there is none.
+    """
+    if conflict is None:
+        return "none"
+    kind = "skill" if isinstance(conflict, SkillConflict) else "time"
+    return f"{kind} conflict between {conflict.conflicting_employee.name} and {conflict.conflicting_task.name}"
 
 
 def build_transformation_result_from_neighborhood(
