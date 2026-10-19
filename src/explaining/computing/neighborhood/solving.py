@@ -104,7 +104,7 @@ def _report_solve(step: ProgressStep, statistics: MilpStatistics):
         step.info(f"Level {level} ({objective_name})", outcome.as_string())
     nb_unsolved_levels = statistics.nb_objectives - len(statistics.lexicographic_outcomes)
     if nb_unsolved_levels > 0:
-        step.info("Unsolved levels", nb_unsolved_levels)
+        step.warning(f"{nb_unsolved_levels} lower-priority level(s) not solved")
 
 
 def reorder_support_sequences_to_solved_routes(neighborhood: Neighborhood, model: NeighborhoodModel):

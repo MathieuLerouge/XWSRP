@@ -765,7 +765,7 @@ class ExplainerCLI:
         """
         self._display_mode = mode
         if mode == DisplayModes.DEVELOPER.value:
-            self._explainer.progress_reporter = CLIProgressReporter(colorize=self._gray)
+            self._explainer.progress_reporter = CLIProgressReporter(colorize=self._gray, colorize_warning=self._yellow)
         else:
             self._explainer.progress_reporter = ProgressReporter()
 

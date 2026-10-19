@@ -22,6 +22,9 @@ class RecordingReporter(ProgressReporter):
     def _on_step_info(self, label: str, value: str):
         self.calls.append(("info", label, value))
 
+    def _on_step_warning(self, message: str):
+        self.calls.append(("warning", message))
+
     def _on_step_done(self, elapsed_time: float):
         self.calls.append(("done",))
 
@@ -36,6 +39,13 @@ def test_a_step_reports_its_start_its_details_and_its_end_in_order():
     assert reporter.calls == [("started", "Building"), ("info", "Nb variables", "42"), ("done",)]
 
 
+def test_a_warning_is_reported_within_its_step_without_making_it_fail():
+    reporter = RecordingReporter()
+    with reporter.step("Solving") as step:
+        step.warning("1 lower-priority level(s) not solved")
+    assert reporter.calls == [("started", "Solving"), ("warning", "1 lower-priority level(s) not solved"), ("done",)]
+
+
 def test_a_step_that_raises_is_reported_as_failed_and_raises_again():
     reporter = RecordingReporter()
     error = ValueError("no solution")
@@ -48,6 +58,7 @@ def test_a_step_that_raises_is_reported_as_failed_and_raises_again():
 def test_the_base_reporter_reports_nothing_but_still_raises():
     with ProgressReporter().step("Solving") as step:
         step.info("Solver", "highs")
+        step.warning("1 lower-priority level(s) not solved")
     with pytest.raises(ValueError):
         with ProgressReporter().step("Solving"):
             raise ValueError()

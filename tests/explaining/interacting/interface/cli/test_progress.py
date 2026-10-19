@@ -20,6 +20,15 @@ def test_a_step_is_printed_as_a_title_its_details_and_a_done_line():
     assert len(lines) == 4
 
 
+def test_a_warning_is_printed_with_its_own_colorizing():
+    lines: list[str] = []
+    reporter = CLIProgressReporter(colorize=lambda line: f"[{line}]", colorize_warning=lambda line: f"<{line}>",
+                                   output=lines.append)
+    with reporter.step("Solving") as step:
+        step.warning("1 lower-priority level(s) not solved")
+    assert lines[2] == "<⚠ 1 lower-priority level(s) not solved>"
+
+
 def test_a_failed_step_is_printed_with_its_reason():
     lines: list[str] = []
     with pytest.raises(ValueError):

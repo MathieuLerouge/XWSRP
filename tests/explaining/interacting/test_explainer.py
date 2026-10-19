@@ -7,6 +7,8 @@ from typing import Optional
 import pytest
 
 # Local libraries
+from src.explaining.computing.neighborhood.exceptions import UnattributableFeasibilityShortfallException
+from src.explaining.computing.neighborhood.extractor import ConflictExtractor
 from src.explaining.computing.neighborhood.facts import ExplanationFacts, ExplanationOutcomes
 from src.explaining.exporting.explanation import (
     define_multiple_contrastive_explanations_json_file_name, define_single_free_text_explanation_json_file_name
@@ -887,6 +889,18 @@ def test_a_written_free_text_explanation_reports_its_writing_step(demo_solution)
     assert get_step_titles(reporter) == _NEIGHBORHOOD_PIPELINE_STEP_TITLES + ["Writing the explanation"]
     assert ("info", "LLM model", "stub/model") in reporter.calls
     assert ("info", "Outcome", ExplanationOutcomes.TIME_INFEASIBLE.value) in reporter.calls
+
+
+def test_an_unattributable_shortfall_is_reported_as_a_warning(demo_solution, monkeypatch):
+    def raise_unattributable(model):
+        raise UnattributableFeasibilityShortfallException()
+    monkeypatch.setattr(ConflictExtractor, "extract_from_solved_model", staticmethod(raise_unattributable))
+    explainer = build_written_mode_explainer(demo_solution, build_covered_neighborhood)
+    reporter = follow_progress(explainer)
+    explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+    assert ("info", "Outcome", ExplanationOutcomes.INFEASIBLE_UNATTRIBUTED.value) in reporter.calls
+    assert ("warning", "The feasibility shortfall could not be attributed to the conflicting task's position") \
+        in reporter.calls
 
 
 def test_a_step_that_fails_is_reported_as_failed(demo_solution):

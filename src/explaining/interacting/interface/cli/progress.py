@@ -15,16 +15,20 @@ class CLIProgressReporter(ProgressReporter):
 
     ⏵ <title>
      ⎿ <label>: <value>
+    ⚠ <warning>
     ✓ Done in <elapsed time>s
     """
 
-    def __init__(self, colorize: Callable[[str], str] = str, output: Callable[[str], None] = print):
+    def __init__(self, colorize: Callable[[str], str] = str, colorize_warning: Callable[[str], str] = str,
+                 output: Callable[[str], None] = print):
         """
         Args:
             colorize: Formats each line before it is output (e.g. to print it in gray), leaving it as is by default.
+            colorize_warning: Formats each warning line instead, so that it stands out from the others.
             output: Outputs each line, printing it to the terminal by default.
         """
         self._colorize = colorize
+        self._colorize_warning = colorize_warning
         self._output = output
 
     def _write(self, line: str):
@@ -42,6 +46,9 @@ class CLIProgressReporter(ProgressReporter):
 
     def _on_step_info(self, label: str, value: str):
         self._write(f" ⎿ {label}: {value}")
+
+    def _on_step_warning(self, message: str):
+        self._output(self._colorize_warning(f"⚠ {message}"))
 
     def _on_step_done(self, elapsed_time: float):
         self._write(f"✓ Done in {elapsed_time:.3f}s")

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 # Local libraries
 from src.explaining.computing.bridge.result import solve_neighborhood_into_transformation_result
-from src.explaining.computing.neighborhood.facts import ExplanationFactsBuilder
+from src.explaining.computing.neighborhood.facts import ExplanationFactsBuilder, ExplanationOutcomes
 from src.explaining.computing.neighborhood.solving import solve_neighborhood
 from src.explaining.explanation.explanation import ExplanationComputationModes
 from src.explaining.explanation.predefined.explanation import *
@@ -546,6 +546,8 @@ class Explainer:
             facts = ExplanationFactsBuilder.build(question, neighborhood, model, skill_conflict)
             support_solution = ExplanationFactsBuilder.get_support_solution(neighborhood, model)
             step.info("Outcome", facts.outcome.value)
+            if facts.outcome is ExplanationOutcomes.INFEASIBLE_UNATTRIBUTED:
+                step.warning("The feasibility shortfall could not be attributed to the conflicting task's position")
         # NB: The computation time covers extracting and solving, as a templated one's does, not the wording.
         elapsed_time = time.perf_counter() - start_time
         # NB: Not counted and not cached, for the same reason as a templated one's (see below).

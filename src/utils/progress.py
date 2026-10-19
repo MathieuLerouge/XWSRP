@@ -13,12 +13,14 @@ class ProgressStep:
     A step of a computation being reported on, through which the step's details are reported as they become known.
     """
 
-    def __init__(self, report_info: Callable[[str, str], None]):
+    def __init__(self, report_info: Callable[[str, str], None], report_warning: Callable[[str], None]):
         """
         Args:
             report_info: Reports one detail of the step, given its label and its value's string form.
+            report_warning: Reports one warning about the step, given its message.
         """
         self._report_info = report_info
+        self._report_warning = report_warning
 
     def info(self, label: str, value):
         """
@@ -29,6 +31,15 @@ class ProgressStep:
             value: The detail's value, reported as its string form.
         """
         self._report_info(label, str(value))
+
+    def warning(self, message: str):
+        """
+        Report something worth flagging about the step, which does not make it fail.
+
+        Args:
+            message: What is worth flagging.
+        """
+        self._report_warning(message)
 
 
 ####################
@@ -62,7 +73,7 @@ class ProgressReporter:
         self._on_step_started(title)
         start_time = time.perf_counter()
         try:
-            yield ProgressStep(self._on_step_info)
+            yield ProgressStep(self._on_step_info, self._on_step_warning)
         except Exception as error:
             self._on_step_failed(error, time.perf_counter() - start_time)
             raise
@@ -83,6 +94,14 @@ class ProgressReporter:
         Args:
             label: What the detail is.
             value: The detail's value.
+        """
+
+    def _on_step_warning(self, message: str):
+        """
+        Called for each warning a step reports.
+
+        Args:
+            message: What is worth flagging.
         """
 
     def _on_step_done(self, elapsed_time: float):

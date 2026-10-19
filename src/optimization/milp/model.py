@@ -767,7 +767,7 @@ class Model:
         Solve the model with the configured MILP backend.
 
         Args:
-            mute: if True, suppress the solver's own console output.
+            mute: if True, suppress the solver's own console output and this model's status messages.
             solver_name: which MILP backend to use (SOLVER_HIGHS or SOLVER_GUROBI from
                 src.optimization.milp.solver.solver), defaults to main_configuration.SOLVER_NAME.
 
@@ -781,6 +781,15 @@ class Model:
         # whose run time only covers the last level of a lexicographic solve.
         self._statistics.solve_time = time.perf_counter() - solve_start_time
         self._statistics.solver_name = solver_name
+        if not mute:
+            self._print_solve_status()
+        if self._solve_outcome.has_incumbent:
+            self._extract_solution()
+            self._solve_outcome.solution = self.solution
+        return self._solve_outcome
+
+    def _print_solve_status(self):
+        """Print to the console why the last solve did not end optimally, if it did not."""
         if self._solve_outcome.is_infeasible:
             print("IP model is infeasible")
             print("")
@@ -794,10 +803,6 @@ class Model:
             else:
                 print("No solutions were found")
             print("")
-        if self._solve_outcome.has_incumbent:
-            self._extract_solution()
-            self._solve_outcome.solution = self.solution
-        return self._solve_outcome
 
     ###########
     # Results #

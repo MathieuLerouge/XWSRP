@@ -6,6 +6,7 @@ from src.feasibility.checker import FeasibilityChecker
 from src.optimization.milp.model import Model
 from src.optimization.milp.solver.solver import SOLVER_GUROBI, SOLVER_HIGHS
 from src.importing.instance import extract_instance_from_file
+from tests.optimization.milp.solver.test_outcome import build_outcome
 
 # Global variables
 _SMALL_INSTANCE_PATH = "data/evaluation/instances/instance_evaluation_1.xlsx"
@@ -72,6 +73,15 @@ def test_statistics_group_constraints_by_family():
     assert model.statistics.count_constraints_in_families_starting_with("SkillLevel") == len(
         model._data.tasks_indices
     )
+
+
+@pytest.mark.parametrize("mute", [True, False])
+def test_the_solve_status_is_printed_only_when_not_muted(monkeypatch, capsys, mute):
+    instance = extract_instance_from_file(_SMALL_INSTANCE_PATH, True, True, True)
+    model = Model(instance)
+    monkeypatch.setattr(model, "_solve", lambda mute, solver_name: build_outcome(is_infeasible=True))
+    model.solve(mute=mute)
+    assert ("IP model is infeasible" in capsys.readouterr().out) is not mute
 
 
 def test_statistics_record_solver_name_and_solve_time_once_solved():
