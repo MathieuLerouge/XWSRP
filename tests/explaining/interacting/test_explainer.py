@@ -891,6 +891,39 @@ def test_a_written_free_text_explanation_reports_its_writing_step(demo_solution)
     assert ("info", "Outcome", ExplanationOutcomes.TIME_INFEASIBLE.value) in reporter.calls
 
 
+def test_setting_up_an_llm_model_is_reported_only_when_it_is_built(demo_solution, monkeypatch):
+    explainer = build_written_mode_explainer(demo_solution, build_covered_neighborhood)
+    explainer._writer = None
+
+    def build_stub_writer() -> StubWriter:
+        explainer._writer = StubWriter()
+        return explainer._writer
+
+    monkeypatch.setattr(explainer, "_get_writer", build_stub_writer)
+    question_text = "Why isn't Ellen doing T2 right after leaving home?"
+    reporter = follow_progress(explainer)
+    explainer.get_free_text_explanation(question_text)
+    assert get_step_titles(reporter) == (
+        ["Setting up the LLM models"] + _NEIGHBORHOOD_PIPELINE_STEP_TITLES + ["Writing the explanation"]
+    )
+    assert ("info", "Explanation writing LLM model", "stub/model") in reporter.calls
+    assert not any(call[:2] == ("info", "Neighborhood extraction LLM model") for call in reporter.calls), \
+        "The stub extractor was already built"
+    reporter = follow_progress(explainer)
+    explainer.get_free_text_explanation(question_text)
+    assert "Setting up the LLM models" not in get_step_titles(reporter)
+
+
+def test_setting_up_a_missing_llm_model_is_reported_as_failed(demo_solution):
+    explainer = build_explainer(demo_solution, extractor_model="stub/model")
+    give_explainer_a_stub_extractor(explainer, build_covered_neighborhood(explainer.current_solution))
+    reporter = follow_progress(explainer)
+    with pytest.raises(ValueError, match="explanation_writing_llm_model"):
+        explainer.get_free_text_explanation("Why isn't Ellen doing T2 right after leaving home?")
+    assert get_step_titles(reporter) == ["Setting up the LLM models"]
+    assert reporter.calls[-1][0] == "failed"
+
+
 def test_an_unattributable_shortfall_is_reported_as_a_warning(demo_solution, monkeypatch):
     def raise_unattributable(model):
         raise UnattributableFeasibilityShortfallException()

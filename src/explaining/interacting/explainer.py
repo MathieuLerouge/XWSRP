@@ -412,16 +412,37 @@ class Explainer:
         """
         self._get_writer()
 
-    def _check_llm_models_are_configured(self):
+    def _set_up_llm_models(self, with_writer: bool):
         """
-        Checks that both LLM models a written free-text explanation needs are configured,
-        so that a missing one is reported before any LLM call is spent on a question that cannot be answered.
+        Builds the LLM-backed objects the question about to be answered needs, if they are not built yet,
+        so that a missing model is reported before any LLM call is spent on a question that cannot be answered,
+        and so that setting them up is reported as a step of its own, timed apart from the computation.
+
+        The step is only reported when something is actually built:
+        the Extractor is (re)built on first use and whenever the solution being questioned changes,
+        the ExplanationWriter only on first use.
+        The Extractor is set up first, being the first one the pipeline needs.
+
+        Args:
+            with_writer: Whether the ExplanationWriter is needed too (written free-text explanations only).
 
         Raises:
-            ValueError: if no neighborhood_extraction_llm_model or no explanation_writing_llm_model is set.
+            ValueError: if no neighborhood_extraction_llm_model is set,
+                or no explanation_writing_llm_model while the ExplanationWriter is needed.
         """
-        self._get_extractor()
-        self._get_writer()
+        is_extractor_to_build = (
+            self._extractor is None or self._solution_the_extractor_was_built_for is not self._current_solution
+        )
+        is_writer_to_build = with_writer and self._writer is None
+        if not (is_extractor_to_build or is_writer_to_build):
+            return
+        with self._progress_reporter.step("Setting up the LLM models") as step:
+            if is_extractor_to_build:
+                self._get_extractor()
+                step.info("Neighborhood extraction LLM model", self.neighborhood_extraction_llm_model)
+            if is_writer_to_build:
+                self._get_writer()
+                step.info("Explanation writing LLM model", self.explanation_writing_llm_model)
 
     def set_pipeline(self, pipeline: str, llm_model: Optional[str] = None):
         """
@@ -535,7 +556,7 @@ class Explainer:
             NeighborhoodExtractionError: if the question cannot be turned into a solvable neighborhood.
             ExplanationWritingError: if the LLM fails to word a grounded explanation from the facts.
         """
-        self._check_llm_models_are_configured()
+        self._set_up_llm_models(with_writer=True)
         start_time = time.perf_counter()
         neighborhood = self._extract_neighborhood(question)
         model, skill_conflict = solve_neighborhood(
@@ -581,6 +602,7 @@ class Explainer:
             NeighborhoodExtractionError: if the question cannot be turned into a solvable neighborhood.
             NeighborhoodError: if it can, but the neighborhood matches no question template.
         """
+        self._set_up_llm_models(with_writer=False)
         start_time = time.perf_counter()
         neighborhood = self._extract_neighborhood(question)
         try:
@@ -787,9 +809,15 @@ class Explainer:
         Returns:
             The explanation answering it.
         """
+        computation_mode_is_tailored = (
+            self._configuration.template_computation_mode == TemplateComputationModes.TAILORED.value
+        )
+        if not computation_mode_is_tailored:
+            if self._configuration.neighborhood_extraction_mode == NeighborhoodExtractionModes.LLM.value:
+                self._set_up_llm_models(with_writer=False)
         start_time = time.perf_counter()
         solving_time_limit = self._configuration.time_limit_for_contrastive_explanation_milp_computation
-        if self._configuration.template_computation_mode == TemplateComputationModes.TAILORED.value:
+        if computation_mode_is_tailored:
             mode = ExplanationComputationModes.TAILORED.value
             neighborhood = None
             with self._progress_reporter.step("Computing the transformation"):
