@@ -436,7 +436,7 @@ class Explainer:
         is_writer_to_build = with_writer and self._writer is None
         if not (is_extractor_to_build or is_writer_to_build):
             return
-        with self._progress_reporter.step("Setting up the LLM models") as step:
+        with self._progress_reporter.step("Setting up the LLM models", short_title="LLM setup") as step:
             if is_extractor_to_build:
                 self._get_extractor()
                 step.info("Neighborhood extraction LLM model", self.neighborhood_extraction_llm_model)

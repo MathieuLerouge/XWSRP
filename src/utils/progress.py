@@ -1,7 +1,7 @@
 # Standard libraries
 import time
 from contextlib import contextmanager
-from typing import Callable, Iterator
+from typing import Callable, Iterator, Optional
 
 
 ################
@@ -55,7 +55,7 @@ class ProgressReporter:
     """
 
     @contextmanager
-    def step(self, title: str) -> Iterator[ProgressStep]:
+    def step(self, title: str, short_title: Optional[str] = None) -> Iterator[ProgressStep]:
         """
         Report a step for the duration of the with block it opens.
 
@@ -66,11 +66,13 @@ class ProgressReporter:
 
         Args:
             title: What the step does.
+            short_title: A word or two standing for the step where space is short (e.g. in a summary of step times),
+                or None for the title's first word, lowercased (e.g. "extracting" for "Extracting the neighborhood").
 
         Yields:
             The step, through which its details are reported.
         """
-        self._on_step_started(title)
+        self._on_step_started(title, short_title if short_title is not None else title.split()[0].lower())
         start_time = time.perf_counter()
         try:
             yield ProgressStep(self._on_step_info, self._on_step_warning)
@@ -79,12 +81,13 @@ class ProgressReporter:
             raise
         self._on_step_done(time.perf_counter() - start_time)
 
-    def _on_step_started(self, title: str):
+    def _on_step_started(self, title: str, short_title: str):
         """
         Called when a step starts.
 
         Args:
             title: What the step does.
+            short_title: A word or two standing for the step where space is short.
         """
 
     def _on_step_info(self, label: str, value: str):

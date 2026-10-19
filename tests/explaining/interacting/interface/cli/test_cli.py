@@ -96,15 +96,16 @@ def test_clearing_cached_explanations_is_refused_when_the_cache_is_off(demo_solu
     assert "disabled" in cli.handle_clear([ClearTargets.CACHED_EXPLANATIONS.value])
 
 
-def test_the_total_time_of_an_explanation_computed_earlier_is_labelled_so(demo_solution):
+def test_the_total_time_is_shown_only_for_an_explanation_computed_earlier(demo_solution):
     cli = ExplainerCLI(demo_solution, Explainer(
         demo_solution, ExplainerConfiguration(using_cached_contrastive_explanations_enabled=True)
     ))
     cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
-    assert "Total time: " in ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
+    assert "Total time" not in ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start"), \
+        "The time per step covers an explanation just computed"
     reused_result = ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
-    assert "Total time (when first computed): " in reused_result
-    assert "Total time (when first computed): " in cli.handle_show([ShowTargets.EXPLANATION.value])
+    assert "Total time when first computed: " in reused_result
+    assert "Total time when first computed: " in cli.handle_show([ShowTargets.EXPLANATION.value])
 
 
 def test_clearing_cached_explanations_empties_the_cache(demo_solution):
@@ -347,8 +348,24 @@ def test_developer_mode_prints_each_computation_step_as_it_runs(demo_solution, c
     assert "Level 3 (traveling duration): " in printed_steps
     assert f"Solver: {SOLVER_NAME}" in printed_steps
     assert "⏵" not in result, "The steps are printed as they run, not returned with the explanation"
-    assert "Total time:" in result
+    assert "Total time" not in result
     assert "Computation time" not in result
+
+
+def test_the_time_per_step_line_breaks_the_request_time_down():
+    line = ExplainerCLI._format_time_per_step([("extracting", 2.0), ("solving", 1.0)], request_time=3.5)
+    assert line == "Time per step: extracting 2.000s · solving 1.000s · unattributed 0.500s (of 3.500s)"
+
+
+def test_developer_mode_closes_with_the_time_per_step_of_the_request_only(demo_solution, capsys):
+    cli = build_cli(demo_solution, llm_model="stub/model")
+    assert "Time per step" not in ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start"), "Developer output only"
+    cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
+    result = ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
+    time_per_step_line = next(line for line in result.splitlines() if "Time per step: " in line)
+    for short_title in ["extracting", "checking", "building", "solving", "analyzing", "unattributed"]:
+        assert f"{short_title} " in time_per_step_line
+    assert "Time per step" not in cli.handle_show([ShowTargets.EXPLANATION.value]), "No request ran for that display"
 
 
 def test_developer_mode_says_no_milp_is_needed_when_a_skill_conflict_settles_the_question(demo_solution, capsys):

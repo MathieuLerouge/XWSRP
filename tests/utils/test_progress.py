@@ -15,9 +15,11 @@ class RecordingReporter(ProgressReporter):
     def __init__(self):
         """Start with no call recorded."""
         self.calls: list[tuple] = []
+        self.short_titles: list[str] = []
 
-    def _on_step_started(self, title: str):
+    def _on_step_started(self, title: str, short_title: str):
         self.calls.append(("started", title))
+        self.short_titles.append(short_title)
 
     def _on_step_info(self, label: str, value: str):
         self.calls.append(("info", label, value))
@@ -44,6 +46,15 @@ def test_a_warning_is_reported_within_its_step_without_making_it_fail():
     with reporter.step("Solving") as step:
         step.warning("1 lower-priority level(s) not solved")
     assert reporter.calls == [("started", "Solving"), ("warning", "1 lower-priority level(s) not solved"), ("done",)]
+
+
+def test_a_step_short_title_defaults_to_its_title_first_word_lowercased():
+    reporter = RecordingReporter()
+    with reporter.step("Extracting the neighborhood"):
+        pass
+    with reporter.step("Setting up the LLM models", short_title="LLM setup"):
+        pass
+    assert reporter.short_titles == ["extracting", "LLM setup"]
 
 
 def test_a_step_that_raises_is_reported_as_failed_and_raises_again():

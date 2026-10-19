@@ -1,6 +1,7 @@
 # Standard libraries
 import os
 import re
+import time
 from typing import Callable
 
 # Third-party libraries
@@ -65,6 +66,7 @@ class ExplainerCLI:
         self._running = True
         self._last_command: Optional[str] = None
         self._display_mode = DisplayModes.USER.value
+        self._cli_progress_reporter: Optional[CLIProgressReporter] = None
         self._switch_display_mode(DisplayModes.USER.value)
         # Commands handlers registry
         self._commands: dict[str, Callable[[list[str]], str]] = {}
@@ -196,8 +198,10 @@ class ExplainerCLI:
                     f"or {set_writing_mode} {FreeTextExplanationModes.TEMPLATED.value}.")
         question_text = " ".join(args)
         try:
-            explanation = self._explainer.get_free_text_explanation(question_text)
-            return self._format_explanation_output(explanation)
+            explanation, request_time = self._get_timed_explanation(
+                lambda: self._explainer.get_free_text_explanation(question_text)
+            )
+            return self._format_explanation_output(explanation, request_time=request_time)
         except (NeighborhoodError, ExplanationWritingError, ValueError) as e:
             return f"Error: {e}"
 
@@ -241,9 +245,12 @@ class ExplainerCLI:
         if problem is not None:
             return problem
         try:
-            explanation = self._explainer.get_contrastive_explanation(template_id, field_values)
+            explanation, request_time = self._get_timed_explanation(
+                lambda: self._explainer.get_contrastive_explanation(template_id, field_values)
+            )
             return self._format_explanation_output(
-                explanation, is_reused=self._explainer.last_contrastive_explanation_was_reused
+                explanation, is_reused=self._explainer.last_contrastive_explanation_was_reused,
+                request_time=request_time
             )
         except (ValueError, TypeError) as e:
             return f"Error: {e}"
@@ -273,8 +280,10 @@ class ExplainerCLI:
         else:
             template_id, field_values = None, None
         try:
-            explanation = self._explainer.compute_counterfactual_explanation(template_id, field_values)
-            return self._format_explanation_output(explanation)
+            explanation, request_time = self._get_timed_explanation(
+                lambda: self._explainer.compute_counterfactual_explanation(template_id, field_values)
+            )
+            return self._format_explanation_output(explanation, request_time=request_time)
         except (PermissionError, ValueError) as e:
             return f"Error: {e}"
 
@@ -306,14 +315,34 @@ class ExplainerCLI:
                     f"but {nb_provided_values} provided.")
         return None
 
-    def _format_explanation_output(self, explanation: Explanation, is_reused: bool = False) -> str:
+    def _get_timed_explanation(self, get_explanation: Callable[[], Explanation]) -> tuple[Explanation, float]:
+        """
+        Run the given explainer call, timing it as a whole, for the closing summary of where the time went.
+
+        Args:
+            get_explanation: The explainer call computing, or reusing, the explanation asked for.
+
+        Returns:
+            The explanation, and the wall-clock time the call took, in seconds.
+        """
+        if self._cli_progress_reporter is not None:
+            # NB: Forgets the steps of an earlier request that failed, and so was never summarized.
+            self._cli_progress_reporter.take_step_times()
+        start_time = time.perf_counter()
+        explanation = get_explanation()
+        return explanation, time.perf_counter() - start_time
+
+    def _format_explanation_output(self, explanation: Explanation, is_reused: bool = False,
+                                   request_time: Optional[float] = None) -> str:
         """
         Format an explanation for display.
 
         Args:
             explanation: The explanation to display.
             is_reused: Whether the explanation was computed before this display (reused from the cache,
-                or shown again), so that its total time is labelled as that of the computation that produced it.
+                or shown again), so that its total time is shown, as that of the computation that produced it.
+            request_time: The wall-clock time the request that just got the explanation took, in seconds,
+                to be broken down step by step, or None when no request just ran (e.g. the explanation is shown again).
 
         Returns:
             The question and its explanation, followed in developer mode by what no computation step reported.
@@ -338,10 +367,30 @@ class ExplainerCLI:
                 writing_mode = FreeTextExplanationModes.WRITTEN.value
                 lines.append(self._gray(f"Free-text explanation writing mode: {writing_mode}"))
             lines.append(self._gray(f"Support solution: {feasibility}"))
-            if explanation.total_time is not None:
-                cached_note = " (when first computed)" if is_reused else ""
-                lines.append(self._gray(f"Total time{cached_note}: {explanation.total_time:.3f}s"))
+            # NB: Only for an explanation computed earlier: for one just computed, the time per step below covers it.
+            if is_reused and explanation.total_time is not None:
+                lines.append(self._gray(f"Total time when first computed: {explanation.total_time:.3f}s"))
+            if request_time is not None and self._cli_progress_reporter is not None:
+                step_times = self._cli_progress_reporter.take_step_times()
+                lines.append(self._gray(self._format_time_per_step(step_times, request_time)))
         return "\n".join(lines)
+
+    @staticmethod
+    def _format_time_per_step(step_times: list[tuple[str, float]], request_time: float) -> str:
+        """
+        Format, on one line, the time each step of a request took, and the time no step accounts for.
+
+        Args:
+            step_times: The short title and elapsed time, in seconds, of each step the request ran, in order.
+            request_time: The wall-clock time the whole request took, in seconds.
+
+        Returns:
+            The breakdown, e.g. "Time per step: extracting 2.637s · solving 1.032s · unattributed 0.012s (of 3.681s)".
+        """
+        unattributed_time = request_time - sum(elapsed_time for _, elapsed_time in step_times)
+        breakdown = [f"{short_title} {elapsed_time:.3f}s" for short_title, elapsed_time in step_times]
+        breakdown.append(f"unattributed {unattributed_time:.3f}s (of {request_time:.3f}s)")
+        return f"Time per step: {' · '.join(breakdown)}"
 
     ####################################
     # Command Handlers - Save solution #
@@ -765,8 +814,10 @@ class ExplainerCLI:
         """
         self._display_mode = mode
         if mode == DisplayModes.DEVELOPER.value:
-            self._explainer.progress_reporter = CLIProgressReporter(colorize=self._gray, colorize_warning=self._yellow)
+            self._cli_progress_reporter = CLIProgressReporter(colorize=self._gray, colorize_warning=self._yellow)
+            self._explainer.progress_reporter = self._cli_progress_reporter
         else:
+            self._cli_progress_reporter = None
             self._explainer.progress_reporter = ProgressReporter()
 
     def handle_enable(self, args: list[str]) -> str:

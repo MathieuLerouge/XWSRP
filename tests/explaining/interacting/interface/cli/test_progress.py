@@ -29,6 +29,17 @@ def test_a_warning_is_printed_with_its_own_colorizing():
     assert lines[2] == "<⚠ 1 lower-priority level(s) not solved>"
 
 
+def test_the_time_of_every_ended_step_is_recorded_until_taken():
+    reporter = CLIProgressReporter(output=lambda line: None)
+    with reporter.step("Building the NeighborhoodModel"):
+        pass
+    with pytest.raises(ValueError):
+        with reporter.step("Solving the NeighborhoodModel", short_title="solve"):
+            raise ValueError()
+    assert [short_title for short_title, _ in reporter.take_step_times()] == ["building", "solve"]
+    assert reporter.take_step_times() == [], "Taking the step times forgets them"
+
+
 def test_a_failed_step_is_printed_with_its_reason():
     lines: list[str] = []
     with pytest.raises(ValueError):
