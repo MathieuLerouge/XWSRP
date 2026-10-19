@@ -872,10 +872,12 @@ def test_a_cached_explanation_reports_its_reuse_only(demo_solution):
     explainer = build_explainer(demo_solution, using_cached_contrastive_explanations_enabled=True)
     fields_values = FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation]
     explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
+    assert not explainer.last_contrastive_explanation_was_reused
     reporter = follow_progress(explainer)
     explainer.get_contrastive_explanation(WHY_NOT_INS_1, fields_values)
     assert get_step_titles(reporter) == ["Reusing the cached explanation"]
     assert ("info", "Source", "memory") in reporter.calls
+    assert explainer.last_contrastive_explanation_was_reused
 
 
 def test_a_written_free_text_explanation_reports_its_writing_step(demo_solution):

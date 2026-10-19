@@ -90,6 +90,7 @@ class Explainer:
             self._enable_history()
         # Contrastive explanations
         self._last_contrastive_explanation: Optional[Explanation] = None
+        self._last_contrastive_explanation_was_reused = False
         self._last_scenario_explanation: Optional[Explanation] = None
         self._last_counterfactual_explanation: Optional[Explanation] = None
         self._cached_contrastive_explanations: dict[str, dict[str, Explanation]] = dict()
@@ -513,6 +514,7 @@ class Explainer:
         else:
             free_text_explanation = self._compute_written_free_text_explanation(question)
         self._last_contrastive_explanation = free_text_explanation
+        self._last_contrastive_explanation_was_reused = False
         self._last_scenario_explanation = None
         self._last_counterfactual_explanation = None
         return free_text_explanation
@@ -533,8 +535,8 @@ class Explainer:
             NeighborhoodExtractionError: if the question cannot be turned into a solvable neighborhood.
             ExplanationWritingError: if the LLM fails to word a grounded explanation from the facts.
         """
-        start_time = time.perf_counter()
         self._check_llm_models_are_configured()
+        start_time = time.perf_counter()
         neighborhood = self._extract_neighborhood(question)
         model, skill_conflict = solve_neighborhood(
             neighborhood, self._configuration.time_limit_for_contrastive_explanation_milp_computation,
@@ -856,6 +858,7 @@ class Explainer:
                         )
                         self._add_contrastive_explanation_to_cached_ones(contrastive_explanation)
                         step.info("Source", f"file {file_name}")
+        self._last_contrastive_explanation_was_reused = contrastive_explanation is not None
         if contrastive_explanation is None:
             contrastive_explanation = self._compute_contrastive_explanation(contrastive_question)
         self._last_contrastive_explanation = contrastive_explanation
@@ -892,6 +895,11 @@ class Explainer:
         if not isinstance(self._last_contrastive_explanation, Explanation):
             raise PermissionError("There is no last contrastive explanation")
         return self._last_contrastive_explanation
+
+    @property
+    def last_contrastive_explanation_was_reused(self) -> bool:
+        """Whether the last contrastive explanation was reused from the cache (memory or file) rather than computed."""
+        return self._last_contrastive_explanation_was_reused
 
     def save_last_contrastive_support_solution(self) -> bool:
         """

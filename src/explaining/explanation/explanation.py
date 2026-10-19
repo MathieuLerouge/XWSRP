@@ -191,7 +191,8 @@ class Explanation(ABC):
 
         Returns:
             The statistics of the MILP solved to compute the explanation,
-            or None if no MILP was solved for it (e.g. it was reused from the cache, or a skill conflict settled it).
+            or None if no MILP was solved for it (e.g. a skill conflict settled it, or it was imported from a file).
+            An explanation reused from the in-memory cache keeps the statistics of the solve that first computed it.
         """
         return self._milp_statistics
 

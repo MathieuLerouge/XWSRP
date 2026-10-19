@@ -96,6 +96,17 @@ def test_clearing_cached_explanations_is_refused_when_the_cache_is_off(demo_solu
     assert "disabled" in cli.handle_clear([ClearTargets.CACHED_EXPLANATIONS.value])
 
 
+def test_the_total_time_of_an_explanation_computed_earlier_is_labelled_so(demo_solution):
+    cli = ExplainerCLI(demo_solution, Explainer(
+        demo_solution, ExplainerConfiguration(using_cached_contrastive_explanations_enabled=True)
+    ))
+    cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
+    assert "Total time: " in ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
+    reused_result = ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
+    assert "Total time (when first computed): " in reused_result
+    assert "Total time (when first computed): " in cli.handle_show([ShowTargets.EXPLANATION.value])
+
+
 def test_clearing_cached_explanations_empties_the_cache(demo_solution):
     explainer = Explainer(
         demo_solution, ExplainerConfiguration(using_cached_contrastive_explanations_enabled=True)

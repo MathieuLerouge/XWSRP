@@ -242,7 +242,9 @@ class ExplainerCLI:
             return problem
         try:
             explanation = self._explainer.get_contrastive_explanation(template_id, field_values)
-            return self._format_explanation_output(explanation)
+            return self._format_explanation_output(
+                explanation, is_reused=self._explainer.last_contrastive_explanation_was_reused
+            )
         except (ValueError, TypeError) as e:
             return f"Error: {e}"
 
@@ -304,8 +306,18 @@ class ExplainerCLI:
                     f"but {nb_provided_values} provided.")
         return None
 
-    def _format_explanation_output(self, explanation: Explanation) -> str:
-        """Format an explanation for display."""
+    def _format_explanation_output(self, explanation: Explanation, is_reused: bool = False) -> str:
+        """
+        Format an explanation for display.
+
+        Args:
+            explanation: The explanation to display.
+            is_reused: Whether the explanation was computed before this display (reused from the cache,
+                or shown again), so that its total time is labelled as that of the computation that produced it.
+
+        Returns:
+            The question and its explanation, followed in developer mode by what no computation step reported.
+        """
         question_text = explanation.question.text
         explanation_text = explanation.text
         feasibility = "feasible" if explanation.support_solution_is_feasible else "infeasible"
@@ -327,7 +339,8 @@ class ExplainerCLI:
                 lines.append(self._gray(f"Free-text explanation writing mode: {writing_mode}"))
             lines.append(self._gray(f"Support solution: {feasibility}"))
             if explanation.total_time is not None:
-                lines.append(self._gray(f"Total time: {explanation.total_time:.3f}s"))
+                cached_note = " (when first computed)" if is_reused else ""
+                lines.append(self._gray(f"Total time{cached_note}: {explanation.total_time:.3f}s"))
         return "\n".join(lines)
 
     ####################################
@@ -903,7 +916,8 @@ class ExplainerCLI:
         """Format last explanation for display."""
         try:
             explanation = self._explainer.last_contrastive_explanation
-            return self._format_explanation_output(explanation)
+            # NB: Shown again, after whichever display followed its computation.
+            return self._format_explanation_output(explanation, is_reused=True)
         except PermissionError:
             return "No explanation to show. Ask a question first."
 
