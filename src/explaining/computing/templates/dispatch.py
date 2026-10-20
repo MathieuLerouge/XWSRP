@@ -16,6 +16,7 @@ from src.explaining.question.predefined.bank import \
     WHY_NOT_INS_1, WHY_NOT_INS_2A, WHY_NOT_INS_2B, WHY_NOT_INS_2C, WHY_NOT_INS_3, \
     WHY_NOT_SWP_1, WHY_NOT_SWP_2A, WHY_NOT_SWP_2B, WHY_NOT_SWP_2C, WHY_NOT_SWP_3, \
     WHY_NOT_ORD_LAT_1, WHY_NOT_ORD_EAR_1, WHY_NOT_ORD_LAT_2, WHY_NOT_ORD_EAR_2, WHY_NOT_ORD_2, WHY_NOT_ORD_3
+from src.utils.progress import SILENT_PROGRESS_REPORTER, ProgressReporter
 
 # Global variables
 POLYNOMIAL_CONTRASTIVE_TRANSFORMATIONS: dict[str, Callable[..., TransformationResult]] = {
@@ -71,7 +72,8 @@ class TransformationDispatcher:
     @staticmethod
     def handle_contrastive_or_scenario_question(
             solution: EditableSolution, question: PredefinedQuestion,
-            milp_solving_time_limit: Optional[int] = None
+            milp_solving_time_limit: Optional[int] = None,
+            progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER
     ) -> TransformationResult:
         """
         Apply the transformation the given contrastive or scenario question induces.
@@ -81,6 +83,7 @@ class TransformationDispatcher:
             question: The question that induces the transformation.
             milp_solving_time_limit: The solving time limit in seconds, for the templates computed
                 through a MILP model. The others ignore it, being computed in polynomial time.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
@@ -94,10 +97,13 @@ class TransformationDispatcher:
         question_template_id = question.template.id
         fields_values = question.fields_values
         if question_template_id in POLYNOMIAL_CONTRASTIVE_TRANSFORMATIONS:
-            return POLYNOMIAL_CONTRASTIVE_TRANSFORMATIONS[question_template_id](solution, *fields_values)
+            transformation = POLYNOMIAL_CONTRASTIVE_TRANSFORMATIONS[question_template_id]
+            return transformation(solution, *fields_values, progress_reporter=progress_reporter)
         if question_template_id in MILP_CONTRASTIVE_TRANSFORMATIONS:
             transformation = MILP_CONTRASTIVE_TRANSFORMATIONS[question_template_id]
-            return transformation(solution, *fields_values, milp_solving_time_limit)
+            return transformation(
+                solution, *fields_values, milp_solving_time_limit, progress_reporter=progress_reporter
+            )
         raise NotImplementedError(f"Transformation induced by the template {question_template_id} is not handled")
 
     @staticmethod

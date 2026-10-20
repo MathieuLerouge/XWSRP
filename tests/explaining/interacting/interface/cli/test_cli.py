@@ -377,6 +377,16 @@ def test_developer_mode_says_no_milp_is_needed_when_a_skill_conflict_settles_the
     assert "Building the NeighborhoodModel" not in printed_steps
 
 
+def test_developer_mode_prints_the_tailored_pipeline_steps_too(demo_solution, capsys):
+    cli = build_cli(demo_solution)
+    cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])
+    result = ask_contrastive(cli, WHY_NOT_INS_1, "Ellen", "T2", "Start")
+    printed_steps = capsys.readouterr().out
+    assert "⏵ Evaluating the insertion" in printed_steps
+    assert "⏵ Analyzing the solution" in printed_steps
+    assert "Time per step: evaluating " in result
+
+
 def test_switching_back_to_user_mode_stops_printing_steps(demo_solution, capsys):
     cli = build_cli(demo_solution, llm_model="stub/model")
     cli.handle_set([SetTargets.DISPLAY_MODE.value, DisplayModes.DEVELOPER.value])

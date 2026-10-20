@@ -2,7 +2,7 @@
 from typing import Optional
 
 # Local libraries
-from src.explaining.computing.solver import TransformationModelSolver
+from src.explaining.computing.progress import analyze_solution, build_and_solve_model, report_evaluation_verdicts
 from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.result import TransformationResult
@@ -14,6 +14,7 @@ from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.evaluation import ReorderEvaluation
 from src.optimization.heuristics.evaluator import Evaluator
+from src.utils.progress import SILENT_PROGRESS_REPORTER, ProgressReporter, ProgressStep
 
 
 #####################
@@ -97,8 +98,28 @@ class ReorderingApplier:
         return TransformationResult(support_solution, conflict, descriptions)
 
     @staticmethod
-    def apply_1a(solution: EditableSolution, employee_name: str,
-                 task_name_1: str, task_name_2: str) -> TransformationResult:
+    def _report_evaluation(step: ProgressStep, solution: EditableSolution, employee: Employee, moving_task: Task,
+                           fixed_task: Task, evaluation: ReorderEvaluation):
+        """
+        Report the repositioning the evaluation settled on, and its verdicts, as details of the step evaluating it.
+
+        Args:
+            step: The step evaluating the repositioning.
+            solution: The solution to explain, whose sequence tells which side of the fixed task the moving task lands.
+            employee: The employee whose sequence is to be transformed.
+            moving_task: The task to be moved within the employee's sequence.
+            fixed_task: The fixed task before or after which the moving task is repositioned.
+            evaluation: The evaluation of the repositioning.
+        """
+        sequence = solution.get_sequence(employee)
+        moves_after_fixed_task = sequence.get_step_index_of(moving_task) < sequence.get_step_index_of(fixed_task)
+        side = "after" if moves_after_fixed_task else "before"
+        step.info("Reordering", f"{moving_task.name} moved just {side} {fixed_task.name} in {employee.name}'s route")
+        report_evaluation_verdicts(step, evaluation)
+
+    @staticmethod
+    def apply_1a(solution: EditableSolution, employee_name: str, task_name_1: str, task_name_2: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply reordering corresponding to the (Ord,1a) question:
         "Why is employee {Employee} not performing task {Task1} later in their route, just after task {Task2}?"
@@ -108,6 +129,7 @@ class ReorderingApplier:
             employee_name: The name of the employee mentioned in the question.
             task_name_1: The name of the first task mentioned in the question, the one being moved.
             task_name_2: The name of the second task mentioned in the question, the one staying put.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
@@ -115,12 +137,15 @@ class ReorderingApplier:
         employee = solution.instance.get_employee_by_name(employee_name)
         task_1 = solution.instance.get_task_by_name(task_name_1)
         task_2 = solution.instance.get_task_by_name(task_name_2)
-        evaluation = Evaluator.evaluate_moving_after_a_task(solution.get_sequence(employee), task_1, task_2)
-        return ReorderingApplier._build_result_from_evaluation(solution, employee, task_1, task_2, evaluation)
+        with progress_reporter.step("Evaluating the reordering") as step:
+            evaluation = Evaluator.evaluate_moving_after_a_task(solution.get_sequence(employee), task_1, task_2)
+            ReorderingApplier._report_evaluation(step, solution, employee, task_1, task_2, evaluation)
+        return analyze_solution(progress_reporter, lambda: ReorderingApplier._build_result_from_evaluation(
+            solution, employee, task_1, task_2, evaluation))
 
     @staticmethod
-    def apply_1b(solution: EditableSolution, employee_name: str,
-                 task_name_1: str, task_name_2: str) -> TransformationResult:
+    def apply_1b(solution: EditableSolution, employee_name: str, task_name_1: str, task_name_2: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply reordering corresponding to the (Ord,1b) question:
         "Why is employee {Employee} not performing task {Task1} earlier in their route, just before task {Task2}?"
@@ -130,6 +155,7 @@ class ReorderingApplier:
             employee_name: The name of the employee mentioned in the question.
             task_name_1: The name of the first task mentioned in the question, the one being moved.
             task_name_2: The name of the second task mentioned in the question, the one staying put.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
@@ -137,11 +163,15 @@ class ReorderingApplier:
         employee = solution.instance.get_employee_by_name(employee_name)
         task_1 = solution.instance.get_task_by_name(task_name_1)
         task_2 = solution.instance.get_task_by_name(task_name_2)
-        evaluation = Evaluator.evaluate_moving_before_a_task(solution.get_sequence(employee), task_1, task_2)
-        return ReorderingApplier._build_result_from_evaluation(solution, employee, task_1, task_2, evaluation)
+        with progress_reporter.step("Evaluating the reordering") as step:
+            evaluation = Evaluator.evaluate_moving_before_a_task(solution.get_sequence(employee), task_1, task_2)
+            ReorderingApplier._report_evaluation(step, solution, employee, task_1, task_2, evaluation)
+        return analyze_solution(progress_reporter, lambda: ReorderingApplier._build_result_from_evaluation(
+            solution, employee, task_1, task_2, evaluation))
 
     @staticmethod
-    def apply_2a(solution: EditableSolution, employee_name: str, task_name: str) -> TransformationResult:
+    def apply_2a(solution: EditableSolution, employee_name: str, task_name: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply reordering corresponding to the (Ord,2a) question:
         "Why is employee {Employee} not performing task {Task} later in their route?"
@@ -150,19 +180,24 @@ class ReorderingApplier:
             solution: The solution to explain.
             employee_name: The name of the employee mentioned in the question.
             task_name: The name of the task mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         moving_task = solution.instance.get_task_by_name(task_name)
-        evaluation = Evaluator.find_best_reorder_to_perform_task_later(solution.get_sequence(employee), moving_task)
-        fixed_task = evaluation.activity_before
-        return ReorderingApplier._build_result_from_evaluation(
-            solution, employee, moving_task, fixed_task, evaluation)
+        with progress_reporter.step("Evaluating the reordering") as step:
+            evaluation = Evaluator.find_best_reorder_to_perform_task_later(
+                solution.get_sequence(employee), moving_task)
+            fixed_task = evaluation.activity_before
+            ReorderingApplier._report_evaluation(step, solution, employee, moving_task, fixed_task, evaluation)
+        return analyze_solution(progress_reporter, lambda: ReorderingApplier._build_result_from_evaluation(
+            solution, employee, moving_task, fixed_task, evaluation))
 
     @staticmethod
-    def apply_2b(solution: EditableSolution, employee_name: str, task_name: str) -> TransformationResult:
+    def apply_2b(solution: EditableSolution, employee_name: str, task_name: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply reordering corresponding to the (Ord,2b) question:
         "Why is employee {Employee} not performing task {Task} earlier in their route?"
@@ -171,19 +206,24 @@ class ReorderingApplier:
             solution: The solution to explain.
             employee_name: The name of the employee mentioned in the question.
             task_name: The name of the task mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         moving_task = solution.instance.get_task_by_name(task_name)
-        evaluation = Evaluator.find_best_reorder_to_perform_task_earlier(solution.get_sequence(employee), moving_task)
-        fixed_task = evaluation.activity_after
-        return ReorderingApplier._build_result_from_evaluation(
-            solution, employee, moving_task, fixed_task, evaluation)
+        with progress_reporter.step("Evaluating the reordering") as step:
+            evaluation = Evaluator.find_best_reorder_to_perform_task_earlier(
+                solution.get_sequence(employee), moving_task)
+            fixed_task = evaluation.activity_after
+            ReorderingApplier._report_evaluation(step, solution, employee, moving_task, fixed_task, evaluation)
+        return analyze_solution(progress_reporter, lambda: ReorderingApplier._build_result_from_evaluation(
+            solution, employee, moving_task, fixed_task, evaluation))
 
     @staticmethod
-    def apply_2c(solution: EditableSolution, employee_name: str, task_name: str) -> TransformationResult:
+    def apply_2c(solution: EditableSolution, employee_name: str, task_name: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply reordering corresponding to the (Ord,2c) question:
         "Why is employee {Employee} not performing task {Task} at another position in their route?"
@@ -192,6 +232,7 @@ class ReorderingApplier:
             solution: The solution to explain.
             employee_name: The name of the employee mentioned in the question.
             task_name: The name of the task mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
@@ -201,16 +242,18 @@ class ReorderingApplier:
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         moving_task = solution.instance.get_task_by_name(task_name)
-        evaluation = Evaluator.find_best_task_reorder(solution.get_sequence(employee), moving_task)
-        sequence = solution.get_sequence(employee)
-        if sequence.get_step_index_of(moving_task) < sequence.get_step_index_of(evaluation.activity_before):
-            fixed_task = evaluation.activity_before
-        elif sequence.get_step_index_of(moving_task) > sequence.get_step_index_of(evaluation.activity_after):
-            fixed_task = evaluation.activity_after
-        else:
-            raise ValueError("The moving task is not moved")
-        return ReorderingApplier._build_result_from_evaluation(
-            solution, employee, moving_task, fixed_task, evaluation)
+        with progress_reporter.step("Evaluating the reordering") as step:
+            evaluation = Evaluator.find_best_task_reorder(solution.get_sequence(employee), moving_task)
+            sequence = solution.get_sequence(employee)
+            if sequence.get_step_index_of(moving_task) < sequence.get_step_index_of(evaluation.activity_before):
+                fixed_task = evaluation.activity_before
+            elif sequence.get_step_index_of(moving_task) > sequence.get_step_index_of(evaluation.activity_after):
+                fixed_task = evaluation.activity_after
+            else:
+                raise ValueError("The moving task is not moved")
+            ReorderingApplier._report_evaluation(step, solution, employee, moving_task, fixed_task, evaluation)
+        return analyze_solution(progress_reporter, lambda: ReorderingApplier._build_result_from_evaluation(
+            solution, employee, moving_task, fixed_task, evaluation))
 
     ########
     # MILP #
@@ -247,8 +290,8 @@ class ReorderingApplier:
         return model
 
     @staticmethod
-    def apply_3(solution: EditableSolution, employee_name: str,
-                solving_time_limit: Optional[int] = None) -> TransformationResult:
+    def apply_3(solution: EditableSolution, employee_name: str, solving_time_limit: Optional[int] = None,
+                progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply reordering corresponding to the (Ord,3) question:
         "Why is employee {Employee} not performing the activities of their route in another order?"
@@ -260,10 +303,14 @@ class ReorderingApplier:
             solution: The solution to explain.
             employee_name: The name of the employee mentioned in the question.
             solving_time_limit: The solving time limit in seconds, or None for no limit.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
         """
-        model = ReorderingApplier._build_model_3(solution, employee_name, solving_time_limit)
-        TransformationModelSolver.solve_or_raise(model)
-        return build_transformation_result_from_milp_model(solution, model, ReorderingApplier._describe)
+        model = build_and_solve_model(
+            progress_reporter, ReorderingModel.__name__,
+            lambda: ReorderingApplier._build_model_3(solution, employee_name, solving_time_limit)
+        )
+        return analyze_solution(progress_reporter, lambda: build_transformation_result_from_milp_model(
+            solution, model, ReorderingApplier._describe))

@@ -500,6 +500,11 @@ class TransformationWithAlterationsBaseModel(SequenceModel):
             self._total_time_alterations_expression
         ]
 
+    @property
+    def _nb_objectives(self) -> int:
+        """The number of objectives minimized lexicographically, none of which is declared on the Pyomo model."""
+        return len(self._objectives_in_priority_order)
+
     def _solve(self, mute: bool, solver_name: str):
         """
         Solve the model one objective at a time, in priority order.

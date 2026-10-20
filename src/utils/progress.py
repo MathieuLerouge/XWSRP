@@ -123,3 +123,7 @@ class ProgressReporter:
             error: The exception the step raised.
             elapsed_time: The time the step took until it raised, in seconds.
         """
+
+
+# NB: Shared rather than created per call, which is safe since the base ProgressReporter keeps no state.
+SILENT_PROGRESS_REPORTER = ProgressReporter()

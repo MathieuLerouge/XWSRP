@@ -3,7 +3,9 @@ from typing import Optional
 
 # Local libraries
 from src.explaining.computing.conflict import SkillConflict
-from src.explaining.computing.solver import TransformationModelSolver
+from src.explaining.computing.progress import (
+    analyze_solution, build_and_solve_model, describe_skill_check, report_evaluation_verdicts
+)
 from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
@@ -17,6 +19,7 @@ from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.evaluation import ReplacementEvaluation
 from src.optimization.heuristics.evaluator import Evaluator
+from src.utils.progress import SILENT_PROGRESS_REPORTER, ProgressReporter, ProgressStep
 
 
 ###############
@@ -77,8 +80,24 @@ class SwapApplier:
         return TransformationResult(support_solution, conflict, descriptions)
 
     @staticmethod
-    def apply_1(solution: EditableSolution, employee_name: str,
-                task1_name: str, task2_name: str) -> TransformationResult:
+    def _report_evaluation(step: ProgressStep, employee: Employee, replacing_task: Task, leaving_task: Task,
+                           evaluation: ReplacementEvaluation):
+        """
+        Report the swap the evaluation settled on, and its verdicts, as details of the step evaluating it.
+
+        Args:
+            step: The step evaluating the swap.
+            employee: The employee whose sequence is to be transformed.
+            replacing_task: The task that will replace the leaving task.
+            leaving_task: The task that will be replaced by the replacing task.
+            evaluation: The evaluation of the swap.
+        """
+        step.info("Swap", f"{replacing_task.name} in place of {leaving_task.name} in {employee.name}'s route")
+        report_evaluation_verdicts(step, evaluation)
+
+    @staticmethod
+    def apply_1(solution: EditableSolution, employee_name: str, task1_name: str, task2_name: str,
+                progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply swap corresponding to the (Swp,1) question:
         "Why is employee {Employee} not performing task {Task1} in place of task {Task2}?"
@@ -88,6 +107,7 @@ class SwapApplier:
             employee_name: The name of the employee mentioned in the question.
             task1_name: The name of the first task mentioned in the question, the one taking the other's place.
             task2_name: The name of the second task mentioned in the question, the one being replaced.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
@@ -95,12 +115,16 @@ class SwapApplier:
         employee = solution.instance.get_employee_by_name(employee_name)
         task1 = solution.instance.get_task_by_name(task1_name)
         task2 = solution.instance.get_task_by_name(task2_name)
-        evaluation = Evaluator.evaluate_replacing_task_with_another(
-            solution.get_sequence(employee), task2, task1, False)
-        return SwapApplier._build_result_from_evaluation(solution, employee, task1, task2, evaluation)
+        with progress_reporter.step("Evaluating the swap") as step:
+            evaluation = Evaluator.evaluate_replacing_task_with_another(
+                solution.get_sequence(employee), task2, task1, False)
+            SwapApplier._report_evaluation(step, employee, task1, task2, evaluation)
+        return analyze_solution(progress_reporter, lambda: SwapApplier._build_result_from_evaluation(
+            solution, employee, task1, task2, evaluation))
 
     @staticmethod
-    def apply_2a(solution: EditableSolution, employee_name: str, task_name: str) -> TransformationResult:
+    def apply_2a(solution: EditableSolution, employee_name: str, task_name: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply swap corresponding to the (Swp,2a) question:
         "Why is employee {Employee} not performing task {Task} in place of one of their tasks?"
@@ -109,20 +133,24 @@ class SwapApplier:
             solution: The solution to explain.
             employee_name: The name of the employee mentioned in the question.
             task_name: The name of the task mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         entering_task = solution.instance.get_task_by_name(task_name)
-        evaluation = Evaluator.find_best_task_to_be_replaced_with_given_task(
-            solution.get_sequence(employee), entering_task, False)
-        replaced_task = evaluation.replaced_task
-        return SwapApplier._build_result_from_evaluation(
-            solution, employee, entering_task, replaced_task, evaluation)
+        with progress_reporter.step("Evaluating the swap") as step:
+            evaluation = Evaluator.find_best_task_to_be_replaced_with_given_task(
+                solution.get_sequence(employee), entering_task, False)
+            replaced_task = evaluation.replaced_task
+            SwapApplier._report_evaluation(step, employee, entering_task, replaced_task, evaluation)
+        return analyze_solution(progress_reporter, lambda: SwapApplier._build_result_from_evaluation(
+            solution, employee, entering_task, replaced_task, evaluation))
 
     @staticmethod
-    def apply_2b(solution: EditableSolution, employee_name: str) -> TransformationResult:
+    def apply_2b(solution: EditableSolution, employee_name: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply swap corresponding to the (Swp,2b) question:
         "Why is employee {Employee} not performing any non-performed task one of their tasks?"
@@ -130,6 +158,7 @@ class SwapApplier:
         Args:
             solution: The solution to explain.
             employee_name: The name of the employee mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
@@ -139,18 +168,21 @@ class SwapApplier:
                 or if the employee is not skilled enough for any of the non-performed ones.
         """
         employee = solution.instance.get_employee_by_name(employee_name)
-        performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
-            solution, employee, EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
-        )
-        evaluation = Evaluator.find_best_replacement_among_sets(
-            solution, [employee], performable_non_performed_tasks, False)
-        replacing_task = evaluation.replacing_task
-        replaced_task = evaluation.replaced_task
-        return SwapApplier._build_result_from_evaluation(
-            solution, employee, replacing_task, replaced_task, evaluation)
+        with progress_reporter.step("Evaluating the swap") as step:
+            performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
+                solution, employee, EXCHANGING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+            )
+            evaluation = Evaluator.find_best_replacement_among_sets(
+                solution, [employee], performable_non_performed_tasks, False)
+            replacing_task = evaluation.replacing_task
+            replaced_task = evaluation.replaced_task
+            SwapApplier._report_evaluation(step, employee, replacing_task, replaced_task, evaluation)
+        return analyze_solution(progress_reporter, lambda: SwapApplier._build_result_from_evaluation(
+            solution, employee, replacing_task, replaced_task, evaluation))
 
     @staticmethod
-    def apply_2c(solution: EditableSolution, task_name: str) -> TransformationResult:
+    def apply_2c(solution: EditableSolution, task_name: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply swap corresponding to the (Swp,2c) question:
         "Why is any employee is not performing task {Task} in place of one of their tasks?"
@@ -158,17 +190,20 @@ class SwapApplier:
         Args:
             solution: The solution to explain.
             task_name: The name of the task mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
         """
         replacing_task = solution.instance.get_task_by_name(task_name)
-        evaluation = Evaluator.find_best_replacement_among_sets(
-            solution, solution.performing_employees, [replacing_task], False)
-        employee = evaluation.employee
-        replaced_task = evaluation.replaced_task
-        return SwapApplier._build_result_from_evaluation(
-            solution, employee, replacing_task, replaced_task, evaluation)
+        with progress_reporter.step("Evaluating the swap") as step:
+            evaluation = Evaluator.find_best_replacement_among_sets(
+                solution, solution.performing_employees, [replacing_task], False)
+            employee = evaluation.employee
+            replaced_task = evaluation.replaced_task
+            SwapApplier._report_evaluation(step, employee, replacing_task, replaced_task, evaluation)
+        return analyze_solution(progress_reporter, lambda: SwapApplier._build_result_from_evaluation(
+            solution, employee, replacing_task, replaced_task, evaluation))
 
     ########
     # MILP #
@@ -204,7 +239,8 @@ class SwapApplier:
 
     @staticmethod
     def apply_3(solution: EditableSolution, employee_name: str, task_name: str,
-                solving_time_limit: Optional[int] = None) -> TransformationResult:
+                solving_time_limit: Optional[int] = None,
+                progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply swap corresponding to the (Swp,3) question:
         "Why is employee {Employee} not performing task {Task} instead of any of their already-performed tasks
@@ -218,17 +254,23 @@ class SwapApplier:
             employee_name: The name of the employee mentioned in the question.
             task_name: The name of the task mentioned in the question.
             solving_time_limit: The solving time limit in seconds, or None for no limit.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         task = solution.instance.get_task_by_name(task_name)
-        if not employee.is_capable_of_performing(task):
-            return TransformationResult(
-                solution.copy(solution.name + "_support"), SkillConflict(employee, task),
-                TransformationDescriptionBuilder.none()
-            )
-        model = SwapApplier._build_model_3(solution, employee_name, task_name, solving_time_limit)
-        TransformationModelSolver.solve_or_raise(model)
-        return build_transformation_result_from_milp_model(solution, model, SwapApplier._describe)
+        with progress_reporter.step("Checking skills") as step:
+            skill_conflict = None if employee.is_capable_of_performing(task) else SkillConflict(employee, task)
+            step.info("Skill conflict", describe_skill_check(skill_conflict))
+        if skill_conflict is not None:
+            return analyze_solution(progress_reporter, lambda: TransformationResult(
+                solution.copy(solution.name + "_support"), skill_conflict, TransformationDescriptionBuilder.none()
+            ))
+        model = build_and_solve_model(
+            progress_reporter, SwapModel.__name__,
+            lambda: SwapApplier._build_model_3(solution, employee_name, task_name, solving_time_limit)
+        )
+        return analyze_solution(progress_reporter, lambda: build_transformation_result_from_milp_model(
+            solution, model, SwapApplier._describe))

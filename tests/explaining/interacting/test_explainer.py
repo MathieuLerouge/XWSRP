@@ -30,7 +30,7 @@ from src.explaining.neighborhood.bridge.mapper import Mapper
 from src.explaining.processes import get_demo_solution
 from src.explaining.question.free.question import FreeTextQuestion
 from src.explaining.question.predefined.bank import QUESTIONS_TEMPLATES
-from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_SWP_1
+from src.explaining.question.predefined.constants import WHY_NOT_INS_1, WHY_NOT_INS_3, WHY_NOT_SWP_1
 from src.explaining.question.predefined.question import (
     ContrastiveQuestion, CounterfactualQuestion, ScenarioQuestion
 )
@@ -863,11 +863,33 @@ def test_a_neighborhood_explanation_settled_by_a_skill_conflict_reports_no_milp_
     assert get_step_titles(reporter) == ["Extracting the neighborhood", "Checking skills", "Analyzing the solution"]
 
 
-def test_a_tailored_explanation_reports_one_step(demo_solution):
+def test_a_polynomial_tailored_explanation_reports_its_evaluation_then_its_analysis(demo_solution):
     explainer = build_explainer(demo_solution)
     reporter = follow_progress(explainer)
     explainer.get_contrastive_explanation(WHY_NOT_INS_1, FIELDS_VALUES_BY_EXPLANATION_TYPE[TimeNegativeExplanation])
-    assert get_step_titles(reporter) == ["Computing the transformation"]
+    assert get_step_titles(reporter) == ["Evaluating the insertion", "Analyzing the solution"]
+    assert ("info", "Insertion", "T2 in Ellen's route, just after Start") in reporter.calls
+    assert ("info", "Feasible", "no (skill: yes, time: no)") in reporter.calls
+    assert ("info", "Conflict", "time conflict between Ellen and T2") in reporter.calls
+
+
+def test_a_milp_tailored_explanation_reports_each_step_of_the_model(demo_solution):
+    explainer = build_explainer(demo_solution)
+    reporter = follow_progress(explainer)
+    explainer.get_contrastive_explanation(WHY_NOT_INS_3, ["Ellen", "T2"])
+    assert get_step_titles(reporter) == [
+        "Checking skills", "Building the InsertionModel", "Solving the InsertionModel", "Analyzing the solution"
+    ]
+    assert ("info", "Objectives", "3") in reporter.calls
+    assert any(call[:2] == ("info", "Level 1 (time gap)") for call in reporter.calls)
+
+
+def test_a_milp_tailored_explanation_settled_by_a_skill_conflict_reports_no_model_step(demo_solution):
+    explainer = build_explainer(demo_solution)
+    reporter = follow_progress(explainer)
+    explainer.get_contrastive_explanation(WHY_NOT_INS_3, ["Ellen", "T6"])
+    assert get_step_titles(reporter) == ["Checking skills", "Analyzing the solution"]
+    assert ("info", "Conflict", "skill conflict between Ellen and T6") in reporter.calls
 
 
 def test_a_cached_explanation_reports_its_reuse_only(demo_solution):

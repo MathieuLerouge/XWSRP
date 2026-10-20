@@ -820,10 +820,9 @@ class Explainer:
         if computation_mode_is_tailored:
             mode = ExplanationComputationModes.TAILORED.value
             neighborhood = None
-            with self._progress_reporter.step("Computing the transformation"):
-                transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
-                    self.current_solution, contrastive_question, solving_time_limit
-                )
+            transformation_result = TransformationDispatcher.handle_contrastive_or_scenario_question(
+                self.current_solution, contrastive_question, solving_time_limit, self._progress_reporter
+            )
         else:
             mode = ExplanationComputationModes.NEIGHBORHOOD.value
             neighborhood = self._extract_neighborhood(contrastive_question)

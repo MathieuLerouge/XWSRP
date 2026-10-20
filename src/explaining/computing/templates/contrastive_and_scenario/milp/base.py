@@ -2,8 +2,9 @@
 from abc import abstractmethod, ABC
 from typing import Optional
 
-# Third-party library
+# Third-party libraries
 import pyomo.environ as pyo
+from pyomo.core.expr.numvalue import NumericValue
 
 # Local libraries
 from src.modeling.comeback import ComeBack
@@ -15,6 +16,11 @@ from src.optimization.heuristics.sequence import SequenceForHeuristics
 from src.optimization.milp.solver.solver import Solver
 from src.optimization.milp.subproblems.sequencemodel import SequenceModel, \
     LEAVING_HOME_KEY, COMING_BACK_HOME_KEY
+
+# Global variables
+TIME_GAP_OBJECTIVE_NAME = "time gap"
+WORKING_DURATION_OBJECTIVE_NAME = "working duration"
+TRAVELING_DURATION_OBJECTIVE_NAME = "traveling duration"
 
 
 ###########################
@@ -246,9 +252,16 @@ class TransformationBaseModel(SequenceModel, ABC):
         the time gap, the working duration, then the traveling duration.
         """
         self._compute_key_quantities()
-        self._objectives_in_priority_order = [
-            self.time_gap_expression, self.working_duration_expression, self.traveling_duration_expression
+        self._objectives_in_priority_order: list[tuple[str, NumericValue]] = [
+            (TIME_GAP_OBJECTIVE_NAME, self.time_gap_expression),
+            (WORKING_DURATION_OBJECTIVE_NAME, self.working_duration_expression),
+            (TRAVELING_DURATION_OBJECTIVE_NAME, self.traveling_duration_expression)
         ]
+
+    @property
+    def _nb_objectives(self) -> int:
+        """The number of objectives minimized lexicographically, none of which is declared on the Pyomo model."""
+        return len(self._objectives_in_priority_order)
 
     def _solve(self, mute: bool, solver_name: str):
         """
@@ -259,10 +272,15 @@ class TransformationBaseModel(SequenceModel, ABC):
             solver_name: The name of the backend to solve with.
 
         Returns:
-            The outcome of the last solve.
+            The outcome of the last level solved, every level's being recorded in this model's statistics.
         """
         solver = Solver(solver_name, mute=mute, time_limit=self._solving_time_limit)
-        return solver.solve_lexicographically(self._model, self._objectives_in_priority_order)[-1]
+        objective_names = [name for name, _ in self._objectives_in_priority_order]
+        objective_expressions = [expression for _, expression in self._objectives_in_priority_order]
+        outcomes = solver.solve_lexicographically(self._model, objective_expressions)
+        # NB: zip stops at the last level solved, which is not the last objective if the solve stopped early.
+        self._statistics.lexicographic_outcomes = list(zip(objective_names, outcomes))
+        return outcomes[-1]
 
     ###############
     # Constraints #

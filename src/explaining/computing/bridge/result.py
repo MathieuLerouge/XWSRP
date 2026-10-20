@@ -3,12 +3,12 @@ from typing import Optional
 
 # Local libraries
 from src.explaining.computing.bridge.description import NeighborhoodDescriptionBuilder
-from src.explaining.computing.conflict import Conflict, SkillConflict
 from src.explaining.computing.neighborhood.extractor import ConflictExtractor
 from src.explaining.computing.neighborhood.model import NeighborhoodModel
 from src.explaining.computing.neighborhood.solving import (
     reorder_support_sequences_to_solved_routes, solve_neighborhood
 )
+from src.explaining.computing.progress import describe_conflict
 from src.explaining.computing.templates.common.result import TransformationResult
 from src.explaining.neighborhood.exceptions import NeighborhoodError
 from src.explaining.neighborhood.neighborhood import Neighborhood
@@ -55,25 +55,8 @@ def solve_neighborhood_into_transformation_result(
     with progress_reporter.step("Analyzing the solution") as step:
         question, transformation_result = build_transformation_result_from_neighborhood(neighborhood, model)
         step.info("Recognized template", question.template.id)
-        step.info("Conflict", _describe_conflict(transformation_result.conflict))
+        step.info("Conflict", describe_conflict(transformation_result.conflict))
     return question, transformation_result
-
-
-def _describe_conflict(conflict: Optional[Conflict]) -> str:
-    """
-    Describe the conflict a transformation ran into, in short.
-
-    Args:
-        conflict: The conflict, or None when the transformation is feasible.
-
-    Returns:
-        The kind of conflict and who it is between (e.g. "time conflict between Ellen and T2"),
-        or "none" when there is none.
-    """
-    if conflict is None:
-        return "none"
-    kind = "skill" if isinstance(conflict, SkillConflict) else "time"
-    return f"{kind} conflict between {conflict.conflicting_employee.name} and {conflict.conflicting_task.name}"
 
 
 def build_transformation_result_from_neighborhood(

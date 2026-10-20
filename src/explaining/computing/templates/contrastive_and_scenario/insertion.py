@@ -3,7 +3,9 @@ from typing import Optional
 
 # Local libraries
 from src.explaining.computing.conflict import SkillConflict
-from src.explaining.computing.solver import TransformationModelSolver
+from src.explaining.computing.progress import (
+    analyze_solution, build_and_solve_model, describe_skill_check, report_evaluation_verdicts
+)
 from src.explaining.computing.templates.common.conflict import TailoredConflictBuilder
 from src.explaining.computing.templates.common.description import TransformationDescriptionBuilder
 from src.explaining.computing.templates.common.preconditions import TransformationPreconditionChecker, \
@@ -18,6 +20,7 @@ from src.modeling.employee import Employee
 from src.modeling.task import Task
 from src.optimization.heuristics.evaluation import InsertionEvaluation
 from src.optimization.heuristics.evaluator import Evaluator
+from src.utils.progress import SILENT_PROGRESS_REPORTER, ProgressReporter, ProgressStep
 
 
 ####################
@@ -79,8 +82,24 @@ class InsertionApplier:
         return TransformationResult(support_solution, conflict, descriptions)
 
     @staticmethod
-    def apply_1(solution: EditableSolution, employee_name: str, task_name: str,
-                activity_name: str) -> TransformationResult:
+    def _report_evaluation(step: ProgressStep, employee: Employee, task: Task, activity: Activity,
+                           evaluation: InsertionEvaluation):
+        """
+        Report the insertion the evaluation settled on, and its verdicts, as details of the step evaluating it.
+
+        Args:
+            step: The step evaluating the insertion.
+            employee: The employee whose sequence is to be transformed.
+            task: The task to insert.
+            activity: The activity after which the task is to be inserted.
+            evaluation: The evaluation of the insertion.
+        """
+        step.info("Insertion", f"{task.name} in {employee.name}'s route, just after {activity.name}")
+        report_evaluation_verdicts(step, evaluation)
+
+    @staticmethod
+    def apply_1(solution: EditableSolution, employee_name: str, task_name: str, activity_name: str,
+                progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply insertion corresponding to the (Ins,1) question:
         "Why is employee {Employee} not performing task {Task} just after activity {Activity}?"
@@ -90,6 +109,7 @@ class InsertionApplier:
             employee_name: The name of the employee mentioned in the question.
             task_name: The name of the task mentioned in the question.
             activity_name: The name of the activity mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
@@ -97,11 +117,15 @@ class InsertionApplier:
         employee = solution.instance.get_employee_by_name(employee_name)
         task = solution.instance.get_task_by_name(task_name)
         activity = solution.instance.get_hypothetical_activity_by_names(activity_name, employee_name)
-        evaluation = Evaluator.evaluate_insertion_after(solution.get_sequence(employee), task, activity, False)
-        return InsertionApplier._build_result_from_evaluation(solution, employee, task, activity, evaluation)
+        with progress_reporter.step("Evaluating the insertion") as step:
+            evaluation = Evaluator.evaluate_insertion_after(solution.get_sequence(employee), task, activity, False)
+            InsertionApplier._report_evaluation(step, employee, task, activity, evaluation)
+        return analyze_solution(progress_reporter, lambda: InsertionApplier._build_result_from_evaluation(
+            solution, employee, task, activity, evaluation))
 
     @staticmethod
-    def apply_2a(solution: EditableSolution, employee_name: str, task_name: str) -> TransformationResult:
+    def apply_2a(solution: EditableSolution, employee_name: str, task_name: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply insertion corresponding to the (Ins,2a) question:
         "Why is employee {Employee} not performing task {Task} between two consecutive activities of their planning?"
@@ -110,19 +134,24 @@ class InsertionApplier:
             solution: The solution to explain.
             employee_name: The name of the employee mentioned in the question.
             task_name: The name of the task mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         task = solution.instance.get_task_by_name(task_name)
-        evaluation = Evaluator.find_best_insertion_between_consecutive_activities(
-            solution.get_sequence(employee), task, compute_times_only_if_skill_constraints_satisfied=False)
-        activity = evaluation.activity_before_insertion
-        return InsertionApplier._build_result_from_evaluation(solution, employee, task, activity, evaluation)
+        with progress_reporter.step("Evaluating the insertion") as step:
+            evaluation = Evaluator.find_best_insertion_between_consecutive_activities(
+                solution.get_sequence(employee), task, compute_times_only_if_skill_constraints_satisfied=False)
+            activity = evaluation.activity_before_insertion
+            InsertionApplier._report_evaluation(step, employee, task, activity, evaluation)
+        return analyze_solution(progress_reporter, lambda: InsertionApplier._build_result_from_evaluation(
+            solution, employee, task, activity, evaluation))
 
     @staticmethod
-    def apply_2b(solution: EditableSolution, employee_name: str) -> TransformationResult:
+    def apply_2b(solution: EditableSolution, employee_name: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply insertion corresponding to the (Ins,2b) question:
         "Why is employee {Employee} not performing any non-performed task
@@ -131,6 +160,7 @@ class InsertionApplier:
         Args:
             solution: The solution to explain.
             employee_name: The name of the employee mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
@@ -140,18 +170,22 @@ class InsertionApplier:
                 or if the employee is not skilled enough for any of the non-performed ones.
         """
         employee = solution.instance.get_employee_by_name(employee_name)
-        performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
-            solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
-        )
-        evaluation = Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
-            solution, performable_non_performed_tasks, [employee], False
-        )
-        task = evaluation.inserted_task
-        activity = evaluation.activity_before_insertion
-        return InsertionApplier._build_result_from_evaluation(solution, employee, task, activity, evaluation)
+        with progress_reporter.step("Evaluating the insertion") as step:
+            performable_non_performed_tasks = TransformationPreconditionChecker.get_performable_non_performed_tasks(
+                solution, employee, INSERTING_ANY_NON_PERFORMED_TASK_IS_IMPOSSIBLE_MESSAGE
+            )
+            evaluation = Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
+                solution, performable_non_performed_tasks, [employee], False
+            )
+            task = evaluation.inserted_task
+            activity = evaluation.activity_before_insertion
+            InsertionApplier._report_evaluation(step, employee, task, activity, evaluation)
+        return analyze_solution(progress_reporter, lambda: InsertionApplier._build_result_from_evaluation(
+            solution, employee, task, activity, evaluation))
 
     @staticmethod
-    def apply_2c(solution: EditableSolution, task_name: str) -> TransformationResult:
+    def apply_2c(solution: EditableSolution, task_name: str,
+                 progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply insertion corresponding to the (Ins,2c) question:
         "Why is any employee not performing task {Task} between two consecutive activities of their planning?"
@@ -159,17 +193,21 @@ class InsertionApplier:
         Args:
             solution: The solution to explain.
             task_name: The name of the task mentioned in the question.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
         """
         task = solution.instance.get_task_by_name(task_name)
-        evaluation = Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
-            solution, [task], solution.instance.employees, False
-        )
-        employee = evaluation.employee
-        activity = evaluation.activity_before_insertion
-        return InsertionApplier._build_result_from_evaluation(solution, employee, task, activity, evaluation)
+        with progress_reporter.step("Evaluating the insertion") as step:
+            evaluation = Evaluator.find_best_insertion_between_consecutive_activities_among_sets(
+                solution, [task], solution.instance.employees, False
+            )
+            employee = evaluation.employee
+            activity = evaluation.activity_before_insertion
+            InsertionApplier._report_evaluation(step, employee, task, activity, evaluation)
+        return analyze_solution(progress_reporter, lambda: InsertionApplier._build_result_from_evaluation(
+            solution, employee, task, activity, evaluation))
 
     ########
     # MILP #
@@ -205,7 +243,8 @@ class InsertionApplier:
 
     @staticmethod
     def apply_3(solution: EditableSolution, employee_name: str, task_name: str,
-                solving_time_limit: Optional[int] = None) -> TransformationResult:
+                solving_time_limit: Optional[int] = None,
+                progress_reporter: ProgressReporter = SILENT_PROGRESS_REPORTER) -> TransformationResult:
         """
         Apply insertion corresponding to the (Ins,3) question:
         "Why is employee {Employee} not performing task {Task} in addition to their activities?"
@@ -218,17 +257,24 @@ class InsertionApplier:
             employee_name: The name of the employee mentioned in the question.
             task_name: The name of the task to be inserted mentioned in the question.
             solving_time_limit: The solving time limit in seconds, or None for no limit.
+            progress_reporter: What each step of the transformation is reported to as it runs.
 
         Returns:
             The result of the applied transformation.
         """
         employee = solution.instance.get_employee_by_name(employee_name)
         task = solution.instance.get_task_by_name(task_name)
-        if not employee.is_capable_of_performing(task):
-            return TransformationResult(
-                solution.copy(solution.name + "_support"), SkillConflict(employee, task),
+        with progress_reporter.step("Checking skills") as step:
+            skill_conflict = None if employee.is_capable_of_performing(task) else SkillConflict(employee, task)
+            step.info("Skill conflict", describe_skill_check(skill_conflict))
+        if skill_conflict is not None:
+            return analyze_solution(progress_reporter, lambda: TransformationResult(
+                solution.copy(solution.name + "_support"), skill_conflict,
                 TransformationDescriptionBuilder.for_inserting_task_in_route(task, employee, "")
-            )
-        model = InsertionApplier._build_model_3(solution, employee_name, task_name, solving_time_limit)
-        TransformationModelSolver.solve_or_raise(model)
-        return build_transformation_result_from_milp_model(solution, model, InsertionApplier._describe)
+            ))
+        model = build_and_solve_model(
+            progress_reporter, InsertionModel.__name__,
+            lambda: InsertionApplier._build_model_3(solution, employee_name, task_name, solving_time_limit)
+        )
+        return analyze_solution(progress_reporter, lambda: build_transformation_result_from_milp_model(
+            solution, model, InsertionApplier._describe))

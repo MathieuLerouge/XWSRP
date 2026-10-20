@@ -1,4 +1,5 @@
-# Standard library
+# Standard libraries
+import time
 from typing import Optional
 
 # Third-party libraries
@@ -18,6 +19,7 @@ from src.modeling.task import Task
 from src.modeling.unavailability import Unavailability
 from src.optimization.milp.solver.outcome import Outcome
 from src.optimization.milp.solver.solver import Solver
+from src.optimization.milp.statistics import MilpStatistics
 
 
 # Global variables
@@ -88,9 +90,12 @@ class SequenceModel:
         self._solving_time_limit: Optional[int] = None
         self._sequence_from_milp_solving: Optional[Sequence] = None
         self._solve_outcome: Optional[Outcome] = None
+        build_start_time = time.perf_counter()
         self._add_decision_variables()
         self._add_objective_function()
         self._add_constraints()
+        build_time = time.perf_counter() - build_start_time
+        self._statistics = MilpStatistics.from_pyomo_model(self._model, self._nb_objectives, build_time)
 
     @property
     def instance(self):
@@ -101,6 +106,11 @@ class SequenceModel:
     def employee(self):
         """The employee for which the sequence is optimized."""
         return self._employee
+
+    @property
+    def statistics(self) -> MilpStatistics:
+        """This model's size snapshot, taken once built, along with its build time and, once solved, solve time."""
+        return self._statistics
 
     def get_activities_keys(self, including_departure: bool = True, including_comeback: bool = True,
                             including_unavailabilities: bool = True):
@@ -247,6 +257,16 @@ class SequenceModel:
         objective_expression = (self.weight_working_duration * working_duration_expression -
                                 self.weight_traveling_duration * traveling_duration_expression)
         self._model.objective = pyo.Objective(expr=objective_expression, sense=pyo.maximize)
+
+    @property
+    def _nb_objectives(self) -> int:
+        """
+        The number of objectives this model is solved against.
+
+        Subclasses whose objective function is a lexicographic priority list override this,
+        since such objectives are only declared on the Pyomo model while being solved.
+        """
+        return self._model.nobjectives()
 
     ###############
     # Constraints #
@@ -488,7 +508,12 @@ class SequenceModel:
             the Outcome describing the solving, with its solution set if a feasible solution
             (an incumbent) was found.
         """
+        solve_start_time = time.perf_counter()
         self._solve_outcome = self._solve(mute=mute, solver_name=solver_name)
+        # NB: Timed here rather than read from the outcome,
+        # whose run time only covers the last level of a lexicographic solve.
+        self._statistics.solve_time = time.perf_counter() - solve_start_time
+        self._statistics.solver_name = solver_name
         if self._solve_outcome.has_incumbent:
             self._extract_data_from_milp_solving()
             self._solve_outcome.solution = self.solution_sequence
