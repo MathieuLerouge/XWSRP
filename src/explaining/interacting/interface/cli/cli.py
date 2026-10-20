@@ -14,6 +14,7 @@ from src.explaining.explanation.free.exceptions import ExplanationWritingError
 from src.explaining.explanation.free.explanation import FreeTextExplanation
 from src.explaining.interacting.explainer import Explainer
 from src.explaining.interacting.configuration import ExplainerConfiguration
+from src.explaining.interacting.interface.cli.colors import blue, gray, yellow
 from src.explaining.interacting.interface.cli.commands import *
 from src.explaining.interacting.interface.cli.completer import ExplainerCLICompleter
 from src.explaining.interacting.interface.cli.progress import CLIProgressReporter
@@ -116,10 +117,10 @@ class ExplainerCLI:
     def run(self) -> None:
         """Main REPL loop."""
         os.system('clear' if os.name != 'nt' else 'cls')
-        print(f"{self._blue('XWSRP CLI')} - Interactive CLI for explaining WSRP solutions")
-        print(f"Type {self._yellow(Commands.HELP.name)} for commands")
+        print(f"{blue('XWSRP CLI')} - Interactive CLI for explaining WSRP solutions")
+        print(f"Type {yellow(Commands.HELP.name)} for commands")
         print()
-        print(self._gray(f"Loaded solution: {self._solution.name}"))
+        print(gray(f"Loaded solution: {self._solution.name}"))
         print()
         while self._running:
             try:
@@ -133,7 +134,7 @@ class ExplainerCLI:
                 self.dispatch(user_input)
                 print()
             except KeyboardInterrupt:
-                print(f"\nUse {self._yellow(Commands.QUIT.name)} to exit.")
+                print(f"\nUse {yellow(Commands.QUIT.name)} to exit.")
                 print()
             except EOFError:
                 print()
@@ -171,7 +172,7 @@ class ExplainerCLI:
         else:
             print()
             print(f"Unknown command '{command}'. "
-                  f"Type {self._yellow(Commands.HELP.name)} for available commands.")
+                  f"Type {yellow(Commands.HELP.name)} for available commands.")
 
     ##########################
     # Command Handlers - Ask #
@@ -180,7 +181,7 @@ class ExplainerCLI:
     def handle_ask(self, args: list[str]) -> str:
         """Handle /ask <question> command."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.ASK.name)} <free-text-question>"
+            return f"Usage: {yellow(Commands.ASK.name)} <free-text-question>"
         if self._explainer.neighborhood_extraction_llm_model is None:
             set_llm_model_str = self._highlight_command(
                 Commands.SET.name, SetTargets.LLM_MODEL.value, LLMModelTargets.NEIGHBORHOOD_EXTRACTION.value
@@ -209,7 +210,7 @@ class ExplainerCLI:
         """Handle /ask-template <kind> <template_id> <value1> <value2> ... command."""
         activated_targets = self.get_activated_ask_template_targets()
         if len(args) < 1:
-            return (f"Usage: {self._yellow(Commands.ASK_TEMPLATE.name)} <kind> <template_id> <value1> <value2> ... "
+            return (f"Usage: {yellow(Commands.ASK_TEMPLATE.name)} <kind> <template_id> <value1> <value2> ... "
                     f"where kind is: {', '.join(activated_targets)}")
         target = args[0].lower()
         if target in AskTemplateTargets.values() and target not in activated_targets:
@@ -360,19 +361,19 @@ class ExplainerCLI:
         if self._display_mode == DisplayModes.DEVELOPER.value:
             # NB: Only what no computation step reports, those having printed their details as they ran.
             lines.append("")
-            lines.append(self._gray(f"Questioning mode: {explanation.question.mode}"))
+            lines.append(gray(f"Questioning mode: {explanation.question.mode}"))
             if explanation.mode is not None:
-                lines.append(self._gray(f"Explanation computation mode: {explanation.mode}"))
+                lines.append(gray(f"Explanation computation mode: {explanation.mode}"))
             if isinstance(explanation, FreeTextExplanation):
                 writing_mode = FreeTextExplanationModes.WRITTEN.value
-                lines.append(self._gray(f"Free-text explanation writing mode: {writing_mode}"))
-            lines.append(self._gray(f"Support solution: {feasibility}"))
+                lines.append(gray(f"Free-text explanation writing mode: {writing_mode}"))
+            lines.append(gray(f"Support solution: {feasibility}"))
             # NB: Only for an explanation computed earlier: for one just computed, the time per step below covers it.
             if is_reused and explanation.total_time is not None:
-                lines.append(self._gray(f"Total time when first computed: {explanation.total_time:.3f}s"))
+                lines.append(gray(f"Total time when first computed: {explanation.total_time:.3f}s"))
             if request_time is not None and self._cli_progress_reporter is not None:
                 step_times = self._cli_progress_reporter.take_step_times()
-                lines.append(self._gray(self._format_time_per_step(step_times, request_time)))
+                lines.append(gray(self._format_time_per_step(step_times, request_time)))
         return "\n".join(lines)
 
     @staticmethod
@@ -417,7 +418,7 @@ class ExplainerCLI:
     def handle_list(self, args: list[str]) -> str:
         """Handle /list <target> command."""
         if len(args) < 1:
-            return (f"Usage: {self._yellow(Commands.LIST.name)} <target> "
+            return (f"Usage: {yellow(Commands.LIST.name)} <target> "
                     f"where target is: {', '.join(ListTargets.values())}")
         target = args[0].lower()
         if target == ListTargets.TEMPLATE_QUESTIONS.value:
@@ -439,7 +440,7 @@ class ExplainerCLI:
         for template in templates:
             language = self._explainer.language
             text = template.all_texts.get(language, template.all_texts[LANGUAGE_ENGLISH_KEY])
-            lines.append(f"  • {self._yellow(template.id)}: {self._highlight_fields(text)}")
+            lines.append(f"  • {yellow(template.id)}: {self._highlight_fields(text)}")
         return "\n".join(lines)
 
     def _list_instances(self) -> str:
@@ -469,7 +470,7 @@ class ExplainerCLI:
     def handle_switch(self, args: list[str]) -> str:
         """Handle /switch <target> [name] command."""
         if len(args) < 1:
-            return (f"Usage: {self._yellow(Commands.SWITCH.name)} <target> [name] "
+            return (f"Usage: {yellow(Commands.SWITCH.name)} <target> [name] "
                     f"where target is: {', '.join(SwitchTargets.values())}")
         target = args[0].lower()
         if target == SwitchTargets.INSTANCE.value:
@@ -487,7 +488,7 @@ class ExplainerCLI:
     def _switch_instance(self, args: list[str]) -> str:
         """Handle /switch instance <instance_name> command, switching to that instance's first stored solution."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.SWITCH.name)} {SwitchTargets.INSTANCE.value} <instance_name>"
+            return f"Usage: {yellow(Commands.SWITCH.name)} {SwitchTargets.INSTANCE.value} <instance_name>"
         instance_name = args[0]
         try:
             solutions = self._explainer.history.get_solutions_of_instance_by_name(instance_name)
@@ -504,7 +505,7 @@ class ExplainerCLI:
     def _switch_solution(self, args: list[str]) -> str:
         """Handle /switch solution <solution_name> command."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.SWITCH.name)} {SwitchTargets.SOLUTION.value} <solution_name>"
+            return f"Usage: {yellow(Commands.SWITCH.name)} {SwitchTargets.SOLUTION.value} <solution_name>"
         solution_name = args[0]
         try:
             solution = self._explainer.history.get_solution_by_name(solution_name)
@@ -567,7 +568,7 @@ class ExplainerCLI:
     def handle_set(self, args: list[str]) -> str:
         """Handle /set <target> <option> [value] command."""
         if len(args) < 1:
-            return (f"Usage: {self._yellow(Commands.SET.name)} <target> <option> [value] "
+            return (f"Usage: {yellow(Commands.SET.name)} <target> <option> [value] "
                     f"where target is: {', '.join(SetTargets.values())}")
         target = args[0].lower()
         if target == SetTargets.LLM_MODEL.value:
@@ -717,7 +718,7 @@ class ExplainerCLI:
         self._explainer.configuration.neighborhood_extraction_mode = mode
         result = f"Neighborhood extraction mode set to {mode}"
         if self._explainer.configuration.template_computation_mode == TemplateComputationModes.TAILORED.value:
-            result += "\n" + self._gray(
+            result += "\n" + gray(
                 f"NB: It only applies in {TemplateComputationModes.NEIGHBORHOOD.value} template computation mode "
                 f"(see {Commands.SET.name} {SetTargets.TEMPLATE_COMPUTATION_MODE.value})."
             )
@@ -814,7 +815,7 @@ class ExplainerCLI:
         """
         self._display_mode = mode
         if mode == DisplayModes.DEVELOPER.value:
-            self._cli_progress_reporter = CLIProgressReporter(colorize=self._gray, colorize_warning=self._yellow)
+            self._cli_progress_reporter = CLIProgressReporter()
             self._explainer.progress_reporter = self._cli_progress_reporter
         else:
             self._cli_progress_reporter = None
@@ -823,7 +824,7 @@ class ExplainerCLI:
     def handle_enable(self, args: list[str]) -> str:
         """Handle /enable <feature> command."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.ENABLE.name)} <feature>"
+            return f"Usage: {yellow(Commands.ENABLE.name)} <feature>"
         feature = args[0].lower()
         enable_targets = EnableTargets.values()
         if feature not in enable_targets:
@@ -842,7 +843,7 @@ class ExplainerCLI:
     def handle_disable(self, args: list[str]) -> str:
         """Handle /disable <feature> command."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.DISABLE.name)} <feature>"
+            return f"Usage: {yellow(Commands.DISABLE.name)} <feature>"
         feature = args[0].lower()
         enable_targets = EnableTargets.values()
         if feature not in enable_targets:
@@ -865,7 +866,7 @@ class ExplainerCLI:
     def handle_show(self, args: list[str]) -> str:
         """Handle /show <resource> [name] command."""
         if len(args) < 1:
-            return (f"Usage: {self._yellow(Commands.SHOW.name)} <resource> [name] "
+            return (f"Usage: {yellow(Commands.SHOW.name)} <resource> [name] "
                     f"where resource is: {', '.join(ShowTargets.values())}")
         resource = args[0].lower()
         if resource == ShowTargets.SOLUTION.value:
@@ -889,7 +890,7 @@ class ExplainerCLI:
     def _show_instance(self, args: list[str]) -> str:
         """Handle /show instance <instance_name> command."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.SHOW.name)} {ShowTargets.INSTANCE.value} <instance_name>"
+            return f"Usage: {yellow(Commands.SHOW.name)} {ShowTargets.INSTANCE.value} <instance_name>"
         instance_name = args[0]
         try:
             instance = self._explainer.history.get_instance_by_name(instance_name)
@@ -925,7 +926,7 @@ class ExplainerCLI:
     def _show_solution(self, args: list[str]) -> str:
         """Handle /show solution <solution_name> command."""
         if len(args) < 1:
-            return f"Usage: {self._yellow(Commands.SHOW.name)} {ShowTargets.SOLUTION.value} <solution_name>"
+            return f"Usage: {yellow(Commands.SHOW.name)} {ShowTargets.SOLUTION.value} <solution_name>"
         solution_name = args[0]
         try:
             solution = self._explainer.history.get_solution_by_name(solution_name)
@@ -1020,7 +1021,7 @@ class ExplainerCLI:
 
     def handle_clear(self, args: list[str]) -> str:
         """Handle /clear <target> command."""
-        usage = f"Usage: {self._yellow(Commands.CLEAR.name)} <{'|'.join(ClearTargets.values())}>"
+        usage = f"Usage: {yellow(Commands.CLEAR.name)} <{'|'.join(ClearTargets.values())}>"
         if len(args) < 1:
             return usage
         target = args[0].lower()
@@ -1048,21 +1049,6 @@ class ExplainerCLI:
     #########################
 
     @staticmethod
-    def _yellow(text: str) -> str:
-        """Return text formatted in color #ffab40 (orange-yellow) using 24-bit ANSI codes."""
-        return f"\033[38;2;255;171;64m{text}\033[0m"
-
-    @staticmethod
-    def _blue(text: str) -> str:
-        """Return text formatted in color #4285f4 (blue) using 24-bit ANSI codes."""
-        return f"\033[38;2;66;133;244m{text}\033[0m"
-
-    @staticmethod
-    def _gray(text: str) -> str:
-        """Return text formatted in color #767676 (gray) using 24-bit ANSI codes."""
-        return f"\033[38;2;118;118;118m{text}\033[0m"
-
-    @staticmethod
     def _highlight_command(*tokens: str) -> str:
         """
         Return the command made of the given tokens (e.g. /set and one of its targets), highlighted,
@@ -1074,11 +1060,11 @@ class ExplainerCLI:
         Returns:
             The tokens joined by spaces, in yellow.
         """
-        return ExplainerCLI._yellow(" ".join(tokens))
+        return yellow(" ".join(tokens))
 
     @staticmethod
     def _highlight_fields(text: str) -> str:
         """Highlight field patterns like {Employee}, {Task}, ... in yellow."""
         def replace_field(match):
-            return ExplainerCLI._yellow(match.group(0))
+            return yellow(match.group(0))
         return re.sub(r'\{[^}]+}', replace_field, text)
